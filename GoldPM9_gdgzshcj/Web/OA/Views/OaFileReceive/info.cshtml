@@ -1,0 +1,132 @@
+﻿@model DataModel.Models.OaFileReceive
+
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.textbox.selEmp({
+            id: 'selEmployee',
+            setID: 'HandEmps',
+            width: 660,
+        });
+    })
+
+    JQ.form.submitInit({
+        formid: 'OaFileReceiveForm',//formid提交需要用到
+        docName: 'OaFileReceive',
+        ExportName:'文件接收单',
+        buttonTypes: ['exportForm', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            var _tempFrame=window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+            if(_tempFrame){
+                _tempFrame.contentWindow.refreshGrid();
+            }
+            _flowInstance.$form.parent().dialog("close");
+        },
+        flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "OA,OA.FlowProcessor.OaFileReceiveFlow",
+            refID: "@(Model.Id)",
+            refTable: "OaFileReceive",
+            dataCreator:"@(ViewBag.CreatorEmpId )"
+        }
+    });
+
+
+</script>
+@using (Html.BeginForm("save", "OaFileReceive", FormMethod.Post, new { @area = "Oa", @id = "OaFileReceiveForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <td colspan="2" style="text-align:center;font-weight:bolder;font-size:16px;">文件接收单</td>
+        </tr>
+        <tr>
+            <th width="10%">申请人</th>
+            <td width="40%">
+                @Model.CreatorEmpName
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">申请日期</th>
+            <td width="40%">
+                <input name="CreationTime" class="easyui-datebox" data-options="required:true,validType:['dateISO']" value="@Model.CreationTime" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">文件名称</th>
+            <td width="40%">
+                <input name="OaFileName" style="width:100%;" class="easyui-textbox" data-options="required:true" validType="length[0,200]" value="@Model.OaFileName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">页数</th>
+            <td width="40%">
+                <input name="OaFilePage" class="easyui-numberspinner" validType="length[0,10]" data-options="min:0" value="@Model.OaFilePage" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">发文部门</th>
+            <td width="40%">
+                <input name="OaFileSend" style="width:100%;" class="easyui-textbox" validType="length[0,200]" value="@Model.OaFileSend" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">收文日期</th>
+            <td width="40%">
+                <input name="OaFileDate" class="easyui-datebox" data-options="required:true,validType:['dateISO']" value="@Model.OaFileDate" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">接收人</th>
+            <td width="40%">
+                  <input id="HandEmps" name="HandEmps" type="hidden" value="@(Model.OaFileGetEmp)" />
+                  <input id="selEmployee" name="selEmployee" value="@(ViewBag.AcceptEmpNames)" />
+              
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">接收部门</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               isMult = true,
+               width = "99%",
+               engName = "department",
+               queryOptions = "{ Key:'EmpDepID', Contract:'in',filedType:'Int'}",
+               ids = @Model.OaFileGetEmpDept.ToString()
+           })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">备注</th>
+            <td width="40%">
+                <textarea name="OaFileGetNote" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,500]">@Model.OaFileGetNote</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td style="width:96%">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "OaFileReceive";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+    </table>
+
+    <input name="CreatorEmpName" type="hidden" value="@Model.CreatorEmpName" />
+    <input name="AcceptEmpNames" type="hidden" value="@ViewBag.AcceptEmpNames" />
+    <input name="AcceptDeptNames" type="hidden" value="@ViewBag.AcceptDeptNames" />
+                    }

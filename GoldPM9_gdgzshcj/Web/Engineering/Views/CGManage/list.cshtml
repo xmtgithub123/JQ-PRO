@@ -1,0 +1,126 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "CGManage",new { @area= "Engineering" })',
+               addUrl = '@Url.Action("add","CGManage",new {@area= "Engineering" })' + "?EngineeringId=@Request.QueryString["EngineeringId"]&empid=@Request.QueryString["empid"]",
+               editUrl = '@Url.Action("edit", "CGManage",new {@area= "Engineering" })',
+               delUrl = '@Url.Action("del", "CGManage", new { @area = "Engineering" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: '@ViewBag.isAdd',//['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'CGManageGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQExcludeCol: [1, 9, 10, 11],//导出execl排除的列
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '工程名称',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl + '?inType=@Request.QueryString["inType"]&EngineeringId=@Request.QueryString["EngineeringId"]',//请求的地址
+                checkOnSelect: true,//是否包含check
+                selectOnCheck:true,
+                fitColumns: false,
+                nowrap: false,
+                toolbar: '#CGManagePanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '工程名称', field: 'ProjName', width: 250, align: 'center', sortable: true },
+                    { title: '工程阶段', field: 'ProjPhase', width: 100, align: 'center', sortable: true },
+                    { title: '是否有采购方案', field: 'IsCGFA', width: 100, align: 'center', sortable: true },
+                    { title: '是否内审', field: 'IsNS', width: 100, align: 'center', sortable: true },
+                    { title: '是否外审', field: 'IsWS', width: 100, align: 'center', sortable: true },
+                    { title: '采购总量', field: 'CGNum', width: 100, align: 'center', sortable: true },
+                    { title: '采购时间', field: 'CGTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '发起人', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'CGManage' },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrentEmpID)")
+                    },
+                    {
+                        field: "opt", title: "操作", align: "center", halign: "center", width: 90,
+                        formatter: function (value, row, index) {
+                            var title = "查看";
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                            }
+                            var html = '<a class="easyui-linkbutton" onclick="ShowBiddingInfoDialogue(' + row.Id + ')">' + title + '</a>';
+                            //if (row.FlowStatusID == 3) {
+                            //    html += '&nbsp;&nbsp;<a class="easyui-linkbutton" onclick="ShowBiddingInfoDialogue(' + row.Id + ')">终止</a>'
+                            //}
+
+                            return html;
+                        }
+                    }
+                ]],
+                onLoadSuccess: function (data) {
+                    $(".datagrid-header-check").html("");
+                    $('#CGManageGrid').datagrid('clearSelections');
+                    // 加载完毕后获取所有的checkbox遍历
+                    if (data.rows.length > 0) {
+                        // 循环判断操作为新增的不能选择
+                        for (var i = 0; i < data.rows.length; i++) {
+                            //根据operate让某些行不可选
+                            if (data.rows[i].FlowID && 1 != data.rows[i]._EditStatus) {
+                                $("input[type='checkbox']")[i].disabled = true;
+                            }
+                        }
+                    }
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    // 根据FlowID值,单击单选行不可用
+                    if (rowData.FlowID && 1 != rowData._EditStatus) {
+                        $('#CGManageGrid').datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onSelectAll: function (rows) {
+                    // 根据FlowID值,全选时某些行不选中
+                    $.each(rows, function (i, n) {
+                        if (n.FlowID && 1 != n._EditStatus) {
+                            $('#CGManageGrid').datagrid('unselectRow', i);
+                        }
+                    });
+                }
+            });
+        });
+
+        function ShowBiddingInfoDialogue(Id) {
+            JQ.dialog.dialog({
+                title: "采购策划",
+                url: '@Url.Action("edit")?Id=' + Id,
+                width: '1024',
+                height: '100%'
+            });
+        }
+
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="CGManageGrid"></table>
+    <div id="CGManagePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': '', 'Contract': 'like' }" />
+
+    </div>
+}
+

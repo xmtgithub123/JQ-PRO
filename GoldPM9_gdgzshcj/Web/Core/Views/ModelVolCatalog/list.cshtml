@@ -1,0 +1,92 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "ModelVolCatalog", new { @area = "Core" })',
+               addUrl = '@Url.Action("add", "ModelVolCatalog", new { @area = "Core" })',
+               editUrl = '@Url.Action("edit", "ModelVolCatalog", new { @area = "Core" })',
+               delUrl = '@Url.Action("del", "ModelVolCatalog", new { @area = "Core" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'ModelVolCatalogGrid',//数据表格ID
+                JQDialogTitle: '任务模板信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                JQExcludeCol: [1, 7],//导出execl排除的列
+                toolbar: '#ModelVolCatalogPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: false },
+		{ title: '阶段', field: 'PhaseIDName', width: "15%", align: 'center', sortable: false },
+        { title: '专业', field: 'SpecialIDName', width: "15%", align: 'center', sortable: false },
+		{ title: '编号', field: 'ModelVolNumber', width: "15%", align: 'center', sortable: true },
+		{ title: '名称', field: 'ModelVolName', width: "25%", align: 'center', sortable: true },
+		{ title: '备注', field: 'ModelVolNote', width: "20%", align: 'center', sortable: true },
+        {
+            title: '操作', field: 'Edit', width: '5%', align: 'center',
+            formatter: function (val,row) {
+                return '<a class="easyui-linkbutton" onclick="EditOrReadingInfo('+row.Id+')">修改</a>'
+            }
+        }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '编号、名称',
+                queryOptions: { 'Key': 'ModelVolNumber,ModelVolName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ModelVolCatalogGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+
+        //查看或者编辑  任务模板信息
+        function EditOrReadingInfo(Id)
+        {
+            JQ.dialog.dialog({
+                title: '任务模板信息',
+                width: '800',
+                height: '600',
+                url: editUrl + '?id=' + Id,
+                onClose:function()
+                {
+                    $("#ModelVolCatalogGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="ModelVolCatalogGrid"></table>
+    <div id="ModelVolCatalogPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+
+        </span>
+        @BaseData.getBases(
+                                                                 new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{ Key:'PhaseID', Contract:'in',filedType:'Int'}" },
+                                                         new Params() { isMult = true, engName = "Special", queryOptions = "{ Key:'SpecialID', Contract:'in',filedType:'Int'}" }
+           )
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key: 'ModelVolNumber,ModelVolName', 'Contract': 'like' }" />
+
+    </div>
+}
+

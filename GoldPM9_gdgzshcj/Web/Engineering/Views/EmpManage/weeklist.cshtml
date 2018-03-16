@@ -1,0 +1,92 @@
+﻿@using JQ.Web;
+<input id="currentempid" value="@ViewBag.CurrentEmpID" style="display:none;" />
+<script type="text/javascript">
+    var requestUrl = '@Url.Action("weekjson", "EmpManage",new { @area="Engineering"})?EngID=@Request["taskGroupId"]',
+           addUrl = '@Url.Action("weekadd", "EmpManage",new { @area= "Engineering" })?EngID=@Request["taskGroupId"]';
+
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQButtonTypes: ['add', 'export'],//需要显示的按钮
+            JQAddUrl: addUrl, //添加的路径
+            JQPrimaryID: 'Id',//主键的字段
+            idField: 'Id',
+            JQID: 'WeeklyGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '768',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQExcludeCol: [7, 8],//导出execl排除的列
+            JQSearch: {
+                id: 'JQSearch',
+                prompt: '周报标题',
+                loadingType: 'datagrid',//默认值为datagrid可以不传
+            },
+            url: requestUrl,//请求的地址
+            checkOnSelect: true,//是否包含check
+            fitColumns: false,
+            nowrap: false,
+            toolbar: '#WeeklyPanel',//工具栏的容器ID
+            columns: [[
+                { title: '标题', field: 'Title', width: 120, align: 'center', sortable: true },
+                {
+                    title: '内容', field: 'Detail', width: 250, align: 'center', sortable: true, formatter: function (value, row, index) {
+                        return '<div style="text-align:left;">' + value + '</div>';
+                    }
+                },
+                { title: '开始日期', field: 'StartTime', width: 120, align: 'center', sortable: true },
+                { title: '结束日期', field: 'EndTime', width: 120, align: 'center', sortable: true },
+                { title: '创建人', field: 'CreateEmpName', width: 120, align: 'center', sortable: true },
+                { title: '创建时间', field: 'CreateTime', width: 120, align: 'center', sortable: true },
+                { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'Weekly' },
+                {
+                    title: '操作', field: 'Id', width: 80, align: 'center', sortable: true, formatter: function (value, row, index) {
+                        var html = '';
+
+                        if (row.CreateEmpId == $('#currentempid').val()) {
+                            html += '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;" onclick="weekedit(' + row.Id + ',' + row.TaskGroupId + ')">修改</a>';
+                            html += '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;" onclick="weekdel(' + row.Id + ')">删除</a>';
+                        } else {
+                            html += '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;color: gray;" disabled="true">修改</a>';
+                            html += '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;color: gray;" disabled="true">删除</a>';
+                        }
+
+                        return html;
+                    }
+                }
+            ]]
+        });
+    });
+
+    function weekedit(id, taskgroupid) {
+        JQ.dialog.dialog({
+            title: '编辑信息',
+            url: '@Url.Action("weekedit", "EmpManage", new { @area = "engineering" })?id=' + id + '&EngID=@Request["taskGroupId"]',
+            width: '768',
+            height: '100%',
+            JQID: 'ProjTable',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-list',
+        });
+    }
+
+    function weekdel(id) {
+        $.post('@Url.Action("weekdel", "EmpManage", new { @area = "Engineering" })', { id: id }, function (result) {
+            $('#WeeklyGrid').datagrid('reload');
+            if (result.stateValue > 0) {
+                JQ.dialog.show('操作成功');
+            } else {
+                JQ.dialog.show('操作失败');
+            }
+        });
+    }
+
+    function _WeekCallBack() {
+        $('#WeeklyGrid').datagrid('reload');
+    }
+</script>
+<table id="WeeklyGrid"></table>
+<div id="WeeklyPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+    </span>
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': '', 'Contract': 'like' }" />
+</div>

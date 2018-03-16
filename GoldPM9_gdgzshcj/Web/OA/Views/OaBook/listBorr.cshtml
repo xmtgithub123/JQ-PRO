@@ -1,0 +1,105 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "OaBook",new { @area="OA"})',
+               addUrl = '@Url.Action("add","OaBook",new {@area= "OA" })',
+               editUrl = '@Url.Action("edit", "OaBook",new {@area= "OA" })',
+               delUrl = '@Url.Action("del", "OaBook", new { @area = "OA" })';
+
+        $.extend($.fn.datagrid.defaults.view, {
+            onAfterRender: function () {
+                $("a[flag='menubutton']").mouseover(function () {
+                    document.getElementById("mm3").setAttribute("rowid", this.getAttribute("dataid"));
+                }).menubutton({
+                    iconCls: 'icon-edit',
+                    menu: '#mm3'
+                });
+            }
+        });
+
+        $(function () {
+            //$("#JQSearch").textbox({
+            //    buttonText: '筛选',
+            //    buttonIcon: 'fa fa-search',
+            //    height: 25,
+            //    prompt: '请输入图书名称或编号',
+            //    onClickButton: function () {
+            //        refreshGrid();
+            //    }
+            //});
+
+            JQ.datagrid.datagrid({
+                //JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                //JQAddUrl: addUrl, //添加的路径
+                //JQEditUrl: editUrl,//编辑的路径
+                //JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaBookGrid',//数据表格ID
+                JQDialogTitle: '图书管理',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#OaBookPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '图书类别', field: 'BookTypeName', width: 100, align: 'center', sortable: true },
+		            { title: '图书名称', field: 'BookName', width: 100, align: 'center', sortable: true },
+		            { title: '图书编号', field: 'BookNameNumber', width: 100, align: 'center', sortable: true },
+		            { title: '图书数量', field: 'BookQuantity', width: 100, align: 'center', sortable: true },
+                       { title: '可借数量', field: 'Count', width: 100, align: 'center', sortable: true },
+                     { title: '出版商', field: 'BookPublisher', width: 100, align: 'center', sortable: true },
+                      { title: '作者', field: 'BookAuthor', width: 100, align: 'center', sortable: true },
+                    {
+                        field: 'opt', title: '操作', width: 100, align: 'center', JQIsExclude: true,
+                        formatter: function (value, row, index) {
+                            return "<a href=\"javascript:void(0)\" id=\"mb" + index + "\" dataid=\"" + row.Id + "\" flag=\"menubutton\"   >操作</a>";
+                        }
+                    }
+                ]],
+                queryParams: getQueryParameters()
+            });
+        });
+
+      
+
+        //window.refreshGrid = function () {
+        //    var query = getQueryParameters();
+        //    query.bookType = $("#BookType").combotree("getValues");
+        //    $("#OaBookGrid").datagrid("load", query);
+        //}
+
+        function getQueryParameters() {
+            return { text: $("#JQSearch").textbox("getText") };
+        }
+
+        function menuHandler(item) {
+            var key = $("#mm3").attr("rowid");
+            switch (item.text) {
+                case "查看":
+                    JQ.dialog.dialog({
+                        title: "查看",
+                        url: '@Url.Action("Query")' + '?Id=' + key,
+                        width: '1024',
+                        height: '100%',
+                        JQID: 'OaBookGrid',
+                        JQLoadingType: 'datagrid',
+                        iconCls: 'fa fa-plus'
+                    });
+                    break;
+                default:
+                    break;
+            }
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaBookGrid"></table>
+}
+

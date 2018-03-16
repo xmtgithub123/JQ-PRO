@@ -1,0 +1,138 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "Trip",new { @area="Hr"})',
+               addUrl = '@Url.Action("add","Trip",new {@area="Hr" })',
+               editUrl = '@Url.Action("edit", "Trip",new {@area="Hr" })',
+               delUrl = '@Url.Action("del", "Trip", new { @area = "Hr" })';
+        var isExport;
+        $(function () {
+            var btnPer=@Html.Raw(ViewBag.permission);
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'TripGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1000',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '姓名',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                JQExcludeCol: [1, 13, 14, 12],//导出execl排除的列
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: false,
+                nowrap: false,
+                toolbar: '#TripPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '出差人', field: 'EmpName', width: 100, align: 'center', sortable: true },
+                    { title: '目的地', field: 'TripReceive', width: 200, align: 'center', sortable: true },
+                    { title: '起始日期', field: 'StartDate', width: 100, align: 'center', sortable: true,formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '结束日期', field: 'EndDate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '天数', field: 'Days', width: 100, align: 'center', sortable: true },
+                    { title: '原因', field: 'TripReason', width: 300, align: 'center', sortable: true },
+                    { title: '交通工具', field: 'TripType', width: 100, align: 'center', sortable: true },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'Trip' },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", '@ViewBag.CurrentEmpID')
+                    },
+                    {
+                        field: "opt", title: "操作", align: "center", halign: "center", width: 90,
+                        formatter: function (value, row, index) {
+                            debugger;
+                            var title = "查看";
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                            }
+
+                            var html = "<a href=\"javascript:void(0)\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"ShowOaFileSendDialogue('" + row.Id + "')\">" + title + "</>";
+
+                            if (row.FlowStatusID == 3) {
+                                debugger;
+                                if (row.CreatorEmpId ==@ViewBag.CurrentEmpID||row.IsBX==1){
+                                    html += "<a href=\"javascript:void(0)\" class=\"easyui-linkbutton\"  style=\"line-height:22px;margin-left:10px;\" onclick=\"AddBack('" + row.Id + "')\">报销单</>";
+                                }
+                            }
+
+                            return html;
+                        }
+                    }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#TripGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                    isExport = data.isExport;
+                }
+            });
+        });
+        function a(value, rec, index){
+            return Date.jsonStringToDate( value).format("yyyy年MM月dd日 hh时") ;
+        }
+
+        function ShowOaFileSendDialogue(Id) {
+            JQ.dialog.dialog({
+                title: "编辑出差单",
+                url: '@Url.Action("edit")?Id=' + Id+"&isExport="+isExport,
+                width: '1000',
+                height: '100%',
+                onClose: function () {
+                    $("#TripGrid").datagrid("reload");
+                }
+            });
+        }
+
+        function AddBack(Id) {
+            JQ.dialog.dialog({
+                title: "出差报销单",
+                url: '@Url.Action("editBack")?Id=' + Id+"&isExport="+isExport,
+                width: '1000',
+                height: '100%',
+                onClose: function () {
+                    $("#TripGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="TripGrid"></table>
+    <div id="TripPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ 'Key': 'EmpName', 'Contract': 'like' }" />
+
+    </div>
+}
+

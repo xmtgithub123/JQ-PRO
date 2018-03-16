@@ -1,0 +1,66 @@
+﻿@model DataModel.Models.BussBiddingInfoPackage
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'BussBiddingInfoPackageForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.treegrid.autoReftreegrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }
+        });
+    });
+</script>
+@using (Html.BeginForm("save", "BussBiddingInfoPackage", FormMethod.Post, new { @area = "Bussiness", @id = "BussBiddingInfoPackageForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+	 
+                        <tr>
+                        <th width="10%">主表ID</th>
+                        <td width="40%">
+						  @BaseData.getBase(new Params()
+           {
+               controlName = "BussBiddingInfoID",
+               isRequired = true,
+               engName = "department",
+               width = "98%",
+               ids = Model.BussBiddingInfoID.ToString()
+           })
+                        </td>
+                        <th width="10%">包号</th>
+                        <td width="40%">
+						<input name="PackageNumber" style="width:98%;" class="easyui-textbox"  data-options="required:true"  validType="length[0,50]" value="@Model.PackageNumber" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">投标进度</th>
+                        <td width="40%">
+						<input name="BiddingProgress" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.BiddingProgress" />
+                        </td>
+                        <th width="10%">中标时间</th>
+                        <td width="40%">
+						<input name="WinTime" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.WinTime" />
+                        </td>
+                        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @Html.Action("uploadFile", "usercontrol", new
+           {
+               @area = "Core",
+               AttachRefID = Model.Id,
+               AttachRefTable = "BussBiddingInfoPackage"
+           })
+            </td>
+        </tr>
+    </table>
+	
+}
+
+
+

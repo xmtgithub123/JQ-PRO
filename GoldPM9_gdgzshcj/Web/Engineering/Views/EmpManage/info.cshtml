@@ -1,0 +1,189 @@
+﻿@model DataModel.Models.EmpManage
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'EmpManageForm',//formid提交需要用到
+        buttonTypes: [/*'submit',*/ 'close'],//默认按钮
+        beforeFormSubmit: function () {
+            var isReturn = true;
+            if ('@Request["type"]' == '1') {
+                $.ajax({
+                    type: "GET",
+                    async: false,
+                    url: '@Url.Action("IsExist", "EmpManage", new { @area = "Engineering" })',
+                    data: { ProjName: $('#ProjName').textbox('getValue'), ProjNumber: $('#ProjNumber').textbox('getValue'), ProjPhase: $("#ProjPhase").val() },//{ ProjId: Number($("#EngineeringId").val()) },
+                    //dataType: "json",
+                    success: function (data) {
+                        if (data == 0) {
+                            alert("该项目已被策划");
+                            isReturn = false;
+                        }
+                    }
+                });
+                return isReturn;
+            }
+            else {
+                $.ajax({
+                    type: "GET",
+                    async: false,
+                    url: '@Url.Action("IsExist1", "EmpManage", new { @area = "Engineering" })',
+                    data: { ProjName: $('#ProjName').textbox('getValue'), ProjNumber: $('#ProjNumber').textbox('getValue'), Id: @Model.Id, ProjPhase: $("#ProjPhase").val() },
+                    success: function (data) {
+                        if (data == 0) {
+                            alert("该项目已被策划");
+                            isReturn = false;
+                        }
+                    }
+                });
+                return isReturn;
+            }
+        },
+        // 成功回调函数,data为服务器返回值
+        succesCollBack: function (data) {
+            // 刷新上一级数据表格，必须在close窗体前调用
+            JQ.datagrid.autoRefdatagrid();
+            // 关闭窗体放在最后一步执行，以避免找不到事件源
+            JQ.dialog.dialogClose();
+        },
+        flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "Engineering,Engineering.FlowProcessor.EmpManageProcessor",
+            onInit: function () {
+                _flowInstance = this;
+            },
+            refID: "@(Model.Id)",
+            refTable: "EmpManage",
+            dataCreator: "@(ViewBag.CreatorEmpId )"
+        }
+    });
+
+    JQ.combobox.selEmp({ id: 'EngineeringEmpId', width: '98%', editable: false });
+    JQ.combobox.selEmp({ id: 'SafeEmpId', width: '98%', editable: false });
+    JQ.combobox.selEmp({ id: 'CGEmpId', width: '98%', editable: false });
+    JQ.combobox.selEmp({ id: 'JSEmpId', width: '98%', editable: false });
+    JQ.combobox.selEmp({ id: 'WDEmpId', width: '98%', editable: false });
+    JQ.combobox.selEmp({ id: 'XCEmpId', width: '98%', editable: false });
+</script>
+<script type="text/javascript">
+    function insert(row) {
+        isChangeName = false;
+        isChangeNumber = false;
+        $('#ProjName').textbox('setValue', row.ProjName);
+        $('#ProjNumber').textbox('setValue', row.ProjNumber);
+        debugger;
+        $('#EngineeringId').val(row.Id);
+        $('#DesTaskGroupId').val(row.TaskGroupId);
+        $('#ProjPhase').val(row.ProjPhaseName);
+    }
+
+    var isChangeName = true;
+    var isChangeNumber = true;
+    $('#ProjName').textbox({
+        onChange: function (newValue, oldValue) {
+            if (isChangeName) {
+                $('#EngineeringId').val(0);
+                $('#ProjPhase').val('');
+                $('#DesTaskGroupId').val('');
+            }
+            isChangeName = true;
+        }
+    })
+    $('#ProjNumber').textbox({
+        onChange: function (newValue, oldValue) {
+            if (isChangeNumber) {
+                $('#EngineeringId').val(0);
+                $('#ProjPhase').val('');
+                $('#DesTaskGroupId').val('');
+            }
+            isChangeNumber = true;
+        }
+    })
+
+    //选择工程
+    function selectEng() {
+        // 暂存项目信息
+        //Save_Proj();
+        JQ.dialog.dialog({
+            title: "选择项目",
+            url: '@Url.Action("ChooseProjectList", "EmpManage", new { @area = "Engineering" })?CompanyType=GC&TaskGroupId=0' //+ $("#EngineeringId").val()
+            ,
+            width: '1024',
+            height: '100%',
+            JQID: 'ProjTable',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-list',
+
+        });
+    }
+</script>
+
+@using (Html.BeginForm("save", "EmpManage", FormMethod.Post, new { @area = "Engineering", @id = "EmpManageForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th>项目名称</th>
+            <td width="40%">
+                <input id="EngineeringId" name="EngineeringId" hidden value="@Model.EngineeringId" />
+                <input id="ProjPhase" name="ProjPhase" hidden value="@Model.ProjPhase" />
+                <input id="DesTaskGroupId" name="DesTaskGroupId" hidden value=@Model.DesTaskGroupId />
+                <input id="type" name="type" hidden value="@Request["type"]" />
+                <input id="ProjName" name="ProjName" style="width:98%;" class="easyui-textbox" data-options="required:true" value="@Model.ProjName" />
+                <a name="selectEng" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="selectEng()">选择项目</a>
+            </td>
+            <th>项目编号</th>
+            <td width="40%">
+                <input id="ProjNumber" name="ProjNumber" style="width:98%;" class="easyui-textbox" data-options="required:true" value="@Model.ProjNumber" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">项目经理</th>
+            <td width="40%">
+                <input id="EngineeringEmpId" name="EngineeringEmpId" style="width:98%;" data-options="required:true" value="@(Model.EngineeringEmpName)" />
+                <input type="hidden" id="values" />
+            </td>
+            <th width="10%">安全员</th>
+            <td width="40%">
+                <input id="SafeEmpId" name="SafeEmpId" style="width:98%;" data-options="required:true" value="@(Model.SafeEmpName)" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">采购员</th>
+            <td width="40%">
+                <input id="CGEmpId" name="CGEmpId" style="width:98%;" data-options="required:true" value="@(Model.CGEmpName)" />
+            </td>
+            <th width="10%">技术员</th>
+            <td width="40%">
+                <input id="JSEmpId" name="JSEmpId" style="width:98%;" data-options="required:true" value="@(Model.JSEmpName)" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">文档员</th>
+            <td width="40%">
+                <input id="WDEmpId" name="WDEmpId" style="width:98%;" data-options="required:true" value="@(Model.WDEmpName)" />
+            </td>
+            <th width="10%">现场负责人</th>
+            <td width="40%">
+                <input id="XCEmpId" name="XCEmpId" style="width:98%;" data-options="required:true" value="@(Model.XCEmpName)" />
+            </td>
+        </tr>
+
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "EmpManage";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+                    }

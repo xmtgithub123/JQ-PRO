@@ -1,0 +1,120 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+
+
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch', ],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")',//添加的路径
+                JQEditUrl: '@Url.Action("edit")',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'ProjProgressAdjustGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                singleSelect: false,
+                url: '@Url.Action("json", "ProjProgress", new { @area="Project"})',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#ProjProgressAdjustPanel',//工具栏的容器ID
+                JQExcludeCol: [1, 13, 14],//导出execl排除的列
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                  { title: '项目编号', field: 'ProjNumber', width: 100, align: 'left', sortable: true },
+                  { title: '项目名称', field: 'ProjName', width: 200, align: 'left', sortable: true },
+                  { title: '项目类型', field: 'ProjectType', width: 100, align: 'left', sortable: true },
+                  { title: '项目阶段', field: 'PhaseName', width: 100, align: 'center', sortable: true },
+                  { title: '专业', field: 'SpecilName', width: 100, align: 'center', sortable: true },
+                  { title: '设计任务', field: 'TaskName', width: 100, align: 'left', sortable: true },
+                  { title: '提出人', field: 'CreatorEmpName', width: 100, align: 'left', sortable: true },
+                  { title: '原计划完成时间', field: 'DatePlanFinish', width: 100, align: 'left', sortable: true },
+                  { title: '拟计划完成时间', field: 'DraftDatePlanFinish', width: 100, align: 'left', sortable: true },
+                  { title: '调整原因', field: 'FormReason', width: 200, align: 'left', sortable: true },
+                  { title: '调整备注', field: 'FormNote', width: 200, align: 'left', sortable: true },
+                  {
+                      field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrentEmpID)")
+                  },
+                  {
+                      field: 'opt', title: '操作', width: "40", align: 'center', JQIsExclude: true,
+                      formatter: function (value, row, index) {
+                          var title = "查看";
+                          if (row._EditStatus == 1) {
+                              title = "修改";
+                          }
+                          else if (row._EditStatus == 2) {
+                              title = "处理";
+                          }
+                          return '<a class="easyui-linkbutton" onclick="Info(' + row.FormID + ')">' + title + '</a>';
+                      }
+                  }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    var rowViews = $("#ProjProgressAdjustGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '调整原因',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ProjProgressAdjustGrid',
+                            loadingType: 'datagrid'
+                        });
+                }
+            });
+        });
+        function Info(Id) {
+            JQ.dialog.dialog({
+                title: '项目进度调整',
+                width: '1024',
+                height: '100%',
+                url: '@Url.Action("edit")?Id=' + Id,
+                onClose: function () {
+                    $("#ProjProgressAdjustGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+
+}
+
+@section Body_Content{
+    <table id="ProjProgressAdjustGrid"></table>
+    <div id="ProjProgressAdjustPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+        </span>
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key: 'FormReason', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            原计划完成时间 <input id="PlanFinishstartTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开标时间'" JQWhereOptions="{ Key:'ColAttDate1', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="PlanFinishendTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" JQWhereOptions="{ Key:'ColAttDate1', Contract:'<=',filedType:'Date' }">&nbsp;
+
+            拟计划完成时间 <input id="DraftstartTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开标时间'" JQWhereOptions="{ Key:'ColAttDate2', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="DraftendTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" JQWhereOptions="{ Key:'ColAttDate2', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>
+    </div>
+}
+

@@ -1,0 +1,84 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "HRAptitudeManager",new { @area="HR"})',
+               addUrl = '@Url.Action("add","HRAptitudeManager",new {@area="HR" })',
+               editUrl = '@Url.Action("edit", "HRAptitudeManager",new {@area="HR" })',
+               delUrl = '@Url.Action("del", "HRAptitudeManager", new { @area = "HR" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'HRAptitudeManagerGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '筛选字段',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: false,
+                nowrap: false,
+                JQExcludeCol:[1,9,10],
+                toolbar: '#HRAptitudeManagerPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '资质名称', field: 'AptitudeName', width: 100, align: 'center', sortable: true },
+		            { title: '注册时间', field: 'RegisterTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '到期时间', field: 'EndTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '注册人', field: 'AptitudeEmpName', width: 100, align: 'center', sortable: true },
+		            { title: '身份证号', field: 'IDCard', width: 100, align: 'center', sortable: true },
+		            { title: '联系电话', field: 'Phone', width: 100, align: 'center', sortable: true },
+		            { title: '地址', field: 'Address', width: 100, align: 'center', sortable: true },
+		            {
+		                title: '是否提醒', field: 'IsMess', width: 100, align: 'center', sortable: true, formatter: function (val, data) {
+		                    if (data.IsMess == "0") {
+		                        return "是";
+		                    } else {
+		                        return "否";
+		                    }
+		                }
+		            },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'HRAptitudeManager' }
+                ]],
+                rowStyler: function (index, row) {
+                    if (row.IsMess != undefined && row.IsMess == 0) {
+                        if (Date.jsonStringToDateString(row.EndTime, "yyyy-MM-dd") != "") {
+                            var timeNow = '@ViewBag.TimeNow';
+                            var difDay = Date.jsonStringToDate(row.EndTime).dateDiff("d", timeNow);
+                            if (difDay > -5) {
+                                return 'background-color:pink;color:blue;font-weight:bold;';
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="HRAptitudeManagerGrid"></table>
+    <div id="HRAptitudeManagerPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'AptitudeName', 'Contract': 'like' }" />
+
+    </div>
+}
+

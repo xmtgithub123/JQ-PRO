@@ -1,0 +1,110 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "BaseHandover",new { @area="Core"})',
+               addUrl = '@Url.Action("add","BaseHandover",new {@area="Core" })',
+               editUrl = '@Url.Action("edit", "BaseHandover",new {@area="Core" })',
+               delUrl = '@Url.Action("del", "BaseHandover", new { @area = "Core" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BaseHandoverGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '600',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: true,
+                JQExcludeCol: [1],//导出execl排除的列
+                toolbar: '#BaseHandoverPanel',//工具栏的容器ID
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '移交原因',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                columns: [[
+                        { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		                { title: '移交人姓名', field: 'HandEmpName', width: 80, align: 'center', sortable: true },
+		                { title: '移交成员', field: 'HandEmps', width: 80, align: 'center', sortable: true },
+		                {
+		                    title: '创建时间', field: 'CreationTime', width: 80, align: 'center', sortable: true, formatter: function (value,row,index) {
+		                        row.CreationTime = JQ.tools.DateTimeFormatterByT(value, row, index);
+		                        return row.CreationTime;
+		                    }
+		                },
+		                { title: '创建人姓名', field: 'CreatorEmpName', width: 80, align: 'center', sortable: true },
+		                { title: '移交原因', field: 'HandReason', width: 150, align: 'left', halign: 'center', sortable: true },
+		                { title: '移交备注', field: 'HandNote', width: 100, align: 'left', halign: 'center', sortable: true }
+                ]],
+                onRowContextMenu: function (e, index, row) { //右键时触发事件
+                    var $m = $('#userMenu');
+                    $.data(document.body, "selectTempData", row);//把临时数据存在缓存中
+                    $m.menu('show', {
+                        left: e.pageX,
+                        top: e.pageY
+                    });
+                    e.preventDefault();
+                }
+            });
+        });
+
+        function menuHandler(item) {
+            var data = $.data(document.body, "selectTempData");//获取临时数据
+            if (JQ.tools.isJson(data)) {
+                switch (item.id) {
+                    case "ChangeFlow":
+                        JQ.dialog.dialog({
+                            title: "移交待办审批",
+                            url: '@Url.Action("flowlistview", "BaseHandover",new { @area="Core"})' + '?id=' + data.Id,
+                            width: '1200',
+                            height: '800',
+                            JQID: 'BaseHandoverGrid',
+                            JQLoadingType: 'datagrid',
+                            iconCls: 'fa fa-plus'
+                        });
+                        break;
+                    case "ChangeTask":
+                        JQ.dialog.dialog({
+                            title: "移交待办任务",
+                            url: '@Url.Action("tasklistview", "BaseHandover",new { @area="Core"})' + '?id=' + data.Id,
+                            width: '1200',
+                            height: '800',
+                            JQID: 'BaseHandoverGrid',
+                            JQLoadingType: 'datagrid',
+                            iconCls: 'fa fa-plus'
+                        });
+                        break;
+                }
+            }
+            $.data(document.body, "selectTempData", null);//清空临时数据
+            return false;
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="BaseHandoverGrid"></table>
+    <div id="BaseHandoverPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'HandReason', 'Contract': 'like' }"/>
+
+    </div>
+
+    <div id="userMenu" class="easyui-menu" data-options="onClick:menuHandler" style="width:100px;display: none;">
+        <div id="ChangeFlow">移交待办审批</div>
+        <div id="ChangeTask">移交待办任务</div>
+    </div>
+}
+

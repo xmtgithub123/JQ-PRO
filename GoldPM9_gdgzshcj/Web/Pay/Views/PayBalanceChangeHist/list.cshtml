@@ -1,0 +1,36 @@
+﻿
+@using JQ.Web;
+
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "PayBalanceChangeHist",new { @area= "Pay" })?payBalanceAcountId=@Request.QueryString["payBalanceAcountId"]';
+            JQ.datagrid.datagrid({
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'changeListGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: requestUrl,//请求的地址
+                singleSelect: false,//是否包含check
+                checkOnSelect: true,//是否包含check
+                toolbar: '#PayModelPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		{ title: '修改前金额', field: 'BalanceOldMoney', width: "18%", align: 'right', sortable: true },
+		{ title: '修改后金额', field: 'BalanceNewMoney', width: "18%", align: 'right', sortable: true },
+		{ title: '修改时间', field: 'date', width: "18%", align: 'center', sortable: true },
+		{ title: '修改原因', field: 'BalanceChangeNote', width: "40%", align: 'center', sortable: true },
+        ]]
+        });
+
+
+
+    </script>
+
+
+
+    <table id="changeListGrid"></table>
+    <div id="PayModelPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+        </span>
+    </div>
+
+

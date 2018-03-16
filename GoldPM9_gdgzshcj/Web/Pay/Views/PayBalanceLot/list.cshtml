@@ -1,0 +1,226 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "PayBalanceLot", new { @area= "Pay" })';
+        $(function () {
+
+            JQ.datagrid.datagrid({
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'rightGrid',//数据表格ID
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: '@Url.Action("ManagerBalanceJson", "PayBalanceUserAccount", new { @area= "Pay" })',//请求的地址
+                singleSelect: true,//是否包含check
+                checkOnSelect: true,//是否包含check
+                columns: [[
+		{ title: '姓名', field: 'EmpName', width: "15%", align: 'center', sortable: true },
+		{ title: '系数', field: 'ManageCoeff', width: "13%", align: 'right', sortable: true },
+        		{ title: '产值', field: 'BalanceAmount', width: "15%", align: 'right', sortable: true },
+                { title: '金额', field: 'BalanceMoney', width: "15%", align: 'right', sortable: true },
+                { title: '备注', field: 'BalanceNote', width: "18%", align: 'center', sortable: true },
+                {
+                    title: '操作', field: 'Opt', width: "18%", align: 'center',
+                    formatter: function (val, row) {
+                        if (parseInt(row.ChangeCount) > 0) {
+                            return '<a ShowDialog href="#"   class="easyui-linkbutton" onclick="ShowDialog(' + row.Id + ')">修改</a>' + '&nbsp;&nbsp;&nbsp;<a ShowList href="#"    class="easyui-linkbutton" onclick="ShowList(' + row.Id + ')">查看</a>'
+                        }
+                        return '<a ShowDialog href="#"    class="easyui-linkbutton" onclick="ShowDialog(' + row.Id + ')">修改</a>'
+                    }
+                }
+                ]],
+                onLoadSuccess: function (row, data) {
+                    $("a[ShowDialog]").linkbutton({ iconCls: 'fa fa-edit' });
+                    $("a[ShowList]").linkbutton({ iconCls: 'fa fa-edit' });
+                }
+            });
+
+            JQ.datagrid.datagrid({
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'leftGrid',//数据表格ID
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: requestUrl,//请求的地址
+                singleSelect: true,//是否包含check
+                checkOnSelect: true,//是否包含check
+                toolbar: '#PayLotPanel',//工具栏的容器ID
+
+                columns: [[
+		{
+		    title: '批次名称', field: 'BalanceLotName', width: "53%", align: 'left', sortable: true,
+		    formatter: function (val, row) {
+		        return '<a class="easyui-linkbutton" href="#"  onclick="ShowDetail(' + row.Id + ')">' + row.BalanceLotName + '</a>'
+		    }
+		},
+		{ title: '结算日期', field: 'BalanceDate', width: "40%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT }
+
+                ]],
+                onLoadSuccess: function (data) {
+                    var rows = $("#leftGrid").datagrid('getRows');
+                    if (rows.length > 0) {
+                        ShowDetail(rows[0]["Id"]);
+                    }
+                }
+            });
+            setTextAlign("BalanceLotName", "text-align:center;")
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '批次名称',
+                queryOptions: { 'Key': 'BalanceLotName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'leftGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+
+            });
+            $("#westRegion").find("div[class='datagrid-view']").next().find('a').eq(0).hide();
+            $("#westRegion").find("div[class='datagrid-view']").next().find('a').eq(3).hide();
+            $("#westRegion").find("select[class='pagination-page-list']").hide();
+            $("#westRegion").find("div[class='pagination-info']").hide();
+
+        });
+        function ShowDialog(id) {
+            JQ.dialog.dialog({
+                title: '修改历史结算信息',
+                width: '800',
+                height: '400',
+                url: '@Url.Action("edit", "PayBalanceChangeHist",new { @area="pay"})?id=' + id,
+                onClose: function () {
+                    $("#rightGrid").datagrid("reload");
+                }
+            });
+        }
+
+        function ShowList(id) {
+            JQ.dialog.dialog({
+                title: '修改历史结算信息',
+                width: '800',
+                height: '650',
+                url: '@Url.Action("list", "PayBalanceChangeHist",new { @area="pay"})?payBalanceAcountId=' + id
+            });
+        }
+        function ShowDetail(id) {
+            $.post('@Url.Action("modelJson", "PayBalanceLot", new { @area = "Pay" })', { Id: id }, function (result) {
+                $("#BalanceLotName").text(result.BalanceLotName);
+                $("#AllAmount").text(result.AllAmount);
+                $("#AllMoney").text(result.AllMoney);
+                $("#BalanceDate").text(result.BalanceDate);
+                $("#ManageAmount").text(result.ManageAmount);
+                $("#ManageBase").text(result.ManageBase);
+                $("#MoneyPerAmount").text(result.MoneyPerAmount);
+                $("#TechAmount").text(result.TechAmount);
+                $("#TechEmpCount").text(result.TechEmpCount);
+            });
+            $("#rightGrid").datagrid("reload", '@Url.Action("ManagerBalanceJson", "PayBalanceUserAccount", new { @area = "Pay" })?LotID=' + id);
+        }
+
+        function setTextAlign(filed, align) {
+            $("tr[class='datagrid-header-row']").find("td[field='" + filed + "']").children().removeAttr("style").attr("style", align);
+        }
+    </script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <div id="lay" class="easyui-layout" style="overflow: hidden" fit="true">
+        <div data-options="region:'north'" style="height:40px;line-height:40px;">
+            <span style="margin-left:20px;font-size:13px;">筛选条件:</span>
+            <input id="JQSearch" style="width:230px;" jqwhereoptions="{ Key:'BalanceLotName', Contract:'like'}" />
+            <span style="margin-left:20px;font-size:13px;">结算日期:</span>
+            <input id="startTime" type="text" class="easyui-datebox" style="width:100px" data-options="prompt: '结算开始时间'" jqwhereoptions="{ Key:'BalanceDate', Contract:'>=',filedType:'Date' }">
+            --
+            <input id="endTime" type="text" class="easyui-datebox" style="width:100px" data-options="prompt: '结算结束时间'" jqwhereoptions="{ Key:'BalanceDate', Contract:'<=',filedType:'Date' }">&nbsp;
+
+
+            <div id="PayLotPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+
+            </div>
+        </div>
+        <div id="westRegion" data-options="region:'west'" style="width:240px;margin-top:0px;">
+            <table id="leftGrid"></table>
+        </div>
+        <div data-options="region:'center'" style="background:#fff;overflow:scroll;">
+            <table class="table table-bordered" style="width:95%;">
+                <tr>
+                    <td colspan="4">
+                        <span style="font-size:16px;font-weight:bold;">本批次结算的相关信息</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th style="width:14%;">
+                        批次名称
+                    </th>
+                    <td>
+                        <label id="BalanceLotName"></label>
+                    </td>
+                    <th style="width:14%;">
+                        结算日期
+                    </th>
+                    <td>
+                        <label id="BalanceDate"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        技术人员数量
+                    </th>
+                    <td colspan="3">
+                        <label id="TechEmpCount"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        总产值
+                    </th>
+                    <td>
+                        <label id="AllAmount"></label>
+                    </td>
+                    <th>
+                        技术总产值
+                    </th>
+                    <td>
+                        <label id="TechAmount"></label>
+                    </td>
+
+                </tr>
+                <tr>
+                    <th>
+                        管理总产值
+                    </th>
+                    <td>
+                        <label id="ManageAmount"></label>
+                    </td>
+                    <th>
+                        基数
+                    </th>
+                    <td>
+                        <label id="ManageBase"></label>
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        全部金额
+                    </th>
+                    <td>
+                        <label id="AllMoney"></label>
+                    </td>
+                    <th>
+                        元/产值
+                    </th>
+                    <td>
+                        <label id="MoneyPerAmount"></label>
+                    </td>
+                </tr>
+            </table>
+            <table id="rightGrid" style="width:95%;"></table>
+
+        </div>
+    </div>
+}
+

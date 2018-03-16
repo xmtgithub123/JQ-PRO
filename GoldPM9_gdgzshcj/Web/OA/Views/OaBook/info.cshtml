@@ -1,0 +1,98 @@
+﻿@model DataModel.Models.OaBook
+@using JQ.Web;
+<script type="text/javascript">
+        JQ.form.submitInit({
+            formid: 'OaBookForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            },
+            beforeFormSubmit: function () {
+                var BookNameNumber = $("#BookNameNumber").textbox('getValue');
+                var BookName = $("#BookName").textbox('getValue');
+                var result = true;
+
+                $.ajax({
+                    url: '@Url.Action("CheckConflictBookOrNumber", "OaBook",new { @area="Oa"})',
+                    data: "BookNumber=" + BookNameNumber + "&BookName=" + BookName +  "&Id=@Model.Id",
+                    async: false,
+                    type:'post',
+                    success: function (data) {
+                        if (data.BookNameCount != "0")//书名
+                        {
+                            JQ.dialog.info("书名已经存在");
+                            result = false;
+                        }
+                        if (data.BookNumberCount != "0"&&result!=false)//书编号
+                        {
+                            JQ.dialog.info("书编号已经存在");
+                            result = false;
+                        }
+                    }
+                });
+                return result;
+
+            }
+        });
+
+</script>
+@using (Html.BeginForm("save", "OaBook", FormMethod.Post, new { @area = "OA", @id = "OaBookForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">图书编号 </th>
+            <td width="40%">
+                <input id="BookNameNumber" name="BookNameNumber" style="width:98%;" data-options="required:true" class="easyui-textbox" value="@Model.BookNameNumber" />
+            </td>
+            <th width="10%">图书名称</th>
+            <td width="40%">
+                <input id="BookName" name="BookName" style="width:98%;" data-options="required:true" class="easyui-textbox" value="@Model.BookName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">图书类别</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "BookTypeID",
+               isRequired = true,
+               engName = "BookType",
+               width = "60%",
+               ids = Model.BookTypeID.ToString()
+           })
+            </td>
+            <th width="10%">图书数量</th>
+            <td width="40%">
+                <input name="BookQuantity" id="BookQuantity" style="width:200px;" class="easyui-numberbox" value="@Model.BookQuantity" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">图书价格(元)</th>
+            <td width="40%">
+                <input name="BookPrice" id="BookPrice" style="width:98%;" class="easyui-numberspinner" validtype="length[0,18]" data-options="precision:2" value="@Model.BookPrice" />
+            </td>
+            <th width="10%">出版社</th>
+            <td width="40%">
+                <input name="BookPublisher" style="width:98%;" class="easyui-textbox" data-options="required:true" validtype="length[0,50]" value="@Model.BookPublisher" />
+            </td>
+        </tr>
+        <tr>
+            <th width="20%">作者</th>
+            <td colspan="3">
+                <input name="BookAuthor" style="width:98%;" class="easyui-textbox" data-options="required:true" validtype="length[0,50]" value="@Model.BookAuthor" />
+            </td>
+        </tr>
+        <tr>
+            <th width="20%">图书介绍</th>
+            <td colspan="3">
+                <textarea name="BookNote" style="width:99%;height:140px;" class="easyui-textbox" data-options="multiline:true" validtype="length[0,1000]">@Model.BookNote</textarea>
+            </td>
+        </tr>
+    </table>
+
+}
+
+
+

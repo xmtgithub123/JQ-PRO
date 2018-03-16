@@ -1,0 +1,100 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "HRVitae",new { @area="Hr"})',
+            addUrl = '@Url.Action("add","HRVitae",new {@area="Hr" })',
+            editUrl = '@Url.Action("edit", "HRVitae",new {@area="Hr" })',
+            delUrl = '@Url.Action("del", "HRVitae", new { @area = "Hr" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add','edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'HRVitaeGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+				JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '姓名',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+				fitColumns: false,
+                nowrap: false,
+                toolbar: '#HRVitaePanel',//工具栏的容器ID
+                JQExcludeCol:[1,8],
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '员工', field: 'EmpName', width: 100, align: 'center', sortable: true  },
+		            { title: '原单位', field: 'OldCom', width: 100, align: 'center', sortable: true  },
+		            { title: '原部门', field: 'OldDep', width: 100, align: 'center', sortable: true  },
+		            { title: '原职务', field: 'OldPost', width: 100, align: 'center', sortable: true  },
+		            { title: '开始日期', field: 'StarDate', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '结束日期', field: 'EndDate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    {
+                        field: 'JQFiles', title: '附件', align: 'center', width: "5%", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'HRVitae', formatter:
+                          function (value, row) {
+                              return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                          }
+                    }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '姓名',
+                queryOptions: { 'Key': 'EmpName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'HRVitaeGrid',
+                            loadingType: 'datagrid',
+                            queryParams: { StarDateEnd: $("#endDate").datebox("getValue"), EndDateEnd: $("#endDate1").datebox("getValue") }
+                        });
+                }
+            });
+        });
+        function openDetailDialog(rowID) {
+            JQ.dialog.dialog({
+                title: "修改",
+                url: '@Url.Action("edit")' + '?Id=' + rowID,
+                width: '1024',
+                height: '100%',
+                JQID: 'HRVitaeGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="HRVitaeGrid"></table>
+    <div id="HRVitaePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            
+        </span>
+
+        <input id="JQSearch" style="width:250px;"  JQWhereOptions="{ 'Key': 'EmpName', 'Contract': 'like' }"/>
+        <div class="moreSearchPanel">
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始日期'" JQWhereOptions="{ Key:'StarDateBegin', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endDate" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始日期'">&nbsp;
+            <input id="startTime1" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束日期'" JQWhereOptions="{ Key:'EndDateBegin', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endDate1" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束日期'">&nbsp;
+        </div>
+    </div>
+}
+

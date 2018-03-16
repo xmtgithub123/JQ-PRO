@@ -1,0 +1,122 @@
+﻿
+<script type="text/javascript">
+
+</script>
+
+<div class="easyui-layout" data-options="fit:true">
+    @*<div data-options="region:'north',border:false" style="overflow:hidden">
+                <a class="easyui-linkbutton" data-options="iconCls:'fa fa-plus'" id="CheckAdd">查看历史校审任务</a>
+        </div>*@
+    <div data-options="region:'center',border:false">
+        <div id="TaskCheckListDiv" style="width:100%;height:100%;">
+            <table id="TaskDesMutiSignList_@ViewBag._DialogId"></table>
+            <script type="text/javascript">
+                $(function () {
+                    window.showDesMutiSignGrid = showDesMutiSignGrid;
+
+                    showDesMutiSignGrid();
+                })
+
+                function showDesMutiSignGrid() {
+                    JQ.datagrid.datagrid({
+                        JQPrimaryID: 'Id',
+                        idField: 'Id',//主键的字段
+                        JQID: 'TaskDesMutiSignList_@ViewBag._DialogId',//数据表格ID
+                        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                        JQFields: ["Id"],//追加的字段名
+                        url: '@Url.Action("json")',//请求的地址
+                        queryParams: { taskId: '@ViewBag.taskId' },
+                        pagination: false,
+                        rownumbers: true,
+                        fit: true,
+                        JQMergeCells: { fields: ['MutiSignTitle', 'JQFiles', 'CreationTime', 'statusName', 'Id'], Only: 'Id' },
+                        columns: [[
+                            { title: '会签标题', field: 'MutiSignTitle', width: 200, align: 'center', sortable: false },
+
+                              {
+                                  field: 'JQFiles', title: '会签文件', align: 'center', width: 80, JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'DesMutiSign', formatter: function (value, row) {
+                                      return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                                  }
+                              },
+                            { title: '提出时间', field: 'CreationTime', width: 100, align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT },
+                            {
+                                title: '会签状态', field: 'statusName', width: 100, align: 'center', sortable: false, formatter: function (value, row, index) {
+                                    return "<a href='#' onclick='showProgress(" + row.ApproveFlowID + ")' >" + value + "</a>";
+                                }
+                            },
+                            {
+                                title: '会签人', field: 'RecEmpName', width: 120, align: 'center', sortable: false, formatter: function (value, row, index) {
+                                    return "<" + row.RecSpecName + ">" + row.RecEmpName;
+                                }
+                            },
+                            {
+                                title: '会签意见', field: 'RecContent', width: 100, align: 'center', sortable: false, formatter: function (value, row, index) {
+                                    if (row.RecStatus > 0) {
+                                        return row.RecStatus == "2" ? "【同意】" : "【不同意】" + row.RecContent;
+                                    }
+                                    else {
+                                        return "";
+                                    }
+                                }
+                            },
+                            { title: '处理日期', field: 'RecDealDate', width: 100, align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT },
+                            @{ 
+
+                                if (Request.QueryString["View"] ==null)
+                                {
+                                    <text>
+                                        {
+                                            title: '操作', field: 'Id', width: 80, align: 'center', formatter: function (value, row, index) {
+                                                return "<a id=\"btnDel\" href=\"#\" rootID=" + row.RecId + " >删除</a>  ";
+                                            }
+                                        }
+                                    </text>
+                                }
+                            }
+                            
+                        ]],
+                        onLoadSuccess: function (data) {
+                            //删除样式
+                            $.each(data.rows, function (i, e) {
+                                $("a[rootID='" + e.RecId + "']").linkbutton({
+                                    iconCls: 'fa fa-trash',
+                                    onClick: function () {
+                                        deleteFunc(e.Id);
+                                    }
+                                })
+                            });
+                        }
+                    });
+                }
+
+                function deleteFunc(Id) {
+                    return JQ.dialog.confirm("你确定要删除吗?", function () {
+                        JQ.tools.ajax({
+                            url: '@Url.Action("del")?id=' + Id,
+                            succesCollBack: function () {
+                                showDesMutiSignGrid();
+                            }
+                        });
+                    })
+                }
+
+                function showProgress(flowID) {
+                    debugger;
+                    if (flowID == undefined || flowID == 0) {
+                        JQ.dialog.show("缺少关键流程数据，操作失败！！！");
+                        return false;
+                    }
+                    JQ.dialog.dialog({
+                        title: '查看设计进度',
+                        url: "@(Url.Action("Progress", "PubFlow", new { @area="Core"}))?flowID=" + flowID,
+                        width: 800,
+                        height: 600,
+                        iconCls: "fa fa-list"
+                    });
+                    JQ.Flow.stopBubble();
+                }
+            </script>
+        </div>
+
+    </div>
+</div>

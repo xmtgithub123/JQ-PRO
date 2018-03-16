@@ -1,0 +1,9 @@
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\BLLLayer\DataModel\bin\Debug\DataModel.dll.config
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\BLLLayer\DataModel\bin\Debug\DataModel.dll
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\BLLLayer\DataModel\bin\Debug\DataModel.pdb
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\BLLLayer\DataModel\bin\Debug\EntityFramework.dll
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\BLLLayer\DataModel\bin\Debug\EntityFramework.xml
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\BLLLayer\DataModel\bin\Debug\zh-Hans\EntityFramework.resources.dll
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\BLLLayer\DataModel\obj\Debug\DataModel.csprojResolveAssemblyReference.cache
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\BLLLayer\DataModel\obj\Debug\DataModel.dll
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\BLLLayer\DataModel\obj\Debug\DataModel.pdb

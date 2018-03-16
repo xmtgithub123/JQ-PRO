@@ -1,0 +1,62 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQPrimaryID: 'id',
+                JQID: 'OaBookGrid',
+                JQDialogTitle: '菜单信息',
+                JQWidth: '100%',
+                JQHeight: '100%',
+                JQLoadingType: 'datagrid',
+                url: '@Url.Action("GetJsonByPerson", "OaBookUse",new {@area="OA" })',
+                toolbar: '#tbMenu',
+                animate: true,
+                columns: [[
+                     { title: '图书类别', field: 'BookTypeName', width: "10%", align: 'center', sortable: true },
+		            { title: '图书名称', field: 'BookName', width: "15%", align: 'center', sortable: true },
+		            { title: '图书编号', field: 'BookNameNumber', width: "13%", align: 'center', sortable: true },
+                     { title: '出版商', field: 'BookPublisher', width: "14%", align: 'center', sortable: true },
+                      { title: '作者', field: 'BookAuthor', width: "6%", align: 'center', sortable: true },
+                      { title: '借阅数量', field: 'LendCount', width: "10%", align: 'center', sortable: true },
+                          { title: '借阅时间', field: 'DateLend', width: "10%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                       {
+                           title: '计划归还时间', field: 'DateReturnPlan', width: "10%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT
+                       },
+                { title: '借阅人', field: 'EmpName', width: "6%", align: 'center', sortable: true },
+                {
+                    title: '操作', field: 'op', width: '5%', align: 'center',
+                    formatter:function(val,row)
+                    {
+                        return '<a class="easyui-linkbutton" onclick="urgenBack('+row.Id+')">催还</a>';
+                    }
+                }
+                ]],
+                queryParams: {
+                    DateReturnFact: 1
+                }
+            });
+
+        });
+
+
+  
+        function urgenBack(borrID) {
+            $.ajax({
+                type: 'post',
+                url: '@Url.Action("UrgenBack")?borrID=' + borrID,
+                success: function () {
+                    JQ.dialog.info("消息发送成功");
+                }
+            });
+        }
+    
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaBookGrid"></table>
+}

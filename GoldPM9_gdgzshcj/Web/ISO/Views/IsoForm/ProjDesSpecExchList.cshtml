@@ -1,0 +1,84 @@
+﻿
+<script type="text/javascript">
+    $(function () {
+        DesExchGrid_@(ViewBag._DialogId)();
+        window.FormExchRefresh_@(ViewBag._DialogId)=DesExchGrid_@ViewBag._DialogId;//用作回调函数
+    })
+    function DesExchGrid_@(ViewBag._DialogId)() {
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: "DesSpecExchGrid_@ViewBag._DialogId",//数据表格ID
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+            selectOnCheck: false,
+            fit: false,
+            queryParams: { taskId: '@ViewBag.taskId' },
+            pagination: false,
+            collapsible: true,
+            checkOnSelect: true,
+            JQMergeCells: { fields: ['Id', 'ExchTitle', 'ExchSpecName', 'ExchEmpName', 'SpecIdent', 'EmpIdent', 'dateIdent'] },
+            @*url: '@Url.Action("DesSpecExchJson", "DesExch", new { @area = "Design" })?SpecId=' + fatherIdData.TaskSpecId + '&taskGroupId=@ViewBag.taskGroupId',*@
+            url: '@Url.Action("FormDesSpecExchJson", "DesExch", new { @area = "Design" })?SpecId=' + @ViewBag.TaskModel.TaskSpecId + '&taskGroupId=' + @ViewBag.TaskModel.TaskGroupId,
+            columns: [[
+                {
+                    title: '资料名称', field: 'ExchTitle', width: 220, align: 'left', halign: 'center',
+                    formatter: function (val, row) {
+                        return row.ExchTitle;
+                    }
+                },
+                {
+                    title: '提资专业', field: 'SpecIdent', width: 120, align: 'center', halign: 'center',
+                    formatter: function (val, row, index) {
+                        return row.ExchSpecName;
+                    }
+                },
+                {
+                    title: '提资人', field: 'EmpIdent', width: 90, align: 'center', halign: 'center',
+                    formatter: function (val, row) {
+                        return row.ExchEmpName;
+                    }
+                },
+                { title: '收资专业', field: 'RecSpecName', width: 120, align: 'left', halign: 'center' },
+                { title: '收资人', field: 'RecEmpName', width: 90, align: 'left', halign: 'center' },
+                { title: '接收日期', field: 'RecTime', width: 110, align: 'left', halign: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                    {
+                        title: '提资期限', field: 'dateIdent', width: 100, align: 'center', halign: 'center',
+                        formatter: function (val, row) {
+                            var value = "";
+                            if (JQ.tools.isNotEmpty(row.ExcLastPutTime)) {
+                                value = row.ExcLastPutTime.replace("T", " ").substring(0, 10);
+
+                                if (row.ExcLastPutTime.substring(0, 4) <= 1900)
+                                    value = "";
+                            }
+                            return value;
+                        }
+                    },
+                {
+                    title: "操作", field: "CZ", width: "10%", align: "center", halign: "center",
+                    formatter: function (value, row, index) {
+                        return '<a btn  class="easyui-linkbutton"  data-options="iconCls:\'fa fa-check\'"   onclick="Exchange(' + row.Id + ','+row.RecSpecId+')">提资单</a>';
+                    }
+                }
+            ]]
+        })
+    }
+
+    //提资单页面信息
+    function Exchange(ExchId,RecSpecId) {
+        JQ.dialog.dialog({
+            title: '提资单信息',
+            width: '1024',
+            height: '100%',
+            url: '@Url.Action("IsoExchangeInfo", "DesExch", new { @area = "Design" })?Id=' + ExchId+'&RecSpecId='+RecSpecId+'',
+        });
+    }
+</script>
+
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'center',border:false">
+        <div id="DesSpecExchListDiv_@ViewBag._DialogId" style="width:100%;height:100%;">
+            <table id="DesSpecExchGrid_@ViewBag._DialogId"></table>
+
+        </div>
+    </div>
+</div>

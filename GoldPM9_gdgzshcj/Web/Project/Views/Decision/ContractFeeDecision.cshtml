@@ -1,0 +1,397 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+    <script type="text/javascript" src="@(Url.Content("~/Scripts/echarts/echarts.js"))"></script>
+
+    <script type="text/javascript">
+        //$("#chartshape").buttonset().find(":radio").change(function () {
+        //    if ($(this).val() == 0) {//表示为图表
+        //        $("#monthMain").show();
+        //    }
+        //    else {
+        //        $("#monthMain").hide();
+        //    }
+        //});
+        var rwpTemp = {};
+        var rwpTemp = {};
+        rwpTemp.yheight = 200;
+        //月度统计表格
+        rwpTemp.option = {};
+        rwpTemp.myChart = null;
+        rwpTemp.myChartData = null;
+        //年度统计表格
+        rwpTemp.yearoption = {};
+        rwpTemp.YearChart = null;
+        rwpTemp.YearChartData = null;
+
+       
+
+        //加载图标控件
+        rwpTemp.loadEcharts = function () {
+            //rwpTemp.yheight = 80;
+
+            rwpTemp.getChartData();
+            //合同大小月度统计
+            var dom = document.getElementById('monthMain');
+            rwpTemp.myChart = require('echarts').init(dom);
+
+            //合同大小年度统计
+            var dom = document.getElementById('YearMain');
+            rwpTemp.YearChart = require('echarts').init(dom);
+
+            
+
+            rwpTemp.setOption();
+        };
+
+        //设置图标高度
+        rwpTemp.SetMain = function (height) {
+            //  var minWidth = 850  ;
+            $("#monthMain").css({ height: $("#divContainer").height() / 3, padding: '2px' });
+            $("#YearMain").css({ height: $("#divContainer").height() / 3, padding: '2px' });
+           
+        };
+
+
+        //绑定图表数据
+        rwpTemp.setOption = function () {
+
+            if (rwpTemp.myChartData != null) {
+                for (var i = 0; i < rwpTemp.option.series.length; i++) {
+                    rwpTemp.option.series[i].data = rwpTemp.myChartData.data[i];
+                }
+                rwpTemp.option.xAxis[0].data = rwpTemp.myChartData.legendData;
+                rwpTemp.myChart.setOption(rwpTemp.option);
+                rwpTemp.myChart.hideLoading();
+
+            }
+            //年度统计
+            if (rwpTemp.YearChart != null) {
+                for (var i = 0; i < rwpTemp.yearoption.series.length; i++) {
+                    rwpTemp.yearoption.series[i].data = rwpTemp.YearChartData.data[i];
+                }
+                rwpTemp.yearoption.xAxis[0].data = rwpTemp.YearChartData.legendData;
+                rwpTemp.YearChart.setOption(rwpTemp.yearoption);
+                rwpTemp.YearChart.hideLoading();
+
+            }
+
+          
+
+        };
+
+        var chartData;
+        //设置图标数据
+        rwpTemp.getChartData = function () {
+            debugger;
+            //加载月度数据
+            var url = "@(Url.Action("ContractFeeMonth", "Decision", new { @area = "Project" }))";
+            LoadData(url, $('#txtYear').val());
+            rwpTemp.myChartData = chartData;
+            //年度数据
+            var url = "@(Url.Action("ContractFeeYear", "Decision", new { @area = "Project" }))";
+            LoadData(url, $('#txtYear').val());
+            rwpTemp.YearChartData = chartData
+            
+
+        }
+
+
+        //后台加载数据
+        function LoadData(url, Year) {
+            $.ajax({
+                type: "post",
+                async: false, //同步执行  
+                url: url,
+                dataType: "json", //返回数据形式为json  
+                data: {
+                    ContractYear: Year
+                },
+                success: function (result) {
+                    if (result) {
+                        chartData = result;
+                    }
+                },
+                error: function (errorMsg) {
+                    myChart.hideLoading();
+                }
+            });
+        }
+
+
+        //配置图表控件
+        require.config({
+            paths: {
+                //echarts: "http://localhost/JQWebMVC/Scripts/echarts"
+                echarts: "http://" + "@this.Request.Headers["Host"]" + "@(Url.Content("~/Scripts/echarts"))"
+            }
+        });
+
+        //初设图标控件主入口
+        require(
+
+            [
+                'echarts',
+                'echarts/chart/bar',
+                'echarts/chart/line',
+                'echarts/chart/map'
+            ],
+             function (ec) {
+                 debugger;
+                 rwpTemp.getChartData();
+                 rwpTemp.SetMain($("#divContainer").height());
+                 rwpTemp.myChart = ec.init(document.getElementById('monthMain'));
+                 rwpTemp.myChart.showLoading({
+                     text: '正在努力加载中...'
+                 });
+
+                 // rwpTemp.SetMain($("#divContent").height());
+                 rwpTemp.YearChart = ec.init(document.getElementById('YearMain'));
+                 rwpTemp.YearChart.showLoading({
+                     text: '正在努力加载中...'
+                 });
+             
+
+                 rwpTemp.option = {
+
+                     title: {
+                         text: ' ',
+                         x: 'center',
+                         subtext: $('#txtYear').val()+'年 月度分析'
+                     },
+                     tooltip: {
+                         trigger: 'axis'
+                     },
+                     legend: {
+
+                         data: ['合同额', '收费金额', '付款金额', '开票金额']
+                     },
+                     toolbox: {
+                         show: true,
+                         orient: 'vertical',
+                         feature: {
+                             mark: { show: true },
+                             dataView: { show: true, readOnly: false },
+                             magicType: { show: true, type: ['line', 'bar'] },
+                             restore: { show: true },
+                             saveAsImage: { show: true }
+                         }
+                     },
+                     calculable: true,
+                     yAxis: [
+                         {
+                             type: 'value'
+
+                         }
+                     ],
+                     xAxis: [
+                         {
+                             type: 'category',
+                             data: null// ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+                         }
+                     ],
+                     series: [
+                         {
+                             name: '合同额',
+                             type: 'bar',
+                             data: null,
+                             itemStyle: {
+                                 normal: {
+                                     label: {
+                                         show: true,
+                                         position: 'top',
+                                         formatter: "{c}"
+                                     }
+                                 }
+                             }
+                         },
+                          {
+                              name: '收费金额',
+                              type: 'bar',
+                              data: null,
+                              itemStyle: {
+                                  normal: {
+                                      label: {
+                                          show: true,
+                                          position: 'top',
+                                          formatter: "{c}"
+                                      }
+                                  }
+                              }
+                          },
+                           {
+                               name: '付款金额',
+                               type: 'bar',
+                               data: null,
+                               itemStyle: {
+                                   normal: {
+                                       label: {
+                                           show: true,
+                                           position: 'top',
+                                           formatter: "{c}"
+                                       }
+                                   }
+                               }
+                           },
+                           {
+                               name: '开票金额',
+                               type: 'bar',
+                               data: null,
+                               itemStyle: {
+                                   normal: {
+                                       label: {
+                                           show: true,
+                                           position: 'top',
+                                           formatter: "{c}"
+                                       }
+                                   }
+                               }
+                           }
+                     ]
+                 };
+                 // rwpTemp.setOption();
+
+
+                 //年度的配置项
+                 rwpTemp.yearoption = {
+
+                     title: {
+                         text: ' ',
+                         x: 'center',
+                         subtext: $('#txtYear').val() + '年 年度分析'
+                     },
+                     tooltip: {
+                         trigger: 'axis'
+                     },
+                     legend: {
+                         data: ['合同额', '收费金额', '付款金额', '开票金额']
+                     },
+                     toolbox: {
+                         show: true,
+                         orient: 'vertical',
+                         feature: {
+                             mark: { show: true },
+                             dataView: { show: true, readOnly: false },
+                             magicType: { show: true, type: ['line', 'bar'] },
+                             restore: { show: true },
+                             saveAsImage: { show: true }
+                         }
+                     },
+                     calculable: true,
+                     yAxis: [
+                         {
+                             type: 'value'
+
+                         }
+                     ],
+                     xAxis: [
+                         {
+                             type: 'category',
+                             data: null// ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+                         }
+                     ],
+                     series: [
+                         {
+                             name: '合同额',
+                             type: 'bar',
+                             data: null,
+                             itemStyle: {
+                                 normal: {
+                                     label: {
+                                         show: true,
+                                         position: 'top',
+                                         formatter: "{c}"
+                                     }
+                                 }
+                             }
+                         },
+                          {
+                              name: '收费金额',
+                              type: 'bar',
+                              data: null,
+                              itemStyle: {
+                                  normal: {
+                                      label: {
+                                          show: true,
+                                          position: 'top',
+                                          formatter: "{c}"
+                                      }
+                                  }
+                              }
+                          },
+                           {
+                               name: '付款金额',
+                               type: 'bar',
+                               data: null,
+                               itemStyle: {
+                                   normal: {
+                                       label: {
+                                           show: true,
+                                           position: 'top',
+                                           formatter: "{c}"
+                                       }
+                                   }
+                               }
+                           },
+                           {
+                               name: '开票金额',
+                               type: 'bar',
+                               data: null,
+                               itemStyle: {
+                                   normal: {
+                                       label: {
+                                           show: true,
+                                           position: 'top',
+                                           formatter: "{c}"
+                                       }
+                                   }
+                               }
+                           }
+                     ]
+                 };
+ 
+                 rwpTemp.setOption();
+             }
+        );
+    </script>
+
+
+
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <div id="divToolbar" class="toolbar" style="border-bottom: 1px solid  #d6d6d6;">
+        <div>
+
+            <div id="divSearch" class="showFullSearch">
+                <table border="0" cellpadding="0" cellspacing="5" style="height: 100%">
+                    <tr>
+                        <td>立项日期：
+                        </td>
+                        <td>
+                            <input type="text" class="bbit-dp-input" style="width: 70px; height: 25px;" id="txtYear" value="2016" />
+                        </td>
+                        <td>
+                            <input name="sbtnFilter" runat="server" class="InputBttn" id="sbtnFilter" style="width: 52px; padding-left: 18px;" type="button" value="筛选" onclick="rwpTemp.loadEcharts()" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="clear"></div>
+        </div>
+    </div>
+    <div id="divContent" class="divfix" style="height:100%;overflow-y:auto">
+        <div style="+zoom: 1;height: 1000px;" id="divContainer"  >
+            <div id="monthMain" style="width: 98%; height: 300px;"></div>@*月度统计图表容器*@
+            <div id="YearMain" style="width: 98%; height: 300px;"></div>@*年度统计图表容器*@
+            
+        </div>
+    </div>
+
+}
+

@@ -1,0 +1,290 @@
+﻿@model DataModel.Models.DesTaskGantt
+@using JQ.Web;
+
+<script type="text/javascript">
+
+    JQ.form.submitInit({
+        formid: 'SaveDesTaskGanttForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            window.top.execute("个人中心", "refreshtaskGantt");
+            JQ.dialog.dialogClose();
+            try
+            {
+                window.top.refresh();
+            }
+            catch(e){
+            }
+        }
+    });
+
+    $("#bit").val(@ViewBag.bit);
+    $("#Duration").attr("readonly", "readonly");
+    function onSelect(date) {  
+        var dt1 = $("#ParentDatePlanStart").datebox("getValue");
+        var dt2 = $("#ParentDatePlanFinish").datebox("getValue");
+
+        var dt3 = $("#DatePlanStart").datebox("getValue");
+        var dt4 = $("#DatePlanFinish").datebox("getValue");
+
+        if (dt3 != "" && dt1 != "") {
+            var t1 = parser(dt1);
+            var t3 = parser(dt3);
+
+            if (t1 > t3) {
+                $("#DatePlanStart").datebox("setValue", "");
+                JQ.dialog.error("关键节点的开始时间不能早于父节点的开始时间！");
+                return false;
+            }
+        }
+
+        if (dt3 != "" && dt2 != "") {
+            var t3 = parser(dt3);
+            var t2 = parser(dt2);
+
+            if (t3 > t2) {
+
+                $("#DatePlanStart").datebox("setValue", "");
+                JQ.dialog.error("关键节点的开始时间不能晚于父节点的结束时间！");
+                return false;
+            }
+        }
+
+        if (dt4 != "" && dt2 != "") {
+            var t2 = parser(dt2);
+            var t4 = parser(dt4);
+
+            if (t2 < t4) {
+
+                $("#DatePlanFinish").datebox("setValue", "");
+                JQ.dialog.error("关键节点的结束时间不能晚于父节点的结束时间！");
+                return false;
+            }
+        }
+
+        if (dt4 != "" && dt1 != "") {
+            var t4 = parser(dt4);
+            var t1 = parser(dt1);
+
+            if (t4 < t1) {
+
+                $("#DatePlanFinish").datebox("setValue", "");
+                JQ.dialog.error("关键节点的结束时间不能早于父节点的开始时间！");
+                return false;
+            }
+        }
+
+
+        if (dt3 != "" && dt4 != "") {
+            var t3 = parser(dt3);
+            var t4 = parser(dt4);
+            if (t3 <= t4) {
+                var result = calculateDays(t3, t4);
+                // debugger;
+                $("#Duration").numberbox('setValue', result );
+            }
+            else {
+                JQ.dialog.error("开始时间不能大于完成时间！");
+                return false;
+            }
+        }
+    }
+    //function calculateDays(dateBegin, dateEnd) {
+    //    var sDate = new Date(dateBegin);
+    //    var eDate = new Date(dateEnd);
+    //    var weekToDay = eDate.getDay();
+         
+        
+    //    var fen = ((eDate.getTime() - sDate.getTime()) / 1000) / 60;
+    //    var distance = parseInt(fen / (24 * 60)); //相隔distance天
+    //    return distance;
+    //};
+
+    function calculateDays(dateBegin, dateEnd) {
+        var sDate = new Date(dateBegin);
+        var eDate = new Date(dateEnd);
+        var newSDate ;
+        var newEDate ;
+        debugger;
+        //开始时间判断
+        var weekToDay = sDate.getDay();
+        if(weekToDay==6)
+        {
+            newSDate= new Date( addDate(sDate,2));
+           
+        }
+        else if(weekToDay==0)
+        {
+            newSDate= new Date( addDate(sDate,1));
+           
+        }
+        else
+        {
+            newSDate=sDate;
+        }
+        //结束时间判断
+        weekToDay = eDate.getDay();
+        if(weekToDay==6)
+        {
+            newEDate= new Date( addDate(eDate,-1));
+           
+        }
+        else if(weekToDay==0)
+        {
+            newEDate= new Date( addDate(eDate,-2));
+           
+        }
+        else
+        {
+            newEDate=eDate;
+        }
+
+        var pos = new Date(newEDate);
+        newEDate.setHours(23, 59, 59, 999);
+        newSDate.setHours(23, 59, 59, 999);
+     //   alert(newEDate);  alert(newSDate);
+        var fen = ((newEDate.getTime() - newSDate.getTime()) / 1000) / 60;
+        var distance = parseInt(fen / (24 * 60)); //相隔distance天
+         
+        return distance+1;
+    };
+
+
+    function addDate(date,days){ 
+        var d=new Date(date); 
+        d.setDate(d.getDate()+days); 
+        var m=d.getMonth()+1; 
+        return d.getFullYear()+'-'+m+'-'+d.getDate(); 
+    } 
+
+    JQ.combotree.selEmp({ id: 'ManageEmpId', width: "98%" });
+
+    $(function(){
+        JQ.Flow.processControl.call(document.getElementById("ParentDatePlanStart"),"DatePlanStart",false);
+        JQ.Flow.processControl.call(document.getElementById("ParentDatePlanFinish"),"DatePlanStart",false);
+
+        if(@(ViewBag.bit)==3)
+        {
+            setTimeout(function(){
+                JQ.Flow.processControl.call(document.getElementById("ParentDatePlanStart"),"DatePlanStart",false);
+                JQ.Flow.processControl.call(document.getElementById("ParentDatePlanFinish"),"DatePlanStart",false);
+                JQ.Flow.processControl.call(document.getElementById("DatePlanStart"),"DatePlanStart",false);
+                JQ.Flow.processControl.call(document.getElementById("DatePlanFinish"),"DatePlanStart",false);
+                JQ.Flow.processControl.call(document.getElementById("name"),"DatePlanStart",false);
+                JQ.Flow.processControl.call(document.getElementById("Duration"),"DatePlanStart",false);
+                JQ.Flow.processControl.call(document.getElementById("KeyPointType"),"DatePlanStart",false);
+                JQ.Flow.processControl.call(document.getElementById("ManageEmpId"),"DatePlanStart",false);
+
+            },100);
+        }
+        else{
+            setTimeout(function(){
+                JQ.Flow.processControl.call(document.getElementById("ParentDatePlanStart"),"DatePlanStart",false);
+                JQ.Flow.processControl.call(document.getElementById("ParentDatePlanFinish"),"DatePlanStart",false);
+
+            },100);
+        }
+    });
+
+    if(@ViewData["ManageEmpId1"]!=0&&@ViewData["ManageEmpId2"]!=0)
+    {
+        $("#ManageEmpId").combotree('setValue',@ViewData["ManageEmpId1"]+"-"+ @ViewData["ManageEmpId2"]);
+    }
+
+    function parser(s) 
+    {
+        if (!s) return new Date();
+        var ss = s.split('-');
+        var y = parseInt(ss[0], 10);
+        var m = parseInt(ss[1], 10);
+        var d = parseInt(ss[2], 10);
+        if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+            return new Date(y, m - 1, d);
+        } else {
+            return new Date();
+        }
+    }
+</script>
+
+@using (Html.BeginForm("SaveTask", "DesTask", FormMethod.Post, new { @area = "Design", @id = "SaveDesTaskGanttForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">父节点开始时间</th>
+            <td width="40%">
+                <input name="ParentDatePlanStart" id="ParentDatePlanStart" style="width:98%;" class="easyui-datebox" data-options="editable: false" value="@ViewBag.ParentDatePlanStart" />
+            </td>
+            <th width="10%">父节点完成时间</th>
+            <td width="40%">
+                <input name="ParentDatePlanFinish" id="ParentDatePlanFinish" style="width:98%;" class="easyui-datebox" data-options="editable:false" value="@ViewBag.ParentDatePlanFinish" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">任务名称</th>
+            <td colspan="3">
+                <input id="name" name="name" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,1000]" value="@Model.Name" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">相关责任人</th>
+            <td width="40%">
+                <select id="ManageEmpId" name="ManageEmpId" JQvalue="@Model.ManageEmpId" data-options="required:true,editable: false"></select>
+            </td>
+            <th width="10%">关键节点</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "KeyPointType",
+               engName = "KeyPointType",
+               width = "98%",
+               isRequired = true,
+               ids = Model.KeyPointType.ToString()
+           })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">开始时间</th>
+            <td width="40%">
+                <input name="DatePlanStart" id="DatePlanStart" style="width:98%;" class="easyui-datebox" validType="dateISO" readonly="readonly" data-options="onSelect:onSelect,required:true" value="@Model.DatePlanStart" />
+            </td>
+            <th width="10%">完成时间</th>
+            <td width="40%">
+                <input name="DatePlanFinish" id="DatePlanFinish" style="width:98%;" class="easyui-datebox" validType="dateISO" data-options="onSelect:onSelect,required:true" value="@Model.DatePlanFinish" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">持续天数</th>
+            <td width="40%">
+                <input name="Duration" id="Duration" style="width:98%;" class="easyui-numberbox" data-options="min:0,precision:0" value="@Model.Duration" />
+            </td>
+            <th width="10%">完成比例</th>
+            <td width="40%">
+                <input name="Progress" class="easyui-numberbox" style="width:98%;" data-options="min:0,max:100,precision:0" value="@Model.Progress" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">其他描述</th>
+            <td colspan="3">
+                <textarea name="Description" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.Description</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "DesTaskGantt";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <input type="hidden" id="bit" name="bit" />
+                    }

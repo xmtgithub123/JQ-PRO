@@ -1,0 +1,75 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "DesTaskCheck",new { @area="Design"})',
+            addUrl = '@Url.Action("add","DesTaskCheck",new {@area="Design" })',
+            editUrl = '@Url.Action("edit", "DesTaskCheck",new {@area="Design" })',
+            delUrl = '@Url.Action("del", "DesTaskCheck", new { @area = "Design" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit','del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'DesTaskCheckGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#DesTaskCheckPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+				  		{ title: '---任务校审意见---', field: 'Id', width: 100, align: 'center', sortable: true  },
+		{ title: '项目ID', field: 'ProjID', width: 100, align: 'center', sortable: true  },
+		{ title: '阶段ID', field: 'PhaseID', width: 100, align: 'center', sortable: true  },
+		{ title: '设计节点', field: 'EngNodeID', width: 100, align: 'center', sortable: true  },
+		{ title: '提出节点', field: 'CheckNodeID', width: 100, align: 'center', sortable: true  },
+		{ title: '错误类型', field: 'CheckErrTypeID', width: 100, align: 'center', sortable: true  },		{ title: '备注', field: 'CheckNote', width: 100, align: 'center', sortable: true  },
+		{ title: '提出人', field: 'CheckEmpId', width: 100, align: 'center', sortable: true  },
+		{ title: '设计确认', field: 'CheckIsCorrective', width: 100, align: 'center', sortable: true  },
+		{ title: '校审确认', field: 'CheckIsExamine', width: 100, align: 'center', sortable: true  },
+		{ title: '校审建议', field: 'ChecklsNode', width: 100, align: 'center', sortable: true  },
+		{ title: '贴图', field: 'CheckImage', width: 100, align: 'center', sortable: true  },
+		{ title: '提出日期', field: 'CheckDate', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '校审答复', field: 'CheckXml', width: 100, align: 'center', sortable: true  },
+                 { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'DesTaskCheck' }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '筛选字段',
+                queryOptions: { 'Key': 'CheckNote', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'DesTaskCheckGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="DesTaskCheckGrid"></table>
+    <div id="DesTaskCheckPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            
+        </span>
+
+        <input id="JQSearch" style="width:250px;" />
+
+    </div>
+}
+

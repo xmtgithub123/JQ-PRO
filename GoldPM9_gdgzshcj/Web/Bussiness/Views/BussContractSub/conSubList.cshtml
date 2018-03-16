@@ -1,0 +1,54 @@
+﻿@using JQ.Web;
+@model DataModel.Models.BussContractSub
+
+<script type="text/javascript">
+    $(function () {
+        debugger;
+        JQ.datagrid.datagrid({
+            JQButtonTypes: ['moreSearch'],//需要显示的按钮
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'BussContractSubGrid',//数据表格ID
+            JQDialogTitle: '付款合同',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQExcludeCol: [1, 14, 15, 16],//导出execl排除的列
+            url: '@Url.Action("json","BussContractSub",new { @area="Bussiness"})?CompanyType=FGS',//请求的地址
+            queryParams: { projectID:'@(Request.Params["projectID"]==null?"0":Request.Params["projectID"].ToString())',EngineeringNumber:'@(Request.Params["EngineeringNumber"]==null?"0":Request.Params["EngineeringNumber"].ToString())',ConSubCustId:@(Request.Params["ConSubCustId"] ==null?"0":Request.Params["ConSubCustId"]) },
+            checkOnSelect: true,//是否包含check
+            toolbar: '#BussContractSubPanel',//工具栏的容器ID
+            columns: [[
+                { title: '外委合同编号', field: 'ConSubNumber', width: '8%', halign: 'center', align: 'left', sortable: true },
+                { title: '外委合同名称', field: 'ConSubName', width: '12%', align: 'left', halign: 'center', sortable: true },
+                { title: '外委合同类型', field: 'ConSubTypeName', width: '80', align: 'center', sortable: true },
+                { title: '外委合同类别', field: 'ConSubCategoryName', width: '80', align: 'center', sortable: true },
+                { title: '外委合同状态', field: 'ConSubStatusName', width: '80', align: 'center', sortable: true },
+                { title: '外委合同单位', field: 'CustName', width: '12%', align: 'left', halign: 'center', sortable: true },
+                { title: '签订日期', field: 'ConSubDate', width: '80', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '合同金额(元)', field: 'ConSubFee', width: '100', align: 'right', halign: 'center', sortable: true },
+                { title: '已付款(元)', field: 'AlreadySumFeeMoney', width: '80', align: 'right', halign: 'center', sortable: true },
+                { title: '未付款(元)', field: 'UnPay', width: '80', align: 'right', halign: 'center', sortable: true },
+                { title: '已收票(元)', field: 'AlreadySumInvoiceMoney', width: '80', align: 'right', halign: 'center', sortable: true },
+            ]],
+            onBeforeCheck: function (rowIndex, rowData) {
+                return rowData._AllowCheck;
+            },
+            onClickRow: function (rowIndex, rowData) {
+                if (!rowData._AllowCheck) {
+                    $(this).datagrid('unselectRow', rowIndex);
+                }
+            },
+            onLoadSuccess: function (data) {
+                $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                var rowViews = $("#BussContractSubGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                for (var i = 0; i < data.rows.length; i++) {
+                    if (!data.rows[i]._AllowCheck) {
+                        rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                    }
+                }
+            }
+        });
+    })
+</script>
+<table id="BussContractSubGrid"></table>
+

@@ -1,0 +1,202 @@
+﻿@model DataModel.Models.DesTask
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoFormform',//formid提交需要用到
+        buttonTypes: ['close', 'exportForm'],//默认按钮
+        docName: 'IsoSJJSD',
+        ExportName: '校审单',
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.treegrid.autoReftreegrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        onBefore: function (resultArr) {
+            $.each($("#WordTaskCheck img"), function (i, e) {
+                $("<span img=\"" + $(e).attr("src") + "\"></span>").appendTo($(e).parent().parent());
+                $(e).parent().remove();
+            });
+            debugger;
+
+            var MLevel = $("#ManageLevel").val();
+            switch (MLevel) {
+                case "1":
+                    resultArr.push({ Key: "MLevel_EX", Value: "☑院  □所" });
+                    break;
+                case "2":
+                    resultArr.push({ Key: "MLevel_EX", Value: "☑院  □所" });
+                    break;
+                default:
+                    resultArr.push({ Key: "MLevel_EX", Value: "□院  □所" });
+                    break;
+
+            }
+
+            var JSWJ = $("#JSWJ").val();
+
+            switch (JSWJ) {
+                case "1":
+                    resultArr.push({ Key: "JSWJ_EX", Value: "☑图纸  □说明书  □计算书  □概算" });
+                    break;
+                case "2":
+                    resultArr.push({ Key: "JSWJ_EX", Value: "□图纸  ☑说明书  □计算书  □概算" });
+                    break;
+                case "3":
+                    resultArr.push({ Key: "JSWJ_EX", Value: "□图纸  □说明书  ☑计算书  □概算" });
+                    break;
+                case "4":
+                    resultArr.push({ Key: "JSWJ_EX", Value: "□图纸  □说明书  □计算书  ☑概算" });
+                    break;
+                default:
+                    resultArr.push({ Key: "JSWJ_EX", Value: "□图纸  □说明书  □计算书  □概算" });
+                    break;
+            }
+
+            resultArr.push({ Key: "Permission", Value: '@ViewBag.Permission' });
+        },
+        onAfter: function () {
+            $.each($("#WordTaskCheck span[img]"), function (i, e) {
+                $("<div style=\"display:block;text-align:left;\"><img src=\"" + $(e).attr("img") + "\" style='width:230px;height:120px;' /></div>").appendTo($(e).parent());
+                $(e).remove();
+            })
+        }
+    });
+
+    //选中控件，隐藏控件，id，name，是否单选
+    function Checked(ckControl, hidCon, value, valName, isOnlyName) {
+        debugger;
+        if ($("#" + ckControl).attr("checked")) {
+            if (isOnlyName != undefined) {
+                $(':checkbox[name=' + isOnlyName + ']').removeAttr('checked');
+                $("#" + ckControl).attr('checked', 'checked');
+            }
+            switch (hidCon) {
+                case "GCLB":
+                    $("#ProjTypeID").val(value);
+                    $("#ProjTypeName").val(valName);
+                    break;
+                default:
+                    $("#" + hidCon).val(value);
+                    break;
+            }
+        } else {
+            switch (hidCon) {
+                case "GCLB":
+                    $("#ProjTypeID").val("");
+                    $("#ProjTypeName").val("");
+                    break;
+                default:
+                    $("#" + hidCon).val("");
+                    break;
+            }
+        }
+    }
+
+</script>
+<style type="text/css">
+    #WordTaskCheck th {
+        text-align: center;
+    }
+
+    #WordTaskCheck td {
+        text-align: center;
+    }
+
+    #WordTaskCheck .tbody {
+        border-top: 0px !important;
+    }
+
+    #WordTaskCheck img {
+        margin-top: 0px;
+    }
+</style>
+<form id="IsoFormform">
+    <table id="WordTaskCheck" class="table table-bordered">
+        <div style="width:99%;text-align:center;font-size:20px;font-weight:bold;margin-top:10px;">
+            <a>设计校审单</a>
+        </div>
+        <tr>
+            <th width="10%">工程编号</th>
+            <td width="20%" bookmark="ProjNumber">
+                @ViewBag.ProjModel.ProjNumber
+            </td>
+            <th>项目名称</th>
+            <td bookmark="ProjName" colspan="3">@ViewBag.ProjModel.ProjName</td>
+        </tr>
+        <tr>
+            <th>管理等级</th>
+            <td>
+                <span style="display:block;width:50px;float:left;">
+                    <input type="checkbox" id="MLevel1" style="vertical-align:middle;" name="MLevel" onclick="Checked(this.id, 'ManageLevel', '1', '', 'MLevel')" />
+                    <label for="MLevel1" style="vertical-align:middle;">院</label>
+                </span>
+                <span style="display:block;width:50px;float:left;">
+                    <input type="checkbox" id="MLevel2" style="vertical-align:middle;" name="MLevel" onclick="Checked(this.id, 'ManageLevel', '2', '', 'MLevel')" />
+                    <label for="MLevel2" style="vertical-align:middle;">所</label>
+                </span>
+                <input type="hidden" id="ManageLevel" name="ManageLevel" />
+            </td>
+            <th width="10%">专业</th>
+            <td width="20%" bookmark="SpecName">
+                @ViewBag.ZY
+            </td>
+            <th width="10%">设计阶段</th>
+            <td width="20%" bookmark="ProjPhaseName">
+                @ViewBag.DesignPhaseName
+            </td>
+        </tr>
+        <tr>
+            <th>校审内容</th>
+            <td colspan="3"  bookmark="JSNR">
+                @Model.TaskName
+            </td>
+            <th>送审日期</th>
+            <td bookmark="SSTime">@ViewBag.SSTime</td>
+        </tr>
+        <tr>
+            <th>校审文件</th>
+            <td colspan="3">
+                <span style="display:block;width:80px;float:left;">
+                    <input type="checkbox" id="CJSWJ1" style="vertical-align:middle;" name="CJSWJ" onclick="Checked(this.id, 'JSWJ', '1', '', 'CJSWJ')" />
+                    <label for="CJSWJ1" style="vertical-align:middle;">图纸</label>
+                </span>
+                <span style="display:block;width:80px;float:left;">
+                    <input type="checkbox" id="CJSWJ2" style="vertical-align:middle;" name="CJSWJ" onclick="Checked(this.id, 'JSWJ', '2', '', 'CJSWJ')" />
+                    <label for="CJSWJ2" style="vertical-align:middle;">说明书</label>
+                </span>
+                <span style="display:block;width:80px;float:left;">
+                    <input type="checkbox" id="CJSWJ3" style="vertical-align:middle;" name="CJSWJ" onclick="Checked(this.id, 'JSWJ', '3', '', 'CJSWJ')" />
+                    <label for="CJSWJ3" style="vertical-align:middle;">计算书</label>
+                </span>
+                <span style="display:block;width:80px;float:left;">
+                    <input type="checkbox" id="CJSWJ4" style="vertical-align:middle;" name="CJSWJ" onclick="Checked(this.id, 'JSWJ', '4', '', 'CJSWJ')" />
+                    <label for="CJSWJ4" style="vertical-align:middle;">概算</label>
+                </span>
+                <input type="hidden" id="JSWJ" name="JSWJ" />
+            </td>
+            <th>设计人</th>
+            <td bookmark="SJR">
+                @ViewBag.SJR
+            </td>
+        </tr>
+        <tr>
+            <th colspan="4">
+                校审意见(注明文件名或编号)
+            </th>
+            <th colspan="2">
+                修改情况
+            </th>
+        </tr>
+        <tr>
+            <td colspan="4" bookmark="JSNote">
+                @Html.Raw(ViewBag.jsyj)
+            </td>
+            <td colspan="2" bookmark="HFYJ">
+                @Html.Raw(@ViewBag.hfyj)
+            </td>
+        </tr>
+        <tr>
+            @Html.Raw(ViewBag.FlowEmp)
+        </tr>
+    </table>
+    <input type="hidden" id="SJR_EmpName" name="SJR_EmpName" value="@ViewBag.SJR" />
+</form>

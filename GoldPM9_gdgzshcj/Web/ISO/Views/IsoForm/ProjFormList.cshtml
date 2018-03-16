@@ -1,0 +1,75 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("ProjectPlanListJson", "DesTask",new { @area="Design"})?FormMenu=ProjectQualityTable';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'DesTaskGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                JQMergeCells: { fields: ['ProjNumber', 'ProjName'], Only: 'Id' },//当字段值相同时会自动的跨行(只对相邻有效)
+                toolbar: '#DesTaskPanel',//工具栏的容器ID
+                fitColumns: true,
+                nowrap: false,
+                columns: [[ 
+		            { title: '项目编号', field: 'ProjNumber', width: "15%", halign: 'center', align: 'left', sortable: true },
+		            { title: '项目名称', field: 'ProjName', width: "30%", halign: 'center', align: 'left', sortable: true },
+                    { title: '阶段', field: 'ProjPhaseName', width: "15%", halign: 'center', align: 'left', sortable: true },
+                    { title: '负责人', field: 'ProjPhaseEmpName', width: "10%", halign: 'center', align: 'center', sortable: true },
+		            { title: '计划开始', field: 'DatePlanStart', width: "10%", halign: 'center', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '计划结束', field: 'DatePlanFinish', width: "10%", halign: 'center', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    {
+                        title: '操作', field: 'Id', width: "8%", halign: 'center', align: 'center', formatter: function (value, row, index) {
+                            var _titleName = "[" + row.ProjNumber + "]" + row.ProjPhaseName;
+                            return "<a class=\"easyui-linkbutton\" data-options=\"plain:true,iconCls:'fa fa-trash'\" onclick='openProjFormInfo(\"" + _titleName + "\"," + row.Id + "," + row.TaskGroupId + ")'>查看</a>";
+                        }
+                    }
+                ]],
+                JQExcludeCol: [7],//导出execl排除的列
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目名称、编号',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'DesTaskGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+
+        });
+
+        function openProjFormInfo(title, projId, taskGroupId) {
+            //alert(Id);
+            window.top.addTab("查看:" + title, '@Url.Action("ProjFormDetail")?projID=' + projId + '&taskGroupId=' + taskGroupId, "");
+        }
+    </script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+
+    <table id="DesTaskGrid"></table>
+    <div id="DesTaskPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">         
+        </span>
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'p.ProjNumber,p.ProjName', Contract:'like'}" />
+    </div>
+}
+

@@ -1,0 +1,89 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoFormProjDelegateChange", new { @area = "ISO" })',
+               addUrl = '@Url.Action("add")',
+               editUrl = '@Url.Action("edit")',
+               delUrl = '@Url.Action("del")';
+        var xml = '';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'IsoFormProjDelegateChangeGrid',//数据表格ID
+                JQDialogTitle: '项目工代信息',//弹出窗体标题
+                JQWidth: '960',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#IsoFormProjDelegateChangePanel',//工具栏的容器ID
+                singleSelect: false,
+                columns: [[
+                  {
+                      title: '项目名称', field: 'ProjName', width: 260, align: 'center', sortable: true
+                  },
+                  {
+                      title: '项目编号', field: 'ProjNumber', width: 120, align: 'center', sortable: true
+                  },
+                  {
+                      title: '项目阶段', field: 'ProjPhaseIds', width: 120, align: 'center', sortable: true
+                  },
+                  {
+                      title: '申请人', field: 'CreatorEmpName', width: 120, align: 'center', sortable: true
+                  },
+                  {
+                      title: '申请日期', field: 'CreationTime', width: 120, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT 
+                  },
+                  {
+                      title: '申请原因', field: 'FormReason', width: 120, align: 'center', sortable: true
+                  }
+                  //,
+                  //{
+                  //    title: '审批进度', field: 'ProjPhaseIds', width: 120, align: 'center', sortable: true
+                  //}
+
+
+
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目名称、项目编号',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'IsoFormProjDelegateChangeGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+
+                            }
+                        });
+                }
+            });
+        });
+
+
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoFormProjDelegateChangeGrid"></table>
+    <div id="IsoFormProjDelegateChangePanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+    <span jqpanel="toolbarPanel">
+
+    </span>
+
+    <input id="JQSearch" style="width:250px;" />
+
+</div>
+}
+

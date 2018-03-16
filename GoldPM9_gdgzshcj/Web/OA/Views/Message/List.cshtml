@@ -1,0 +1,194 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            $("#status").combobox({
+                panelHeight: "auto",
+                editable: false,
+                onSelect: function () {
+                    refreshGrid();
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '筛选字段',
+                onClickButton: function () {
+                    window.refreshGrid();
+                }
+            });
+
+            $("#starttime").datebox({
+                prompt: "发送时间开始",
+                width: 100
+            });
+            $("#endtime").datebox({
+                prompt: "发送时间结束",
+                width: 100
+            });
+            JQ.datagrid.datagrid({
+                JQPrimaryID: "Id",
+                JQID: "tbList",
+                JQLoadingType: "datagrid",
+                checkOnSelect: true,
+                toolbar: "#list_toolbar",
+                url: "@(Url.Action("GetList", "Message",new { @area="OA" }))",
+                rownumbers: true,
+                JQFields: ["Id"],
+                columns: [[
+                       { field: "ck", align: "center", checkbox: true, JQIsExclude: true },
+                    { title: "消息标题", field: "MessTitle", width: 420, align: "left", halign: "center" },
+                     {
+                         title: "消息链接", field: "MessLinkTitle", width: 120, align: "left", halign: "center", formatter: function (value, rowData) {
+                             if (rowData.MessLinkTitle && rowData.MessLinkUrl) {
+                                 return JQ.Flow.createElement("a", { href: "javascript:void(0)", onclick: "showdialog('" + encodeURIComponent(rowData.MessLinkTitle) + "','" + encodeURIComponent(rowData.MessLinkUrl) + "'," + rowData.MessDialogWidth + "," + rowData.MessDialogHeight + ");" }, null, rowData.MessLinkTitle).outerHTML;
+                             }
+                             else {
+                                 return "无";
+                             }
+                         }
+                     }, {
+                         title: "发送时间", field: "MessDate", width: 130, align: "center", halign: "center", sortable: true, formatter: function (value) {
+                             return JQ.Flow.parseDateTimeText(value);
+                         }
+                     }, {
+                         title: "阅读日期", field: "MessReadDate", width: 130, align: "center", halign: "center", formatter: function (value) {
+                             return JQ.Flow.parseDateTimeText(value);
+                         }
+                     }, {
+                         title: "自动发送", field: "MessIsSystem", width: 60, align: "center", halign: "center", formatter: function (value) {
+                             return value ? "是" : "否";
+                         }
+                     }, { title: "发送人", field: "MessEmpName", width: 60, align: "center", halign: "center" }, {
+                         title: "操作", field: "MessLinkUrl", width: 60, align: "center", halign: "center", formatter: function (value, rowData) {
+                             return "<a href=\"javascript:void(0)\" onclick=\"showMessage(" + rowData.Id + ")\">查看</a>"
+                         }
+                     }
+                ]],
+                queryParams: getQueryParams()
+            });
+        });
+
+        window.refreshGrid = function () {
+            $("#tbList").datagrid("load", getQueryParams());
+        }
+
+        function getQueryParams() {
+            return { text: $("#JQSearch").textbox("getText"), status: $("#status").combobox("getValue"), starttime: $("#starttime").textbox("getText"), endtime: $("#endtime").textbox("getText") };
+        }
+
+        function showMessage(id) {
+            JQ.dialog.dialog({
+                title: "查看消息",
+                url: "@(Url.Action("Display","Message",new { @area="OA" }))?id=" + id,
+                width: 800,
+                height: 630,
+                iconCls: "fa fa-comments-o",
+                onClose: function () {
+                    window.refreshGrid();
+                }
+            });
+            JQ.Flow.stopBubble();
+        }
+
+        function showdialog(title, url, width, height) {
+            JQ.dialog.dialog({
+                title: decodeURIComponent(title),
+                url: "@(ViewBag.sitePath)" + decodeURIComponent(url),
+                width: width ? width : 800,
+                height: height ? height : 600,
+                iconCls: "fa fa-table"
+            });
+            JQ.Flow.stopBubble();
+        }
+
+        function setReadStatus(status) {
+            var selections = $("#tbList").datagrid("getSelections");
+            if (!selections || selections.length == 0) {
+                return;
+            }
+            var idSet = "";
+            for (var i = 0; i < selections.length; i++) {
+                if (i != 0) {
+                    idSet += ",";
+                }
+                idSet += selections[i].Id;
+            }
+            var confirmed = function () {
+                window.top.$.messager.progress();
+                $.ajax({
+                    url: "@(Url.Action("SetReadStatus", "Message",new { @area="OA" }))",
+                    type: "POST",
+                    data: { idSet: idSet, status: status },
+                    success: function (result) {
+                        if (result.Result == false) {
+                            JQ.dialog.alert("操作失败！");
+                            return;
+                        }
+                        window.refreshGrid();
+                    }, complete: function () {
+                        window.top.$.messager.progress("close");
+                    }
+                });
+            };
+            if (status == 1) {
+                JQ.dialog.confirm("确定要将选中的消息设置为已读吗？", confirmed);
+            }
+            else if (status == 2) {
+                JQ.dialog.confirm("确定要将选中的消息设置为未读吗？", confirmed);
+            }
+        }
+
+        function deleteRead() {
+            var selections = $("#tbList").datagrid("getSelections");
+            if (!selections || selections.length == 0) {
+                return;
+            }
+            var idSet = "";
+            for (var i = 0; i < selections.length; i++) {
+                if (i != 0) {
+                    idSet += ",";
+                }
+                idSet += selections[i].Id;
+            }
+            JQ.dialog.confirm("确定要删除选中的消息吗？", function () {
+                window.top.$.messager.progress();
+                $.ajax({
+                    url: "@(Url.Action("DeleteRead", "Message",new { @area="OA" }))",
+                    type: "POST",
+                    data: { idSet: idSet },
+                    success: function (result) {
+                        if (result.Result == false) {
+                            JQ.dialog.alert("操作失败！");
+                            return;
+                        }
+                        window.refreshGrid();
+                    }, complete: function () {
+                        window.top.$.messager.progress("close");
+                    }
+                });
+            });
+        }
+    </script>
+}
+@section Body_Content{
+    <table id="tbList"></table>
+    <div id="list_toolbar" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-check-circle'" onclick="setReadStatus(1)">设为已读</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="setReadStatus(2)">设为未读</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash-o'" onclick="deleteRead()">删除</a>
+        <span JQPanel="toolbarPanel">
+        </span>
+        <select id="status" name="status" class="easyui-combobox">
+            <option value="">所有状态</option>
+            <option value="0" selected="selected">未读</option>
+            <option value="1">已读</option>
+        </select>
+        <input id="starttime" name="starttime" type="text"> 至 <input id="endtime" name="endtime" type="text">&nbsp;
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'MessTitle', 'Contract': 'like' }" />
+    </div>
+}

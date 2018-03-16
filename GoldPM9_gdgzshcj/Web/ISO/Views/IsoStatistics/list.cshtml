@@ -1,0 +1,101 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoStatistics", new { @area="ISO"})',
+               editUrl = '@Url.Action("edit", "IsoStatistics", new {@area= "ISO" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export', 'moreSearch'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'ISOCheckStatisticsGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#ISOCheckPanel',//工具栏的容器ID
+                JQExcludeCol: [1, 9],
+                JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+	              { title: '阶段', field: 'PhaseName', width: 120, align: 'left', halign: 'center' },
+                  { title: '专业', field: 'SpecialtyName', width: 120, align: 'left', halign: 'center' },
+                  { title: '角色', field: 'CheckTypeName', width: 120, align: 'left', halign: 'center' },
+                  { title: '差错内容', field: 'CheckItem', width: 300, align: 'left', halign: 'center' },
+                  { title: '总任务数', field: 'TotalAmount', width: 100, align: 'right', halign: 'center' },
+                  { title: '出错数', field: 'ErrorAmount', width: 100, align: 'right', halign: 'center' },
+                  {
+                      title: '出错率', field: 'Rate', width: 100, align: 'right', halign: 'center', formatter: function (value, rowData) {
+                          rowData.Rate = ((rowData.ErrorAmount / rowData.TotalAmount) * 100).toFixed(2) + "%";
+                          return rowData.Rate;
+                      }
+                  },
+                  {
+                      title: '明细', field: 'info', width: 100, align: 'center', halign: 'center', formatter: function (value, row, index) {
+                          return "<a onclick='ShowDetail(" + row.PhaseID + "," + row.SpecialID + "," + row.CheckType + "," + row.ModelIsoCheckID + ")'>明细</a>";
+                      }
+                  }
+
+                ]],
+
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '差错内容',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ISOCheckStatisticsGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+
+
+        function ShowDetail(PhaseID, SpecialID, CheckType, IsoCheckModelId) {
+            JQ.dialog.dialog({
+                title: "查看明细",
+                url: '@Url.Action("info", "IsoStatistics", new { @area = "Iso" })?PhaseID=' + PhaseID + '&SpecialID=' + SpecialID + '&CheckType=' + CheckType + '&IsoCheckModelId=' + IsoCheckModelId,
+                width: '1024',
+                height: '100%',
+                JQID: 'ProjSubTable',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus',
+            });
+
+
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="ISOCheckStatisticsGrid"></table>
+    <div id="ISOCheckPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+        </span>
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'CheckItem', 'Contract': 'like' }" />
+
+        <div class="moreSearchPanel">
+            @BaseData.getBases(
+           new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{ Key:'mis.PhaseID', Contract:'in',filedType:'Int'}", })
+
+            @BaseData.getBases(
+           new Params() { isMult = true, engName = "Special", queryOptions = "{ Key:'mis.SpecialID', Contract:'in',filedType:'Int'}", })
+
+            @BaseData.getBaseDataSystem(
+           new Params() { isMult = true, engName = "NodeType", isfilter = 1, queryOptions = "{ Key:'mis.CheckType', Contract:'in',filedType:'Int'}", })
+
+        </div>
+    </div>
+}
+

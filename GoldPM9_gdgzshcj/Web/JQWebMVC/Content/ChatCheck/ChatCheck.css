@@ -1,0 +1,153 @@
+﻿.jspContainer {
+    overflow: hidden;
+    position: relative;
+}
+
+.jspPane {
+    position: absolute;
+}
+
+.jp-container {
+    width: 335px;
+    height: 400px;
+    position: relative;
+    background-color: transparent;
+    float: left;
+    overflow-y: auto;
+}
+
+    /*自己发言样式*/
+    .jp-container .talk_recordboxme {
+        float: right;
+        display: block;
+        min-height: 80px;
+        color: #afafaf;
+        padding-top: 5px;
+        padding-right: 10px;
+        padding-left: 10px;
+        padding-bottom: 0px;
+        position: relative;
+    }
+
+        .jp-container .talk_recordboxme .talk_recordtextbg {
+            float: right;
+            width: 10px;
+            height: 30px;
+            display: block;
+            background-image: url(talk_recordtextme.png);
+            background-repeat: no-repeat;
+            background-position: left top;
+            position: relative;
+            z-index:2;
+        }
+
+        .jp-container .talk_recordboxme .talk_recordtext {
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
+            background-color: #f5f5f5;
+            width: 330px;
+            height: auto;
+            padding: 5px;
+            color: #666;
+            font-size: 12px;
+            float: right;
+            border: 1px solid #ddd;
+            position: relative;
+            z-index:1;
+            left:1px;
+        }
+
+        .jp-container .talk_recordboxme h3 {
+            font-size: 14px;
+            padding: 2px 0 5px 0;
+            /*text-transform: uppercase;*/
+            font-weight: 100;
+            color: #333333;
+        }
+
+        .jp-container .talk_recordboxme .user {
+            float: right;
+            height: 45px;
+            width: 45px;
+            margin-top: 0px;
+            margin-right: 10px;
+            margin-bottom: 0px;
+            margin-left: 5px;
+            font-size: 12px;
+            line-height: 20px;
+            text-align: center;
+            display: inline;
+            position: relative;
+        }
+
+    /*讨论区*/
+    .jp-container .talk_recordbox {
+        float: left;
+        min-height: 80px;
+        color: #afafaf;
+        padding-top: 5px;
+        padding-right: 10px;
+        padding-left: 10px;
+        padding-bottom: 0px;
+    }
+
+        .jp-container .talk_recordbox:first-child {
+            border-top: none;
+        }
+
+        .jp-container .talk_recordbox:last-child {
+            border-bottom: none;
+        }
+
+        .jp-container .talk_recordbox .talk_recordtextbg {
+            float: left;
+            width: 10px;
+            height: 30px;
+            display: block;
+            background-image: url(talk_recordtext.png);
+            background-repeat: no-repeat;
+            background-position: left top;
+        }
+
+        .jp-container .talk_recordbox .talk_recordtext {
+            -moz-border-radius: 5px;
+            -webkit-border-radius: 5px;
+            border-radius: 5px;
+            background-color: #b8d45c;
+            width: 330px;
+            height: auto;
+            display: block;
+            padding: 5px;
+            float: left;
+            color: #333333;
+        }
+
+        .jp-container .talk_recordbox h3 {
+            font-size: 14px;
+            padding: 2px 0 5px 0;
+            /*text-transform: uppercase;*/
+            font-weight: 100;
+        }
+
+        .jp-container .talk_recordbox .user {
+            float: left;
+            display: inline;
+            height: 45px;
+            width: 45px;
+            margin-top: 0px;
+            margin-right: 5px;
+            margin-bottom: 0px;
+            margin-left: 0px;
+            font-size: 12px;
+            line-height: 20px;
+            text-align: center;
+        }
+
+
+.talk_time {
+    color: #666;
+    text-align: right;
+    width: 330px;
+    display: block;
+}

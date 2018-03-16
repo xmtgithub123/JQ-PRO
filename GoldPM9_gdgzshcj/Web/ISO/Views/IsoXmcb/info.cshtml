@@ -1,0 +1,244 @@
+﻿@model DataModel.Models.IsoXMCB
+@using JQ.Web;
+<script type="text/javascript">
+    var  btnPer=@Html.Raw(ViewBag.permission);
+    JQ.form.submitInit({
+        formid: 'IsoXMCBForm',//formid提交需要用到
+        buttonTypes: ['close','exportForm'],//默认按钮
+        docName: 'IsoXMCB',
+        beforeFormSubmit: function () {
+            TreeGridRowEditEnd();
+        },
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            var _tempFrame = window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+            if (_tempFrame) {
+                _tempFrame.contentWindow.refreshGrid();
+            }
+            _flowInstance.$form.parent().dialog("close");
+        },
+        flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "ISO,ISO.FlowProcessor.IsoXMCBFlow",
+            refID: "@(Model.Id)",
+            refTable: "IsoXMCB",
+            dataCreator: "@(ViewBag.CreatorEmpId)",
+            getStepUsers: function (step, action) {
+
+            },
+            onLoaded: function () {
+                $("#stepOrder").val(this.stepOrder);
+            }
+        },
+        onBefore: function (resultArr) {
+            var bit="0";
+            if($.inArray("allDown", btnPer)!=-1){
+                bit="1";
+            }
+            resultArr.push({ Key: "Permission", Value: bit});
+        }
+    });
+    function SelectProjectInfo() {
+        JQ.dialog.dialog({
+            title: "选择项目信息",
+            url: '@Url.Action("ChooseProjectList1", "EmpManage", new { @area = "Engineering" })?CompanyType=FGS&TaskGroupId=0',
+            width: '1024',
+            height: '100%',
+            JQID: 'ShowProjectTreeGridList',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-plus',
+        });
+    }
+    var _ProjCallBack = function (param) {
+
+        $("#projId").val(param[0].Id);
+        $("#projPhaseId").val(param[0].ProjPhaseId);
+        $("#desTaskGroupId").val(param[0].TaskGroupId);
+        $("#CompanyID").val(param[0].CompanyID);
+
+        $("#ProjNumber").textbox('setValue', param[0].ProjNumber);
+        $("#ProjName").textbox('setValue', param[0].ProjName);
+    }
+
+    $(function () {
+        if(@(Model.Id)>0)
+        {
+            $("#projId").val(@Model.ProjID);
+            $("#projPhaseId").val(@Model.ProjPhaseId);
+            $("#desTaskGroupId").val(@Model.DesTaskGroupId);
+            $("#CompanyID").val(@Model.CompanyID);
+        }
+        ShowTreegrid();
+    })
+
+    function ShowTreegrid()
+    {
+        JQ.treegrid.treegrid({
+            idField: 'Id',
+            fit: false,
+            pagination: false,
+            treeField: 'ModelName',
+            JQID: 'ProjCostGrid',//数据表格ID
+            JQLoadingType: 'treegrid',//数据表格类型 [datagrid,treegrid]
+            url: '@Url.Action("GetCostList", "Project",new { @area="Project"})?IsoXMCBId='+@Model.Id,//请求的地址
+            checkOnSelect: false,//是否包含check
+            expandAll:true,
+            columns: [[
+                { title: '成本项', field: 'ModelName', width: 420, align: 'left' },
+                {
+                    title: '实际金额(元)', field: 'ModelFactFee', width: 150, align: 'left',
+                    editor: {
+                        type: "numberbox",
+                        options:{
+                            precision:2
+                        }
+                    }
+                }
+            ]]
+        });
+    }
+
+    $.extend($.fn.treegrid.defaults.view, {
+        onAfterRender: function (target) {
+            if( $("#stepOrder").val()==1)
+            {
+                var gridRoots = $(target).treegrid("getRoots");
+                $.each(gridRoots, function (i, n) {
+                    TreeGridRowEdit(target, n);
+                    var rowChildren = $(target).treegrid("getChildren", n.Id);
+                    $.each(rowChildren, function (k, m) {
+                        TreeGridRowEdit(target, m);
+                    });
+                });
+            }
+        }
+    });
+
+    function TreeGridRowEdit(target, model) {
+        if (model.ModelIsType == 0)  //不是标题
+        {
+            if (model.ModelTempFee == 0) model.ModelTempFee = "";
+            if (model.ModelFactFee == 0) model.ModelFactFee = "";
+
+            $(target).treegrid("beginEdit", model.Id);
+
+            if (model.ModelIsSum == 1) {
+
+                $($(target).treegrid("getEditor", { id: model.Id, field: "ModelFactFee" }).target[0]).numberbox({
+                    onChange: function (newValue, oldValue) {
+                        CalculateCost(target, model, newValue, oldValue, "ModelFactFee");
+                    }
+                });
+            }
+        }
+    }
+    function TreeGridRowEditEnd() {
+        var gridRoots = $("#ProjCostGrid").treegrid("getRoots");
+        $.each(gridRoots, function (i, n) {
+            $("#ProjCostGrid").treegrid("endEdit", n.Id);
+            var rowChildren = $("#ProjCostGrid").treegrid("getChildren", n.Id);
+            $.each(rowChildren, function (k, m) {
+                if (m.ModelFactFee == "") m.ModelFactFee = 0;
+                $("#ProjCostGrid").treegrid("endEdit", m.Id);
+            });
+        });
+
+        $("#HiddenData").val(JSON.stringify($("#ProjCostGrid").treegrid("getData")));
+        if( $("#stepOrder").val()==1)
+        {
+            $.each(gridRoots, function (i, n) {
+                TreeGridRowEdit(ProjCostGrid, n);
+                var rowChildren = $(ProjCostGrid).treegrid("getChildren", n.Id);
+
+                $.each(rowChildren, function (k, m) {
+                    TreeGridRowEdit(ProjCostGrid, m);
+                });
+            });
+        }
+    }
+
+    function CalculateCost(target, model, newValue, oldValue, name) {
+        if (model.ParentId != 0) {
+            var parentVal = $(target).treegrid("find", model.ParentId)[name] || 0;
+            var oldVal = oldValue || 0;
+            newValue=newValue||0;
+            var rowData = {};
+            var s=(isNaN(parseFloat(parentVal))==false?parseFloat(parentVal):0 )+(isNaN(parseFloat(newValue))==false?parseFloat(newValue):0)-(isNaN(parseFloat(oldVal))==false?parseFloat(oldVal):0);
+            rowData[name] = s.toFixed(4);
+            $(target).treegrid('update', {
+                id: model.ParentId,
+                row: rowData
+            });
+            CalculateCost(target, $(target).treegrid("find", model.ParentId), newValue, oldValue, name);
+        }
+    }
+</script>
+@using (Html.BeginForm("save", "IsoXMCB", FormMethod.Post, new { @area = "Iso", @id = "IsoXMCBForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <div style="width:100%;text-align:center;font-size:20px;font-weight:bold;margin-top:10px;">
+            <a>项目成本</a>
+        </div>
+        <tr>
+            <th width="10%" rowspan="2">
+                项目编号
+            </th>
+            <td colspan="3">
+                <a class="easyui-linkbutton" name="btnChoiceProject" data-options="plain:true,iconCls:'fa fa-plus'" onclick="SelectProjectInfo()">选择项目信息</a>
+            </td>
+
+        </tr>
+        <tr>
+            <td width="40%">
+                <input name="ProjNumber" id="ProjNumber" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@ViewBag.ProjNumber" data-options="required:true,readonly:true" />
+            </td>
+            <th width="10%">项目名称</th>
+            <td width="40%">
+                <input name="ProjName" id="ProjName" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@ViewBag.ProjName" data-options="required:true,readonly:true" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                成本类型
+            </th>
+            <td colspan="3">
+                <table id="ProjCostGrid" treeGrid="DetailGrid"></table>
+            </td>
+        </tr>
+
+
+        <tr>
+            <th width="10%">备注</th>
+            <td colspan="3">
+                <textarea name="Contents" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.Contents</textarea>
+            </td>
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "IsoXMCB";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <input type="hidden" id="projId" name="projId" value="0" />
+    <input type="hidden" id="projPhaseId" name="projPhaseId" value="0" />
+    <input type="hidden" id="desTaskGroupId" name="desTaskGroupId" value="0" />
+    <input type="hidden" id="stepOrder" name="stepOrder" value="0" />
+    <input type="hidden" id="CompanyID" name="CompanyID" value="0" />
+    <input id="HiddenData" name="HiddenData" type="hidden" />
+                    }

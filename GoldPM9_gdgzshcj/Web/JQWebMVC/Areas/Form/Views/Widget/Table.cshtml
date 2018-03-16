@@ -1,0 +1,459 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="apply()">
+        <span class="fa fa-check-circle"></span>
+        <span>应用</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div id="div1" style="display:none;padding:5px;">
+        <table class="documenttable" style="width:100%">
+            <tr>
+                <th style="width:15%">名称</th>
+                <td style="width:35%">
+                    <input type="text" id="txtName" name="" class="yc_textbox" style="width:80%">
+                </td>
+                <th style="width:15%">
+                    按钮
+                </th>
+                <td style="width:35%">
+                    <input type="checkbox" id="cbBtnAdd" /><label for="cbBtnAdd">添加</label>
+                    <input type="checkbox" id="cbBtnDelete" /><label for="cbBtnDelete">删除</label>
+                    <input type="checkbox" id="cbBtnMoveUp" style="display:none" /><label style="display:none" for="cbBtnMoveUp">上移</label>
+                    <input type="checkbox" id="cbBtnMoveDown" style="display:none" /><label style="display:none" for="cbBtnMoveDown">下移</label>
+                </td>
+            </tr>
+            <tr>
+                <th>存储模式</th>
+                <td>
+                    <select id="listStorageMode" class="yc_select">
+                        <option value="1">自定义数据表</option>
+                        <option value="2">数据库数据表</option>
+                        <option value="3">系统集成存储（未实现）</option>
+                    </select>
+                </td>
+                <th>关联表</th>
+                <td>
+                    <select id="listTable" class="yc_select">
+                        <option value="">无</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th></th>
+                <td></td>
+                <th>关联字段</th>
+                <td>
+                    <select id="listColumn" class="yc_select">
+                        <option value="">无</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>标题</th>
+                <td colspan="3">
+                    <input type="text" id="txtTitle" class="yc_textbox" style="width:80%" />
+                </td>
+            </tr>
+            <tr>
+                <th style="height:38px">
+
+                </th>
+                <td colspan="3"></td>
+            </tr>
+            <tr>
+                <th>外边距</th>
+                <td colspan="3">
+                    上 <input type="text" id="txtMarginTop" class="yc_textbox" style="width:32px" /> px
+                    右 <input type="text" id="txtMarginRight" class="yc_textbox" style="width:32px" /> px
+                    下 <input type="text" id="txtMarginBottom" class="yc_textbox" style="width:32px" /> px
+                    左 <input type="text" id="txtMarginLeft" class="yc_textbox" style="width:32px" /> px
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="div2" style="display:none;padding:5px;">
+        <div class="yc_headtoolbar2" style="border:1px solid #EFEFEF;float:none">
+            <div style="float:left;width:5px">
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:28px;" onclick="appendGridData()">
+                <span class="fa fa-plus"></span>
+                <span>添加</span>
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:28px;" onclick="moveUp()">
+                <span class="fa fa-arrow-up"></span>
+                <span>上移</span>
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:28px;" onclick="moveDown()">
+                <span class="fa fa-arrow-down"></span>
+                <span>下移</span>
+            </div>
+        </div>
+        <div id="div_columnsgrid" style="margin-top:-1px"></div>
+    </div>
+    <div id="div3" style="display:none;padding:5px;">
+        <table class="documenttable" style="width:100%">
+            <tr>
+                <th>
+                    可编辑步骤
+                </th>
+                <td colspan="3" id="tdActivities"></td>
+            </tr>
+            <tr>
+                <th>
+                    审批完成后
+                </th>
+                <td colspan="3">
+                    <input type="checkbox" id="cbIsEditableWhenPassed" /><label for="cbIsEditableWhenPassed">通过后可以编辑</label>
+                    <input type="checkbox" id="cbIsEditableWhenUnPassed" /><label for="cbIsEditableWhenUnPassed">不通过后可以编辑</label>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.grid.js"))"></script>
+<script type="text/javascript">
+    var yTab = new YChart.Tab({
+        container: "divcontent",
+        offsetHeight: 0,
+        tabs: [
+            {
+                name: "controlproperty",
+                title: "控件属性",
+                element: "div1",
+                closable: false
+            },
+            {
+                name: "columns",
+                title: "列设置",
+                element: "div2",
+                closable: false
+            },
+            {
+                name: "processproperty",
+                title: "流程属性",
+                element: "div3",
+                closable: false
+            }
+        ]
+    });
+    var temp = 0;
+    var yGrid = new YChart.Grid({
+        height: 258,
+        container: document.getElementById("div_columnsgrid"),
+        idField: "id",
+        checkbox: true,
+        singleChoose: true,
+        columns: [
+            {
+                title: "列名", width: 200, field: "name", align: "center", formatter: function (cell, rowData) {
+                    cell.appendChild(YChart.createElement("input", { id: "txtColumnName" + rowData.id, type: "text", className: "yc_textbox", value: rowData.name }, { width: "180px" }));
+                }
+            }, {
+                title: "宽度", width: 120, field: "width", align: "center", formatter: function (cell, rowData) {
+                    var txt = YChart.createElement("input", { id: "txtColumnWidth" + rowData.id, type: "text", className: "yc_textbox", value: rowData.width }, { width: "100px" });
+                    cell.appendChild(txt);
+                    YChart.registerNumberBox({
+                        element: txt,
+                        min: 0
+                    });
+                }
+            }, {
+                title: "对齐方式", width: 120, field: "textAlign", align: "center", formatter: function (cell, rowData) {
+                    var select = YChart.createElement("select", { id: "listAlign" + rowData.id, className: "yc_select" }, { width: "100px" });
+                    cell.appendChild(select);
+                    var option = document.createElement("option");
+                    option.setAttribute("value", "left");
+                    option.appendChild(document.createTextNode("靠左"));
+                    select.appendChild(option);
+                    if (rowData.textAlign == "left") {
+                        option.selected = true;
+                    }
+                    option = document.createElement("option");
+                    option.setAttribute("value", "center");
+                    option.appendChild(document.createTextNode("居中"));
+                    select.appendChild(option);
+                    if (rowData.textAlign == "center") {
+                        option.selected = true;
+                    }
+                    option = document.createElement("option");
+                    option.setAttribute("value", "right");
+                    option.appendChild(document.createTextNode("靠右"));
+                    select.appendChild(option);
+                    if (rowData.textAlign == "right") {
+                        option.selected = true;
+                    }
+                }
+            }, {
+                title: "操作", width: 60, field: "OP", align: "center", formatter: function (cell, rowData) {
+                    var a = YChart.createElement("a", { href: "javascript:void(0)", className: "yc_a" }, null, "移除");
+                    a.setAttribute("dataid", rowData.id);
+                    a.onclick = function () {
+                        if (!confirm("确定要移除吗？")) {
+                            return;
+                        }
+                        yGrid.removeRow(this.getAttribute("dataid"));
+                        window.frameElement.api.removeColumn(this.getAttribute("dataid"));
+                    }
+                    cell.appendChild(a);
+                }
+            }]
+    });
+
+    function appendGridData() {
+        var data = {
+            id: ++temp,
+            name: "",
+            width: "60",
+            textAlign: "left"
+        };
+        window.frameElement.api.addColumn(data);
+        yGrid.appendData(data);
+    }
+
+    window.onDialogLoaded = function () {
+        var data = window.frameElement.api.getSource();
+        var source = data.source;
+        var style = source.element.ownerDocument.defaultView.getComputedStyle(source.element);
+        document.getElementById("txtName").value = source.element.getAttribute("id") || "";
+        document.getElementById("txtMarginTop").value = style.marginTop.replace("px", "");
+        document.getElementById("txtMarginRight").value = style.marginRight.replace("px", "");
+        document.getElementById("txtMarginBottom").value = style.marginBottom.replace("px", "");
+        document.getElementById("txtMarginLeft").value = style.marginLeft.replace("px", "");
+        document.getElementById("txtTitle").value = source.title || "";
+        if ("columns" in source) {
+            yGrid.setDatas(source.columns);
+            for (var i = 0; i < source.columns.length; i++) {
+                if (source.columns[i].id > temp) {
+                    temp = source.columns[i].id;
+                }
+            }
+        }
+        for (var i = 0; i < source.buttons.length; i++) {
+            if (source.buttons[i] == "add") {
+                document.getElementById("cbBtnAdd").checked = true;
+            }
+            else if (source.buttons[i] == "delete") {
+                document.getElementById("cbBtnDelete").checked = true;
+            }
+            else if (source.buttons[i] == "moveup") {
+                document.getElementById("cbBtnMoveUp").checked = true;
+            }
+            else if (source.buttons[i] == "movedown") {
+                document.getElementById("cbBtnMoveDown").checked = true;
+            }
+        }
+        if (source.flow) {
+            document.getElementById("cbIsEditableWhenPassed").checked = source.flow.isEditableWhenPassed == "1";
+            document.getElementById("cbIsEditableWhenUnPassed").checked = source.flow.isEditableWhenUnPassed == "1";
+        }
+        if (data.processTemplateID || data.processTemplateVersionID) {
+            YChart.ajax({
+                url: "@(Url.Action("GetAllActivities", "Template",new { @area="Process" }))",
+                type: "POST",
+                data: { id: data.processTemplateID, versionID: data.processTemplateVersionID },
+                success: function (result) {
+                    var _tdActivities = document.getElementById("tdActivities");
+                    for (var i = 0; i < result.length; i++) {
+                        var checkbox = YChart.createElement("input", { type: "checkbox", id: "cb_a_" + i, value: result[i].Value }, { marginLeft: "5px" });
+                        _tdActivities.appendChild(checkbox);
+                        var lbl = YChart.createElement("label", { "for": "cb_a_" + i });
+                        lbl.appendChild(document.createTextNode(result[i].Text));
+                        _tdActivities.appendChild(lbl);
+                        if (source.flow) {
+                            for (var j = 0; j < source.flow.editableSteps.length; j++) {
+                                if (source.flow.editableSteps[j] == result[i].Value) {
+                                    checkbox.checked = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        var _listTable = document.getElementById("listTable");
+        _listTable.onchange = function () {
+            var _tableName = YChart.getSelectedValue(this);
+            if (!_tableName) {
+                return;
+            }
+            var _storageMode = YChart.getSelectedValue(document.getElementById("listStorageMode"));
+            var _listColumn = document.getElementById("listColumn");
+            for (var i = 1; i < _listColumn.childNodes.length; i++) {
+                _listColumn.removeChild(_listColumn.childNodes[i]);
+                i--;
+            }
+            //获取并加载所有列
+            var dataColumns = frameElement.api.getDataColumns(_storageMode, _tableName);
+            for (var i = 0; i < dataColumns.length; i++) {
+                var option = document.createElement("option");
+                option.setAttribute("value", dataColumns[i].value);
+                option.appendChild(document.createTextNode(dataColumns[i].name));
+                _listColumn.appendChild(option);
+            }
+        }
+        var _listStorageMode = document.getElementById("listStorageMode");
+        _listStorageMode.onchange = function () {
+            var _v = YChart.getSelectedValue(this);
+            for (var i = 1; i < _listTable.childNodes.length; i++) {
+                _listTable.removeChild(_listTable.childNodes[i]);
+                i--;
+            }
+            switch (_v)
+            {
+                case "1":
+                case "2":
+                    document.getElementById("listTable").style.display = "";
+                    //获取并加载所有表
+                    var result = frameElement.api.getDataTables(_v);
+                    for (var i = 0; i < result.length; i++) {
+                        var opt = document.createElement("option");
+                        opt.setAttribute("value", result[i].value);
+                        opt.appendChild(document.createTextNode(result[i].name));
+                        _listTable.appendChild(opt);
+                    }
+                    break;
+                case "3":
+                    //系统集成存储
+                    document.getElementById("listTable").style.display = "none";
+                    break;
+            }
+            _listTable.onchange();
+        }
+        if (source.storageMode) {
+            YChart.setSelectedByValue(_listStorageMode, source.storageMode);
+        }
+        _listStorageMode.onchange();
+        if (source.table) {
+            YChart.setSelectedByValue(_listTable, source.table);
+            _listTable.onchange();
+        }
+        if (source.field) {
+            YChart.setSelectedByValue(document.getElementById("listColumn"), source.field);
+        }
+    };
+
+    function sure() {
+        if (saveData()) {
+            frameElement.closeDialog();
+        }
+    }
+
+    function saveData() {
+        var name = document.getElementById("txtName").value;
+        if (name && window.frameElement.api.isExists(name)) {
+            alert("控件名称已经存在，无法保存！");
+            return false;
+        }
+        var columns = [];
+        for (var i = 0; i < yGrid.datas.length; i++) {
+            columns.push({
+                id: yGrid.datas[i].id,
+                name: document.getElementById("txtColumnName" + yGrid.datas[i].id).value,
+                width: document.getElementById("txtColumnWidth" + yGrid.datas[i].id).value,
+                textAlign: YChart.getSelectedValue(document.getElementById("listAlign" + yGrid.datas[i].id))
+            });
+        }
+        var buttons = [];
+        if (document.getElementById("cbBtnAdd").checked) {
+            buttons.push("add");
+        }
+        if (document.getElementById("cbBtnDelete").checked) {
+            buttons.push("delete");
+        }
+        if (document.getElementById("cbBtnMoveUp").checked) {
+            buttons.push("moveup");
+        }
+        if (document.getElementById("cbBtnMoveDown").checked) {
+            buttons.push("movedown");
+        }
+        var flow = {
+            isEditableWhenPassed: document.getElementById("cbIsEditableWhenPassed").checked ? "1" : "0",
+            isEditableWhenUnPassed: document.getElementById("cbIsEditableWhenUnPassed").checked ? "1" : "0",
+            editableSteps: []
+        };
+        YChart.recuriseChildNodes(document.getElementById("tdActivities"), function (element) {
+            if (element.nodeType != 1 || element.tagName != "INPUT" || element.getAttribute("type") != "checkbox") {
+                return;
+            }
+            if (element.checked) {
+                flow.editableSteps.push(element.getAttribute("value"));
+            }
+        });
+        //获取出所有的columns
+        window.frameElement.api.saveData({
+            name: name,
+            style: {
+                margin: document.getElementById("txtMarginTop").value + "px" + " " + document.getElementById("txtMarginRight").value + "px" + " " + document.getElementById("txtMarginBottom").value + "px" + " " + document.getElementById("txtMarginLeft").value + "px"
+            },
+            property: {
+                title: document.getElementById("txtTitle").value,
+                columns: columns,
+                buttons: buttons,
+                storageMode: YChart.getSelectedValue(document.getElementById("listStorageMode")),
+                table: YChart.getSelectedValue(document.getElementById("listTable")),
+                field: YChart.getSelectedValue(document.getElementById("listColumn")),
+                flow: flow
+            }
+        });
+        return true;
+    }
+
+    function moveUp() {
+        if (yGrid.choosed.length == 0 || !yGrid.choosed[0]) {
+            return;
+        }
+        var _row = yGrid.choosed[0];
+        if (_row.rowIndex == 0) {
+            return;
+        }
+        var data = { id: parseInt(_row.getAttribute("rowid")) };
+        data.name = document.getElementById("txtColumnName" + data.id).value;
+        data.width = document.getElementById("txtColumnWidth" + data.id).value;
+        data.textAlign = YChart.getSelectedValue(document.getElementById("listAlign" + data.id));
+        var rowIndex = _row.rowIndex;
+        yGrid.removeRow(data.id);
+        _row = yGrid.insertData(data, rowIndex - 1);
+        _row.cells[0].childNodes[0].checked = true;
+        YChart.fireEvent(_row.cells[0].childNodes[0], "change");
+        window.frameElement.api.moveUpColumn(data);
+    }
+
+    function moveDown() {
+        if (yGrid.choosed.length == 0 || !yGrid.choosed[0]) {
+            return;
+        }
+        var _row = yGrid.choosed[0];
+        if (_row.rowIndex == yGrid.body.rows.length - 1) {
+            return;
+        }
+        var data = { id: parseInt(_row.getAttribute("rowid")) };
+        data.name = document.getElementById("txtColumnName" + data.id).value;
+        data.width = document.getElementById("txtColumnWidth" + data.id).value;
+        data.textAlign = YChart.getSelectedValue(document.getElementById("listAlign" + data.id));
+        var rowIndex = _row.rowIndex;
+        yGrid.removeRow(data.id);
+        _row = yGrid.insertData(data, rowIndex + 1);
+        _row.cells[0].childNodes[0].checked = true;
+        YChart.fireEvent(_row.cells[0].childNodes[0], "change");
+        window.frameElement.api.moveDownColumn(data);
+    }
+
+    function apply() {
+        saveData();
+    }
+</script>

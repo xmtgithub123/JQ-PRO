@@ -1,0 +1,164 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div id="div1" style="display:none;padding:5px;">
+        <table class="documenttable" style="width:100%">
+            <tr>
+                <th style="width:15%">名称</th>
+                <td style="width:35%">
+                    <input type="text" id="txtName" name="" class="yc_textbox" style="width:80%">
+                </td>
+                <th style="width:15%"></th>
+                <td style="width:35%"></td>
+            </tr>
+        </table>
+    </div>
+    <div id="div2" style="display:none;padding:5px;">
+        <div class="yc_headtoolbar2" style="border:1px solid #EFEFEF;float:none;box-sizing:border-box;">
+            <div style="float:left;width:5px">
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="appendGridData()">
+                <span class="fa fa-plus"></span>
+                <span>添加</span>
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="deleteRow()">
+                <span class="fa fa-minus"></span>
+                <span>删除</span>
+            </div>
+        </div>
+        <div id="div_variablegrid" style="margin-top:-1px;"></div>
+    </div>
+</div>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.grid.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<script type="text/javascript">
+    var yVariableGrid, temp = 0;
+    function init() {
+        var yTab = new YChart.Tab({
+            container: "divcontent",
+            offsetHeight: 0,
+            tabs: [{
+                name: "property",
+                title: "属性",
+                element: "div1",
+                closable: false
+            }, {
+                name: "variables",
+                title: "变量",
+                element: "div2",
+                closable: false
+            }]
+        });
+        var source = frameElement.api.getSource();
+        document.getElementById("txtName").value = source.name;
+        initVariableGrid();
+        for (var i = 0; i < source.variables.length; i++) {
+            source.variables[i].id = i + 1;
+        }
+        temp = source.variables.length;
+        yVariableGrid.setDatas(source.variables);
+    }
+    var dataTypes = [{ name: "文本", value: "string" }, { name: "数字", value: "number" }];
+    function initVariableGrid() {
+        yVariableGrid = new YChart.Grid({
+            height: 322,
+            container: document.getElementById("div_variablegrid"),
+            idField: "id",
+            checkbox: true,
+            columns: [
+            {
+                title: "名称", width: 160, field: "name", align: "center", formatter: function (cell, rowData) {
+                    cell.appendChild(YChart.createElement("input", { id: "txtName" + rowData.id, type: "text", className: "yc_textbox", value: rowData.name }, { width: "140px" }));
+                }
+            },
+            {
+                title: "类型", width: 100, field: "type", align: "center", formatter: function (cell, rowData) {
+                    var select = document.createElement("select");
+                    select.className = "yc_select";
+                    select.setAttribute("id", "listType" + rowData.id);
+                    cell.appendChild(select);
+                    for (var i = 0; i < dataTypes.length; i++) {
+                        var option = document.createElement("option");
+                        option.appendChild(document.createTextNode(dataTypes[i].name));
+                        option.setAttribute("value", dataTypes[i].value);
+                        if (dataTypes[i].value == rowData.type) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    }
+                }
+            },
+            {
+                title: "值", width: 160, field: "value", align: "center", formatter: function (cell, rowData) {
+                    cell.appendChild(YChart.createElement("input", { id: "txtValue" + rowData.id, type: "text", className: "yc_textbox", value: rowData.value }, { width: "140px" }));
+                }
+            },
+            ]
+        });
+    }
+    init();
+
+    function appendGridData() {
+        yVariableGrid.appendData({
+            id: ++temp,
+            name: "",
+            type: "string",
+            value: ""
+        });
+    }
+
+    function deleteRow() {
+        if (yVariableGrid.choosed.length == 0) {
+            return;
+        }
+        YChart.Dialog.confirm("提示", "确定要删除吗？", function (flag) {
+            if (!flag) {
+                return;
+            }
+            for (var i = 0; i < yVariableGrid.choosed.length; i++) {
+                yVariableGrid.removeRow(yVariableGrid.getRowID(yVariableGrid.choosed[i]));
+                i--;
+            }
+        });
+    }
+
+    function sure() {
+        var variables = [];
+        for (var i = 0; i < yVariableGrid.datas.length; i++) {
+            var name = YChart.trim(document.getElementById("txtName" + yVariableGrid.datas[i].id).value);
+            if (name == "") {
+                continue;
+            }
+            var variable = {
+                id: yVariableGrid.datas[i].id,
+                name: name,
+                type: YChart.getSelectedValue(document.getElementById("listType" + yVariableGrid.datas[i].id)),
+                value: YChart.trim(document.getElementById("txtValue" + yVariableGrid.datas[i].id).value)
+            }
+            if (variable.type == "decimal" && !YChart.isNumber(variable.value)) {
+                //验证是否为数字
+                return;
+            }
+            variables.push(variable);
+        }
+        frameElement.api.saveData({
+            variables: variables
+        });
+        frameElement.closeDialog();
+    }
+</script>

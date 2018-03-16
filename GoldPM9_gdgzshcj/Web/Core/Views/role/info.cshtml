@@ -1,0 +1,278 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+
+@section head {
+    <style type="text/css">
+        #treeempdiv .datagrid-header {
+            position: absolute;
+            visibility: hidden;
+        }
+    </style>
+    <script src="~/Scripts/datagrid-filter.js"></script>
+    <script type="text/javascript">
+        $(function () {
+            //debugger;
+            $('#lefttreerole').treegrid({
+                url: '@Url.Action("treejson", "basedata",new { @area="Core", engName ="role"})',
+                idField: 'id',
+                treeField: 'text',
+                border: 0,
+                fit: true,
+                animate: true,
+                singleSelect: true,
+                columns: [[
+                   { title: '<b>选择角色</b>', field: 'text', width: 240, align: 'left' }
+                ]],
+                onLoadSuccess: function (row, data) {
+
+                },
+                onSelect: function (node) {
+                    $('#menulist').treegrid('load', {
+                        MenuID: $("#MenuCombox").combobox('getValue'),
+                        RoleID: node.id
+                    });
+                    //设置文本
+                    $('#PermitTitle').html("<b>设置权限：</b>" + node.text);
+                    $('#PermitTitle').attr({ "RoleID": node.id, "EmpID": 0 });
+                }
+            });
+            //debugger;
+            $('#lefttreeemp').treegrid({
+                url: '@Url.Action("employeeByDepJson", "usercontrol", new { @area = "Core", state = "closed" })',
+                idField: 'id',
+                treeField: 'text',
+                border: 0,
+                fit: true,
+                animate: true,
+                singleSelect: true,
+                columns: [[
+                   { title: '', field: 'text', width: 240, align: 'left' }
+                ]],
+                onLoadSuccess: function (row, data) {
+                    //debugger;
+                },
+                onSelect: function (node) {
+                    if (node.isEmp) {
+                        $('#menulist').treegrid('load', {
+                            MenuID: $("#MenuCombox").combobox('getValue'),
+                            EmpID: node.empid
+                        });
+                        //设置文本
+                        $('#PermitTitle').html("<b>设置人员</b>：" + node.text);
+                        $('#PermitTitle').attr({ "RoleID": 0, "EmpID": node.empid });
+                    }
+                }
+            });
+
+            $('#MenuCombox').combobox({
+                url: '@Url.Action("PermitTopjson", "menu", new { @area = "Core"})',
+                valueField: 'MenuID',
+                textField: 'MenuName',
+                panelHeight: "auto",
+                editable: false, //不允许手动输入
+                onLoadSuccess: function () { //数据加载完毕事件
+                    var data = $('#MenuCombox').combobox('getData');
+                    if (data.length > 0) {
+                        $("#MenuCombox").combobox('select', data[0].MenuID);
+                    }
+                },
+                onSelect: function (node) {
+                    $('#menulist').treegrid('reload');
+                    $('#menulist').treegrid('load', {
+                        MenuID: $("#MenuCombox").combobox('getValue'),
+                        EmpID: $('#PermitTitle').attr("EmpID"),
+                        RoleID: $('#PermitTitle').attr("RoleID")
+                    });
+                }
+            });
+
+            JQ.treegrid.treegrid({
+                JQPrimaryID: 'id',
+                JQID: 'menulist',
+                JQDialogTitle: '菜单信息',
+                JQWidth: '100%',
+                JQHeight: '100%',
+                JQLoadingType: 'treegrid',
+                url: '@Url.Action("Permitjson", "menu",new {@area="Core" })',
+                toolbar: '#tbMenu',
+                JQExcludeCol: [6, 7],
+                animate: true,
+                checkOnSelect: false, selectOnCheck: false,
+
+                columns: [[
+                    { title: '全选' },
+                    { field: 'opt1', title: '<input id=\"add\"  type=\"checkbox\" onclick=\"CheckAll(\'add\')\" >' },
+                    { field: 'opt2', title: '<input id=\"edit\" type=\"checkbox\" onclick=\"CheckAll(\'edit\')\" >' },
+                    { field: 'opt3', title: '<input id=\"del\" type=\"checkbox\"  onclick=\"CheckAll(\'del\')\" >' },
+                    { field: 'opt4', title: '<input id=\"export\" type=\"checkbox\" onclick=\"CheckAll(\'export\')\" >' },
+                    { field: 'opt5', title: '<input id=\"emp\" type=\"checkbox\"  onclick=\"CheckAll(\'emp\')\" >' },
+                    { field: 'opt6', title: '<input id=\"dep\" type=\"checkbox\" onclick=\"CheckAll(\'dep\')\" >' },
+                    { field: 'opt7', title: '<input id=\"allview\" type=\"checkbox\" onclick=\"CheckAll(\'allview\')\" >' },
+                    { field: 'opt8', title: '<input id=\"alledit\" type=\"checkbox\" onclick=\"CheckAll(\'alledit\')\" >' },
+                     { field: 'opt9', title: '<input id=\"allDown\" type=\"checkbox\" onclick=\"CheckAll(\'allDown\')\" >' }
+                ],
+                [
+                   { title: '菜单名称', field: 'text', width: 250, align: 'left' },
+                   {
+                       title: '新增', field: 'add', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return value == "NoPermit" ? "" : "<input type='checkbox' name='add' value='1' " + row.add + " MenuID='" + row.id + "' />";
+                       }
+                   },
+                   {
+                       title: '修改', field: 'edit', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+
+                           return value == "NoPermit" ? "" : "<input type='checkbox' name='edit' value='2' " + row.edit + " MenuID='" + row.id + "'/>";
+                       }
+                   },
+                   {
+                       title: '删除', field: 'del', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return value == "NoPermit" ? "" : "<input type='checkbox' name='del' value='4' " + row.del + " MenuID='" + row.id + "'/>";
+                       }
+                   },
+                   {
+                       title: '导出', field: 'export', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return value == "NoPermit" ? "" : "<input type='checkbox' name='export' value='8' " + row.export + " MenuID='" + row.id + "'/>";
+                       }
+                   },
+                   {
+                       title: '个人', field: 'emp', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return value == "NoPermit" ? "" : "<input type='checkbox' name='emp'  value='16' " + row.emp + " MenuID='" + row.id + "'/>";
+                       }
+                   },
+                   {
+                       title: '部门', field: 'dep', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return value == "NoPermit" ? "" : "<input type='checkbox' name='dep' value='32'  " + row.dep + " MenuID='" + row.id + "'/>";
+                       }
+                   },
+                   {
+                       title: '全部', field: 'allview', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return value == "NoPermit" ? "" : "<input type='checkbox' name='allview'  value='64' " + row.allview + " MenuID='" + row.id + "'/>";
+                       }
+                   },
+                   {
+                       title: '维护', field: 'alledit', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return value == "NoPermit" ? "" : "<input type='checkbox' name='alledit'  value='128' " + row.alledit + " MenuID='" + row.id + "'/>";
+                       }
+                   },
+                   {
+                       title: '下载', field: 'allDown', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return value == "NoPermit" ? "" : "<input type='checkbox' name='allDown'  value='256' " + row.allDown + " MenuID='" + row.id + "'/>";
+                       }
+                   },
+                ]],
+                onLoadSuccess: function () {
+                    $("#add").unbind();
+                    $("#edit").unbind();
+                    $("#del").unbind();
+                    $("#export").unbind();
+                    $("#emp").unbind();
+                    $("#dep").unbind();
+                    $("#allview").unbind();
+                    $("#alledit").unbind();
+                    $("#allDown").unbind();
+
+                },
+                queryParams: {
+                    MenuID: 0,
+                    RoleID: 0,
+                    EmpID: 0
+                }
+            });
+        });
+
+        function saveMenu() {
+            debugger;
+            var checkedItems = $('#menulist').treegrid('getChecked');
+            var list = [];
+            $.each(checkedItems, function (index, item) {
+                if (item.attr("MenuID") != undefined)
+                    list.push({ MenuID: item.attr("MenuID"), MenuPermissions: item.attr("value") });
+            });
+            var MenuID = $("#MenuCombox").combobox('getValue');
+            var url = '@Url.Action("SavePermit", "menu",new { @area="Core"})?RoleID=' + $('#PermitTitle').attr("RoleID") + "&EmpID=" + $('#PermitTitle').attr("EmpID") + "&MenuID=" + MenuID;
+
+            $.ajax({
+                url: url,
+                data: {
+                    'list': JSON.stringify(list)
+                },
+                type: 'POST',
+                dataType: 'json',
+                success: function (result) {
+                    JQ.dialog.info("保存成功！");
+                }
+            });
+        }
+
+
+        $.extend($.fn.datagrid.methods, {
+            getChecked: function (jq) {
+                var rr = [];
+                var rows = jq.datagrid('getRows');
+                jq.datagrid('getPanel').find('div.datagrid-cell input:checked').each(function () {
+                    rr.push($(this));
+                });
+                return rr;
+            }
+        });
+
+        function removeChecked(nodes) {
+            if (JQ.tools.isArray(nodes)) {
+                var $t = $('#roleLeftTree');
+                for (var i = 0; i < nodes.length; i++) {
+                    $t.tree('uncheck', nodes[i].target);
+                }
+            }
+        }
+
+        function CheckAll(id) {
+            if ($('#' + id).attr('checked') == 'checked') {
+                $("input[name='" + id + "']").attr("checked", 'checked');
+            } else {
+                $("input[name='" + id + "']").removeAttr("checked");
+            }
+            return false;
+        }
+
+        //人员查询事件
+        function SeachEpmList() {
+            var keys = $("input[name=searchtxt]").val();
+            var urls = '@Url.Action("employeeByDepJson_Search", "usercontrol", new { @area = "Core"})' + '?keys=' + keys;
+            $.get(urls, {}, function (ret) {
+                $('#lefttreeemp').treegrid("loadData", ret);
+            }, "json");
+        }
+    </script>
+}
+
+@section Body_Content{
+    <div id="cc" class="easyui-layout" style="overflow: hidden" fit="true">
+        <div data-options="region:'west',split:false" style="width:250px;">
+            <div id="tt" class="easyui-tabs" data-options="fit:true" style="width:300px;height:100%;">
+                <div title="按角色" style="padding:2px;">
+                    <table id="lefttreerole"></table>
+                </div>
+                <div title="按人员" data-options="closable:false" style="padding:2px;">
+                    <div class="easyui-layout" fit="true">
+                        <div data-options="region:'north'" style="height:30px">
+                            <input name="searchtxt" class="easyui-searchbox" data-options="prompt:'输入姓名',searcher:SeachEpmList" style="width:240px">
+                        </div>
+                        <div data-options="region:'center'" id="treeempdiv">
+                            <table id="lefttreeemp"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div data-options="region:'center'" style="background:#eee;">
+            <table id="menulist"> </table>
+        </div>
+        <div id="tbMenu" style="padding:5px;height:auto;">
+            <span id="PermitTitle">设置：</span>
+            <select id="MenuCombox" name="MenuCombox" style="width:100px;height:28px;" data-options="editable: false"></select>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="saveMenu()">保存权限</a>
+        </div>
+    </div>
+}

@@ -1,0 +1,72 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export','moreSearch'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'HZShowGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: '@Url.Action("json","HZShow",new { @area="Bussiness"})',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#HZShowGridPanel',//工具栏的容器ID
+                JQExcludeCol: [1,8],//导出execl排除的列
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '项目编号', field: 'ProjNumber', width: '10%', align: 'center', sortable: true },
+                    { title: '项目名称', field: 'ProjName', width: '20%', align: 'center', sortable: true },
+                    { title: '阶段', field: 'PhaseNames', width: '10%', align: 'center', sortable: true },
+                    { title: '合同状态', field: 'ConStateName', width: '5%', align: 'center', sortable: true },
+                    { title: '是否收清', field: 'IsFinish', width: '5%', align: 'center', sortable: true },
+                    { title: '所属公司', field: 'CompanyID', width: '5%', align: 'center', sortable: true }
+                ]]
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号、项目名称',
+                queryOptions: { 'Key': '', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'HZShowGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="HZShowGrid"></table>
+    <div id="HZShowGridPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'ProjNumber,ProjName', Contract:'like'}" />
+        <div class="moreSearchPanel">
+            @*分割号*@
+            合同状态：@BaseData.getBases(new Params()
+            {
+                isMult = false,
+                controlName = "ConStatus",
+                isRequired = false,
+                engName = "ConStatus",
+                queryOptions = "{'Key':'ConStatus','Contract':'in','filedType':'Int'}",
+                width = "120px",
+            })
+        </div>
+    </div>
+}
+

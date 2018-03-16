@@ -1,0 +1,213 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <style type="text/css">
+        .favourite_icon {
+            color: #c6a800;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+            .favourite_icon:hover {
+                color: #e0be00;
+            }
+    </style>
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("ProjectPlanListJson", "DesTask",new { @area="Design"})?FormMenu=ProjectCenterList';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export', "moreSearch"],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'DesTaskGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                JQFields: ["Id"],//追加的字段名
+                JQExcludeCol: [1, 3, 10],//导出execl排除的列
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                JQMergeCells: { fields: ["IsFavourite"], Only: "Id" },//当字段值相同时会自动的跨行(只对相邻有效)
+                toolbar: '#DesTaskPanel',//工具栏的容器ID
+                queryParams: { showFavourite: 1 },
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    {
+                        title: '状态', field: 'TaskGroupStatus', width: '40px', align: 'center', formatter: function (value, row, index) {
+                            var icon = "";
+                            var title = "";
+                            switch (value) {
+                                case 0:
+                                    title = "未启动";
+                                    icon = "fa-circle-o";
+                                    break;
+                                case 1:
+                                    title = "已轮到";
+                                    icon = "fa-dot-circle-o";
+                                    break;
+                                case 2:
+                                    title = "进行中";
+                                    icon = "fa-play-circle";
+                                    break;
+                                case 3:
+                                    title = "已完成";
+                                    icon = "fa-check-circle";
+                                    break;
+                                case 4:
+                                    title = "已停止";
+                                    icon = "fa-minus-circle";
+                                    break;
+                            }
+                            row.TaskGroupStatus = title;
+                            return "<i class=\"fa " + icon + "\" title=\"" + title + "\"></i>";
+                        }
+                    },
+                    {
+                        title: '收藏', field: 'IsFavourite', width: '40px', align: 'center', formatter: function (value, rowData) {
+                            if (value == 0) {
+                                return "<span class=\"fa fa-star-o favourite_icon\" title=\"点击收藏\" onclick=\"favourite(this," + rowData.Id + ",1);\"></span>";
+                            }
+                            else {
+                                return "<span class=\"fa fa-star favourite_icon\" title=\"点击取消收藏\" onclick=\"favourite(this," + rowData.Id + ",0);\"></span>";
+                            }
+                        }
+                    },
+                    { title: '项目编号', field: 'ProjNumber', width: "120", halign: 'center', align: 'left', sortable: false },
+		            { title: '项目名称', field: 'ProjName', width: "500", halign: 'center', align: 'left', sortable: false },
+                    { title: '阶段', field: 'ProjPhaseName', width: "100", halign: 'center', align: 'left', sortable: false },
+                    { title: '负责人', field: 'ProjPhaseEmpName', width: "80", halign: 'center', align: 'center', sortable: false },
+		            { title: '创建时间', field: 'CreationTime', width: "80", halign: 'center', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '计划开始', field: 'DatePlanStart', width: "80", halign: 'center', align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '计划结束', field: 'DatePlanFinish', width: "80", halign: 'center', align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT },
+                    {
+                        title: '操作', field: 'Id', width: "150", align: 'center', formatter: function (value, row, index) {
+                            debugger;
+                            var lbTxt = "<a href=\"javascript:void(0)\" class=\"easyui-linkbutton\" style=\"margin-left:5px\" data-options=\"plain:true,iconCls:'fa fa-trash'\" onclick=\"openIsoForm('" + row.Id + "','" + row.ProjPhaseId + "','[" + row.ProjNumber + "][" + row.ProjName + "]'," + row.TaskGroupId + ")\">发起表单</a>";
+                            lbTxt += "&nbsp;&nbsp;"
+                            lbTxt+="<a href=\"javascript:void(0)\" class=\"easyui-linkbutton\" style=\"margin-left:5px\" data-options=\"plain:true,iconCls:'fa fa-trash'\" onclick=\"openProjectCenter('" + row.Id + "','" + row.TaskGroupId + "','" + encodeURIComponent(row.ProjNumber) + "');JQ.Flow.stopBubble();\">项目中心</a>";
+                            return lbTxt;
+                        }
+                    }
+                ]]
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目名称、编号',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'DesTaskGrid',
+                            loadingType: 'datagrid',
+                            queryParams: { showFavourite: 1 }
+                        });
+                }
+            });
+        });
+
+        function ChangeTaskGroupStatus(statusId, statusName) {
+            var $grid = $("#DesTaskGrid");
+            var CheckRow = $grid.datagrid("getChecked");
+            if (CheckRow.length == 0) {
+                JQ.dialog.warning("请至少勾选一个阶段");
+                return false;
+            } else {
+                JQ.dialog.confirm("确定改变选中项的状态为＂" + statusName + "＂吗？", function () {
+                    var parm;
+                    parm = "status=" + statusId.toString();
+                    $.each(CheckRow, function (i, n) {
+                        parm += "&id=" + n.TaskGroupId.toString();
+                    });
+                    JQ.tools.ajax({
+                        url: '@(Url.Action("ProjectPlanListChangeTaskGroupStatus", "DesTask",new { @area="Design" }))',
+                        data: parm,
+                        succesCollBack: function (data) {
+                            $grid.datagrid('reload');
+                        }
+                    });
+                }, null);
+            }
+        }
+
+        function openProjectCenter(projectID, taskGroupID, title) {
+            window.top.addTab(decodeURIComponent(title), "@(Url.Action("Center","Project",new { @area="Project" }))?projectID=" + projectID + "&taskGroupID=" + taskGroupID, "");
+        }
+
+        function openIsoForm(projectID, ProjPhaseId, title,taskGroupId) {
+            JQ.dialog.dialog({
+                title: title,
+                url: '@Url.Action("IsoConfig", "Project", new { @area = "Project" })?projId=' + projectID + '&phaseID=' + ProjPhaseId + '&taskGroupId=' + taskGroupId + '',
+                width: '1024',
+                height: '100%',
+            });
+        }
+
+        function favourite(element, projectID, mode) {
+            if (mode == 1) {
+                //收藏
+                $.ajax({
+                    type: "POST",
+                    url: "@(Url.Action("Favourite", "Project",new { @area="Project" }))",
+                    data: { projectID: projectID },
+                    success: function (result) {
+                        if (result.Result == false) {
+                            JQ.dialog.error(result.Message);
+                            return;
+                        }
+                        element.className = "fa fa-star favourite_icon";
+                        element.setAttribute("title", "点击取消收藏");
+                        element.setAttribute("onclick", "favourite(this," + projectID + ",0);");
+                    }
+                });
+            }
+            else {
+                //取消收藏
+                $.ajax({
+                    type: "POST",
+                    url: "@(Url.Action("UnFavourite", "Project",new { @area="Project" }))",
+                    data: { projectID: projectID },
+                    success: function (result) {
+                        if (result.Result == false) {
+                            JQ.dialog.error(result.Message);
+                            return;
+                        }
+                        element.className = "fa fa-star-o favourite_icon";
+                        element.setAttribute("title", "点击收藏");
+                        element.setAttribute("onclick", "favourite(this," + projectID + ",1);");
+                    }
+                });
+            }
+            JQ.Flow.stopBubble();
+        }
+    </script>
+}
+
+@section Body_Content{
+
+    <table id="DesTaskGrid"></table>
+    <div id="DesTaskPanel" JQPanel="searchPanel" style="padding:5px;height:auto;border:none;">
+        <div JQPanel="toolbarPanel" >
+            <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'g.ProjNumber,g.ProjName', Contract:'like'}" />
+        </div>
+
+        @*<div class="moreSearchPanel">*@
+        <div class="moreSearchPanel" style="float:left;border:none;">
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjProperty", queryOptions = "{ Key:'ProjPropertyID', Contract:'in',filedType:'Int'}" })
+        </div>
+        <div class="moreSearchPanel" style="float:left;border:none;">
+            <input id="startTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '下达时间开始'" JQWhereOptions="{ Key:'DateCreate', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '下达时间结束'" JQWhereOptions="{ Key:'DateCreate', Contract:'<=',filedType:'Date' }">
+        </div>
+        <div class="moreSearchPanel" style="float:left;border:none;">
+            <input id="startTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '完成时间开始'" JQWhereOptions="{ Key:'DatePlanFinish', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '完成时间结束'" JQWhereOptions="{ Key:'DatePlanFinish', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>
+    </div>
+}
+

@@ -1,0 +1,41 @@
+﻿<html>
+<head>
+    <style type="text/css">
+        .taskitem {
+            float: left;
+            width: 100%;
+            font-size: 12px;
+
+        }
+    </style>
+</head>
+<body>
+    @{
+        if (ViewBag.Loaded)
+        {
+            if (ViewBag.TaskAmount > 0)
+            {
+                <div class="taskitem">您有@(ViewBag.TaskAmount)条待处理工程任务</div>
+            }
+            if (ViewBag.ProjectFormAmount > 0)
+            {
+                <div class="taskitem">您有@(ViewBag.ProjectFormAmount)条待处理工程表单任务</div>
+            }
+            if (ViewBag.OAFormAmount > 0)
+            {
+                <div class="taskitem">您有@(ViewBag.OAFormAmount)条待处理办公表单任务</div>
+            }
+            if (ViewBag.ExchangeAmount > 0)
+            {
+                <div class="taskitem">您有@(ViewBag.ExchangeAmount)条待工程收资</div>
+            }
+        }
+        else
+        {
+            <div>
+                未查找到任何相关提醒
+            </div>
+        }
+    }
+</body>
+</html>

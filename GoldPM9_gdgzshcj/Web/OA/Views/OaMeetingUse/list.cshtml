@@ -1,0 +1,181 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "OaMeetingUse",new { @area="Oa"})',
+               addUrl = '@Url.Action("add","OaMeetingUse",new {@area="Oa" })',
+               editUrl = '@Url.Action("edit", "OaMeetingUse",new {@area="Oa" })',
+               delUrl = '@Url.Action("del", "OaMeetingUse", new { @area = "Oa" })';
+        var EmpId = '@ViewBag.EmpId';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaMeetingUseGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '会议用途',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                selectOnCheck: true,
+                fitColumns: false,
+                nowrap: false,
+                JQExcludeCol: [1, 10, 11, 12, 13, 14, 15],//导出execl排除的列
+                toolbar: '#OaMeetingUsePanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '会议室名称', field: 'RoomName', width: 150, align: 'center', sortable: true },
+        		{ title: '申请人', field: 'CreatorEmpName', width: 80, align: 'center', sortable: true },
+        { title: '申请时间', field: 'CreationTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '开始时间', field: 'StartDate', width: 200, align: 'center', sortable: true },
+		{ title: '结束时间', field: 'EndDate', width: 200, align: 'center', sortable: true },
+        { title: '会议负责人', field: 'LeadEmpName', width: 150, align: 'center', sortable: true },
+		{ title: '用途', field: 'MeetingUseConent', width: 150, align: 'center', sortable: true },
+		{ title: '参与人数', field: 'MeetingJoinPeo', width: 100, align: 'center', sortable: true },
+
+        {
+            title: '是否确认', field: 'State', width: 80, align: 'center', sortable: true,
+            formatter: function (val, row) {
+                if (val == "0") {
+                    return '<span style="color:red;">' + row.StateName + '</a>';
+                }
+                else {
+                    return '<span style="color:green;">' + row.StateName + '</a>';
+                }
+
+            }
+        },
+
+		{
+		    title: '确认时间', field: 'SureTime', width: 100, align: 'center', sortable: true,
+		    formatter: function (val, row, index) {
+		        //判断确认状态还是结束流程
+		        var attr = "";
+		        if (row.FlowStatus == "3") {
+		            if (row.State == "0" && row.CreatorEmpId == EmpId)//本人且未确认
+		            {
+		                attr = 'sure="1"';//可进行点击
+		            }
+		            else {
+		                attr = 'sure="0"';//不可进行点击
+		            }
+
+		        }
+		        else {
+		            attr = 'sure="0"';//不可进行点击
+		        }
+		        return '<a ' + attr + ' class="easyui-linkbutton" onclick="SureTime(' + row.Id + ')">确认时间</a>'
+		    }
+		},
+        {
+            title: '调度(变更)', field: 'change', width: 100, align: 'center', sortable: true,
+            formatter: function (val, row) {
+                return '<a change class="easyui-linkbutton" onclick="Transfer(' + row.Id + ')">调度(变更)</a>'
+            }
+        },
+        {
+            field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.EmpId)")
+        },
+                  { title: 'FlowStatus', field: 'FlowStatus', halign: 'center', align: 'left', hidden: true },
+                  {
+                      field: 'opt', title: '操作', width: "40", align: 'center', JQIsExclude: true,
+                      formatter: function (value, row, index) {
+                          console.log(row);
+                          var title = "查看";
+                          if (row._EditStatus == 1) {
+                              title = "修改";
+                          }
+                          else if (row._EditStatus == 2) {
+                              title = "处理"; 
+                          }
+                          return '<a class="easyui-linkbutton" onclick="Info(' + row.Id + ')">' + title + '</a>';
+                      }
+                  }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#OaMeetingUseGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+        });
+        //确认时间
+        function SureTime(Id) {
+            $.ajax({
+                url: '@Url.Action("SureTime","OaMeetingUse",new { @area="Oa"})',
+                data: 'Id=' + Id,
+                type: 'post',
+                success: function (data) {
+                    JQ.dialog.info("时间确认成功");
+                    $("#OaMeetingUseGrid").datagrid('reload');
+                }
+            })
+        }
+        //会议室调度
+        function Transfer(Id) {
+            JQ.dialog.dialog({
+                title: '会议室调度',
+                width: '800',
+                height: '600',
+                url: '@Url.Action("edit","OaMeetingUse",new {@area="Oa"})?id=' + Id + "&Change=1",
+                onClose: function () {
+                    $("#OaMeetingUseGrid").datagrid('reload');
+                }
+            });
+        }
+        function Info(Id) {
+            JQ.dialog.dialog({
+                title: '查看会议申请信息',
+                width: '800',
+                height: '650',
+                url: '@Url.Action("edit","OaMeetingUse",new {@area="Oa"})?id=' + Id,
+                onClose: function () {
+                    $("#OaMeetingUseGrid").datagrid('reload');
+                }
+            });
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="OaMeetingUseGrid"></table>
+    <div id="OaMeetingUsePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'MeetingUseConent', 'Contract': 'like' }" />
+        <span style="margin-left:20px;">
+            申请时间：
+        </span>
+        <input id="startDate" class="easyui-datebox" style="width:120px;" prompt='开始时间' validType="dateISO" JQWhereOptions="{ Key:'CreationTime', Contract:'>=',filedType:'Date' }" />
+        --
+        <input id="endDate" class="easyui-datebox" style="width:120px;" prompt='结束时间' validType="dateISO" JQWhereOptions="{ Key:'CreationTime', Contract:'<=',filedType:'Date' }" />
+    </div>
+}
+

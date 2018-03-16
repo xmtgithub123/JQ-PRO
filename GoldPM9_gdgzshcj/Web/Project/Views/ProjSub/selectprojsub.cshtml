@@ -1,0 +1,116 @@
+﻿@using JQ.Web;
+
+<script type="text/javascript">
+
+ 
+    $(function () {      
+        var _typeId=@ViewBag.TypeID;
+        var _isMultiSelect=@ViewBag.IsMultiSelect;
+        $("#typeId").val(@ViewBag.TypeID);
+        $("#FilterConSubID").val(@ViewBag.FilterConSubID);
+        var bit=false;
+        if(_isMultiSelect==0)
+        {
+            bit=true;
+        }
+        JQ.datagrid.datagrid({
+            JQButtonTypes: [],//需要显示的按钮
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'BussProjSubGrid',//数据表格ID
+            JQDialogTitle: '选择工程',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            singleSelect: bit,
+            JQFields: ["Id"],//追加的字段名
+            url: '@Url.Action("json","ProjSub",new { @area="Project"})?CompanyType=@Request.Params["CompanyType"].ToString()',//请求的地址
+            queryParams:{IsAudit:"1",FilterConSubID: $("#FilterConSubID").val()},
+            checkOnSelect: true,//是否包含check
+            toolbar: '#BussProjSubPanel',//工具栏的容器ID
+            columns: [[
+                 { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                 { title: '项目编号', field: 'ProjNumber', width: "10%", align: 'left', sortable: true },
+                 { title: '项目名称', field: 'ProjName', width: "20%", align: 'left', sortable: true },
+                 { title: '外委项目编号', field: 'SubNumber', width: "10%", align: 'left', sortable: true },
+                 { title: '外委项目名称', field: 'SubName', width: "20%", align: 'left', sortable: true },
+                 { title: '外委性质', field: 'SubTypeName', width: "80", align: 'center', sortable: true },
+                 { title: '外委负责人', field: 'SubEmpName', width: "80", align: 'center', sortable: true },
+                 { title: '外委时间', field: 'ColAttDate1', width: "80", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                 { title: '登记时间', field: 'CreationTime', width: "80", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                 { title: '外委单位', field: 'CustName', width: "20%", align: 'left', sortable: true }
+            ]]
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '项目编号、项目名称、外委项目编号、外委项目名称',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+            {
+                dgID: 'BussProjSubGrid',
+                loadingType: 'datagrid',
+                queryParams:{IsAudit:"1",FilterConSubID:$("#FilterConSubID").val()},
+            });
+            }
+        });
+
+
+    });
+
+    function selectProj() {
+        var row = $('#BussProjSubGrid').datagrid('getSelections');
+        if (row.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        var ids = [];
+        var _rows = [];
+        for (var i = 0; i < row.length; i++) {
+            ids.push(row[i]["Id"]);
+            _rows.push(row[i]);
+        }
+        if ($("#typeId").val() == 1) {
+            _ProjCallBack(ids);
+        }
+        else if ($("#typeId").val() == 3) {
+            _ProjCallBackByYS(ids);
+        }
+        else if ($("#typeId").val() == 4) {
+            _ProjCallBackByPF(ids);
+        }
+        JQ.dialog.dialogClose();
+    }
+
+    function closedialog() {
+        JQ.dialog.dialogClose();
+    }
+
+</script>
+
+
+
+<table id="BussProjSubGrid"></table>
+<div id="BussProjSubPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProj()">确定选择</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="closedialog()">关闭</a>
+    </span>
+    @*分割号*@
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+
+    <input id="JQSearch" style="width:350px;" JQWhereOptions="{ Key:'txtLike', Contract:'like'}" />
+
+    @*<div class="moreSearchPanel">
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期开始'" JQWhereOptions="{ Key:'ConDate', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期结束'" JQWhereOptions="{ Key:'ConDate', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>*@
+</div>
+<input type="hidden" id="typeId" name="typeId" />
+<input type="hidden" id="FilterConSubID" name="FilterConSubID" />
+
+
+
+
+

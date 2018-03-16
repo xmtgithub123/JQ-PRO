@@ -1,0 +1,160 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoFormProjDelegateService", new { @area = "ISO" })',
+               addUrl = '@Url.Action("add")',
+               editUrl = '@Url.Action("edit")',
+               delUrl = '@Url.Action("del")';
+        var xml = '';
+        var EmpId = '@ViewBag.EmpId';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'IsoFormProjDelegateServiceGrid',//数据表格ID
+                JQDialogTitle: '项目工代信息',//弹出窗体标题
+                JQWidth: '960',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#IsoFormProjDelegateServicePanel',//工具栏的容器ID
+                JQExcludeCol: [1, 9, 10, 11],//导出execl排除的列
+                singleSelect: false,
+                columns: [[
+                  {
+                    field: 'ck', align: 'center', checkbox: true, JQIsExclude: true
+
+                  },
+                  {
+                      title: '项目名称', field: 'ProjName', width: "22%", align: 'left', sortable: false
+                  },
+                  {
+                      title: '项目编号', field: 'ProjNumber', width: "12%", align: 'left', sortable: false
+                  },
+                  {
+                      title: '项目负责人', field: 'ProjEmpName', width: "8%", align: 'center', sortable: false
+                  },
+                  {
+                      title: '阶段', field: 'ProjPhaseIds', width: "13%", align: 'center', sortable: false
+                  },
+                  {
+                      title: '申请人', field: 'CreatorEmpName', width: "8%", align: 'center', sortable: true
+                  },
+                  {
+                      title: '申请日期', field: 'CreationTime', width: "8%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT 
+                  },
+                  {
+                      title: '申请原因', field: 'FormReason', width: "10%", align: 'center', sortable: true
+                  }
+                   ,
+                  {
+                      field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.EmpId)")
+                  },
+                
+                  {
+                      field: 'opt', title: '操作', width: "40", align: 'center', JQIsExclude: true,
+                      formatter: function (value, row, index) {
+                          console.log(row);
+                          var title = "查看";
+                          if (row._EditStatus == 1) {
+                              title = "修改";
+                          }
+                          else if (row._EditStatus == 2) {
+                              title = "处理"; 
+                          }
+                          return '<a class="easyui-linkbutton" onclick="ReadingOrEdit(' + row.FormID + ')">' + title + '</a>';
+                      }
+                  },
+                { title: 'FlowStatus', field: 'FlowStatus', halign: 'center', align: 'left', hidden: true },
+                  //,
+                  //{
+                  //    field: 'Info', title: '操作', align: 'center', width: '5%',
+                  //    formatter:function(val,row)
+                  //    {
+                  //        if (row.CreatorEmpId == EmpId && row.FlowStatus == "0")
+                  //        {
+                  //            return '<a class="easyui-linkbutton" onclick="ReadingOrEdit('+row.FormID+')">修改</a>';
+                  //        }
+                  //        else
+                  //        {
+                  //            return '<a class="easyui-linkbutton" onclick="ReadingOrEdit(' + row.FormID + ')" ck="1">查看</a>';
+                  //        }
+                          
+                  //    }
+                  //}
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#IsoFormProjDelegateServiceGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目名称、项目编号、申请原因',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'IsoFormProjDelegateServiceGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                KeyJQSearch: $("#JQSearch").val(),
+                                 //ProjectPhase: $('#ProjectPhase').textbox('getValue'),
+                            }
+                        });
+                }
+            });
+        });
+        //查看、维护     项目工代信息
+        function ReadingOrEdit(FormID)
+        {
+            JQ.dialog.dialog({
+                title: '项目工代信息',
+                width: '960',
+                height: '700',
+                url: editUrl + '?id=' + FormID,
+                onClose:function()
+                {
+                    $("#IsoFormProjDelegateServiceGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="IsoFormProjDelegateServiceGrid"></table>
+    <div id="IsoFormProjDelegateServicePanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+
+        </span>
+        @*@BaseData.getBases(
+                                             new Params() { isMult = true, engName = "ProjectPhase" , controlName = "ProjectPhase" }
+           )*@
+        <input id="JQSearch" style="width:250px;" />
+
+    </div>
+}
+

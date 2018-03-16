@@ -1,0 +1,612 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.IsoForm
+
+@section head {
+    <style type="text/css">
+    .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+    .p-15{
+        padding:15px;
+    }
+
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+        #dialog .checkbox {
+            margin: 0;
+        }
+</style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="IsoFormDesChangeMobileForm" class="aui-form">
+            <div class="p-15">
+                <b class="aui-input-addon aui-text-danger">*</b>
+               编号 <input id="Number" name="Number" type="text" style="display:inline;min-width: 60px;max-width: 60%;border: 1px solid #dbdbdb; border-radius: 6px;padding: 3px 6px;margin:0 3px;text-align:center;" class="form-control" validType="length[0,200]" value="@ViewData["Number"]" />
+            </div>
+            <div class="aui-input-row">
+                <b class="aui-input-addon aui-text-danger">*</b>
+                <label class="aui-input-addon">&nbsp;&nbsp;项目名称</label>
+                <input type="hidden" id="FormID" name="FormID" value="@(Model.FormID)" />
+                <input id="ProjID" name="ProjID" type="hidden" data-options="required:true,multiple:false" style="width:90%;" value="@(@Model.ProjID==0 ? "" :@Model.ProjID.ToString())" />
+               @* <input name="ProjectName" id="ProjectName" type="hidden" class="aui-input" value="@ViewBag.ProjectName" style="width:63%;margin-right:15px;text-overflow: ellipsis;" />*@
+                <textarea rows="1" name="ProjectName" id="ProjectName" style="width:98%;overflow:auto" class="aui-input">@ViewBag.ProjectName</textarea>
+                @*<div class="aui-input-block" id="ProjectNameText" style="width: 60%;display:inline-block;" >@ViewBag.ProjectName</div>*@
+                @*<input type="button" id="selectProjNameBtn" namne="selectProjNameBtn" class="aui-btn aui-btn-block aui-btn-success p-0" style="width:32%;display:inline-block;float:right;margin-right:10px;" onclick="SetProjectSelectBegin();" value="项目选择" />*@
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目编号</label>
+                <input name="ProjNum" id="ProjNum" type="text" class="aui-input" value="@ViewBag.ProjNumber" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;建设单位</label>
+                <textarea rows="1" name="ConstructUnit" id="ConstructUnit" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@ViewData["ConstructUnit"]</textarea>
+                @*<input name="ConstructUnit" id="ConstructUnit" type="hidden" class="aui-input" value="@ViewData["ConstructUnit"]" />*@
+                @*<div class="aui-input-block">@ViewData["ConstructUnit"]</div>*@
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;提出单位</label>
+               @* <input name="SupplyUnit" id="SupplyUnit" type="hidden" class="aui-input" value="@ViewData["SupplyUnit"]" />*@
+                <textarea rows="1" name="SupplyUnit" id="SupplyUnit" style="width:98%;" class="aui-input">@ViewData["SupplyUnit"]</textarea>
+                @*<div class="aui-input-block">@ViewData["SupplyUnit"]</div>*@
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;变更性质</label>
+                <input name="ColAttVal1_i" id="ColAttVal1_i" type="hidden" class="aui-input" value="@Model.ColAttVal1" />
+                @BaseData.getBaseSelect(new Params()
+               {
+                   controlName = "ColAttVal1",
+                   engName = "DesChange",
+                   isRequired = true,
+                   width = "98%",
+                   ids = Model.ColAttVal1.ToString()
+               })
+                <input type="hidden" value="@ViewBag.DesignKind" name="DesignKind" id="DesignKind" />
+                @*<i class="aui-input-addon aui-iconfont aui-icon-rounddown"></i>*@
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;时间</label>
+                <input name="FormDate" id="FormDate" type="date" class="aui-input" value="@Model.FormDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;变更费用(元)</label>
+                <input name="ChangeFee" id="ChangeFee" type="number" class="aui-input" value="@ViewData["ChangeFee"]" />
+            </div>
+            <div class="aui-input-row">
+                <b class="aui-input-addon aui-text-danger">*</b>
+                <label class="aui-input-addon">&nbsp;&nbsp;变更原因</label>
+                <input name="ColAttVal2" id="ColAttVal2" type="hidden" class="aui-input" value="@Model.ColAttVal2" />
+                <div class="aui-input-block" id="ColAttVal2Names" style="width:63%;display:inline-block"></div>
+                <input type="button" id="btnChooseReason" namne="btnChooseReason" class="aui-btn aui-btn-block aui-btn-success p-0" style="width:32%;float:right;margin-right:10px;" onclick="ReasonChooseBegin();" value="选择原因" />
+                @BaseData.getBaseSelect(new Params()
+               {
+                   controlName = "ColAttVal2_cn",
+                   engName = "DesChangeReason",
+                   isRequired = true,
+                   width = "98%",
+                   ids = Model.ColAttVal2.ToString()
+               })
+                <input type="hidden" value="@ViewBag.DesignChangeReason" id="DesignChangeReason" name="DesignChangeReason" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;修改内容</label>
+                <textarea rows="6" name="ModifyContent" id="ModifyContent" style="width:98%;" class="aui-input">@ViewData["ModifyContent"]</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;设计人员</label>
+                <input name="DesignName" id="DesignName" type="text" class="aui-input" value="@ViewData["DesignName"]" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;校核</label>
+                
+                <input name="DesCheckName" id="DesCheckName" type="text" class="aui-input" value="@ViewData["DesCheckName"]"/>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;审核</label>
+               
+                <input name="DesReview" id="DesReview" type="text" class="aui-input" value="@ViewData["DesReview"]" />
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;造价人员</label>
+                <input name="EvaluatePriceName" id="EvaluatePriceName" type="text" class="aui-input" value="@ViewData["EvaluatePriceName"]"/>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;校核</label>
+                <input name="EvaluatePriceCheckName" id="EvaluatePriceCheckName" type="text" class="aui-input" value="@ViewData["EvaluatePriceCheckName"]"/>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;审核</label>
+                <input name="EvaluatepriceReview" id="EvaluatepriceReview" type="text" class="aui-input" value="@ViewData["EvaluatepriceReview"]" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;批准</label>
+                <input name="ApproveName" id="ApproveName" type="text" class="aui-input" value="@ViewData["ApproveName"]"  />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;监理单位<br />&nbsp;&nbsp;意见</label>
+                <textarea rows="6" name="FormNote" id="FormNote" style="width:98%;" class="aui-input">@Model.FormNote</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;专业监理<br />&nbsp;&nbsp;工程师</label>
+                <input name="SpecMonitorSignNameDate" id="SpecMonitorSignNameDate" type="text" class="aui-input" value="@ViewData["SpecMonitorSignNameDate"]" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目总监</label>
+                <input name="ProjMajorSignNameDate" id="ProjMajorSignNameDate" type="text" class="aui-input" value="@ViewData["ProjMajorSignNameDate"]" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;监理单位<br />&nbsp;&nbsp;技术负责人</label>
+                <input name="MonitorUnitTechMajorSignNameDate" id="MonitorUnitTechMajorSignNameDate" type="text" class="aui-input" value="@ViewData["MonitorUnitTechMajorSignNameDate"]"  />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;业主项目<br />&nbsp;&nbsp;部意见</label>
+                <input name="FormReason" id="FormReason" type="text" class="aui-input" value="@Model.FormReason"/>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目经理</label>
+                <input name="ProjManagerSignNamedate" id="ProjManagerSignNamedate" type="text" class="aui-input" value="@ViewData["ProjManagerSignNamedate"]"  />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;建设单位<br />&nbsp;&nbsp;管理部门负责人</label>
+                <input name="ConstructUnitDeptMajorSignNameDate" id="ConstructUnitDeptMajorSignNameDate" type="text" class="aui-input" value="@ViewData["ConstructUnitDeptMajorSignNameDate"]" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp; 主管领导</label>
+                <input name="MajorLeaderSignNameDate" id="MajorLeaderSignNameDate" type="text" class="aui-input" value="@ViewData["MajorLeaderSignNameDate"]"  />
+            </div>
+            <h4 style="font-weight:bold;margin:10px 0">&nbsp;&nbsp; 完工工程量确认</h4>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp; 监理单位</label>
+                <input name="MonitorUnitSignNameDate" id="MonitorUnitSignNameDate" type="text" class="aui-input" value="@ViewData["MonitorUnitSignNameDate"]" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp; 业主项目部</label>
+                <input name="HostProjDeptSignNameDate" id="HostProjDeptSignNameDate" type="text" class="aui-input" value="@ViewData["HostProjDeptSignNameDate"]" />
+            </div>
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+        <div class="aui-dialog aui-hidden" id="dialog" style="top:50%;">
+            <div class="aui-dialog-header">选择原因</div>
+            <div class="aui-dialog-body aui-text-left">
+                <div class="aui-card aui-noborder"  style="height:250px;overflow-y:auto;">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <div class="checkAll">
+                                            <input type="checkbox" name="name" value="" />
+                                        </div>
+                                    </th>
+                                    <th>错误名称</th>
+                                    
+                                </tr>
+                            </thead>
+                            <tbody id="gridList" style="max-height:200px;overflow-y:auto;margin-bottom:0;"></tbody>
+                        </table>
+                    </div>
+
+
+                    <!--模板-->
+                    <script id="listTpl" type="text/x-dot-template">
+                        {{~it:appendInfoData:index}}
+
+                        <tr id="tr_{{=index}}">
+
+                            <td>
+                                <div class="checkbox">
+                                    <input type="checkbox" name="subBox" value="" />
+                                </div>
+                            </td>
+                            <td>
+                                {{=appendInfoData.text}}
+                            </td>
+                            <td class="hidden">{{=appendInfoData.id}}</td>
+                           
+
+                        </tr>
+                        {{~}}
+                    </script>
+                </div>
+            </div>
+            <div class="aui-dialog-footer">
+                <div class="aui-dialog-btn aui-text-danger" tapmode onclick="cancel()">取消</div>
+                <div class="aui-dialog-btn aui-text-info" tapmode onclick="confirm()">确定</div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                initFormBegin(JSON.stringify({
+                    "Result": true,
+                    "Message": null,
+                    "SignControls": null,
+                    "AllowEditControls":"{}"
+
+                }));
+                //initFormBegin();
+            }
+
+        })
+
+        var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+        };
+
+        //页面初始化
+        function initFormBegin(params) {
+            //alert(params)
+            //变更性质
+            $('#ColAttVal1').val($('#ColAttVal1_i').val());
+            //变更原因
+            //$('#ColAttVal2').val($('#ColAttVal2_i').val());
+
+            //alert('@ViewData["EvaluatePriceCheckName"]')
+
+            //去除换行
+           
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+            //alert(JSON.stringify(paramsObj))
+
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls.replace("ProjID", "selectProjNameBtn").replace("ColAttVal2","btnChooseReason");
+           
+            //清除时间审批时，默认为1900-01-01改为空
+            var FormDate = $('#FormDate').val();;
+            if ((FormDate == '1900-01-01')) {
+                $('#FormDate').val('');
+            }
+            
+            $("input[type='number']").change(function () {
+                var res = /^[0-9]+.?[0-9]*$/;
+                if (!res.test($("input[type='number']").val())) {
+                    $.alert('请输入正确数字')
+                    $("input[type='number']").val('');
+                }
+                else {
+                    var ChangeFeeValue = parseFloat($('#ChangeFee').val());
+                    $('#ChangeFee').val(ChangeFeeValue.toFixed(2));
+                }
+            })
+
+            
+            //变更原因
+            $('#ColAttVal2_cn').css('display', 'none')
+            var ColAttVal2StringArr = $('#ColAttVal2').val().split(',')
+           // console.log(ColAttVal2StringArr)
+            var ColAttVal2String = [];
+            for (var i = 0; i < ColAttVal2StringArr.length; i++) {
+                // console.log(depArr[i]);
+                $('#ColAttVal2_cn').val(ColAttVal2StringArr[i]);
+                ColAttVal2String.push($('#ColAttVal2_cn option:selected').text())
+            }
+            $('#ColAttVal2Names').text(ColAttVal2String.toString())
+            
+             //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('IsoFormDesChangeMobileForm'));
+            
+            if (paramsObj.AllowEditControls != '-') {
+                DomUtil.setSignControl(paramsObj.SignControls, document.getElementById('IsoFormDesChangeMobileForm'), paramsObj.UserName, paramsObj.Date);
+            }
+           
+            //设置设计人员不可编辑
+            $('#DesignName').addClass('jq-text-disabled').attr("readonly", "readonly");
+           
+            //修改内容，替换换行符
+            var ModifyContentValue = $('#ModifyContent').val();
+            ModifyContentValue = ModifyContentValue.replace(/[\r\n]/g, "")
+            $('#ModifyContent').val(ModifyContentValue);
+
+           
+            //监理单位意见，替换换行符
+            var FormNoteValue = $('#FormNote').val();
+            FormNoteValue = FormNoteValue.replace(/[\r\n]/g, "")
+            $('#FormNote').val(FormNoteValue);
+           
+            //☆ 对aui-input-block的特殊处理
+            if (((paramsObj.AllowEditControls).indexOf('ModifyContent')) != -1) {
+                $('#ModifyContent').removeClass('jq-text-disabled')
+                $("#ModifyContent").css({
+                    overflow: 'auto',
+
+                })
+            }
+            else {
+                $('#ModifyContent').removeClass('jq-text-disabled').attr("readonly", "readonly")
+                $("#ModifyContent").css({
+                    overflow: 'auto',
+                    background: '#efefef',
+                    color: '#898787'
+                })
+            }
+
+            if (((paramsObj.AllowEditControls).indexOf('FormNote')) != -1) {
+                $('#FormNote').removeClass('jq-text-disabled')
+                $("#FormNote").css({
+                    overflow: 'auto',
+
+                })
+            }
+            else {
+                $('#FormNote').removeClass('jq-text-disabled').attr("readonly", "readonly")
+                $("#FormNote").css({
+                    overflow: 'auto',
+                    background: '#efefef',
+                    color: '#898787'
+                })
+
+            }
+
+           
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#IsoFormDesChangeMobileForm').validate({
+                rules: {
+                    Number:'required',//编号
+                    ProjectName: 'required',//项目名称
+                    ColAttVal2:'required',//变更原因
+                    ModifyContent: { //修改内容
+                        required: false,
+                        maxlength: 500
+                    },
+                    FormNote: { // 监理单位意见
+                        required: false,
+                        maxlength: 500
+                    }
+                },
+                messages: {
+                    Number:'请输入编号',
+                    ProjectName: '请输入项目名称 ',
+                    ColAttVal2:'请输入变更原因',
+                    ModifyContent: {
+                        maxlength: '内容长度必须介于0-500之间'
+                    },
+                    FormNote: {
+                        maxlength: '内容长度必须介于0-500之间'
+                    }
+                }
+            });
+            //if ($('#ProjName').val() == '') {
+            //    $.alert('请选择项目！')
+            //    return false;
+            //}
+            isValidate = formVali.form();
+            if (isValidate) {
+                var formData = DomUtil.serialize(document.getElementById('IsoFormDesChangeMobileForm'));//json or =&
+                console.log(formData)
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+            var formData = DomUtil.serialize(document.getElementById('IsoFormDesChangeMobileForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+        function SetProjectSelectBegin() {
+            var selemp = {
+                ProjID: $('#ProjID').val(),
+                ProjName: $('#ProjectName').val()
+            }
+            if (window.JinQuMobile) {
+                window.JinQuMobile.ProjectSelectBegin(JSON.stringify(selemp), 'SetProjectSelectEnd');
+            }
+        }
+        function SetProjectSelectEnd(emp) {
+            //alert(emp)
+            emp = JSON.parse(emp);
+
+            $('#ProjectName').val(emp.ProjName);
+            $('#ProjNum').val(emp.ProjNumber)
+            $('#ProjID').val(emp.ProjPhaseId);
+            $('#ProjectNameText').text(emp.ProjName);
+        }
+
+        //选择设备
+        function ReasonChooseBegin() {
+            var url = _webconfig.serverUrl + 'Core/basedata/treejson?engName=DesChangeReason';
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: '',
+                success: function (data) {
+                    console.log(data)
+                    var appendInfoData = data;
+                    if (appendInfoData.length > 0) {
+                        var interText = doT.template($("#listTpl").text())
+                        $("#gridList").html(interText(appendInfoData));
+                        $('body').append('<div class="aui-mask"></div>');
+                        $(".aui-dialog.aui-hidden").removeClass('aui-hidden');
+
+
+                        $('#gridList tr').each(function (index, value) {
+                            var trID = '#tr_' + index;
+                            $('.checkAll input[type="checkbox"]').click(function () {
+                                $(trID).find('.checkbox input[name="subBox"]').prop("checked", this.checked)
+                            })
+                            var allLen = $('.checkbox input[name="subBox"]').length;
+                            $('.checkbox input[name="subBox"]').each(function (index, value) {
+                                $(this).bind('click', function (i) {
+                                    var selectedLen = $('.checkbox input[name="subBox"]:checked').length;
+                                    if (selectedLen == allLen) {
+                                        $('.checkAll input[type="checkbox"]').prop("checked", true)
+                                    }
+                                    else {
+                                        $('.checkAll input[type="checkbox"]').prop("checked", false)
+                                    }
+                                })
+                            })
+                        })
+                    }
+                }
+            })
+        }
+
+
+        //信息弹出框-----------------------------------------------------------------------
+        function cancel() {
+            $('div').removeClass("aui-mask")
+            $('.aui-dialog').addClass("aui-hidden")
+        }
+        function confirm() {
+            var CheckValueLength = $(".checkbox input[name='subBox']:checked").length;
+            //console.log(CheckValueLength)
+            if (CheckValueLength > 0) {
+                $('div').removeClass('aui-mask');
+                $('.aui-dialog').addClass("aui-hidden");
+                var selectArray = [],selectIdArr=[];
+                $(".checkbox input[name='subBox']:checked").closest("tr").each(function (i, e) {
+                   // var radioValue = $(".checkbox input[name='subBox']:checked").val();
+                   // console.log(radioValue)
+                    var selectString = $(this).children().text().trim();
+                    var selectid = $(this).children().val();
+                    console.log(selectid)
+                   // console.log(selectString)
+                    var arr = selectString.split(/[ |,]/)
+                    console.log(arr)
+                    for (var i = 0; i < arr.length; i++) {
+                        if (arr[i].length === 0) {
+                            arr.splice(i, 1)
+                        }
+                    }
+                   // console.log(arr)
+                    selectArray.push(arr[0]);
+                    selectIdArr.push(arr[1])
+                })
+                //console.log(selectArray)
+                $('#ColAttVal2Names').text(selectArray)
+                $('#ColAttVal2').val(selectIdArr)
+            }
+            else {
+                $.alert('请选择变更原因');
+            }
+
+        }
+        /*----------------------------------------------------------------------------------------------*/
+        //项目负责人 - 选择项目
+        //function SetProjectSelectBegin() {
+        //    var selemp = {
+        //        ProjName: $('#ProjName').val()
+        //    }
+        //    if (window.JinQuMobile) {
+        //        window.JinQuMobile.ProjectSelectBegin(JSON.stringify(selemp), 'SetProjectSelectEnd');
+        //    }
+        //}
+        //function SetProjectSelectEnd(emp) {
+        //    //alert(emp)
+        //    emp = JSON.parse(emp);
+        //    $('#ProjName').val(emp.ProjName);
+        //    $('#TaskGroupID').val(emp.TaskGroupId);
+        //    $('#PhaseID').val(emp.ProjPhaseId);
+        //    $("#ProjID").val(emp.Id);
+
+        //}
+    </script>
+}

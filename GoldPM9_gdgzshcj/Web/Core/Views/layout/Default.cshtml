@@ -1,0 +1,546 @@
+﻿@model DataModel.EmpSession
+@{
+    List<DataModel.Models.BaseMenu> menulist = ViewBag.headmenu as List<DataModel.Models.BaseMenu>;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@(ViewBag.CurrentUserName) - 金曲设计院管理软件9.0</title>
+    <meta name="viewport" content="width=device-width" />
+    @RenderPage("~/Areas/Core/Views/Shared/_Header.cshtml")
+    <script src="~/Scripts/home.js" type="text/javascript"></script>
+    <script>
+        window.history.forward(1);
+        window.rootPath="@(ViewBag.sitePath)";
+        $(function(){
+            // 导航条选中
+            $('#bartd a').click(function(){
+                $(this).addClass("selected").siblings().removeClass("selected");
+            })
+            //loadDataMenu($("#bartd").find("a[class*='webname']").attr("menuid"));  行120： <div id="RightAccordion" class="easyui-accordion"></div>
+            $("#bartd").find("a[class*='bannerbtn']").click(function(){
+                if ($(this).hasClass("webname")) {
+                    $('#easyLayoutByIndex').layout('hidden','west');
+                    $(this).removeClass("webname");
+                    $(this).removeClass("selected");
+                } else {
+                    var menuid=$(this).attr("menuid");
+                    if(menuid==1861){
+                        loadJxMenuData();//打开绩效菜单
+                        return;
+                    }
+                    $('#easyLayoutByIndex').layout('show','west');
+                    $(this).addClass("webname").siblings().removeClass("webname");
+                    loadDataMenu($(this).attr("menuid"));
+                }
+                $("#center").resize();
+            });
+            addTab("个人中心",@(ViewBag.sitePath)+"Core/Layout/WorkCenter","fa fa-home");
+            $('#easyLayoutByIndex').layout('hidden','west');
+            $("#fullSetContent").html(fullSetButtonOut());
+            $("#fullSetButton").click(function () {
+                if ($(this).attr("class") == "fa fa-expand") {
+                    $(this).removeClass("fa-expand").addClass("fa-compress");
+                } else {
+                    $(this).removeClass("fa-compress").addClass("fa-expand");
+                }
+                if($("#north").is(":hidden")){
+                    $('#easyLayoutByIndex').layout('show','all');
+                    $("#fullSetButton").css({'top':'50px'});
+                    $(".fullSet").css({'top':'50px'});
+                }
+                else{
+                    $('#easyLayoutByIndex').layout('hidden','all');
+                    $("#fullSetButton").css({'top':'0'});
+                    $(".fullSet").css({'top':'0'});
+                }
+                $("#center").resize();
+            });
+            $("#center").resize();
+
+        });
+        var globalConfig = {
+            InitConfig: function () {
+                var Config = {};
+                Config.CurrentCulture = "zh-CN";
+                return Config;
+            }
+        };
+        var _globalConfig = globalConfig.InitConfig();
+        function loadDataMenu(menuid) {
+            var istree=@(Model.EmpMenuType.Contains("tree") ? 1 : 0);
+            if(true){
+                loadDataByTree(menuid);
+            }
+            else{
+                loadDataByTip(menuid);
+            }
+        }
+        function SetThemes() {
+            $.messager.confirm("修改用户主题", "您是否确定修改主题", function (r) {
+                if (r) {
+                    var theme = $('input[name="themes"]:checked').val();
+                    var menu = $('input[name="menustyle"]:checked').val();
+                    $.post(
+                        "@Url.Action("setthemes")",
+                        {
+                            theme: theme,
+                            menu: menu
+                        },
+                        function (data) {
+                            window.location.reload();
+                        },
+                        "json");
+                }
+            });
+        }
+        window.addTab = function (subtitle, url, icon) {
+            if (!$("#mainTab").tabs('exists', subtitle)) {
+                var closableFlag = true;
+                if (subtitle.indexOf("个人中心") > -1) {
+                    closableFlag = false;
+                }
+                var id = JQ.tools.getMathNo();
+                if (url.indexOf("?")>-1) {
+                    url = url + "&a1b2c3wjpid=" + id + "&a1b2c3wjpparentid=0";
+                }
+                else {
+                    url = url + "?a1b2c3wjpid=" + id + "&a1b2c3wjpparentid=0";
+                }
+                $("#mainTab").tabs('add', {
+                    id:id+"_d",
+                    //id:id,
+                    title: subtitle,
+                    content: '<div style="width:100%; height:100%;overflow: hidden;"><iframe id="' + id + '" frameborder="0" src="' + url + '" style="width:100%; height:100%;overflow:scroll;"></iframe></div>',
+                    closable: closableFlag,
+                    icon: icon
+                });
+            } else {
+                //url 不一样
+                var currentIframe = $("#mainTab").tabs("getTab", subtitle).find("iframe");
+                if (url.indexOf("?")>-1) {
+                    url = url + "&a1b2c3wjpid=" + id + "&a1b2c3wjpparentid=0";
+                }
+                else {
+                    url = url + "?a1b2c3wjpid=" + currentIframe[0].getAttribute("id") + "&a1b2c3wjpparentid=0";
+                }
+                if (currentIframe.length>0&&currentIframe.attr("src")!=url) {
+                    $("#mainTab").tabs('select', subtitle);
+                    currentIframe.attr("src", url);
+                    return false;
+                }
+                $("#mainTab").tabs('select', subtitle);
+                $("#tab_menu-tabrefresh").trigger("click");
+            }
+        }
+
+        window.closeSelTab = function() {
+            var tab = $('#mainTab').tabs('getSelected');
+            var index = $('#mainTab').tabs('getTabIndex',tab);
+            $('#mainTab').tabs('close',index);
+        }
+        //打开绩效菜单,先验证密码
+        function loadJxMenuData(){
+            JQ.dialog.dialog({
+                title: "绩效密码验证",
+                url: '@Url.Action("infoPassCheck", "PayPasssWord", new { @area = "Pay" })',
+                width: '400',
+                height: '150',
+                iconCls: 'fa fa-asterisk'
+            });          
+        }
+        function loadDataByTree(menuid) {
+            $.post(
+            "@Url.Action("menujson", "menu", new { @area = "Core" })",
+            {
+                id: menuid,
+                level:2,
+                isIcon:true
+            },
+            function (data) {
+                if(data==null)
+                {
+                    window.location.reload();
+                }
+                else
+                {
+                    if (data=="no") {
+                        @* 王建斌 2016/12/16注释, 解决 绩效验证通过但没有数据，验证框重复打开问题 *@
+                        @*JQ.dialog.dialog({
+                            title: "绩效密码验证",
+                            url: '@Url.Action("infoPassCheck", "PayPasssWord", new { @area = "Pay" })',
+                            width: '400',
+                            height: '150',
+                            iconCls: 'fa fa-asterisk'
+                        });*@
+                        return;
+                    }else{
+                        $("#RightTree").tree({
+                            data: data,
+                            onClick: function (node) {
+                                if (node.state == 'closed') {
+                                    $(node.target).find(".tree-icon").prop("class","tree-icon fa fa-folder-open-o");
+                                    //node.target.childNodes[1].className="tree-icon fa fa-folder-open-o";
+                                    $(this).tree('expand', node.target);
+                                } else if (node.state == 'open') {
+                                    if (node.children == undefined) {
+                                        addTab(node.text, @(ViewBag.sitePath)+ node.attributes,  node.iconCls);
+                                    }
+                                    else {
+                                        $(node.target).find(".tree-icon").css({width:"14px",display:"inline-block"}).prop("class","tree-icon fa fa-folder-o");
+                                        //node.target.childNodes[1].style.width="14px";
+                                        //node.target.childNodes[1].style.display="inline-block";
+                                        //node.target.childNodes[1].className="tree-icon fa fa-folder-o";
+                                        $(this).tree('collapse', node.target);
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }}
+                 , 'json');
+        }
+
+        window.execute=function(title,functionName,arguments,isMulti){
+            var _win=getTabWindow(title);
+            if(!_win || typeof(_win[functionName])!="function") {
+                return;
+            }
+            if(isMulti!=false&& isArray(arguments)) {
+                return _win[functionName].apply(null,arguments);
+            }
+            else {
+                return _win[functionName](arguments);
+            }
+
+        };
+
+        function isArray(object){
+            return  object && typeof object==="object" && typeof object.length==="number" && typeof object.splice==="function" &&  !(object.propertyIsEnumerable("length"));
+        }
+
+        window.getTabWindow = function(title){
+            var tab= $("#mainTab").tabs("getTab",title);
+            if(!tab||tab.length==0||tab[0].childNodes.length==0 || !tab[0].childNodes[0].childNodes[0].contentWindow){
+                return;
+            }
+            return tab[0].childNodes[0].childNodes[0].contentWindow;
+        }
+
+        window.updateTitleByID=function(id,title){
+            id=id+"_d";
+            var $tab=$("#mainTab");
+            var tabs=$tab.tabs("tabs");
+            for(var i in tabs){
+                if(tabs[i][0].getAttribute("id")==id){
+                    $tab.tabs("update",{
+                        tab: tabs[i],
+                        options: {
+                            title: title
+                        },
+                        type:"header"
+                    });
+                }
+            }
+        }
+    </script>
+    <style>
+        .userinfodiv {
+            width: 100%;
+            height: 25px;
+            line-height: 25px;
+            padding: 5px;
+        }
+
+            .userinfodiv i {
+                padding: 5px;
+                font-size: 12px;
+                word-spacing: 8px;
+                letter-spacing: 1px;
+                width: 100%;
+                height: 25px;
+                line-height: 25px;
+            }
+
+                .userinfodiv i:hover {
+                    color: #6fb790;
+                    background-color: #787c6d;
+                }
+
+        .dropdown_block {
+            width: 220px;
+            display: block;
+            background-color: #FFFFFF;
+            cursor: default;
+            overflow-x: hidden;
+        }
+
+        .dropdown_refresh {
+            float: right;
+            margin-right: 10px;
+            line-height: 34px;
+            cursor: pointer;
+            display: inline-block;
+            text-indent: 0px;
+        }
+
+            .dropdown_refresh:hover {
+                color: #228DAA;
+            }
+
+        .dropdown_block_head {
+            line-height: 34px;
+            height: 34px;
+            background-color: #ecf2f7;
+            border-bottom: 1px solid #c9dcea;
+            color: #444444;
+            text-indent: 6px;
+        }
+
+        .dropdown_block_body {
+            position: relative;
+            overflow-x: hidden;
+            overflow-y: auto;
+            height: 220px;
+            padding: 0px;
+        }
+
+        .dropdown_block_foot {
+            height: 36px;
+            line-height: 36px;
+            background-color: #ecf2f7;
+            border-top: 1px solid #c9dcea;
+            text-align: center;
+        }
+
+        .dropdown_block_all {
+            color: #2c77b6;
+            cursor: pointer;
+        }
+
+        .dropdown_block_item {
+            float: left;
+            width: 100%;
+            cursor: pointer;
+        }
+
+            .dropdown_block_item:hover {
+                background-color: #f5f9fb;
+            }
+
+        .dropdown_block_title {
+            word-break: keep-all;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 200px;
+            float: left;
+            padding: 0px 3px 0px 3px;
+            color: #222222;
+            font-size: 12px;
+        }
+
+        .dropdown_block_info {
+            color: #888888;
+            float: left;
+            font-size: 12px;
+            width: 100%;
+            padding: 0px 3px 0px 3px;
+        }
+
+        .dropdown_block_content p {
+            color: #222222;
+            line-height: 18px;
+            font-size: 12px;
+        }
+
+        #bartd a {
+            width: 75px !important;
+        }
+
+        .marquee {
+            padding: 5px;
+            background: #ec696b;
+            width: 100%;
+            z-index: 999;
+        }
+
+        .user-image {
+            margin-right: 0;
+        }
+    </style>
+</head>
+<body class="easyui-layout" id="easyLayoutByIndex" style="overflow-y: hidden" fit="true" scroll="no">
+
+    <div id="north" data-options="region:'north',border:false,split:false" style="padding:0;margin:0;overflow: hidden; ">
+        @{if (ViewBag.RegStatus != "")
+            {
+                <div class="marquee">
+                    <marquee direction="left" scrollamount="3" behavior="left" onmouseover="this.stop();" onmouseout="this.start()" style="color:white;cursor:pointer">
+                        ***@ViewBag.RegStatus***
+                    </marquee>
+                </div>
+            }
+        }
+        <table class="banner" style="border-spacing:0px;">
+            <tr>
+                <td class="webname"><img src="~/content/images/jq-logo.png" /></td>
+                <td id="bartd">
+                    @{
+                        if (menulist != null && menulist.Count > 0)
+                        {
+                            for (int i = 0; i < menulist.Count; i++)
+                            {
+                                <a menuid="@(menulist[i].MenuID)"
+                                   style="width :auto;text-align:center;font-size:12px; font-weight:bolder;width:80px;" class="l-btn-text bannerbtn" href="javascript:void(0)">
+                                    <i class="icon-@(menulist[i].MenuNameEng)" style="display:block;"></i>
+                                    @menulist[i].MenuName
+                                </a>
+                            }
+                        }
+                    }
+                </td>
+                <td style="min-width:120px;float:right; margin-top: 18px;margin-right:10px;" class="">
+                    <a id="showUserInfo" href="javascript:void(0)">
+                        <img id="empavatar" src="@(Url.Action("GetAvatar","User",new { @area="Core" }))?id=@(Model.EmpID)" class="user-image" />
+                    </a>
+                    @{
+                        if (!ViewBag.IsAgentLogin)
+                        {
+                            <a href="javascript:void(0)" id="scheduler_block" class="l-btn-text fa fa-calendar  fa-lg bannerbtn right-fa" style="position:relative; display:inline-block;text-align:center; margin:0 5px 0 15px;" onclick="openSchedulerTab();">
+                                <span id="schedulercount" class="label-mes label-success" style="position:absolute;display: inline;top:3px;left:0px"></span>
+                            </a>
+                            <a href="javascript:void(0)" id="mail_block" class="l-btn-text fa fa-envelope-o  fa-lg bannerbtn right-fa" style="position:relative; display:inline-block;text-align:center;margin:0 5px;" href="javascript:void(0)">
+                                <span id="mailcount" class="label-mes label-success" style="position:absolute;display: inline;top:3px;left:0px"></span>
+                            </a>
+                            <a href="javascript:void(0)" id="messages_block" class="l-btn-text fa fa-bell-o  fa-lg bannerbtn right-fa" style="position:relative; display:inline-block;text-align:center;margin:0 5px;" href="javascript:void(0)">
+                                <span id="mesCount" class="label-mes label-success" style="position:absolute;display: inline;top:3px;left:0px"></span>
+                            </a>
+                        }
+                    }
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="west" data-options="region:'west',split:false" style="width: 200px; height: 100%; overflow: auto; border-bottom:0px;">
+        <div id="west_logo" class="panel-left-navbar">
+            <img src="~/content/images/jq-logo.png" style="margin-top:6px;" />
+        </div>
+        <div id="RightTree" class="easyui-tree"></div>
+    </div>
+    <div id="center" data-options="region:'center',border:false" style="background: #eee; overflow-y: hidden">
+        <div id="mainTab" class="easyui-tabs" data-options="fit:true" border="false">
+        </div>
+    </div>
+    <div id="tab_menu" class="easyui-menu" style="width: 150px;">
+        <div id="tab_menu-tabrefresh" data-options="iconCls:'icon-reload'">
+            刷新
+        </div>
+        <div id="tab_menu-openFrame">
+            在新的窗体打开
+        </div>
+        <div id="tab_menu-tabcloseall">
+            关闭所有
+        </div>
+        <div id="tab_menu-tabcloseother">
+            关闭其他标签页
+        </div>
+        <div class="menu-sep">
+        </div>
+        <div id="tab_menu-tabcloseright">
+            关闭右边
+        </div>
+        <div id="tab_menu-tabcloseleft">
+            关闭左边
+        </div>
+        <div id="tab_menu-tabclose" data-options="iconCls:'fa fa-trash'">
+            关闭
+        </div>
+        <div id="menu" class="easyui-menu" style="width: 150px;">
+        </div>
+    </div>
+    <div id="fullSetContent"></div>
+</body>
+</html>
+<script type="text/javascript">
+    if(window.JinQu) {
+        JinQu.query("setUser", { id : "@(Model.EmpID)" }, null, null, null);
+        JinQu.query("startNotifyByURL", {url:window.location.protocol + "//" + window.location.host+"@(Url.Action("Index","Notify", new { @area="Core" } ))?empID=@(Model.EmpID)&agentFlows=@(ViewBag.AgentFlows)&agentTypeID=@(ViewBag.AgentTypeID)" },null, null, null);
+    }
+    window.isAgentLogin="@(ViewBag.IsAgentLogin?1:0)";
+    window.urls={
+        getMails:"@(Url.Action("GetMails", "Layout",new { @area="Core" }))",
+        mailDetail:"@(Url.Action("edit", "OaMail", new { @area = "OA" }))",
+        mailReceive:"@(Url.Action("MailReceive", "OaMail", new { @area = "OA" }))",
+        getMessages:"@(Url.Action("GetMessages", "Message", new { @area= "OA" }))",
+        messageList:"@(Url.Action("List", "Message", new { @area= "OA" }))",
+        messageDetail:"@(Url.Action("Display", "Message", new { @area= "OA" }))",
+        scheculer:"@(Url.Action("Index", "Scheduler",new { @area="OA" }))",
+        getSchedulers:"@(Url.Action("GetRemindSchedulers", "Scheduler",new { @area="OA" }))",
+        schedulerDetail:"@(Url.Action("ViewDetail","Scheduler",new { @area="OA" }))",
+        switchAgentUrl:"@(Url.Action("SwitchAgent", "Layout", new { @area = "Core" }))"
+    };
+    window.PageSize = "@(ViewBag.PageSize)";
+    function SignOut() {
+        $.messager.confirm("系统提示", "您确定退出系统吗？", function (r) {
+            if (r) {
+                $.post("@(Url.Action("LogOut", "main",new { @area="Core" }))", function (data) {
+
+                }, "json").success(function(){
+                    if(window.JinQu) {
+                        JinQu.query("cancelNotify", null, null, null);
+                    }
+                    execute("个人中心","disconnect");
+                    window.location.href = "@(Url.Content("~/Login"))";
+                });
+            }
+        });
+    }
+
+    function showchangepwd() {
+        JQ.dialog.dialog({
+            title: "密码修改",
+            url: "@(Url.Action("changepwd", "layout",new { @area="Core" }))",
+            width: "400",
+            height: "300",
+            JQID: "EmpChangepwdGrid",
+            iconCls: "fa fa-lock"
+        });
+    }
+
+    function showProfile(){
+        JQ.dialog.dialog({
+            title: "个人设置",
+            url: "@(Url.Action("ProfileSetting", "user", new { @area="Core" }))",
+            width: "600",
+            height: "460",
+            iconCls: "fa fa-gear"
+        });
+    }
+
+    function ShowMessage(data){
+        switch(data.title) {
+            case "Task":
+                execute("个人中心", "openToDoTask");
+                break;
+            case "ProjectForm":
+                execute("个人中心", "openProjectForm");
+                break;
+            case "OAForm":
+                execute("个人中心", "openOAForm");
+                break;
+            case "Exchange":
+                execute("个人中心", "openExchange");
+                break;
+            case "Message":
+                window.openMessageTab();
+                break;
+            case "Mail":
+                window.openMailTab();
+                break;
+            case "Scheduler":
+                window.openSchedulerTab();
+                break;
+        }
+    }
+</script>

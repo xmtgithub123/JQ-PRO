@@ -1,0 +1,421 @@
+﻿@model DataModel.Models.SelEmpParames
+<script>
+    var urlLeft = "@Url.Action("employeeByDepJson", "usercontrol", new { @area = "Core"})?state=closed&ids=@Model.vals";
+    var urlRight = "@Url.Action("employeeByDepJson", "usercontrol", new { @area = "Core"})?state=closed&ids=@Model.vals&type=1";
+
+    $.extend($.fn.tree.methods, {
+        search: function (jqTree, searchText) {
+            //easyui tree的tree对象。可以通过tree.methodName(jqTree)方式调用easyui tree的方法
+            var tree = this;
+
+            //获取所有的树节点
+            var nodeList = getAllNodes(jqTree, tree);
+
+            //如果没有搜索条件，则展示所有树节点
+            searchText = $.trim(searchText);
+            if (searchText == "") {
+                for (var i = 0; i < nodeList.length; i++) {
+                    $(".tree-node-targeted", nodeList[i].target).removeClass("tree-node-targeted");
+                    $(nodeList[i].target).show();
+                }
+                //展开已选择的节点（如果之前选择了）
+                var selectedNode = tree.getSelected(jqTree);
+                if (selectedNode) {
+                    tree.expandTo(jqTree, selectedNode.target);
+                }
+                return;
+            }
+
+            //搜索匹配的节点并高亮显示
+            var matchedNodeList = [];
+            if (nodeList && nodeList.length > 0) {
+                var node = null;
+                for (var i = 0; i < nodeList.length; i++) {
+                    node = nodeList[i];
+                    if (isMatch(searchText, node.text)) {
+                        matchedNodeList.push(node);
+                    }
+                }
+                //隐藏所有节点
+                for (var i = 0; i < nodeList.length; i++) {
+                    $(".tree-node-targeted", nodeList[i].target).removeClass("tree-node-targeted");
+                    $(nodeList[i].target).hide();
+                }
+
+                //折叠所有节点
+                tree.collapseAll(jqTree);
+
+                //展示所有匹配的节点以及父节点
+                for (var i = 0; i < matchedNodeList.length; i++) {                
+                    var tNode = matchedNodeList[i];                  
+                    if (tNode.text != "请选择人员") {
+                        showMatchedNode(jqTree, tree, tNode);
+                        if (!tree.isLeaf(jqTree, tNode.target)) {
+                            var children = tree.getChildren(jqTree, tNode.target);
+                            if (children && children.length > 0) {
+                                for (var k = 0; k < children.length; k++) {
+                                    if ($(children[k].target).is(":hidden")) {
+                                        $(children[k].target).removeAttr("style");
+                                    }
+                                }
+                            }
+                        }
+                    }            
+                }
+            }
+        },
+
+        /**
+         * 展示节点的子节点（子节点有可能在搜索的过程中被隐藏了）
+         * param node easyui tree节点
+         */
+        showChildren: function (jqTree, node) {
+            //easyui tree的tree对象。可以通过tree.methodName(jqTree)方式调用easyui tree的方法
+            var tree = this;
+
+            //展示子节点
+            if (!tree.isLeaf(jqTree, node.target)) {
+                var children = tree.getChildren(jqTree, node.target);
+                if (children && children.length > 0) {
+                    for (var i = 0; i < children.length; i++) {
+                        if ($(children[i].target).is(":hidden")) {
+                            $(children[i].target).show();
+                        }
+                    }
+                }
+            }
+        },
+
+
+        scrollTo: function (jqTree, param) {
+            //easyui tree的tree对象。可以通过tree.methodName(jqTree)方式调用easyui tree的方法
+            var tree = this;
+
+            //如果node为空，则获取当前选中的node
+            var targetNode = param && param.targetNode ? param.targetNode : tree.getSelected(jqTree);
+
+            if (targetNode != null) {
+                //判断节点是否在可视区域
+                var root = tree.getRoot(jqTree);
+                var $targetNode = $(targetNode.target);
+                var container = param && param.treeContainer ? param.treeContainer : jqTree.parent();
+                var containerH = container.height();
+                var nodeOffsetHeight = $targetNode.offset().top - container.offset().top;
+                if (nodeOffsetHeight > (containerH - 30)) {
+                    var scrollHeight = container.scrollTop() + nodeOffsetHeight - containerH + 30;
+                    container.scrollTop(scrollHeight);
+                }
+            }
+        }
+    });
+
+
+
+
+
+    function showMatchedNode(jqTree, tree, node) {
+        //展示所有父节点
+        $(node.target).show();
+        $(".tree-title", node.target).addClass("tree-node-targeted");
+        var pNode = node;
+        while ((pNode = tree.getParent(jqTree, pNode.target))) {
+            $(pNode.target).show();
+        }
+        //展开到该节点
+        tree.expandTo(jqTree, node.target);
+        //如果是非叶子节点，需折叠该节点的所有子节点
+        if (!tree.isLeaf(jqTree, node.target)) {
+            tree.collapse(jqTree, node.target);
+        }
+    }
+
+
+    function isMatch(searchText, targetText) {
+        return $.trim(targetText) != "" && targetText.indexOf(searchText) != -1;
+    }
+
+
+    function getAllNodes(jqTree, tree) {
+        var allNodeList = jqTree.data("allNodeList");
+        if (!allNodeList) {
+            var roots = tree.getRoots(jqTree);
+            allNodeList = getChildNodeList(jqTree, tree, roots);
+            jqTree.data("allNodeList", allNodeList);
+        }
+        return allNodeList;
+    }
+
+    function getChildNodeList(jqTree, tree, nodes) {
+        var childNodeList = [];
+        if (nodes && nodes.length > 0) {
+            var node = null;
+            for (var i = 0; i < nodes.length; i++) {
+                node = nodes[i];
+                childNodeList.push(node);
+                if (!tree.isLeaf(jqTree, node.target)) {
+                    var children = tree.getChildren(jqTree, node.target);
+                    childNodeList = childNodeList.concat(getChildNodeList(jqTree, tree, children));
+                }
+            }
+        }
+        return childNodeList;
+    }
+
+
+
+    $('#employeeLeftTree').tree({
+        onlyLeafCheck: true,//只允许子节点出现选择框
+        url: urlLeft,//open
+        animate: true,
+        checkbox: false,
+        onClick: function (node) {
+            var parent = $(this).tree("getParent", node.target),
+              childs = $(this).tree("getChildren", node.target);
+            if (!node.children) {
+                clickFun(node, parent, childs, 'employeeLeftTree');
+            }
+            else {
+                $(this).tree("expand", node);
+            }
+        },
+        onLoadSuccess: function (node, data) {
+            regditEvent(data, "employeeLeftTree");
+        }
+    });
+
+    $('#employeeRightTree').tree({
+        //data: [{ id: -1, text: '已选人员', state: 'open' }],
+        url: urlRight,
+        animate: true,
+        checkbox: false,
+        onClick: function (node) {
+            var parent = $(this).tree("getParent", node.target),
+              childs = $(this).tree("getChildren", node.target);
+            if (!node.children) {
+                clickFun(node, parent, childs, 'employeeRightTree');
+            }
+            else {
+                $(this).tree("expand", node);
+            }
+        },
+        onLoadSuccess: function (node, data) {
+            regditEvent(data, "employeeRightTree");
+        }
+    });
+    JQ.form.submitInit({});
+
+    $("#treeSearch").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        prompt: '人员或部门',
+        height: 25,
+        onClickButton: function () {
+            var val = $("#treeSearch").textbox("getValue");
+            $("#employeeLeftTree").tree("search", val);
+        }
+    });
+
+    function isEmployee(id) {
+        var isok = false;
+        if (JQ.tools.isNotEmpty(id)) {
+            isok = id.toString().split('-').length == 2 ? true : false;
+        }
+        return isok;
+    }
+
+
+    function regditEvent(data, treeid) {
+        if (JQ.tools.isNotEmpty(data)) {
+            for (var i = 0; i < data.length; i++) {
+                var $c = $("#" + data[i].domId),
+                    $t = $("#" + treeid),
+                    node = $t.tree('find', data[i].id),
+                    text,
+                    icon;
+                $c.attr('jq-employeetree', "{id:" + data[i].id + ",text:'" + data[i].text + "',treeid:'" + treeid + "'}");
+                if (treeid == 'employeeLeftTree') {
+                    text = '选择';
+                    icon = 'fa fa-check-circle';
+                }
+                else {
+                    text = '移除';
+                    icon = 'fa fa-trash';
+                }
+               // if (!isEmployee(data[i].id)) {
+                    $("<a>", {
+                        'class': icon,
+                        style: 'float:right;margin-right:10px;display:none;',
+                        text: text,
+                        click: function (e) {
+                            var j = eval("(" + $(this).parent().attr("jq-employeetree") + ")"),
+                                node = $t.tree('find', j.id),
+                                parent = $t.tree('getParent', node.target),
+                                childs = $t.tree('getChildren', node.target);
+                            clickFun(node, parent, childs, treeid);
+                            e.stopPropagation();
+                        }
+                    }).appendTo($c);
+                //}
+                if (JQ.tools.isNotEmpty(data[i].children)) {
+                    regditEvent(data[i].children, treeid);
+                }
+            }
+            $("div[jq-employeetree]").hover(
+                  function (e) {
+                      var j = eval("(" + $(this).attr('jq-employeetree') + ")");
+                      var isok = isEmployee(j.id);
+                      if (!isok) {
+                          $(this).find("[class='" + icon + "']").show(100);
+                      }
+
+                  },
+                  function (e) {
+                      var j = eval("(" + $(this).attr('jq-employeetree') + ")");
+                      var isok = isEmployee(j.id);
+                      if (!isok) {
+                          $(this).find("[class='" + icon + "']").hide(100);
+                      }
+                  }
+            );
+        }
+    }
+
+    function clickFun(node, parent, childs, treeid) {
+        var $t = $("#" + treeid),
+                  otherTreeid = treeid == 'employeeLeftTree' ? "employeeRightTree" : 'employeeLeftTree';
+        appendNodes(node, parent, treeid, otherTreeid);
+        if (node.id == -1) {
+            for (var i = 0; i < childs.length; i++) {
+                $t.tree("remove", childs[i].target);
+            }
+        }
+        else {
+            $t.tree("remove", node.target);
+        }
+        if ((!parent.children || parent.children.length <= 0) && parent.id != -1) {
+            $t.tree("remove", parent.target);
+        }
+    }
+
+    function targetExpand(node, treeid) {
+        var $t = $("#" + treeid),
+            roots = $t.tree("getRoots");
+        if (JQ.tools.isNotEmpty(roots)) {
+            for (var i = 0; i < roots.length; i++) {
+                if (roots[i].id != node.id) {
+                    $t.tree("collapse", roots[i].target);
+                }
+            }
+        }
+    }
+
+    function appendNodes(node, parent, treeid, appendTreeid) {
+        var $t = $("#" + treeid),
+            $at = $("#" + appendTreeid),
+            children = node.children,
+            root = $at.tree("getRoot");
+        if (!JQ.tools.isJson(parent)) {//说明是根节点
+            parent = $at.tree("getRoot");
+        }
+        var fnroot = $at.tree('find', parent.id);
+        if (!JQ.tools.isJson(fnroot)) {
+            $at.tree('append', {
+                parent: root.target,
+                data: { id: parent.id, text: parent.text }
+            });
+            fnroot = $at.tree('find', parent.id);
+        }
+
+        var fnnode = $at.tree('find', node.id);
+        if (!JQ.tools.isJson(fnnode)) {
+            $at.tree('append', {
+                parent: fnroot.target,
+                data: { id: node.id, text: node.text, iconCls: node.iconCls }
+            });
+        }
+        if (JQ.tools.isNotEmpty(children)) {
+            for (var i = 0; i < children.length; i++) {
+                appendNodes(children[i], node, treeid, appendTreeid)
+            }
+        }
+        //for (var i = 0; i < childs.length; i++) {
+
+        //}
+        //if (parent.id == -1) {//如果是根节点
+
+        //}
+        //if (!JQ.tools.isJson(root)) {//如果没有节点手点添加一个节点
+        //    $t.tree("loadData", [{ id: parent.id, text: parent.text, state: "closed" }]);
+        //    root = $t.tree("getRoot");
+        //}
+        //var fn = findNode(parent, treeid);
+        //if (!JQ.tools.isJson(fn)) {
+        //    $t.tree('insert', {
+        //        before: root.target,
+        //        data: { id: parent.id, text: parent.text, state: "closed" }
+        //    });
+        //    fn = $t.tree('find', parent.id);
+        //}
+        //for (var i = 0; i < childs.length; i++) {
+        //    $t.tree('append', {
+        //        parent: fn.target,
+        //        data: [{ id: childs[i].id, text: childs[i].text }]
+        //    });
+        //};
+        //$t.tree('expand', fn.target);
+    };
+
+    function findNode(parent, treeid) {
+        var $t = $("#" + treeid);
+        return $t.tree('find', parent.id);
+    }
+
+    function doSel() {
+        var $t = $('#employeeRightTree'),
+            root = $t.tree("getRoot"),
+            childs = $t.tree("getChildren", root.target),
+            text = '',
+            ids = '',
+            parames = JQ.tools.findDialogInfo(),
+            $win;
+        if (JQ.tools.isNotEmpty(childs)) {
+            for (var i = 0; i < childs.length; i++) {
+                if (JQ.tools.isNotEmpty(childs[i].id) && childs[i].id.toString().split('-').length == 2) {
+                    var id = childs[i].id.split('-')[0];
+                    text += (JQ.tools.isNotEmpty(text) ? "," + childs[i].text : childs[i].text);
+                    ids += (JQ.tools.isNotEmpty(ids) ? "," + id : id);
+                }
+            }
+        }
+        if (JQ.tools.isNotEmpty(parames.iframeID)) {
+
+            $win = window.top.document.getElementById(parames.iframeID).contentWindow;
+            $win.$("#@Model.id").textbox("setValue", text);
+            $win.$("#@Model.setID").val(ids);
+        }
+        else if (JQ.tools.isNotEmpty(parames.parentid)) {
+            $win = window.top.$("#" + parames.parentid);
+            $win.find("#@Model.id").textbox("setValue", text);
+            $win.find("#@Model.setID").val(ids);
+        }
+        else {
+            $win = window.top;
+            $win.find("#@Model.id").textbox("setValue", text);
+            $win.find("#@Model.setID").val(ids);
+        }
+
+        JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+    }
+</script>
+<div JQPanel="dialogButtonPanel">
+    <input id="treeSearch" style="width:230px;" />
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-search'" onclick="doSel()">确定</a>
+</div>
+<div id="cc" class="easyui-layout" style="overflow: hidden" fit="true">
+    <div data-options="region:'west',split:false" style="width:220px;">
+        <ul id="employeeLeftTree"></ul>
+    </div>
+    <div data-options="region:'center'" style="background:#eee;">
+        <ul id="employeeRightTree"></ul>
+    </div>
+</div>

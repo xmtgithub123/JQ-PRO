@@ -1,0 +1,129 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@section head {
+}
+@section Body_Content{
+    <div data-options="region:'west'" style="width:200px;background-color:antiquewhite">
+        <table id="usertree"></table>
+    </div>
+    <div data-options="region:'center'" style="">
+        <table id="grid"></table>
+        <div id="gridtoolbar">
+           日程时间：<input id="txtMinDate" type="text" data-options="prompt: '开始日期'" style="width:100px" /> 至 <input id="txtMaxDate" type="text" data-options="prompt: '结束日期'" style="width:100px" />
+            <input id="JQSearch" style="width:250px;" />
+        </div>
+    </div>
+    <script type="text/javascript">
+        $("#txtMinDate,#txtMaxDate").datebox();
+        var params = {};
+        $("#JQSearch").textbox({
+            buttonText: "筛选",
+            buttonIcon: "fa fa-search",
+            height: 25,
+            prompt: "请输入日程内容关键字",
+            onClickButton: function () {
+                params.text = $("#JQSearch").textbox("getText");
+                params.startdate = $("#txtMinDate").datebox("getValue");
+                params.enddate = $("#txtMaxDate").datebox("getValue");
+                $("#grid").datagrid("load", params);
+            }
+        });
+        function initGrid() {
+            $("#grid").datagrid({
+                fit: true,
+                border: false,
+                columns: [[
+                    { field: "DepartmentName", title: "部门", width: "8%", halign: "center", align: "center" },
+                    { field: "EmpName", title: "姓名", width: "8%", halign: "center", align: "center" },
+                    {
+                        field: "StartTime", title: "开始时间", width: "12%", halign: "center", align: "center", formatter: function (value) {
+                            return value.replace("T", " ").substr(0, 16);
+                        }
+                    },
+                    {
+                        field: "EndTime", title: "结束时间", width: "12%", halign: "center", align: "center", formatter: function (value) {
+                            return value.replace("T", " ").substr(0, 16);
+                        }
+                    },
+                    {
+                        field: "JoinEmpNames", title: "参与人员", width: "10%", halign: "center", align: "left", formatter: function (value) {
+                            if (value == "") {
+                                return;
+                            }
+                            else {
+                                return value.substr(0, value.length - 1);
+                            }
+                        }
+                    },
+                    {
+                        field: "Content", title: "内容", width: "45%", halign: "center", align: "left", formatter: function (value) {
+                            var texts = value.split("\n");
+                            var div = document.createElement("div");
+                            for (var i = 0; i < texts.length; i++) {
+                                var p = document.createElement("p");
+                                p.appendChild(document.createTextNode(texts[i]));
+                                div.appendChild(p);
+                            }
+                            return div.innerHTML;
+                        }
+                    }
+                ]],
+                toolbar: "#gridtoolbar",
+                pagination: true,
+                rownumbers: true,
+                singleSelect: false,
+                striped: true,
+                pageSize: 20,
+                loadMsg: "正在努力获取数据中...",
+                idField: "ID",
+                onLoadSuccess: function (data) {
+                    console.log(data);
+                },
+                nowrap: false
+            }).datagrid("getPager").pagination({
+                pageSize: 20,
+                pageList: [10, 15, 20, 25, 30, 50],
+                beforePageText: '第',
+                afterPageText: '页    共 {pages} 页',
+                displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录'
+            });
+            var options = $("#grid").datagrid("options");
+            options.url = "@(Url.Action("GetList","Scheduler",new { @area="OA" }))";
+            options.method = "post";
+        }
+
+        function initTree() {
+            $('#usertree').treegrid({
+                url: "@(Url.Action("employeeByDepJson", "usercontrol", new { @area = "Core", state = "closed" }))",
+                idField: "id",
+                queryParams: { permission: "@(ViewBag.Permission)", empID: "@(ViewBag.EmpID)", empDepID: "@(ViewBag.EmpDepID)" },
+                treeField: "text",
+                border: 0,
+                fit: true,
+                animate: true,
+                singleSelect: true,
+                columns: [[
+                   { title: "", field: "text", width: 240, align: "left" }
+                ]],
+                onSelect: function (node) {
+                    if (node.id == -1) {
+                        return;
+                    }
+                    if (node.isEmp) {
+                        params = { empID: node.empid };
+                    }
+                    else if ("@(ViewBag.Permission)" == "emp") {
+                        params = { empID: "@(ViewBag.EmpID)" };
+                    }
+                    else {
+                        params = { departmentID: node.id };
+                    }
+                    $("#JQSearch").textbox("button").click();
+                }
+            });
+        }
+        initGrid();
+        initTree();
+    </script>
+}

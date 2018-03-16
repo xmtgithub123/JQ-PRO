@@ -1,0 +1,72 @@
+﻿@model DataModel.Models.Scheduler
+<script type="text/javascript">
+    var buttons = [];
+    @{
+        if (Request.QueryString["source"] == "remind")
+        {
+           <text> buttons.push({ icon: "fa-ban", text: "忽略提醒", onClick: function () { ignoreRemind(); } }) </text>
+        }
+    }
+    JQ.form.submitInit({
+        formid: "schedulerform",
+        buttonTypes: ["close"],//默认按钮
+        succesCollBack: function (data) {
+            JQ.dialog.dialogClose();
+        },
+        buttons: buttons
+    });
+
+    function ignoreRemind() {
+        JQ.dialog.confirm("忽略后系统将不再提醒此条日程，确定要忽略吗？", function () {
+            $.ajax({
+                url: "@(Url.Action("IgnoreRemind","Scheduler",new { @area="OA" }))",
+                type: "POST",
+                data: { id: "@(Model.ID)" },
+                success: function (result) {
+                    if (result.Result == false) {
+                        alert(result.Message);
+                        return;
+                    }
+                    JQ.dialog.dialogClose();
+                }
+            });
+        });
+    }
+</script>
+<div style="padding:0px 10px 0px 10px;font-family:'Microsoft YaHei';cursor:default">
+    @{
+        if (Model.IsFullDay)
+        {
+            <div style="width:100%;font-size:14px;float:left;color:#666666">开始日期：@(Model.StartTime.ToString("yyyy-MM-dd"))（全天）</div>
+            <div style="width:100%;font-size:14px;float:left;color:#666666">结束日期：@(Model.EndTime.ToString("yyyy-MM-dd"))</div>
+        }
+        else
+        {
+            <div style="width:100%;font-size:14px;float:left;color:#666666">开始时间：@(Model.StartTime.ToString("yyyy-MM-dd HH:mm:ss"))</div>
+            <div style="width:100%;font-size:14px;float:left;color:#666666">结束时间：@(Model.EndTime.ToString("yyyy-MM-dd HH:mm:ss"))</div>
+        }
+    }
+    @{
+        if (ViewBag.JoinEmpNames != null)
+        {
+            <div style="width:100%;font-size:14px;float:left;color:#666666">参与人员： <span class="fa fa-user"></span> @(ViewBag.JoinEmpNames)</div>
+        }
+    }
+    <div style="width:100%;font-size:14px;float:left;padding-bottom:5px;color:#666666; border-bottom:1px solid #888888">
+        提<span style="margin-left:2em">醒</span>：
+        @if (Model.RemindBefore >= 0)
+        {
+            <span class="fa fa-clock-o"></span>
+        }
+        @(ViewBag.Remind)
+    </div>
+    <div style="font-size:16px;float:left;margin-top:5px">
+        @{
+            var texts = Model.Content.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var text in texts)
+            {
+                <p>@(text)</p>
+            }
+        }
+    </div>
+</div>

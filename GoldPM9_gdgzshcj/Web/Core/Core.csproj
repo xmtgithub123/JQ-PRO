@@ -1,0 +1,913 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{4A9EDA3F-8A48-4E3D-9A38-602BA67536DE}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Core</RootNamespace>
+    <AssemblyName>Core</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Aspose.Words">
+      <HintPath>..\..\Lib\Aspose.Words.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\..\Lib\EntityFramework.SqlServer.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.SharpZipLib, Version=0.85.4.369, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="JQ.BPM.Core, Version=0.1.0.2, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\JQ.BPM.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="RazorGenerator.Mvc, Version=2.0.0.0, Culture=neutral, PublicKeyToken=7b26dc2a43f6a0d4, processorArchitecture=MSIL">
+      <HintPath>..\..\Lib\RazorGenerator.Mvc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Abstractions" />
+    <Reference Include="System.Web.Mvc, Version=4.0.0.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.Routing" />
+    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WebActivatorEx">
+      <HintPath>..\..\Lib\WebActivatorEx.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_Start\RazorGeneratorMvcStart.cs" />
+    <Compile Include="Controllers\BaseAttachController.cs" />
+    <Compile Include="Controllers\BaseConfigController.cs" />
+    <Compile Include="Controllers\BaseDataSystemController.cs" />
+    <Compile Include="Controllers\BaseEmpAgenController.cs" />
+    <Compile Include="Controllers\BaseEmpTeamController.cs" />
+    <Compile Include="Controllers\BaseFeedBackController.cs" />
+    <Compile Include="Controllers\BaseHandoverController.cs" />
+    <Compile Include="Controllers\MisTakeModelController.cs" />
+    <Compile Include="Controllers\BaseLogController.cs" />
+    <Compile Include="Controllers\BaseNameSpaceController.cs" />
+    <Compile Include="Controllers\BaseQualificationController.cs" />
+    <Compile Include="Controllers\BaseRestDayController.cs" />
+    <Compile Include="Controllers\layoutController.cs" />
+    <Compile Include="Controllers\mainController.cs" />
+    <Compile Include="Controllers\menuController.cs" />
+    <Compile Include="Controllers\basedataController.cs" />
+    <Compile Include="Controllers\ModelExchangeController.cs" />
+    <Compile Include="Controllers\ModelIsoCheckController.cs" />
+    <Compile Include="Controllers\ModelReceiveController.cs" />
+    <Compile Include="Controllers\ModelTreeController.cs" />
+    <Compile Include="Controllers\ModelVolCatalogController.cs" />
+    <Compile Include="Controllers\NotifyController.cs" />
+    <Compile Include="Controllers\ProcessFileController.cs" />
+    <Compile Include="Controllers\PubFlowController.cs" />
+    <Compile Include="Controllers\roleController.cs" />
+    <Compile Include="Controllers\usercontrolController.cs" />
+    <Compile Include="Controllers\userController.cs" />
+    <Compile Include="Controllers\V_SystemTableFKeyController.cs" />
+    <Compile Include="Controllers\V_SystemTableStructureController.cs" />
+    <Compile Include="Controllers\V_SystemTableXtypeController.cs" />
+    <Compile Include="CoreAreaRegistration.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Views\BaseAttach\AttachHistory.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>AttachHistory.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseAttach\AttachInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>AttachInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseAttach\AttachVerInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>AttachVerInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseConfig\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseFeedBack\baklist.generated.cs">
+      <DependentUpon>baklist.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\BaseConfig\reglist.generated.cs">
+      <DependentUpon>reglist.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\BaseConfig\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\basedata\index.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>index.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\basedata\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseEmpAgen\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseEmpAgen\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseEmpTeam\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseEmpTeam\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseFeedBack\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseFeedBack\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseHandover\tasklist.generated.cs">
+      <DependentUpon>tasklist.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\BaseHandover\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseHandover\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseHandover\flowlist.generated.cs">
+      <DependentUpon>flowlist.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\BaseLog\Busslist.generated.cs">
+      <DependentUpon>Busslist.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\BaseLog\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseNameSpace\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseQualification\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BaseRestDay\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\layout\changepwd.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>changepwd.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\layout\DefaultEmpty.generated.cs">
+      <DependentUpon>DefaultEmpty.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\layout\Default.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Default.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\layout\Notify.generated.cs">
+      <DependentUpon>Notify.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\layout\ShortcutManage.generated.cs">
+      <DependentUpon>ShortcutManage.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\layout\Default_error.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Default_error.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\layout\WorkCenter.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>WorkCenter.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\main\SysAbout.generated.cs">
+      <DependentUpon>SysAbout.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\main\SysDown.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SysDown.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\main\SysHelp.generated.cs">
+      <DependentUpon>SysHelp.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\main\userlogin.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>userlogin.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\menu\menudialog.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>menudialog.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\menu\menuinfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>menuinfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\menu\menulist.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>menulist.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\MisTakeModel\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\MisTakeModel\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ModelExchange\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ModelExchange\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ModelIsoCheck\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ModelIsoCheck\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ModelReceive\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ModelReceive\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ModelVolCatalog\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ModelVolCatalog\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Notify\Content.generated.cs">
+      <DependentUpon>Content.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\Notify\Index.generated.cs">
+      <DependentUpon>Index.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\PubFlow\Display.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Display.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PubFlow\Edit.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Edit.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PubFlow\EditNode.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EditNode.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PubFlow\FlowTest.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FlowTest.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PubFlow\ModelList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ModelList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PubFlow\ModelNode.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ModelNode.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PubFlow\Progress.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Progress.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\PubFlow\TodoList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TodoList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\role\info.generated.cs">
+      <DependentUpon>info.cshtml</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="Views\Shared\ExportPreview.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ExportPreview.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\usercontrol\basedata.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>basedata.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\usercontrol\customSearch.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>customSearch.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\usercontrol\customSearchDialog.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>customSearchDialog.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\usercontrol\flowMain.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>flowMain.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\usercontrol\iconlist.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>iconlist.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\usercontrol\selEmployee.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>selEmployee.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\usercontrol\ExchSpecEmployee.generated.cs">
+      <DependentUpon>ExchSpecEmployee.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\usercontrol\SpecEmployee.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SpecEmployee.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\usercontrol\uploadByHttp.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>uploadByHttp.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\usercontrol\uploadFile.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>uploadFile.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\user\empcontact.generated.cs">
+      <DependentUpon>empcontact.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\user\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\user\empmarklist.generated.cs">
+      <DependentUpon>empmarklist.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\user\ProfileSetting.generated.cs">
+      <DependentUpon>ProfileSetting.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\user\SetAvatar.generated.cs">
+      <DependentUpon>SetAvatar.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\user\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\V_SystemTableFKey\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\V_SystemTableStructure\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\V_SystemTableXtype\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\role\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Web.config">
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Web.config" />
+    <Content Include="Views\usercontrol\customSearchDialog.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>customSearchDialog.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\usercontrol\selEmployee.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>selEmployee.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseLog\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\ModelExchange\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\ModelExchange\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\PubFlow\ModelList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ModelList.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\PubFlow\ModelNode.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ModelNode.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Shared\ExportPreview.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ExportPreview.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\PubFlow\EditNode.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>EditNode.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\PubFlow\Edit.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Edit.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\PubFlow\Display.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Display.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\PubFlow\FlowTest.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>FlowTest.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Shared\_Layout.cshtml" />
+    <Content Include="Views\PubFlow\TodoList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TodoList.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\PubFlow\Progress.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Progress.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseConfig\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseConfig\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseEmpAgen\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseEmpAgen\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseEmpTeam\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseEmpTeam\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseFeedBack\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseFeedBack\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseHandover\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseHandover\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseQualification\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseRestDay\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\layout\WorkCenter.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>WorkCenter.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseConfig\reglist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>reglist.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseFeedBack\baklist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>baklist.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseHandover\flowlist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>flowlist.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BaseHandover\tasklist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>tasklist.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\BaseAttach\AttachHistory.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>AttachHistory.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BaseAttach\AttachInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>AttachInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BaseAttach\AttachVerInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>AttachVerInfo.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\BaseLog\Busslist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Busslist.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\BaseNameSpace\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\layout\ShortcutManage.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ShortcutManage.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\MisTakeModel\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\MisTakeModel\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\layout\Notify.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Notify.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\main\SysHelp.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>SysHelp.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\main\SysAbout.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>SysAbout.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\layout\DefaultEmpty.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>DefaultEmpty.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\main\SysDown.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>SysDown.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\ModelIsoCheck\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\ModelIsoCheck\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\ModelReceive\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\ModelReceive\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\ModelVolCatalog\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\ModelVolCatalog\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\user\empmarklist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>empmarklist.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Notify\Index.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Index.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\Notify\Content.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Content.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\usercontrol\ExchSpecEmployee.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ExchSpecEmployee.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\usercontrol\SpecEmployee.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>SpecEmployee.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\user\SetAvatar.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>SetAvatar.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\user\ProfileSetting.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProfileSetting.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\user\empcontact.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>empcontact.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\V_SystemTableFKey\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\V_SystemTableStructure\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\V_SystemTableXtype\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+    <None Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\main\userlogin.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>userlogin.generated.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\BLLLayer\Common\JQ.Common.csproj">
+      <Project>{1d40b4ed-3210-4daa-a3d9-baa70da99f98}</Project>
+      <Name>JQ.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\BLLLayer\DataModel\DataModel.csproj">
+      <Project>{99ef246d-a5e3-4411-af05-3b9578f12284}</Project>
+      <Name>DataModel</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\BLLLayer\DBSql\DBSql.csproj">
+      <Project>{068290b4-77e2-4650-931e-c1e7205ad648}</Project>
+      <Name>DBSql</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\DALLayer\DAL\DAL.csproj">
+      <Project>{df3c0094-2e12-4d77-8219-a37e3c85711c}</Project>
+      <Name>DAL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\RWP.FrameworkForWeb\JQ.Web.csproj">
+      <Project>{d89b17b5-f256-423d-8255-5f205ebf07ef}</Project>
+      <Name>JQ.Web</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\RWP.Util\JQ.Util.csproj">
+      <Project>{90ab0830-f6da-426c-a3b0-7516535985bf}</Project>
+      <Name>JQ.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\layout\Default_error.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Default_error.generated.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\menu\menulist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>menulist.generated.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\menu\menuinfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>menuinfo.generated.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\menu\menudialog.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>menudialog.generated.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\user\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\user\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\layout\changepwd.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>changepwd.generated.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\layout\Default.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Default.generated.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\basedata\index.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>index.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\basedata\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\usercontrol\basedata.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>basedata.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\usercontrol\uploadFile.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>uploadFile.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\usercontrol\uploadByHttp.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>uploadByHttp.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\usercontrol\flowMain.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>flowMain.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\usercontrol\iconlist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>iconlist.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\usercontrol\customSearch.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>customSearch.generated.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup />
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <Target Name="MvcBuildViews" AfterTargets="AfterBuild" Condition="'$(MvcBuildViews)'=='true'">
+    <AspNetCompiler VirtualPath="temp" PhysicalPath="$(WebProjectOutputDir)" />
+  </Target>
+  <ProjectExtensions />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target> -->
+</Project>

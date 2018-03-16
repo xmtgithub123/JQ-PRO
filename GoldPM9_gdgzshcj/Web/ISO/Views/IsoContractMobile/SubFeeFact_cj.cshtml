@@ -1,0 +1,315 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.IsoForm
+
+
+@section head {
+    <style type="text/css">
+        .aui-btn {
+            padding: 10px 15px;
+            font-size: 13px;
+        }
+
+        .aui-btn-row:after {
+            border: 0;
+        }
+
+        .jq-text-disabled {
+            color: #898787;
+            width: 98%;
+            pointer-events: none;
+            background-color: #efefef !important;
+            border: 0;
+            font-size: 13px;
+        }
+
+        .set-disabled {
+            pointer-events: none !important
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .aui-input-hook {
+            line-height: 34px;
+            text-align: left;
+            padding-left: 20px;
+            background: #efefef;
+        }
+
+        .aui-display-hook {
+            display: none;
+            width: 30%;
+            float: right;
+            font-size: 13px;
+            line-height: 33px;
+            margin-right: 6px;
+            padding: 3px 6px;
+        }
+
+        .aui-input-width {
+            width: 98%;
+        }
+
+        .hiddenShow {
+            height: 0;
+        }
+
+        .aui-input-row label.aui-input-addon {
+            min-width: 90px;
+        }
+
+        .set-selected-icon select {
+            float: right;
+            margin-right: 5px;
+            border: 0;
+            margin-bottom: 0;
+        }
+
+        .set-selected-icon i {
+            position: absolute;
+            right: 25px;
+            top: 15px;
+        }
+        /*.aui-input-row input, .aui-input-row select, .set-selected-icon .aui-input-addon {
+            color: #9e9e9e;
+        }*/
+
+        .aui-input-row-position {
+            position: relative;
+            display: table;
+            padding: 6px 0;
+        }
+
+        .aui-input-row label.aui-input-addon {
+            font-size: 14px;
+        }
+
+        .error-border {
+            border: 1px solid red !important;
+        }
+
+        .aui-input-check-disable {
+            font-size: 12px !important;
+            font-weight: normal !important;
+        }
+
+            .aui-input-check-disable label {
+                line-height: 45px;
+                margin-right: 15px;
+            }
+
+            .aui-input-check-disable input[type="checkbox"] {
+                width: auto;
+                line-height: 45px;
+            }
+    </style>
+}
+
+@section Body_Content{
+    <div class="aui-content" style="overflow-x:hidden">
+        <form id="BussSubFeeFactForm" class="aui-form">
+            <div class="aui-input-row">
+                <input type="hidden" id="CompanyType" name="CompanyType" value="CJ" />
+                <input id="FormID" name="FormID" type="hidden" value="@Model.FormID" />
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered" id="ProjPhaseGrid" style="font-size:12px;">
+                    <thead>
+                        <tr>
+                            <th>
+                                <div class="checkAll">
+                                    <input type="checkbox" name="name" value="" />
+                                </div>
+                            </th>
+                            <th>外委合同信息</th>
+                            <th>外委项目信息</th>
+                            <th>外委单位信息</th>
+                            <th>外委合同金额</th>
+                            <th>已付款金额</th>
+                            <th>本次付款金额</th>
+                            <th>本次付款日期</th>
+                            <th>累计比例</th>
+                            <th>是否结清</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gridList" style="font-size:12px;"></tbody>
+                </table>
+            </div>
+
+            <script id="listTpl" type="text/x-dot-template">
+                {{~it:appendInfoData:index}}
+                <tr id="tr_{{=index}}">
+
+                    <td>
+                        <div class="checkbox" style="margin:0">
+                            <input type="checkbox" name="subBox" value="" />
+                        </div>
+                    </td>
+                    <td>
+                        {{=appendInfoData.ConSubName}}
+                    </td>
+                    <td>
+
+                        {{=appendInfoData.ProjSubId == 0 ? '':'appendInfoData.ProjName'}}
+                    </td>
+                    <td>
+                        {{=appendInfoData.SKDW}}
+                    </td>
+                    <td>
+                        {{=appendInfoData.ConSubFee}}
+                    </td>
+                    <td>
+                        {{=appendInfoData.AlreadySumFeeMoney}}
+                    </td>
+                    <td>
+                        {{=appendInfoData.SubFeeFactMoney}}
+                    </td>
+                    <td>
+                        {{=(Date.jsonStringToDate(appendInfoData.SubFeeFactDate)).getFullYear() =='1900' ? '':(Date.jsonStringToDate(appendInfoData.SubFeeFactDate)).format("yyyy-MM-dd")}}
+                    </td>
+                    <td>
+                        {{=appendInfoData.TotalRatio}}
+                    </td>
+                    <td>
+                        {{=appendInfoData.IsSettle}}
+                    </td>
+                </tr>
+                {{~}}
+            </script>
+            <input type="hidden" id="strxml" name="strxml" />
+            <input type="hidden" id="consubId" name="consubId" value="0" />
+            @*<div class="aui-input-row">
+                    <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+                </div>*@
+        </form>
+    </div>
+
+
+    <script type="text/javascript">
+
+        var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+            };
+
+        $(function () {
+
+            if (window.JinQuMobile == undefined) {
+                initFormBegin(JSON.stringify({
+                    "Result": true,
+                    "Message": null,
+                    "NodeName": "发起审批",
+                    "AllowEditControls": "ProjNumber;ProjName;ProjEmpId;ProjTypeID;ColAttType2;ProjAreaID;ColAttType1;ProjPropertyID;ProjVoltID;TaskBasisName;TaskBasisNumber;CustName;ProjTaskSource;ProjDepId;ProjJoinDepIds;CreatorEmpName;DateCreate;DatePlanStart;DatePlanFinish;ProjTaskSource;ProjFeeSource;DatePlanDeliver;ProjDemand;ProjNoteOther;btnAddUnit;btnRemoveUnit;UploadFile1;btnChoice;btnInput;ProjPhaseGrid{ProjNumber,ProjName,ProjEmpId,ProjTypeID,DatePlanStart,DatePlanFinish,ProjPhaseIds,ProjFee,ProjDemand,ProjNoteOther,ProjVoltID,ColAttType3,ColAttVal3,ColAttVal4,ColAttVal5,ProjPhaseInfo};ColAttType4;ProjTaskContent;ProjCostGrid{ModelTempFee,ModelFactFee};btnImportUnit;btnDownImportExcel;CustID;CustLinkId;CustLinkTel;CustLinkWeb;ColAttVal1",
+                    "SignControls": "",
+                    "AllowEditControls":""
+
+                }));
+                //initFormBegin();
+            }
+
+        })
+
+
+        //表单初始化
+        function initFormBegin(params) {
+
+            params = params.replace(/[\r\n]/g, "");//去除换行
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+
+
+           //获取数据
+            $.post('@Url.Action("GetJsonList", "BussSubFeeFact", new { @area= "Bussiness" })' + "?CompanyType=CJ" + "", {
+                SubFeeFactId:  @Model.FormID,
+            }, function (_rData) {
+                console.log(JSON.parse(_rData))
+                //datas = JSON.parse(_rData)
+                var appendInfoData = JSON.parse(_rData).rows
+                if (appendInfoData.length > 0) {
+                    var interText = doT.template($("#listTpl").text())
+                    $("#gridList").html(interText(appendInfoData));
+                }
+                else {
+                    console.log('暂无数据')
+                }
+            })
+
+
+            //清除时间，默认为1900-01-01改为空
+
+            //var ColAttDate1 = $('#ColAttDate1').val(); //登记时间
+            //var ColAttDate2 = $('#ColAttDate2').val(); //验收日期
+
+            //if ((ColAttDate1 == '1900-01-01' || ColAttDate2 == '1900-01-01' )) {
+            //    $('#ColAttDate1,#ColAttDate2').val('');
+            //}
+
+            //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('BussSubFeeFactForm'));
+
+            $('#FormNote').removeClass('jq-text-disabled').attr("readonly", "readonly")
+            $("#FormNote").css({
+                overflow: 'auto',
+                background: '#efefef',
+                color: '#898787'
+            })
+
+            //备注	，替换换行符
+            var FormNoteValue = $('#FormNote').val();
+            FormNoteValue = FormNoteValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#FormNote').val(FormNoteValue);
+
+
+
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+        function validateFormBegin() {
+            var formVali = $('#BussSubFeeFactForm').validate({
+                rules: {
+
+                },
+                messages: {
+
+                }
+            });
+            isValidate = formVali.form();
+            if (isValidate) {
+                var formData = DomUtil.serialize(document.getElementById('BussSubFeeFactForm'));//json or =&
+                console.log(formData)
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin(params) {
+            var formData = DomUtil.serialize(document.getElementById('BussSubFeeFactForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+    </script>
+}

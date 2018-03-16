@@ -1,0 +1,1023 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A92AC57A-B07B-4213-A993-4BB222479AF2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>OA</RootNamespace>
+    <AssemblyName>OA</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+      <HintPath>..\..\Lib\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <HintPath>..\..\Lib\Microsoft.AspNet.SignalR.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="RazorGenerator.Mvc, Version=2.0.0.0, Culture=neutral, PublicKeyToken=7b26dc2a43f6a0d4, processorArchitecture=MSIL">
+      <HintPath>..\..\Lib\RazorGenerator.Mvc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Web.Mvc, Version=4.0.0.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WebActivatorEx">
+      <HintPath>..\..\Lib\WebActivatorEx.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_Start\RazorGeneratorMvcStart.cs" />
+    <Compile Include="Controllers\MessageController.cs" />
+    <Compile Include="Controllers\OaBBSController.cs" />
+    <Compile Include="Controllers\OaBookController.cs" />
+    <Compile Include="Controllers\OaBookStockController.cs" />
+    <Compile Include="Controllers\OaBookUseController.cs" />
+    <Compile Include="Controllers\OaCarController.cs" />
+    <Compile Include="Controllers\OaCarMobileController.cs" />
+    <Compile Include="Controllers\OaCarMobileView.cs" />
+    <Compile Include="Controllers\OaCarUseController.cs" />
+    <Compile Include="Controllers\OaDiaryController.cs" />
+    <Compile Include="Controllers\OaEquipDealController.cs" />
+    <Compile Include="Controllers\OaEquipDealMobileController.cs" />
+    <Compile Include="Controllers\OaEquipDealMobileView.cs" />
+    <Compile Include="Controllers\OaEquipGetController.cs" />
+    <Compile Include="Controllers\OaEquipGetMobileController.cs" />
+    <Compile Include="Controllers\OaEquipGetMobileView.cs" />
+    <Compile Include="Controllers\OaEquipKeepController.cs" />
+    <Compile Include="Controllers\OaEquipmentController.cs" />
+    <Compile Include="Controllers\OaEquipRepairController.cs" />
+    <Compile Include="Controllers\OaEquipReturnController.cs" />
+    <Compile Include="Controllers\OaEquipReturnMobileController.cs" />
+    <Compile Include="Controllers\OaEquipReturnMobileView.cs" />
+    <Compile Include="Controllers\OaEquipStockController.cs" />
+    <Compile Include="Controllers\OaEquipUseController.cs" />
+    <Compile Include="Controllers\OaEquipUseMobileController.cs" />
+    <Compile Include="Controllers\OaEquipUseMobileView.cs" />
+    <Compile Include="Controllers\OaFileSendController.cs" />
+    <Compile Include="Controllers\OaMailController.cs" />
+    <Compile Include="Controllers\OaMailReadController.cs" />
+    <Compile Include="Controllers\OaMeetingRoomController.cs" />
+    <Compile Include="Controllers\OaMeetingUseController.cs" />
+    <Compile Include="Controllers\OaNewController.cs" />
+    <Compile Include="Controllers\OaNoticeController.cs" />
+    <Compile Include="Controllers\OaRemindController.cs" />
+    <Compile Include="Controllers\OaStampInfoController.cs" />
+    <Compile Include="Controllers\OaStampLendController.cs" />
+    <Compile Include="Controllers\OaStampUseController.cs" />
+    <Compile Include="Controllers\OaStampUseMobileController.cs" />
+    <Compile Include="Controllers\OaStampUseMobileView.cs" />
+    <Compile Include="Controllers\SchedulerController.cs" />
+    <Compile Include="FlowProcessor\OaCarUseFlow.cs" />
+    <Compile Include="FlowProcessor\OaEquipDealFlow.cs" />
+    <Compile Include="FlowProcessor\OaEquipReturnFlow.cs" />
+    <Compile Include="FlowProcessor\OaEquipUseOfficeFlow.cs" />
+    <Compile Include="FlowProcessor\OaMeetingUseFlow.cs" />
+    <Compile Include="FlowProcessor\OaEquipUseFlow.cs" />
+    <Compile Include="FlowProcessor\OaFileSendFlow.cs" />
+    <Compile Include="FlowProcessor\OaFileReceiveFlow.cs" />
+    <Compile Include="FlowProcessor\OaEquipGetFlow.cs" />
+    <Compile Include="FlowProcessor\OaStampUseFlow.cs" />
+    <Compile Include="OAAreaRegistration.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Controllers\OaFileReceiveController.cs" />
+    <Compile Include="Views\Message\Display.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Display.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Message\List.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>List.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBBS\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBBS\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBookUse\BookHistoryByBook.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>BookHistoryByBook.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBookUse\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBookUse\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBookUse\listbookLend.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listbookLend.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBookUse\listBookLendInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listBookLendInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBookUse\listHistoryByBook.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listHistoryByBook.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBookUse\listOverTime.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listOverTime.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBookUse\returnInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>returnInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBookUse\selectBook.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>selectBook.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBook\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBook\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaBook\listBorr.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listBorr.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaCarMobile\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaCarUse\CarUseEmp.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CarUseEmp.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaCarUse\CarUseStatistics.generated.cs">
+      <DependentUpon>CarUseStatistics.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\OaCarUse\Createinfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Createinfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaCarUse\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaCarUse\CarUselist.generated.cs">
+      <DependentUpon>CarUselist.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\OaCarUse\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaCarUse\selectcar.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>selectcar.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaCarUse\CheckIn.generated.cs">
+      <DependentUpon>CheckIn.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\OaCarUse\UplateUseInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>UplateUseInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaCarUse\ViewCheckIn.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ViewCheckIn.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaCar\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaCar\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipDealMobile\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipDeal\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipDeal\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipGetMobile\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipGet\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipGet\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipKeep\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipKeep\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipment\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipment\infoOaEquipment.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoOaEquipment.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipment\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipment\listOaEquipment.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listOaEquipment.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipment\OaUsageList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>OaUsageList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipment\UsageList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>UsageList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipRepair\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipRepair\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipReturnMobile\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipReturn\EquipmentChoose.generated.cs">
+      <DependentUpon>EquipmentChoose.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\OaEquipReturn\EquipmentChoose1.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EquipmentChoose1.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipReturn\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipReturn\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipUseMobile\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipUseMobile\infoOaUsage.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoOaUsage.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipUse\EquipmentChoose.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EquipmentChoose.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipUse\EquipmentOaChoose.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EquipmentOaChoose.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipUse\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipUse\infoOaUsage.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoOaUsage.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipUse\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaEquipUse\listOaEquipUse.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listOaEquipUse.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaFileReceive\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaFileReceive\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaFileSend\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaFileSend\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaMail\MailReceive.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MailReceive.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaMail\MailDraft.generated.cs">
+      <DependentUpon>MailDraft.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\OaMail\MailJunk.generated.cs">
+      <DependentUpon>MailJunk.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\OaMail\MailSend.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MailSend.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaMail\MailWrite.generated.cs">
+      <DependentUpon>MailWrite.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\OaMail\MailDetail.generated.cs">
+      <DependentUpon>MailDetail.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\OaMeetingRoom\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaMeetingRoom\RoomUseList.generated.cs">
+      <DependentUpon>RoomUseList.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\OaMeetingRoom\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaMeetingUse\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaMeetingUse\Transfer.generated.cs">
+      <DependentUpon>Transfer.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\OaMeetingUse\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaMeetingUse\selectReview.generated.cs">
+      <DependentUpon>selectReview.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\OaNew\Editor.generated.cs">
+      <DependentUpon>Editor.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\OaNew\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaNew\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaNew\Query.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Query.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaNotice\Query.generated.cs">
+      <DependentUpon>Query.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\OaNotice\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaNotice\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaStampInfo\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaStampInfo\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaStampLend\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaStampLend\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaStampUseMobile\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaStampUse\FilterList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FilterList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaStampUse\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\OaStampUse\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\Scheduler\List.generated.cs">
+      <DependentUpon>List.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\Scheduler\ViewDetail.generated.cs">
+      <DependentUpon>ViewDetail.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\Scheduler\Edit.generated.cs">
+      <DependentUpon>Edit.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\Scheduler\Index.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Index.cshtml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\web.config" />
+    <None Include="Views\Message\Display.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Display.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\Message\List.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>List.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBBS\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBBS\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBookUse\BookHistoryByBook.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>BookHistoryByBook.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBookUse\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBookUse\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBookUse\listbookLend.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listbookLend.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBookUse\listBookLendInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listBookLendInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBookUse\listHistoryByBook.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listHistoryByBook.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBookUse\listOverTime.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listOverTime.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBookUse\returnInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>returnInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBookUse\selectBook.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>selectBook.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBook\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBook\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaBook\listBorr.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listBorr.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaCarMobile\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaCarUse\CarUseEmp.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>CarUseEmp.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaCarUse\CarUseStatistics.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>CarUseStatistics.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaCarUse\Createinfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Createinfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaCarUse\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaCarUse\CarUselist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>CarUselist.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaCarUse\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaCarUse\selectcar.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>selectcar.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaCarUse\CheckIn.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>CheckIn.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaCarUse\UplateUseInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>UplateUseInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaCarUse\ViewCheckIn.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ViewCheckIn.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaCar\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaCar\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipDealMobile\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipDeal\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipDeal\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipGetMobile\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipGet\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipGet\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipKeep\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipKeep\list.cshtml">
+      <SubType>Code</SubType>
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipment\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipment\infoOaEquipment.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoOaEquipment.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipment\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipment\listOaEquipment.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listOaEquipment.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipment\OaUsageList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>OaUsageList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipment\UsageList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>UsageList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipRepair\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipRepair\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipReturnMobile\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipReturn\EquipmentChoose1.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>EquipmentChoose1.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipReturn\EquipmentChoose.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>EquipmentChoose.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipReturn\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipReturn\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipUseMobile\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipUseMobile\infoOaUsage.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoOaUsage.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipUse\EquipmentChoose.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>EquipmentChoose.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipUse\EquipmentOaChoose.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>EquipmentOaChoose.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipUse\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipUse\infoOaUsage.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoOaUsage.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipUse\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaEquipUse\listOaEquipUse.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listOaEquipUse.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaFileReceive\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaFileReceive\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaFileSend\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaFileSend\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaMail\MailReceive.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>MailReceive.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaMail\MailDraft.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>MailDraft.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaMail\MailJunk.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>MailJunk.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaMail\MailWrite.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>MailWrite.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaMail\MailDetail.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>MailDetail.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaMail\MailSend.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>MailSend.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaMeetingRoom\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaMeetingRoom\RoomUseList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>RoomUseList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaMeetingRoom\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaMeetingUse\Transfer.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Transfer.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaMeetingUse\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaMeetingUse\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\OaMeetingUse\selectReview.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>selectReview.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\OaNew\Editor.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Editor.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaNew\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaNew\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaNew\Query.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Query.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaNotice\Query.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Query.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaNotice\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaNotice\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaStampInfo\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaStampInfo\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaStampLend\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaStampLend\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaStampUseMobile\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaStampUse\FilterList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>FilterList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaStampUse\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\OaStampUse\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\Scheduler\List.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>List.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\Scheduler\ViewDetail.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ViewDetail.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\Scheduler\Edit.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Edit.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\Scheduler\Index.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Index.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+    <None Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\BLLLayer\Common\JQ.Common.csproj">
+      <Project>{1d40b4ed-3210-4daa-a3d9-baa70da99f98}</Project>
+      <Name>JQ.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\BLLLayer\DataModel\DataModel.csproj">
+      <Project>{99ef246d-a5e3-4411-af05-3b9578f12284}</Project>
+      <Name>DataModel</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\BLLLayer\DBSql\DBSql.csproj">
+      <Project>{068290b4-77e2-4650-931e-c1e7205ad648}</Project>
+      <Name>DBSql</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\RWP.FrameworkForWeb\JQ.Web.csproj">
+      <Project>{d89b17b5-f256-423d-8255-5f205ebf07ef}</Project>
+      <Name>JQ.Web</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\RWP.Util\JQ.Util.csproj">
+      <Project>{90ab0830-f6da-426c-a3b0-7516535985bf}</Project>
+      <Name>JQ.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <ProjectExtensions />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

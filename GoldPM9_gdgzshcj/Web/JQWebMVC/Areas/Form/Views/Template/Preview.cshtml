@@ -1,0 +1,125 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<style type="text/css">
+    .yc_inlinetable {
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+        .yc_inlinetable th {
+            background-color: #F2F2F2;
+            text-align: center;
+            height: 32px;
+            border: 1px solid #999999;
+            outline: none;
+        }
+
+        .yc_inlinetable td {
+            height: 40px;
+            border: 1px solid #999999;
+            outline: none;
+        }
+
+    .yc_inlinetable_toolbar {
+        height: 32px;
+        background-color: #F2F2F2;
+        border-top: 1px solid #999999;
+        border-left: 1px solid #999999;
+        border-right: 1px solid #999999;
+        overflow: hidden;
+    }
+
+    .yc_inlinetable_toolbar_btn {
+        cursor: pointer;
+        float: left;
+        padding: 0px 5px 0px 5px;
+        height: 24px;
+        line-height: 24px;
+        margin: 3px 0px 0px 5px;
+        border: 1px solid transparent;
+        border-radius: 2px;
+        -webkit-user-select: none;
+    }
+
+        .yc_inlinetable_toolbar_btn:hover {
+            border: 1px solid #BBBBBB;
+            background-color: #FBFBFB;
+        }
+
+    .yc_control_allmap {
+        height: 460px;
+        width: 100%;
+        margin-top: 5px;
+    }
+</style>
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent" style="background-color:#DFDFDF"></div>
+<link href="@(Url.Content("~/Content/chart/chart.datebox.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.datebox.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.formgenerater.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<script type="text/javascript">
+    var formGenerater;
+    window.onDialogLoaded = function () {
+        var saveData = window.frameElement.api.getSaveData();
+        saveData.container = document.getElementById("divcontent");
+        saveData.currentDate = YChart.parseDate("@(ViewBag.CurrentDate)");
+        saveData.currentUserName = "@(ViewBag.CurrentUserName)";
+        saveData.currentDepartmentName = "@(ViewBag.CurrentDepartmentName)";
+        saveData.allowEdit = "1";
+        var isLoadMapJs = false;
+        for (var i = 0; i < saveData.properties.length; i++) {
+            switch (saveData.properties[i].type) {
+                case "select":
+                case "checkbox":
+                case "radio":
+                    if (saveData.properties[i].baseDataID) {
+                        //除掉之前的items
+                        saveData.properties[i].items = [];
+                        var items = getBaseDataItems(saveData.properties[i].baseDataID);
+                        for (var j = 0; j < items.length; j++) {
+                            saveData.properties[i].items.push({ id: items[j].ID, value: items[j].ID, name: items[j].Name });
+                        }
+                    }
+                    break;
+                case "map":
+                    isLoadMapJs = true;
+                    document.head.appendChild(YChart.createElement("link", { rel: "stylesheet", src: "http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css" }));
+                    document.head.appendChild(YChart.createElement("script", { type: "text/javascript", src: "http://api.map.baidu.com/api?v=2.0&ak=3uTjQV5cdGbZlngI7Q8m3ijpoW4zgYfO" }));
+                    document.head.appendChild(YChart.createElement("script", { rel: "text/javascript", src: "http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js" }));
+                    break;
+            }
+        }
+        if (isLoadMapJs) {
+            YChart.attachEvent(window, "load", function () {
+                formGenerater = new YChart.FormGenerater(saveData);
+            });
+        }
+        else {
+            formGenerater = new YChart.FormGenerater(saveData);
+        }
+    }
+
+    function getBaseDataItems(baseDataID) {
+        var items;
+        YChart.ajax({
+            url: "@(Url.Action("GetBaseDataItems", "Widget", new { @area="Form" }))",
+            type: "post",
+            data: { id: baseDataID },
+            dataType: "json",
+            async: false,
+            success: function (result) {
+                items = result;
+            }
+        });
+        return items;
+    }
+</script>

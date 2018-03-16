@@ -1,0 +1,94 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="save()">
+        <span class="fa fa-save"></span>
+        <span>保存</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="test()">
+        <span class="fa fa-database"></span>
+        <span>测试</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div style="padding:5px;">
+        <form id="form1">
+            <table class="documenttable" style="width:400px">
+                <tr>
+                    <th style="width:140px">服务器名称</th>
+                    <td style="width:260px">
+                        <input id="txtServerName" type="text" class="yc_textbox" style="width:220px;" value="@(ViewBag.ServerName)" />
+                    </td>
+                </tr>
+                <tr>
+                    <th>数据库名称</th>
+                    <td>
+                        <input id="txtDataBaseName" type="text" class="yc_textbox" style="width:220px;" value="@(ViewBag.DataBaseName)" />
+                    </td>
+                </tr>
+                <tr>
+                    <th>身份验证方式</th>
+                    <td>
+                        <select id="listAuthMode" class="yc_select" style="width:230px;">
+                            <option value="1">Windows 身份验证</option>
+                            <option value="2">SQL Server 身份验证</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr id="tr_loginname">
+                    <th>登录名称</th>
+                    <td><input id="txtLoginName" type="text" class="yc_textbox" style="width:220px;" value="@(ViewBag.LoginName)" /></td>
+                </tr>
+                <tr id="tr_password">
+                    <th>密码</th>
+                    <td><input id="txtPassword" type="password" class="yc_textbox" style="width:220px;" value="@(ViewBag.Password)" /></td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.validate.js"))"></script>
+<script type="text/javascript">
+    YChart.setSelectedByValue(document.getElementById("listAuthMode"), "@(ViewBag.AuthMode)")
+    document.getElementById("listAuthMode").onchange = function () {
+        if (YChart.getSelectedValue(this) == "1") {
+            document.getElementById("tr_loginname").style.display = "none";
+            document.getElementById("tr_password").style.display = "none";
+        }
+        else {
+            document.getElementById("tr_loginname").style.display = "";
+            document.getElementById("tr_password").style.display = "";
+        }
+    }
+    document.getElementById("listAuthMode").onchange();
+    function save() {
+        YChart.ajaxSubmit({
+            url: "@(Url.Action("SaveDataBase", "Setup",new { @area="Form" }))",
+            form: "form1",
+            type: "POST",
+            success: function () {
+                YChart.Dialog.alert("提示", "保存成功！");
+            }
+        });
+    }
+
+    function test() {
+        YChart.ajaxSubmit({
+            url: "@(Url.Action("TestDataBaseConnection", "Setup", new { @area = "Form" }))",
+            form: "form1",
+            type: "POST",
+            success: function (result) {
+                if (result.Result == true) {
+                    YChart.Dialog.alert("提示", "测试连接成功！");
+                }
+                else {
+                    YChart.Dialog.alert("提示", "测试连接失败！");
+                }
+            }
+        })
+    }
+</script>

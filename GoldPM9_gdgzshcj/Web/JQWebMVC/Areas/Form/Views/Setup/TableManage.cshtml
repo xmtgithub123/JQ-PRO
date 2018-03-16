@@ -1,0 +1,268 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout.cshtml";
+}
+<div id="divLeft" style="width:380px;height:100%;float:left">
+    <div id="divLeftToolbar" class="headtoolbar" style="float:left">
+        <div style="float:left;width:5px"></div>
+        <div class="headtoolbarbtn" onclick="openEditTableDialog(0)">
+            <span class="fa fa-plus"></span>
+            <span>新增</span>
+        </div>
+        <div class="headtoolbarbtn" onclick="deleteTable()">
+            <span class="fa fa-minus"></span>
+            <span>删除</span>
+        </div>
+        <div class="headtoolbarbtn" onclick="window.location.reload()">
+            <span class="fa fa-refresh"></span>
+            <span>刷新</span>
+        </div>
+    </div>
+    <div id="divLeftContnet" style="width:100%;float:left">
+        <table id="tablegrid"></table>
+    </div>
+</div>
+<div id="divRight" style="float:left;visibility:visible;border-left:1px solid #E5E5E5">
+    <div id="divRightToolbar" class="headtoolbar" style="float:left">
+        <div style="float:left;width:5px"></div>
+        <div class="headtoolbarbtn" onclick="openEditColumnDialog()">
+            <span class="fa fa-plus"></span>
+            <span>新增</span>
+        </div>
+        <div class="headtoolbarbtn" onclick="deleteTableColumn()">
+            <span class="fa fa-minus"></span>
+            <span>删除</span>
+        </div>
+    </div>
+    <div id="divRightContnet" style="width:100%;float:left">
+        <table id="tablecolumngrid"></table>
+    </div>
+</div>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<script type="text/javascript">
+    document.body.style.overflow = "hidden";
+    var tableID;
+    function initPage() {
+        var _divLeft = document.getElementById("divLeft");
+        var _divRight = document.getElementById("divRight");
+        _divLeft.style.height = document.documentElement.clientHeight + "px";
+        _divRight.style.height = document.documentElement.clientHeight + "px";
+        document.getElementById("divLeftContnet").style.height = (_divLeft.clientHeight - document.getElementById("divLeftToolbar").offsetHeight) + "px"
+        document.getElementById("divRightContnet").style.height = (_divRight.clientHeight - document.getElementById("divRightToolbar").offsetHeight) + "px"
+        _divRight.style.width = (document.documentElement.clientWidth - _divLeft.offsetWidth - 1) + "px";
+        var _lastSelectTable;
+        $("#tablecolumngrid").datagrid({
+            fit: true,
+            rownumbers: true,
+            border: false,
+            idField: "ID",
+            columns: [[
+                { field: "ck", checkbox: true, align: "left", halign: "center" },
+                { field: "Name", title: "列名", width: 220, align: "left", halign: "center" },
+                { field: "TypeName", title: "类型", width: 160, align: "left", halign: "center" },
+                {
+                    field: "DefaultValue", title: "默认值", width: 200, align: "left", halign: "center", formatter: function (value, rowData) {
+                        if (rowData.DefaultValueType == 0) {
+                            return "<span style=\"color:#888888\">无</span>";
+                        }
+                        else {
+                            return value;
+                        }
+                    }
+                },
+                {
+                    field: "IsNullable", title: "允许空值", width: 120, align: "center", halign: "center", formatter: function (value) {
+                        if (value == "False") {
+                            return "否";
+                        }
+                        else {
+                            return "是";
+                        }
+                    }
+                },
+                {
+                    field: "op", title: "操作", width: 80, align: "center", halign: "center", formatter: function (value, rowData) {
+                        return "<a href=\"javascript:void(0)\" class=\"yc_abutton\" onclick=\"openEditColumnDialog(" + rowData.ID + ")\">编辑</a>";
+                    }
+                }
+            ]],
+            pagination: true,
+            method: "POST",
+            onLoadSuccess: function () {
+                $("#tablecolumngrid").datagrid("unselectAll");
+            },
+            pageSize: 20
+        }).datagrid("getPager").pagination({
+            pageSize: 20,
+            pageList: [10, 15, 20, 25, 30, 50],
+            beforePageText: '第',
+            afterPageText: '页 共 {pages} 页',
+            displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录'
+        });
+        $("#tablecolumngrid").datagrid("options").url = "@(Url.Action("GetTableColumnList", "Setup",new { @area="Form" }))";
+        $("#tablegrid").datagrid({
+            fit: true,
+            rownumbers: true,
+            border: false,
+            idField: "ID",
+            checkOnSelect: false,
+            selectOnCheck: false,
+            columns: [[
+                { field: "ck", checkbox: true, align: "left", halign: "center" },
+                { field: "Name", title: "表名", width: 220, align: "left", halign: "center" },
+                {
+                    field: "op", title: "操作", width: 80, align: "center", halign: "center", formatter: function (value, rowData) {
+                        return "<a href=\"javascript:void(0)\" class=\"yc_abutton\" onclick=\"openEditTableDialog(" + rowData.ID + ")\">编辑</a> <a href=\"javascript:void(0)\" class=\"yc_abutton\" onclick=\"deleteTable(" + rowData.ID + ")\">删除</a>";
+                    }
+                }
+            ]],
+            pagination: true,
+            url: "@(Url.Action("GetTableList", "Setup",new { @area="Form" }))",
+            method: "POST",
+            onSelect: function (rowIndex, rowData) {
+                if (_lastSelectTable != undefined && _lastSelectTable != rowIndex) {
+                    var temp = _lastSelectTable;
+                    _lastSelectTable = -1;
+                    $("#tablegrid").datagrid("unselectRow", temp);
+                }
+                if (_lastSelectTable != rowIndex) {
+                    //加载数据
+                    tableID = rowData.ID;
+                    $("#tablecolumngrid").datagrid("load", { tableID: rowData.ID });
+                }
+                _lastSelectTable = rowIndex;
+            },
+            onUnselect: function (rowIndex, rowData) {
+                if (_lastSelectTable == rowIndex) {
+                    $("#tablegrid").datagrid("selectRow", rowIndex);
+                }
+            },
+            onLoadSuccess: function (data) {
+                if (data.rows.length > 0) {
+                    _lastSelectTable = null;
+                    $("#tablegrid").datagrid("unselectAll").datagrid("selectRow", 0);
+                }
+            },
+            pageSize: 20
+        }).datagrid("getPager").pagination({
+            pageSize: 20,
+            pageList: [10, 15, 20, 25, 30, 50],
+            beforePageText: '第',
+            afterPageText: '页 共 {pages} 页',
+            displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录'
+        });
+    }
+
+    initPage();
+
+    function openEditTableDialog(dataID) {
+        new YChart.Dialog({
+            height: 300,
+            width: 400,
+            icon: "fa-table",
+            title: "数据表 " + (dataID ? "编辑" : "新增"),
+            mask: true,
+            url: "@(Url.Action("TableEdit", "Setup", new { @area="Form" }))?id=" + dataID,
+            api: {
+                refreshGrid: function () {
+                    $("#tablegrid").datagrid("reload");
+                }
+            }
+        });
+        YChart.stopBubble();
+    }
+
+    function deleteTable(dataID) {
+        if (!dataID) {
+            var rows = $("#tablegrid").datagrid("getChecked");
+            if (rows.length == 0) {
+                return;
+            }
+        }
+        YChart.Dialog.confirm("删除提示", (dataID ? "确定要删除该数据表吗？" : "确定要删除选中的数据表吗？"), function (result) {
+            if (!result) {
+                return;
+            }
+            var ids = "";
+            if (dataID) {
+                ids = dataID;
+            }
+            else {
+                for (var i = 0; i < rows.length; i++) {
+                    if (i != 0) {
+                        ids += ",";
+                    }
+                    ids += rows[i].ID;
+                }
+            }
+            YChart.ajax({
+                url: "@(Url.Action("TableDelete", "Setup", new { @area="Form" }))",
+                type: "POST",
+                data: { ids: ids },
+                success: function (result) {
+                    if (!result.Result) {
+                        YChart.Dialog.alert("删除提示", result.Message);
+                        return;
+                    }
+                    $("#tablegrid").datagrid("load");
+                }
+            });
+        });
+        YChart.stopBubble();
+    }
+
+    function openEditColumnDialog(dataID) {
+        if (!tableID) {
+            return;
+        }
+        new YChart.Dialog({
+            height: 300,
+            width: 400,
+            icon: "fa-columns",
+            title: "数据列 " + (dataID ? "编辑" : "新增"),
+            mask: true,
+            url: "@(Url.Action("TableColumnEdit", "Setup", new { @area="Form" }))?id=" + (dataID || 0) + "&tableID=" + tableID,
+            api: {
+                refreshGrid: function () {
+                    $("#tablecolumngrid").datagrid("reload");
+                }
+            }
+        });
+        YChart.stopBubble();
+    }
+
+    function deleteTableColumn() {
+        if (!tableID) {
+            return;
+        }
+        var rows = $("#tablecolumngrid").datagrid("getChecked");
+        if (rows.length == 0) {
+            return;
+        }
+        YChart.Dialog.confirm("删除提示", "确定要删除选中的列吗？", function (result) {
+            if (!result) {
+                return;
+            }
+            var ids = "";
+            for (var i = 0; i < rows.length; i++) {
+                if (i != 0) {
+                    ids += ",";
+                }
+                ids += rows[i].ID;
+            }
+            YChart.ajax({
+                url: "@(Url.Action("TableColumnDelete", "Setup", new { @area="Form" }))",
+                type: "POST",
+                data: { ids: ids },
+                success: function (result) {
+                    if (!result.Result) {
+                        YChart.Dialog.alert("删除提示", result.Message);
+                        return;
+                    }
+                    $("#tablecolumngrid").datagrid("load");
+                }
+            });
+        });
+        YChart.stopBubble();
+    }
+</script>

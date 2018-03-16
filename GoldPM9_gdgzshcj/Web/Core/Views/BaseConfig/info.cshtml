@@ -1,0 +1,53 @@
+﻿@model DataModel.Models.BaseConfig
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'BaseConfigForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "BaseConfig", FormMethod.Post, new { @area = "Core", @id = "BaseConfigForm" }))
+{
+    @Html.HiddenFor(m => m.ConfigID)
+    <table class="table table-bordered">
+
+        <tr>
+            <th width="10%">配置名称</th>
+            <td width="40%">
+                <input name="ConfigName" readonly="readonly" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,100]" value="@Model.ConfigName" />
+            </td>
+            <th width="10%">配置英文标识</th>
+            <td width="40%">
+                <input name="ConfigEngName" readonly="readonly" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@Model.ConfigEngName" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">配置内容</th>
+            <td width="40%" colspan="3">
+                <textarea name="ConfigValue" style="width:98%;" class="easyui-textbox" validType="length[0,500]">@Model.ConfigValue</textarea>
+            </td>
+            
+        </tr>
+        <tr>
+            <th width="10%">排序字段</th>
+            <td width="40%" colspan="3">
+                <input name="ConfigOrder" style="width:98%;height:40px;" class="easyui-numberspinner" validType="length[0,10]" value="@Model.ConfigOrder" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">配置备注</th>
+            <td width="40%" colspan="3">
+                <textarea name="ConfigNote" style="width:98%; height:60px;" class="easyui-textbox" validType="length[0,500]">@Model.ConfigNote</textarea>
+            </td>
+        </tr>
+    </table>
+
+}
+
+
+

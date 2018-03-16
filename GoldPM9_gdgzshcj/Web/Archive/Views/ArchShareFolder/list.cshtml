@@ -1,0 +1,377 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var ckTreeId = "";
+
+        $(function () {
+
+            $("#WJ").panel('open');
+            $('#ML').panel('close');
+            $("#MLPanel").hide();
+            $("#ArchShareFolderFilePanel").show();
+
+            $(function () {
+                $('#lefttree').treegrid({
+                    url: '@Url.Action("treejson", "ArchShareFolder", new { @area= "Archive"})',
+                    idField: 'id',
+                    treeField: 'text',
+                    border: 0,
+                    toolbar: '#tbleft',
+                    fit: true,
+                    animate: true,
+                    singleSelect: true,
+                    columns: [[
+                       { title: '<b>选择节点</b>', field: 'text', width: 240, align: 'left' }
+                    ]],
+                    onLoadSuccess: function (row, data) {
+                        FileBtnShow(true);
+                    },
+                    onSelect: function (node) {
+                        if (node.text == "目录") {
+                            $("#WJ").panel('close');
+                            $('#ML').panel('open');
+                            $("#MLPanel").show();
+                            $("#ArchShareFolderFilePanel").hide();
+                            $('#MLGrid').datagrid('load', {
+                                FolderId: node.id
+                            });
+                        } else {
+                            $("#WJ").panel('open');
+                            $('#ML').panel('close');
+                            $("#MLPanel").hide();
+                            $("#ArchShareFolderFilePanel").show();
+                            $("#AttID").val(node.id);
+                            $('#ArchShareFolderFileGrid').datagrid('load', {
+                                FolderId: node.id
+                            });
+                            if (node.empid == '@ViewBag.EmpID')
+                                FileBtnShow(false);
+                            else
+                                FileBtnShow(true);
+                        }
+                    }
+                });
+
+                JQ.datagrid.datagrid({
+                    JQIsSearch: false,
+                    JQPrimaryID: 'Id',//主键的字段
+                    JQID: 'MLGrid',//数据表格ID
+                    JQDialogTitle: '文件信息',//弹出窗体标题
+                    JQWidth: '600',//弹出窗体宽
+                    JQHeight: '600',//弹出窗体高
+                    JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                    JQFields: ["Id"],//追加的字段名
+                    url: '@Url.Action("json", "ArchShareFolderML",new { @area="Archive"})?FlderId=' + ckTreeId + '',//请求的地址
+                    checkOnSelect: true,//是否包含check
+                    fitColumns: true,
+                    nowrap: false,
+                    toolbar: '#MLPanel',//工具栏的容器ID
+                    columns: [[
+                        { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                        { title: '文件编号', field: 'FileNumber', width: 50, align: 'center', sortable: true },
+                        { title: '责任者', field: 'Manager', width: 50, align: 'center', sortable: true, },
+                        { title: '文件材料题名', field: 'FileName', width: 100, align: 'center', sortable: true },
+                        { title: '日期', field: 'Time', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                        { title: '页数', field: 'PageNumber', width: 100, align: 'center', sortable: true },
+                        { title: '备注', field: 'Remark', width: 100, align: 'center', sortable: true },
+                    ]]
+                });
+
+                JQ.datagrid.datagrid({
+                    JQIsSearch: true,
+                    JQPrimaryID: 'Id',//主键的字段
+                    JQID: 'ArchShareFolderFileGrid',//数据表格ID
+                    JQDialogTitle: '文件信息',//弹出窗体标题
+                    JQWidth: '600',//弹出窗体宽
+                    JQHeight: '600',//弹出窗体高
+                    JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                    JQFields: ["Id"],//追加的字段名
+                    url: '@Url.Action("json", "ArchShareFolderFile",new { @area="Archive"})',//请求的地址
+                    checkOnSelect: true,//是否包含check
+                    fitColumns: true,
+                    nowrap: false,
+                    toolbar: '#ArchShareFolderFilePanel',//工具栏的容器ID
+                    columns: [[
+                            { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                            { title: '文件名称', field: 'FileName', width: 100, align: 'center', sortable: true },
+                            { title: '文件描述', field: 'FileRemark', width: 100, align: 'center', sortable: true },
+                            { title: '创建时间', field: 'CreationTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                            { title: '创建人姓名', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true },
+                            { title: '最后修改时间', field: 'LastModificationTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                            { title: '最后修改人姓名', field: 'LastModifierEmpName', width: 100, align: 'center', sortable: true },
+                            {
+                                field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'ArchShareFolderFile', formatter: function (value, row) {
+                                    return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                                }
+                            },
+
+
+                    ]]
+                });
+
+                $("#JQSearch").textbox({
+                    buttonText: '筛选',
+                    buttonIcon: 'fa fa-search',
+                    height: 25,
+                    prompt: '文件名称',
+                    onClickButton: function () {
+                        JQ.datagrid.searchGrid(
+                            {
+                                dgID: 'ArchShareFolderFileGrid',
+                                loadingType: 'datagrid',
+                                queryParams: { FolderId: $("#AttID").val() }
+                            });
+                    }
+                });
+            });
+        });
+
+        function addMl(flag) {
+            var url = "";
+            var node = $("#lefttree").treegrid("getSelected");
+            if (!isNaN(node)) {
+                JQ.dialog.info("请选择");
+                return;
+            }
+            var mlDataId = 0;
+            if (flag > 1) {
+                var mlData = $("#MLGrid").datagrid("getChecked");
+                if (mlData.length == 0) {
+                    JQ.dialog.info("请选择要修改的目录");
+                    return;
+                }
+                debugger;
+                mlDataId = mlData[0].Id;
+            }
+
+            switch (flag) {
+                case 1:
+                    JQ.dialog.dialog({
+                        title: "添加文件",
+                        url: '@Url.Action("add","ArchShareFolderML",new {@area="Archive" })?FolderId=' + node.id + '',
+                        width: '600',
+                        height: '600',
+                        JQID: 'ArchShareFolderFileGrid',
+                        JQLoadingType: 'datagrid',
+                        iconCls: 'fa fa-plus'
+                    });
+                    break;
+                case 2:
+                    JQ.dialog.dialog({
+                        title: "目录",
+                        url: '@Url.Action("edit","ArchShareFolderML",new {@area="Archive" })?FolderId=' + node.id + '&id=' + mlDataId + '',
+                        width: '600',
+                        height: '400',
+                        JQID: 'lefttree',
+                        JQLoadingType: 'treegrid',
+                        iconCls: 'fa fa-plus'
+                    });
+                    break;
+                case 3:
+                    JQ.tools.ajax({
+                        doBackResult: true,
+                        url: '@Url.Action("del","ArchShareFolderML",new {@area="Archive" })?FolderId=' + node.id + '&id=' + mlDataId + '',
+                    });
+                    $('#MLGrid').treegrid('reload');
+                    break;
+            }
+        }
+
+        function save(flag) {
+            var node = $("#lefttree").treegrid("getSelected");
+            if (!isNaN(node)) {
+                JQ.dialog.info("请选择");
+                return;
+            }
+            var id = node.id;
+            var Url = '';
+            if (flag == 1) {
+                Url = '@Url.Action("add", "ArchShareFolder", new {@area="Archive" })';
+                JQ.dialog.dialog({
+                    title: "目录",
+                    url: Url + '?ParentId=' + id,
+                    width: '600',
+                    height: '400',
+                    JQID: 'lefttree',
+                    JQLoadingType: 'treegrid',
+                    iconCls: 'fa fa-plus'
+                });
+            }
+            else if (flag == 2) {
+                Url = '@Url.Action("edit", "ArchShareFolder", new {@area="Archive" })';
+                JQ.dialog.dialog({
+                    title: "目录",
+                    url: Url + '?Id=' + id,
+                    width: '600',
+                    height: '400',
+                    JQID: 'lefttree',
+                    JQLoadingType: 'treegrid',
+                    iconCls: 'fa fa-plus'
+                });
+            }
+            else {
+                Url = '@Url.Action("del", "ArchShareFolder", new { @area = "Archive", })';
+                JQ.tools.ajax({
+                    doBackResult: true,
+                    url: Url,
+                    data: 'Id=' + id
+                });
+                $('#lefttree').treegrid('reload');
+                return;
+            }
+        }
+
+
+        function savefile(flag) {
+            if (flag == 1) {
+                var id = $("#lefttree").treegrid("getSelected").id;
+                if (isNaN(id)) {
+                    JQ.dialog.info("请选择");
+                    return;
+                }
+                JQ.dialog.dialog({
+                    title: "添加文件",
+                    url: '@Url.Action("add","ArchShareFolderFile",new {@area="Archive" })' + '?FolderId=' + id,
+                    width: '600',
+                    height: '600',
+                    JQID: 'ArchShareFolderFileGrid',
+                    JQLoadingType: 'datagrid',
+                    iconCls: 'fa fa-plus'
+                });
+                return;
+            }
+            var row = $("#ArchShareFolderFileGrid").datagrid("getSelections");
+            if (row.length <= 0) {
+                JQ.dialog.info("请选择");
+                return;
+            }
+            var id = row[0].Id;
+            if (flag == 2) {
+                JQ.dialog.dialog({
+                    title: "修改文件",
+                    url: '@Url.Action("edit", "ArchShareFolderFile",new {@area="Archive" })' + '?Id=' + id,
+                    width: '600',
+                    height: '600',
+                    JQID: 'ArchShareFolderFileGrid',
+                    JQLoadingType: 'datagrid',
+                    iconCls: 'fa fa-plus'
+                });
+            }
+            else if (flag == 3) {
+                var parm;
+                $.each(row, function (i, n) {
+                    if (i == 0) {
+                        parm = "id=" + n["Id"];
+
+                    } else {
+                        parm += "&id=" + n["Id"];
+                    }
+                });
+
+                JQ.tools.ajax({
+                    doBackResult: true,
+                    url: '@Url.Action("del", "ArchShareFolderFile", new { @area = "Archive" })',
+                    data: parm
+                });
+                $('#ArchShareFolderFileGrid').datagrid('reload');
+                return;
+            }
+        }
+
+        function downurl(url) {
+            var _a = document.createElement("a");
+            _a.setAttribute("href", url);
+            document.body.appendChild(_a);
+            _a.click();
+            document.body.removeChild(_a);
+        }
+
+        function down() {
+            var row = $("#ArchShareFolderFileGrid").datagrid("getSelections");
+            if (row.length <= 0) {
+                JQ.dialog.info("请选择");
+                return;
+            }
+
+            var parm;
+            $.each(row, function (i, n) {
+                if (i == 0) {
+                    parm = "id=" + n["Id"];
+
+                } else {
+                    parm += "&id=" + n["Id"];
+                }
+            });
+            Url = '@Url.Action("DownFile", "ArchShareFolderFile", new { @area = "Archive" })?';
+            downurl(Url + parm);
+            $('#ArchShareFolderFileGrid').datagrid('reload');
+        }
+
+        function FileBtnShow(b) {
+            if (b) {
+                $("#fileadd").hide();
+                $("#fileedit").hide();
+                $("#filedel").hide();
+            }
+            else {
+                $("#fileadd").show();
+                $("#fileedit").show();
+                $("#filedel").show();
+            }
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <div id="treePanel" class="easyui-layout" style="overflow: hidden" fit="true">
+        <div data-options="region:'west',split:false" style="width:250px;">
+            <table id="lefttree"></table>
+        </div>
+
+        <div data-options="region:'center'" style="background:#eee;">
+            <div id="WJ" style="height:100%;" class="easyui-panel" data-options="region:'center'">
+                <table id="ArchShareFolderFileGrid"></table>
+            </div>
+
+            <div id="ML" style="height:100%;" class="easyui-panel" data-options="region:'center'">
+                <table id="MLGrid"></table>
+            </div>
+        </div>
+
+        <div id="tbleft" style="padding:5px;height:auto;">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" JQPermissionName="add" onclick="save(1)">新增</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-pencil'" JQPermissionName="edit" onclick="save(2)">修改</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" JQPermissionName="del" onclick="save(3)">删除</a>
+        </div>
+
+        <div id="MLPanel" style="padding:5px;height:auto;">
+            <span JQPanel="mltoolbarPanel">
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" id="fileadd" onclick="addMl(1)">新增</a>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-pencil'" id="fileedit" onclick="addMl(2)">修改</a>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" id="filedel" onclick="addMl(3)">删除</a>
+            </span>
+        </div>
+
+        <div id="ArchShareFolderFilePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+            <span JQPanel="toolbarPanel">
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" id="fileadd" onclick="savefile(1)">新增</a>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-pencil'" id="fileedit" onclick="savefile(2)">修改</a>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" id="filedel" onclick="savefile(3)">删除</a>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="down()">下载</a>
+            </span>
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始日期'" JQWhereOptions="{ Key:'CreationTime', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束日期'" JQWhereOptions="{ Key:'CreationTime', Contract:'<=',filedType:'Date' }">&nbsp;
+
+            <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'FileName', 'Contract': 'like' }" />
+
+        </div>
+    </div>
+    <input type="hidden" value="0" id="DeleterEmpId" JQWhereOptions="{ 'Key': 'DeleterEmpId', 'Contract': '=',filedType:'Int' }" />
+    <input type="hidden" value="0" id="AttID" />
+}
+

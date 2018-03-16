@@ -1,0 +1,107 @@
+﻿@model DataModel.Models.DesTaskCheck
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'DesTaskCheckform',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "DesTaskCheck", FormMethod.Post, new { @area = "Design", @id = "DesTaskCheckForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+	 
+                        <tr>
+                        <th width="10%">项目ID</th>
+                        <td width="40%">
+						<input name="ProjID" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.ProjID" />
+                        </td>
+                        <th width="10%">阶段ID</th>
+                        <td width="40%">
+						<input name="PhaseID" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.PhaseID" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">设计节点</th>
+                        <td width="40%">
+						@*<input name="EngNodeID" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.EngNodeID" />*@
+                        </td>
+                        <th width="10%">提出节点</th>
+                        <td width="40%">
+						@*<input name="CheckNodeID" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.CheckNodeID" />*@
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">错误类型</th>
+                        <td width="40%">
+                        </td>
+                        <th width="10%">备注</th>
+                        <td width="40%">
+						<input name="CheckNote" style="width:98%;" class="easyui-textbox"  data-options="required:true"  validType="length[0,1000]" value="@Model.CheckNote" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">提出人</th>
+                        <td width="40%">
+						<input name="CheckEmpId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.CheckEmpId" />
+                        </td>
+                        <th width="10%">设计确认</th>
+                        <td width="40%">
+						@*<input name="CheckIsCorrective" style="width:98%;" class="CheckBox"   validType="length[0,1]" value="@Model.CheckIsCorrective" />*@
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">校审确认</th>
+                        <td width="40%">
+						@*<input name="CheckIsExamine" style="width:98%;" class="CheckBox"   validType="length[0,1]" value="@Model.CheckIsExamine" />*@
+                        </td>
+                        <th width="10%">校审建议</th>
+                        <td width="40%">
+						@*<input name="ChecklsNode" style="width:98%;" class="CheckBox"   validType="length[0,1]" value="@Model.ChecklsNode" />*@
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">贴图</th>
+                        <td width="40%">
+						<input name="CheckImage" style="width:98%;" class="easyui-textbox"   validType="length[0,2147483647]" value="@Model.CheckImage" />
+                        </td>
+                        <th width="10%">提出日期</th>
+                        <td width="40%">
+						<input name="CheckDate" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.CheckDate" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">校审答复</th>
+                        <td width="40%">
+						<input name="CheckXml" style="width:98%;" class="easyui-textbox"   validType="length[0,-1]" value="@Model.CheckXml" />
+                        </td>
+                        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @Html.Action("uploadFile", "usercontrol", new
+           {
+               @area = "Core",
+               AttachRefID = Model.Id,
+               AttachRefTable = "DesTaskCheck"
+           })
+            </td>
+        </tr>
+    </table>
+	
+}
+
+
+

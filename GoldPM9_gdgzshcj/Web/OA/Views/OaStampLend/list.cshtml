@@ -1,0 +1,129 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+    var requestUrl = '@Url.Action("Returnjson", "OaStampLend", new { @area = "Oa" })',
+           addUrl = '@Url.Action("add","OaStampUse",new {@area="Oa" })',
+           editUrl = '@Url.Action("edit", "OaStampUse",new {@area="Oa" })',
+           delUrl = '@Url.Action("del", "OaStampUse", new { @area = "Oa" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export','moreSearch'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaStampUseGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQExcludeCol: [5, 6, 7, 8],//导出execl排除的列
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '申请理由',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: false,
+                nowrap: false,
+                toolbar: '#OaStampUsePanel',//工具栏的容器ID
+                columns: [[
+                    { title: '申请时间', field: 'StampUseDate', width: "10%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '申请人', field: 'CreatorEmpName', width: "10%", align: 'center', sortable: true },
+                    { title: '印章名称', field: 'StampID', width: "20%", align: 'center', sortable: true },
+                    { title: '申请理由', field: 'StampEmpesult', width: "23%", align: 'center', sortable: true },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: "5%", JQIsExclude: true, JQRefTable: 'OaStampUse' },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.EmpId)")
+                    },
+                    {
+                        field: "opt", title: "查看", align: "center", halign: "center", width: "8%", formatter: function (value, row, index) {
+                            return "<a btn href=\"#\" class=\"easyui-linkbutton\"   onclick=\"ShowEdit('" + row.Id + "')\">查看</>";
+                        }
+                    },
+                    {
+                        field: "opt1", title: "确认归还", align: "center", halign: "center", width: "10%", formatter: function (value, row, index) {
+                            if (row.FlowStatusID == 3 && row.StampReturnSrate == 0) {
+                                return "<a btn href=\"#\"  JQPermissionName=\"add\" class=\"easyui-linkbutton\"   onclick=\"ShowSubmitReturn('" + row.Id + "')\">确认归还</>";
+                            }
+                            if (row.StampReturnSrate == 1) {
+                                return "<a btn href=\"#\"  JQPermissionName=\"add\" class=\"easyui-linkbutton\"  onclick=\"ShowReturn('" + row.OaStampLendID + "')\">已归还</>";
+                            }
+                            else {
+                                return "";
+                            }
+                        }
+                    }
+                ]], onLoadSuccess: function (row) {
+
+                    $("a[btn]").linkbutton({ iconCls: 'fa fa-edit' });
+                }
+            });
+        });
+
+    function ShowEdit(Id) {
+        JQ.dialog.dialog({
+            title: "查看印章申请信息",
+            url: '@Url.Action("edit", "OaStampUse", new { @area = "Oa" })?Id=' + Id,
+            width: '768',
+            height: '100%',
+            JQID: 'OaStampUseGrid',
+            JQLoadingType: 'datagrid',
+        });
+    }
+    function ShowSubmitReturn(Id) {
+        JQ.dialog.dialog({
+            title: "确认归还印章",
+            url: '@Url.Action("add", "OaStampLend", new { @area = "Oa" })?OaStampUseId=' + Id,
+                width: '768',
+                height: '100%',
+                JQID: 'OaStampUseGrid',
+                JQLoadingType: 'datagrid',
+            });
+        }
+
+        function ShowReturn(Id) {
+            debugger;
+            JQ.dialog.dialog({
+                title: "已归还印章记录",
+                url: '@Url.Action("edit", "OaStampLend", new { @area = "Oa" })?Id=' + Id,
+                width: '768',
+                height: '100%'
+            });
+        }
+    </script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="OaStampUseGrid"></table>
+    <div id="OaStampUsePanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ 'Key': 'StampEmpesult', 'Contract': 'like' }" />
+         <div class="moreSearchPanel">
+            <span style="padding-left:10px;">
+                印章类型：
+                @BaseData.getBases(new Params() { isMult = true, engName = "StampType", queryOptions = "{ Key:'FK_OaStampUse_StampID.StampTypeID', Contract:'in',filedType:'Int'}" })
+            </span>
+
+             <span style="padding-left:10px;">
+                印章名称：<input class="easyui-textbox" style="width:150px;" JQWhereOptions="{ Key:'FK_OaStampUse_StampID.StampName', Contract:'like' }"/>
+            </span>
+            <span style="padding-left:10px;">
+                申请时间
+                <input id="startTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '开始时间'" JQWhereOptions="{ Key:'StampUseDate', Contract:'>=',filedType:'Date' }">
+                至
+                <input id="endTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '完成时间'" JQWhereOptions="{ Key:'StampUseDate', Contract:'<=',filedType:'Date' }">&nbsp;
+            </span>
+        </div>
+    </div>
+}
+

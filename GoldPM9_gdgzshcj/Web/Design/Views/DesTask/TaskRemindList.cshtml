@@ -1,0 +1,484 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@section head {
+
+}
+
+@section Body_Content{
+
+    <div id="DesTaskPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            @*1 已安排（黄） 2 进行中（绿色） 3 完成（蓝色） 4 回退（红色）*@
+            <span class="datagrid-btn-separator" style="vertical-align: middle; height: 22px;display:inline-block;float:none;padding-right:5px;"></span>
+            <a id="itemStatusWaiting" href="#" class="easyui-linkbutton node-status-1" data-options="toggle: true,group:'type'" onclick="changeTaskStatus('Waiting')">安排给你</a>
+            <a id="itemStatusNow" href="#" class="easyui-linkbutton node-status-2" data-options="toggle: true,group:'type'" onclick="changeTaskStatus('Now')">待你处理</a>
+            @if (ViewBag._DesTaskApproveMode == "1")
+            {
+                <a id="itemStatusRemind" href="#" class="easyui-linkbutton" data-options="toggle: true,group:'type'" onclick="changeTaskStatus('Remind')">安排给你或待你处理</a>
+            }
+            <a id="itemStatusFinished" href="#" class="easyui-linkbutton node-status-3" data-options="toggle: true,group:'type'" onclick="changeTaskStatus('Finished')">你已完成</a>
+            <a id="itemStatusBack" href="#" class="easyui-linkbutton node-status-5" data-options="toggle: true,group:'type'" onclick="changeTaskStatus('Back')">被你回退</a>
+            <span class="datagrid-btn-separator" style="vertical-align: middle; height: 22px;display:inline-block;float:none;padding-right:5px;margin-left: 5px;"></span>
+            @*<a id="btnBatchPlan" href="#" sytle="display:none;" class="easyui-linkbutton" data-options="iconCls:'fa fa-indent fa-lg'" onclick="openSpecPlanBatchDialog();">批量专业策划</a>
+            <span class="datagrid-btn-separator" style="vertical-align: middle; height: 22px;display:inline-block;float:none;padding-right:5px;"></span>*@
+        </span>
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'ItemPath1,ItemPath2', Contract:'like'}" />
+        @*<span class="datagrid-btn-separator" style="vertical-align: middle; height: 22px;display:inline-block;float:none;padding-right:5px;"></span>*@
+    </div>
+    <table id="DesTaskGrid"></table>
+
+    <script type="text/javascript">
+        var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+        };
+
+        var _DesTaskApproveMode = '@ViewBag._DesTaskApproveMode';
+
+        var queryParams = {
+            itemStatus: "Now",
+            showAll: 0
+        };
+
+        $(function () {
+
+            // 任务校审模式   单步 0；同步 1
+            if (_DesTaskApproveMode == "0") {
+                queryParams.itemStatus = "Now";
+                $("#itemStatusNow").linkbutton('select');
+            } else {
+                queryParams.itemStatus = "Remind";
+                $("#itemStatusRemind").linkbutton('select');
+            }
+
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQID: 'DesTaskGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                url: _webconfig.serverUrl + 'Design/DesTask/TaskRemindListJson',//请求的地址
+                queryParams: queryParams,
+                checkOnSelect: false,//是否包含check
+                selectOnCheck: false,
+                singleSelect: true,
+                toolbar: '#DesTaskPanel',//工具栏的容器ID
+                JQExcludeCol: [1, 7],//导出execl排除的列
+                columns: [[
+                    { field: "ck", checkbox: true },
+		            {
+		                title: '任务路径', field: 'ItemPathText', align: 'left', formatter: function (value, row, index) {
+		                    var itemPathText = "";
+		                    if (row.ItemPath1 == "" || row.ItemPath2 == "") {
+		                        row.ItemPathText = row.ItemName;
+		                        itemPathText = row.ItemName.escapeHTML();
+                            } else {
+		                        row.ItemPathText = createTaskPathText(row);
+		                        itemPathText = createTaskPath(row);
+                            }
+		                    return itemPathText;
+		                }
+		            },
+                    { title: '任务负责人', field: 'ItemEmpName', width: 80, align: 'center', sortable: false },
+		            { title: '计划开始', field: 'DatePlanStart', width: 80, align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '计划结束', field: 'DatePlanFinish', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            {
+		                title: '实际完成', field: 'DateActualFinish', width: 140, align: 'left', sortable: false, formatter: function (value, row, index) {
+		                    debugger;
+		                    var result = "";
+		                    var showWarring = false;
+		                    var datePlanStart = Date.jsonStringToDate(row.DatePlanStart);
+		                    var datePlanFinish = Date.jsonStringToDate(row.DatePlanFinish);
+		                    var dateActualFinish = Date.jsonStringToDate(row.DateActualFinish);
+		                    var noDateActualFinish = dateActualFinish.getFullYear() == 1900;
+
+		                    if (datePlanStart.getFullYear() > 1900 && datePlanFinish.getFullYear() == 1900) {
+		                        // 只有计划开始时间
+		                    } else if (datePlanStart.getFullYear() == 1900 && datePlanFinish.getFullYear() > 1900) {
+		                        // 只有计划结束时间
+		                        showWarring = (noDateActualFinish ? new Date() : dateActualFinish).dateDiff('s', datePlanFinish) < 0
+		                    } else if (datePlanStart.getFullYear() > 1900 && datePlanFinish.getFullYear() > 1900) {
+                                var timeNow='@ViewBag.TimeNow';
+		                        // 计划开始结束时间都有
+		                        showWarring = (noDateActualFinish ?Date.jsonStringToDate(timeNow) :Date.jsonStringToDate(dateActualFinish.format("yyyy-MM-dd"))).dateDiff('d', datePlanFinish) < 0
+		                    } else {
+		                        // 计划开始结束时间都没有
+		                    }
+		                    result = '<span class="{2}">{0}{1}</span>'.format(
+                                (noDateActualFinish ? '' : dateActualFinish.format('yyyy-MM-dd ')),
+                                (showWarring ? (noDateActualFinish ? '超期未完成' : '超期完成') : ''),
+                                (showWarring ? 'label label-important' : '')
+                            );
+		                    return result;
+		                }
+		            },
+                    {
+                        title: '操作', field: 'ItemAction', width: 90, align: 'center', formatter: function (value, row, index) {
+                            var title = value + "：" + row.ItemPathText.escapeHTML();
+                            return "<a href=\"javascript:void(0);\" btnAction class=\"easyui-linkbutton\" data-options=\"plain:true\" onclick='openDialog(\"" + title + "\"," + row.ItemType + "," + row.ProjId + "," + row.TaskGroupId + "," + row.TaskSpecId + "," + row.TaskId + "," + row.TabId + ")'>" + value + "</a>";
+                        }
+                    }
+                ]],
+                onLoadSuccess: function (data) {
+                    setRowCheckbox(data);
+                    setBtnAction();
+                }
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目名称、任务名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid({
+                        dgID: 'DesTaskGrid',
+                        loadingType: 'datagrid',
+                        queryParams: queryParams
+                    });
+                }
+            });
+        });
+
+        // 切换待办任务状态
+        function changeTaskStatus(status) {
+            queryParams.itemStatus = status;
+            JQ.datagrid.searchGrid({
+                dgID: 'DesTaskGrid',
+                loadingType: 'datagrid',
+                queryParams: queryParams
+            });
+        }
+
+        // 获取任务路径（纯文本）
+        function createTaskPathText(row) {
+            var jsonItemPath1 = row.ItemPath1;
+            var jsonItemPath2 = row.ItemPath2;
+
+            var separator = " ＞ ";
+            var arrItemPath1 = JSON.parse(jsonItemPath1);
+            var arrItemPath2 = JSON.parse(jsonItemPath2);
+
+            var path1 = (Enumerable.From(arrItemPath1).OrderBy("x=>x.rownum").Select(function (x) { return x.text; }).ToArray());
+            var path2 = (Enumerable.From(arrItemPath2).OrderBy("x=>x.rownum").Select(function (x) { return x.text; }).ToArray());
+            var path = [];
+            if (path1 != undefined && path1 != null) {
+                path.push(path1.join(separator));
+            }
+            if (path2 != undefined && path2 != null && path2.length > 0) {
+                path.push(path2.join(separator));
+            }
+
+            switch (row.ItemType) {
+                case 5:
+                    path.push("{0}".format(row.ItemName));
+                    break;
+            }
+
+            return path.join(separator);
+
+        }
+
+        // 获取任务路径（带LinkButton）
+        function createTaskPath(row) {
+            var jsonItemPath1 = row.ItemPath1;
+            var jsonItemPath2 = row.ItemPath2;
+
+            var separator = "<i class='fa fa-caret-right' style='margin: 0 5px;'></i>";
+            var arrItemPath1 = JSON.parse(jsonItemPath1);
+            var arrItemPath2 = JSON.parse(jsonItemPath2);
+
+            var path1 = (Enumerable.From(arrItemPath1).OrderBy("x=>x.rownum").Select(function (x) { return createLinkButton(x); }).ToArray());
+            var path2 = (Enumerable.From(arrItemPath2).OrderBy("x=>x.rownum").Select(function (x) { return createLinkButton(x); }).ToArray());
+            // 给当前操作节点追加状态图标，和点击操作
+            if (path2 != undefined && path2 != null && path2.length > 0) {
+                setPathActionStatusIcon(path2, row);
+            } else {
+                setPathActionStatusIcon(path1, row);
+            }
+            // 拼接两部分路径
+            var path = [];
+            if (path1 != undefined && path1 != null) {
+                path.push(path1.join(separator));
+            }
+            if (path2 != undefined && path2 != null && path2.length > 0) {
+                path.push(path2.join(separator));
+            }
+            // 会签在原有任务路径后，再追加会签路径
+            if (row.ItemType == 5) {
+                path.push(createLinkButton({
+                    active: "MutiSign",
+                    text: row.ItemName,
+                    value: row.TabId
+                }));
+            }
+
+            return path.join(separator);
+
+        }
+
+        function createLinkButton(data) {
+            //data = {"rownum":1,"value":34,"text":"常州河海路110kV输变电2#主变扩建工程","active":"TaskGroup"}
+            var btn = '<a href="javascript:void(0);" onclick="clickLinkButton(this, \'{0}\', \'{1}\', {2})">{1}</a>'.format(data.active, data.text, data.value);
+            return btn;
+        }
+
+        function clickLinkButton(_this, active, text, id) {
+            var url = "";
+            switch (active) {
+                case "Project":
+                    //  项目查看页面
+                    url = _webconfig.serverUrl + 'Project/Project/ProjInfoOnlyRead?id=' + id;
+                    JQ.dialog.dialog({
+                        title: '{0}'.format(text),
+                        url: url,
+                        width: 1024,
+                        height: 900,
+                        onClose: function () {                            
+                        }
+                    });
+                    break;
+                case "ProjPhase":
+                    //  阶段查看页面
+                    url = _webconfig.serverUrl + 'Design/DesTask/TaskPhaseInfo?id=' + id;
+                    JQ.dialog.dialog({
+                        title: '{0}'.format(text),
+                        url: url,
+                        width: 500,
+                        height: 500,
+                        onClose: function () {
+                        }
+                    });
+                    break;
+                case "TaskGroup":
+                    //  分组查看页面
+                    url = _webconfig.serverUrl + 'Design/DesTask/TaskGroupInfo?id=' + id;
+                    JQ.dialog.dialog({
+                        title: '{0}'.format(text),
+                        url: url,
+                        width: 500,
+                        height: 500,
+                        onClose: function () {
+                        }
+                    });
+                    break;
+                case "TaskSpec":
+                    //  专业查看页面
+                    url = _webconfig.serverUrl + 'Design/DesTask/TaskSpecInfo?id=' + id;
+                    JQ.dialog.dialog({
+                        title: '{0}'.format(text),
+                        url: url,
+                        width: 500,
+                        height: 500,
+                        onClose: function () {
+                        }
+                    });
+                    break;
+                case "TaskPath":
+                case "Task":
+                    //  任务查看页面
+                    url = _webconfig.serverUrl + 'Design/DesTask/TaskInfo?from=Remind&Id=' + id;
+                    JQ.dialog.dialog({
+                        title: '{0}'.format(text),
+                        url: url,
+                        width: 1200,
+                        height: 900,
+                        onClose: function () {
+                        }
+                    });
+                    break;
+                case "MutiSign":
+                    //  会签查看页面
+                    url = _webconfig.serverUrl + 'Design/DesMutiSign/Edit?from=Remind&Id=' + id;
+                    JQ.dialog.dialog({
+                        title: '{0}'.format(text),
+                        url: url,
+                        width: 800,
+                        height: 800,
+                        onClose: function () {
+                        }
+                    });
+                    break;
+            }
+        }
+
+        // 设置处理节点状态图标
+        function setPathActionStatusIcon(path2, row) {
+            //path2 = [{"rownum":1,"value":34,"text":"常州河海路110kV输变电2#主变扩建工程","active":"TaskGroup"},{...}]
+            var icon = "";
+            var title = "";
+            switch (row.ItemStatus) {
+                case 0:
+                    title = "未启动";
+                    icon = "fa-circle-o text-muted";
+                    break;
+                case 1:
+                    title = "已轮到";
+                    icon = "fa-dot-circle-o text-warning";
+                    break;
+                case 2:
+                    title = "进行中";
+                    icon = "fa-play-circle text-success";
+                    break;
+                case 3:
+                    title = "已完成";
+                    icon = "fa-check-circle text-info";
+                    break;
+                case 4:
+                    title = row.ItemType == 1 ? "已停止" : "已回退";
+                    icon = "fa-minus-circle text-danger";
+                    break;
+            }
+            row.ItemStatusName = title;
+            var status = "<i class=\"fa " + icon + "\" title=\"" + title + "\"></i>&nbsp;";
+            path2[path2.length - 1] = status + path2[path2.length - 1];
+        }
+
+        // 设置是否显示用于 批量专业策划的 复选框
+        function setRowCheckbox(data) {
+            var $desTaskGrid = $("#DesTaskGrid").parent().find("div.datagrid-view2 div.datagrid-body tr.datagrid-row");
+            for (var i = 0; i < data.rows.length; i++) {
+                if (allowBatchPlan(data.rows[i])) {
+                    //配网工程的 专业策划 在办 配电、技经可批量策划
+                }
+                else {
+                    $desTaskGrid.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").remove();
+                }
+            }
+        }
+
+        // 设置处理节点状态图标
+        function setBtnAction() {
+            var btnColor = "";
+            switch (queryParams.itemStatus.toLocaleLowerCase()) {
+                case 'waiting':
+                    //已安排
+                    btnColor = "node-status-1";
+                    break;
+                case 'now':
+                case 'remind':
+                    //进行中
+                    btnColor = "node-status-2";
+                    break;
+                case 'finished':
+                    //已完成
+                    btnColor = "node-status-3";
+                    break;
+                case 'back':
+                    //已回退
+                    btnColor = "node-status-5";
+                    break;
+            }
+            $("a[btnAction]").addClass(btnColor).linkbutton();
+        }
+
+        // 判断是否用于 批量专业策划
+        function allowBatchPlan(item) {
+            return item.ItemType == 2 && item.ItemStatus == 2 && (item.TaskSpecId == 1296 || item.TaskSpecId == 1294 || item.TaskSpecId == 1295) && item.ProjTypeID == 409;
+        }
+
+        // 打开批量专业策划对话框
+        function openSpecPlanBatchDialog() {
+            //获取出选择项，过滤掉不可选中的
+            var checkeds = $("#DesTaskGrid").datagrid("getChecked");
+            var taskIDs = [];
+            for (var i = 0; i < checkeds.length; i++) {
+                if (allowBatchPlan(checkeds[i])) {
+                    //配网工程的 专业策划 在办 配电、技经可批量策划
+                    taskIDs.push(checkeds[i].TaskId);
+                }
+            }
+            if (taskIDs.length > 0) {
+                JQ.dialog.dialog({
+                    url: _webconfig.serverUrl + 'Design/DesTask/SpecPlanBatch?taskIDs={0}'.format(taskIDs.join(",")),
+                    title: "专业批量策划",
+                    height: 800,
+                    width: 1200,
+                    onClose: function () {
+                        $("#DesTaskGrid").datagrid("clearSelections");
+                        $("#DesTaskGrid").datagrid("clearChecked");
+                        $("#DesTaskGrid").datagrid("reload");
+                    }
+                });
+            }
+        }
+
+        // 根据不同的动作，打开对话框
+        function openDialog(title, itemType, projId, taskGroupId, taskSpecId, taskId, tabId) {
+            var url = "";
+            switch (itemType) {
+                case 1:
+                    //  项目策划
+                    if (tabId == 0) {
+                        url = _webconfig.serverUrl + 'Design/DesTask/PlanTableInfo?from=Remind&tabId=' + tabId + '&projID=' + projId + '&taskGroupId=' + taskGroupId;
+                    } else {
+                        url = _webconfig.serverUrl + 'Design/DesTask/ProjectPlanInfo?from=Remind&tabId=' + tabId + '&projID=' + projId + '&taskGroupId=' + taskGroupId;
+                    }
+                    //window.top.addTab(title, url, "");
+                    JQ.dialog.dialogIframe({
+                        title: title,
+                        url: url,
+                        width: 1366,
+                        height: 900,
+                        onClose: function () {
+                            $("#DesTaskGrid").datagrid("reload");
+                        }
+                    });
+                    break;
+                case 2:
+                    //  专业策划
+                    url = _webconfig.serverUrl + 'Design/DesTask/SpecPlanInfo?from=Remind&tabId=' + tabId + '&projID=' + projId + '&taskGroupId=' + taskGroupId + '&taskSpecId=' + taskSpecId;
+                    //window.top.addTab(title, url, "");
+                    JQ.dialog.dialogIframe({
+                        title: title,
+                        url: url,
+                        width: 1366,
+                        height: 900,
+                        onClose: function () {
+                            $("#DesTaskGrid").datagrid("reload");
+                        }
+                    });
+                    break;
+                case 3:
+                    //  提交设计
+                    url = _webconfig.serverUrl + 'Design/DesTask/TaskInfo?from=Remind&Id=' + taskId;
+                    JQ.dialog.dialog({
+                        title: title,
+                        url: url,
+                        width: 1200,
+                        height: 900,
+                        onClose: function () {
+                            $("#DesTaskGrid").datagrid("reload");
+                        }
+                    });
+                    break;
+                case 4:
+                    //  设计校审
+                    url = _webconfig.serverUrl + 'Design/DesTask/TaskInfoApprove?from=Remind&Id=' + taskId;
+                    JQ.dialog.dialog({
+                        title: title,
+                        url: url,
+                        width: 1200,
+                        height: 900,
+                        onClose: function () {
+                            $("#DesTaskGrid").datagrid("reload");
+                        }
+                    });
+                    break;
+                case 5:
+                    //会签任务
+                    url = _webconfig.serverUrl + 'Design/DesMutiSign/Edit?from=Remind&Id=' + tabId + '&RecID=' + taskGroupId;
+                    JQ.dialog.dialog({
+                        title: title,
+                        url: url,
+                        width: 800,
+                        height: 800,
+                        onClose: function () {
+                            $("#DesTaskGrid").datagrid("reload");
+                        }
+                    });
+                    break;
+            }
+        }
+    </script>
+}
+

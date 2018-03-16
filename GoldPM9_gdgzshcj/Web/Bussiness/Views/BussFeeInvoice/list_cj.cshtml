@@ -1,0 +1,175 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', "del", 'export'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("FeeInvoice", "IsoContract", new { @area = "ISO" })?CompanyType=CJ',//添加的路径
+                JQEditUrl: '@Url.Action("EditInvoice", "IsoContract", new { @area = "ISO" })?CompanyType=CJ',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'FormTableID',//主键的字段
+                JQID: 'BussFeeInvoiceGrid',//数据表格ID
+                JQDialogTitle: '合同开票',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                //JQCustomSearch: [  //自定义搜索的字段
+                //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+                //],
+                JQExcludeCol: [1, 13, 14, 15],//导出execl排除的列
+                //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+                //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+                //JQFields: ["", ""],//追加的字段名
+                url: '@Url.Action("jsonInvoice", "BussFeeInvoice",new { @area="Bussiness"})?CompanyType=CJ',//请求的地址
+                JQMergeCells: { fields: ['ck', 'FormDate', 'FormCreator', 'JQFiles', 'FlowProgress'], Only: 'FormTableID' },//当字段值相同时会自动的跨行(只对相邻有效)
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussFeeInvoicePanel',//工具栏的容器ID
+                //frozenColumns: [[{ field: 'ck', align: 'center', checkbox: true }, { title: "登记日期", field: "FormDate", halign: "center", align: "center", width: 80, formatter: JQ.tools.DateTimeFormatterByT }, { title: "登记人", field: "FormCreator", halign: "center", align: "center", width: 80 }]],
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true },
+                    {
+                        title: "登记日期", field: "FormDate", halign: "center", align: "center", width: 80, formatter: function (value, row, index) {
+                            row.FormDate = JQ.tools.DateTimeFormatterByT(value, row, index);
+                            return row.FormDate;
+                        }
+                    },
+                    { title: "登记人", field: "FormCreator", halign: "center", align: "center", width: 80 },
+                    { title: '合同编号', field: 'ConNumber', width: "15%", align: 'center', },
+                    { title: '合同名称', field: 'ConName', width: "12%", align: 'center', },
+                    { title: '客户单位', field: 'CustName', width: "10%", align: 'center', },
+                    {
+                        title: '合同金额(元)', field: 'ConFee', width: "8%", halign: 'center', align: 'right', formatter: function (value, row, index) {
+                            if (row.ConFulfilType == '@((int)DataModel.ConDealWays.开口)') {
+                                if (row.SumConFee == row.ConFee) {
+                                    return "<div ><span>" + row.SumConFee + "</span></div>";
+                                } else {
+                                    return "<div title=\"开口合同、红色金额为主合同金额\"><span>" + row.SumConFee + "</span><span style=\"color:red;\">（" + row.ConFee + "）</span></div>";
+                                }
+                            } else {
+                                if (row.SumConBalanceFee == row.ConBalanceFee) {
+                                    return "<div ><span>" + row.SumConBalanceFee + "</span></div>";
+                                }
+                                else {
+                                    return "<div title=\"闭口合同、红色金额为主合同金额\"><span>" + row.SumConBalanceFee + "</span><span style=\"color:red;\">（" + row.ConBalanceFee + "）</span></div>";
+                                }
+
+                            }
+                        }
+                    },
+                    { title: '已开票', field: 'FeeInvoice', width: "7%", halign: 'center', align: 'right', },
+                    { title: '本次开票金额', field: 'InvoiceMoney', width: "8%", halign: 'center', align: 'right' },
+                    { title: '开票类别', field: 'InvoiceTypeName', width: "6%", halign: 'center', align: 'center', },
+                    { title: '累计开票比例', field: 'Persent', width: "8%", halign: 'center', align: 'right' },
+                    { title: '本次开票日期', field: 'InvoiceDate', width: "8%", align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                     {
+                         field: 'JQFiles', title: '附件', align: 'center', width: "4%", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'BussFeeInvoiceISO', formatter: function (value, row) {
+                             return "<span id=\"grid_files_" + row.FormTableID + "\"></span>"
+                         }
+                     },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "center", halign: "center", width: "8%", formatter: function (value, row) {
+                            return JQ.Flow.showProgress("FlowIDD", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrentEmpID)")(value, row);
+                        }
+                    },
+                    {
+                        title: '操作', field: 'FormNewID', align: 'center', width: '5%', formatter: function (value, row, index) {
+                            var title = "查看";
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                            }
+                            return ' <a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick="EditCon(' + row.FormID + ')">' + title + '</a>';
+                        }
+                    }
+                ]],
+                onBeforeCheck: function (rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#BussFeeInvoiceGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '合同名称、编号',
+                //queryOptions: { 'Key': 'InvoiceNote', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BussFeeInvoiceGrid',
+                            loadingType: 'datagrid'
+                        });
+                }
+            });
+        });
+
+        function EditCon(id) {
+            if (id) {
+                JQ.dialog.dialog({
+                    title: "修改",
+                    url: '@Url.Action("EditInvoice", "IsoContract", new { @area = "ISO" })?CompanyType=CJ&id=' + id,
+                    width: '1024',
+                    height: '100%',
+                    JQID: 'BussFactGrid',
+                    iconCls: 'fa fa-plus'
+                });
+            }
+        }
+
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="BussFeeInvoiceGrid"></table>
+    <div id="BussFeeInvoicePanel" JQPanel="searchPanel" style="padding:5px;height:auto;border:hidden;">
+        <div JQPanel="toolbarPanel" style="float:left;padding-bottom:5px;">
+            <span class="label label-default"><strong style="padding:10px;"> 单位：元</strong></span>
+            <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+        </div>
+        <div style="float:left;padding-bottom:5px;">
+            开票类别：@BaseData.getBases(new Params()
+            {
+                isMult = true,
+                controlName = "InvoiceType",
+                isRequired = false,
+                engName = "InvoiceType",
+                queryOptions = "{'Key':'InvoiceType','Contract':'in','filedType':'Int'}",
+                width = "120px",
+
+            })
+        </div>
+        <div style="float:left;padding-bottom:5px;">
+            <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'ConName,ConNumber', Contract:'like'}" />
+        </div>
+        <div style="float:left;padding-bottom:5px;">
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开票日期开始'" JQWhereOptions="{ Key:'InvoiceDate', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开票日期结束'" JQWhereOptions="{ Key:'InvoiceDate', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>
+
+    </div>
+}
+

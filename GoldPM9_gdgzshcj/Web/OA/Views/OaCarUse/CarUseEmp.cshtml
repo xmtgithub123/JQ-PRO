@@ -1,0 +1,74 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("jsonCarUseEmp", "OaCarUse",new { @area="Oa"})';
+
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaCarUseGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#OaCarUsePanel',//工具栏的容器ID
+                nowrap: true,
+                columns: [[
+		                { title: '申请人', field: 'UseApplyEmp', width: '10%', align: 'center', halign: 'center' },
+		                { title: '所属部门', field: 'DeptName', width: '10%', align: 'center', halign: 'center' },
+		                { title: '用车时间(小时)', field: 'TotalCarTime', width: '9%', align: 'right', halign: 'center' },
+		                { title: '费用(元)', field: 'TotalCarFee', width: '9%', align: 'right', halign: 'center' },
+		                { title: '单据数(张)', field: 'TotalInvoice', width: '9%', align: 'right', halign: 'center' }
+
+                ]]
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '申请人',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'OaCarUseGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+        function Opencheckin(sId) {
+            JQ.dialog.dialog({
+                title: "收车登记",
+                url: '@Url.Action("Edit01")' + '?id=' + sId,
+                width: '700',
+                height: '800',
+                JQID: 'CheckIn',
+                JQLoadingType: 'treegrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaCarUseGrid"></table>
+    <div id="OaCarUsePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'UseApplyEmp', 'Contract': 'like' }" />
+
+    </div>
+}
+

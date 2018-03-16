@@ -1,0 +1,213 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("ProjExchList", "DesExch", new { @area = "Design" })';
+        var params = {
+            'IsAll': 'new',
+        };
+        $(function () {
+            JQ.datagrid.datagrid({
+                toolbar: '#DesExchPanel',
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: "DesExchGrid",//数据表格ID
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                checkOnSelect: false,
+                selectOnCheck: false,
+                fit: true,
+                pagination: true,
+                collapsible: true,
+                JQMergeCells: { fields: ['Id', 'ExchTitle', 'ExchSpecName', 'ExchEmpName', 'SpecIdent', 'EmpIdent', 'dateIdent', 'NumberIdent', 'projIdent', 'process', 'opr', 'CreationTime'] },
+                url: requestUrl,
+                columns: [[
+                    {
+                        title: '项目名称', field: 'NumberIdent', width: "18%", halign: 'center', align: 'left',
+                        formatter: function (val, row) {
+                            if (row.ExchIsInvalid == false) {
+                                return '<span style="color:red;">' + row.ProjName + '</span>'
+                            }
+                            else {
+                                return row.ProjName;
+                            }
+
+                        }
+                    },
+                    //{
+                    //    title: '项目阶段', field: 'projIdent', width: '100', halign: 'center', align: 'center',
+                    //    formatter: function (val, row) {
+                    //        return row.Phasename;
+                    //    }
+                    //},
+                    {
+                        title: '资料名称', field: 'ExchTitle', width: "15%", align: 'left', halign: 'center',
+                        formatter: function (val, row) {
+                            return row.ExchTitle;//'<b>'+row.ExchTitle+'</b>';
+                        }
+                    },
+                    {
+                        title: '提资专业', field: 'SpecIdent', width: "8%", align: 'center', halign: 'center',
+                        formatter: function (val, row, index) {
+                            return row.ExchSpecName;
+                        }
+                    },
+                    {
+                        title: '提资人', field: 'EmpIdent', width: "6%", align: 'center', halign: 'center',
+                        formatter: function (val, row) {
+                            return row.ExchEmpName;
+                        }
+                    },
+
+                    {
+                        title: '提资时间', field: 'CreationTime', width: "12%", align: 'center', halign: 'center'
+                    },
+
+                    { title: '收资专业', field: 'RecSpecName', width: "8%", align: 'center', halign: 'center' },
+                    { title: '收资人', field: 'RecEmpName', width: "6%", align: 'center', halign: 'center' },
+                    { title: '接收时间', field: 'RecTime', width: "8%", align: 'left', halign: 'center', formatter: JQ.tools.DateTimeFormatterByT }, //
+
+                    {
+                        title: '提资期限', field: 'dateIdent', width: "8%", align: 'center', halign: 'center',
+                        formatter: function (val, row)//JQ.tools.DateTimeFormatterByT
+                        {
+                            var value = "";
+                            if (JQ.tools.isNotEmpty(row.ExcLastPutTime)) {
+                                value = row.ExcLastPutTime.replace("T", " ").substring(0, 10);
+
+                                if (row.ExcLastPutTime.substring(0, 4) <= 1900)
+                                    value = "";
+                            }
+                            return value;
+                        }
+                    },
+                    {
+                        title: '提资单', field: 'projIdent', width: "8%", align: 'center',
+                        formatter: function (value, row) {
+                            return '<a Exchange  class="easyui-linkbutton"    onclick="Exchange(' + row.Id + ')">提资单</a>  ';
+                        }
+                    }
+                    //,
+                    //  {
+                    //      field: "process", title: "流程进度", align: "center", halign: "center", width: 80,
+                    //      formatter: JQ.Flow.showFlowProgress("DesExchGrid", "DesExch", "Id")
+                    //  }
+                ]],
+                queryParams: params,
+                onLoadSuccess: function (row) {
+                    $("a[Exchange]").linkbutton({ iconCls: 'fa fa-edit' });
+                }
+            })
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '资料名称、资料内容',
+                onClickButton: function () {
+                   
+                    params.KeyText = $("#JQSearch").textbox('getValue');
+                    params.SpecId = JSON.stringify($("#SpecialCtl").combotree("getValues"));
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'DesExchGrid',
+                            loadingType: 'datagrid',
+                            queryParams: params
+                        });
+                }
+            });
+
+            function getProgress(grid, refTable, refID, url) {
+                if (!JQ.Flow._progress) {
+                    JQ.Flow._progress = {
+                    };
+                }
+                JQ.Flow._progress["$flow" + grid] = {
+                    url: url, refTable: refTable, ids: []
+                };
+                return JQ.Flow._progress["$flow" + grid];
+            }
+
+            $("#SpecId").combobox({
+                prompt: '下拉选择专业',
+                valueField: 'id',
+                textField: 'text',
+                url: '@Url.Action("treejson", "basedata", new { @area= "Core" })?engName=Special',
+                editable: false,
+                onChange: function (newVal, oldVal) {
+                    $("#DesExchGrid").datagrid("reload", '@Url.Action("InHandExchList", "DesExch",new { @area="Design"})?SpecId=' + newVal);
+                }
+            });
+        });
+
+
+        //提资单页面信息
+        function Exchange(ExchId) {
+            JQ.dialog.dialog({
+                title: '提资单信息',
+                width: '800',
+                height: '650',
+                url: '@Url.Action("IsoExchangeInfo", "DesExch", new { @area = "Design" })?Id=' + ExchId
+            });
+        }
+
+        function ShowAll() {
+            if ($("#showAll").attr("attrTootip") == "all") {
+                $("#showAll").attr("attrTootip", "new");
+                $("#showAll").linkbutton({
+                    text: "显示最新"
+                });
+                params.IsAll = "all";
+            }
+            else {
+                $("#showAll").attr("attrTootip", "all");
+                $("#showAll").linkbutton({
+                    text: "显示全部"
+                });
+                params.IsAll = "new";
+            }
+            params.KeyText = $("#JQSearch").textbox('getValue');
+            params.SpecId = JSON.stringify($("#SpecialCtl").combotree("getValues"));
+            JQ.datagrid.searchGrid({
+                dgID: 'DesExchGrid',
+                loadingType: 'datagrid',
+                queryParams: params
+            });
+
+            @*$("#DesExchGrid").datagrid("reload", '@Url.Action("ProjExchList", "DesExch", new { @area = "Design" })?IsAll=1');*@
+
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="DesExchGrid"></table>
+    <div id="DesExchPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+            @BaseData.getBases(new Params()
+    {
+        isMult = true,
+        controlName = "SpecialCtl",
+        isRequired = false,
+        engName = "Special",
+        queryOptions = "{'Key':'SpecId','Contract':'in','filedType':'Int'}",
+        width = "120px",
+    })
+        </span>
+        <span>筛选条件：</span>
+        <input id="JQSearch" style="width:250px;" />
+        @*<span style="margin-left:40px;">发起时间： </span>
+            <span>
+                <input type="text" id="startTime" class="easyui-datebox" style="width:120px;" prompt="开始时间" />
+                --
+                <input type="text" id="endTime" class="easyui-datebox" style="width:120px;" prompt="结束时间" />
+            </span>*@
+        <span style="margin-left:40px;">
+            提资专业：
+            @*<select id="SpecId" class="easyui-combobox" style="width:200px;"></select>*@
+
+        </span>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-refresh'" onclick="ShowAll();" id="showAll" attrTootip="all">显示全部</a>
+    </div>
+}
+

@@ -1,0 +1,86 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml");
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "OaEquipRepair",new { @area="Oa"})',
+               addUrl = '@Url.Action("add","OaEquipRepair",new {@area="Oa" })',
+               editUrl = '@Url.Action("edit", "OaEquipRepair",new {@area="Oa" })',
+               delUrl = '@Url.Action("del", "OaEquipRepair", new { @area = "Oa" })';
+        var equipType = "?EquipOrOffice=" + @Request.QueryString["EquipOrOffice"];
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl+equipType, //添加的路径
+                JQEditUrl: editUrl+equipType,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaEquipRepairGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '600',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQExcludeCol: [1, 7],
+                url: requestUrl+equipType,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#OaEquipRepairPanel',//工具栏的容器ID
+                onBeforeCheck: function (rowIndex, rowData) {
+                    if ($(".datagrid-row[datagrid-row-index=" + rowIndex + "] input[type='checkbox']").attr("disabled") == "disabled") {
+                        return false;
+                    }
+                },
+                onCheckAll: function (rowData) {
+                    for (var i = 0; i < rowData.length; i++) {
+                        if ($(".datagrid-row[datagrid-row-index=" + i + "] input[type='checkbox']").attr("disabled") == "disabled") {
+                            $(".datagrid-row[datagrid-row-index=" + i + "] input[type='checkbox']")[0].checked = false;
+                        }
+                    }
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '设备/备注',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'OaEquipRepairGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaEquipRepairGrid">
+        <thead>
+            <tr>
+                <th data-options="field:'ck',aligh:'center',checkbox:true,JQIsExclude: true"></th>
+                <th data-options="field:'EquipName',align: 'center', sortable: true" style="width:10%;">设备</th>
+                <th data-options="field:'RepairMeoney',align: 'center', sortable: true" style="width:10%;">维修金额</th>
+                <th data-options="field:'RepairDate', formatter: JQ.tools.DateTimeFormatterByT,align: 'center', sortable: true" style="width:10%;">维修日期</th>
+                <th data-options="field:'FixDate', formatter: JQ.tools.DateTimeFormatterByT,align: 'center', sortable: true" style="width:10%;">维修日期</th>
+                <th data-options="field:'RepairReportEmpName',align: 'center', sortable: true" style="width:10%;">登记人</th>
+                <th data-options="field:'RepairFlowEmpName',align: 'center', sortable: true" style="width:10%;">经办人</th>
+                <th data-options="field:'JQFiles',align: 'center', sortable: true,JQIsExclude: true, JQRefTable: 'OaEquipRepair'" style="width:10%;">附件</th>
+                <th data-options="field:'RepairNote',align: 'center', sortable: true" style="width:20%;">备注</th>
+            </tr>
+        </thead>
+    </table>
+    <div id="OaEquipRepairPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'FK_OaEquipRepair_EquipID.EquipName,RepairNote', 'Contract': 'like' }" />
+
+    </div>
+}
+

@@ -1,0 +1,78 @@
+﻿@model DataModel.Models.ArchShareFolderML
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'ArchShareFolderMLForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            debugger;
+            var divId = '@Request.Params["divid"]';
+            if (divId != null) {
+                if (typeof (window.top["_DialogCallback_"+divId]) == "function") {
+                    window.top["_DialogCallback_"+divId]();
+                }
+            }
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "ArchShareFolderML", FormMethod.Post, new { @area = "Archive", @id = "ArchShareFolderMLForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">
+                文件编号
+                <input type="hidden" id="FlderId" name="FlderId" value="@Request.Params["FolderId"].ToString()"
+            </th>
+            <td width="40%">
+                <input name="FileNumber" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,50]" value="@Model.FileNumber" />
+            </td>
+            <th width="10%">责任者</th>
+            <td width="40%">
+                <input name="Manager" style="width:98%;" class="easyui-textbox" validType="length[0,50]" value="@Model.Manager" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">文件材料题名</th>
+            <td width="40%">
+                <input name="FileName" style="width:98%;" class="easyui-textbox" validType="length[0,50]" value="@Model.FileName" />
+            </td>
+            <th width="10%">日期</th>
+            <td width="40%">
+                <input name="Time" style="width:98%;" class="easyui-datebox" validType="length[0,23]" value="@Model.Time" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">页数</th>
+            <td width="40%">
+                <input name="PageNumber" style="width:98%;" class="easyui-numberbox" validType="length[0,10]" value="@Model.PageNumber" />
+            </td>
+            <th>序号</th>
+            <td><input name="ByOrder" style="width:98%;" class="easyui-numberbox" validType="length[0,10]" value="@Model.ByOrder" /></td>
+        </tr>
+        <tr>
+            <th width="10%">备注</th>
+            <td colspan="3">
+                <input name="Remark" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@Model.Remark" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "ArchShareFolderML";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+
+                    }

@@ -1,0 +1,67 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent" class="bodycontent">
+    <form id="form1">
+        <div style="margin:5px">
+            <table class="documenttable">
+                <tr>
+                    <th style="width:80px;height:40px">表单名称</th>
+                    <td style="width:280px">
+                        @(ViewBag.ProcessName)
+                    </td>
+                </tr>
+                <tr>
+                    <th style="height:40px">版本号</th>
+                    <td>
+                        <div style="float:left">@(ViewBag.CurrentVersion)</div>
+                        <div style="float:right;margin-right:30px"><input type="checkbox" id="cbIsCurrentVersion" name="cbIsCurrentVersion" checked="checked" /><label for="cbIsCurrentVersion">设置为当前版本</label></div>
+                    </td>
+                </tr>
+                <tr>
+                    <th style="height:40px">
+                        发布日期
+                    </th>
+                    <td>
+                        @(ViewBag.CurrentDate)
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript">
+    function sure() {
+        var data = window.frameElement.api.getSaveData();
+        if (!data) {
+            alert("无法获取到需要保存的数据！");
+            return;
+        }
+        YChart.ajax({
+            url: "@(Url.Action("SaveChartWithPublish", "Template",new { @area="Process" }))",
+            type: "POST",
+            data: { id: "@(ViewBag.ProcessTemplateID)", data: data, isCurrentVersion: (document.getElementById("cbIsCurrentVersion").checked ? "1" : "0") },
+            success: function (result) {
+                if (!result.Result) {
+                    alert(result.Message);
+                }
+                else {
+                    window.frameElement.api.afterSave();
+                    frameElement.closeDialog();
+                }
+            }
+        });
+    }
+</script>

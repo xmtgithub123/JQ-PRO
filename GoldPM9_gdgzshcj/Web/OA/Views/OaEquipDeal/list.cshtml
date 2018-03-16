@@ -1,0 +1,121 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+    var requestUrl = '@Url.Action("json", "OaEquipDeal",new { @area="Oa"})',
+           addUrl = '@Url.Action("add","OaEquipDeal",new {@area="Oa" })',
+           editUrl = '@Url.Action("edit", "OaEquipDeal",new {@area="Oa" })',
+           delUrl = '@Url.Action("del", "OaEquipDeal", new { @area = "Oa" })';
+
+        var equipType = "?EquipOrOffice=" + @Request.QueryString["EquipOrOffice"];
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit','del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl + equipType, //添加的路径
+                JQEditUrl: editUrl+ equipType,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaEquipDealGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+				JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '备注',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+				url: requestUrl+ equipType,//请求的地址
+                JQExcludeCol: [1,10,11,9],//导出execl排除的列
+                checkOnSelect: true,//是否包含check
+				fitColumns: false,
+                nowrap: false,
+                toolbar: '#OaEquipDealPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+				  		{ title: '--办公/设备处置表--', field: 'Id',hidden:true, width: "10%", align: 'center', sortable: true  },
+		//{ title: '删除日期', field: 'DeletionTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		//{ title: '最后修改时间', field: 'LastModificationTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		//{ title: '最后修改人ID', field: 'LastModifierEmpId', width: 100, align: 'center', sortable: true  },
+		//{ title: '最后修改人姓名', field: 'LastModifierEmpName', width: 100, align: 'center', sortable: true  },
+		//{ title: '创建时间', field: 'CreationTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		//{ title: '创建人ID', field: 'CreatorEmpId', width: 100, align: 'center', sortable: true  },
+		//{ title: '创建人姓名', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true  },
+		//{ title: '创建部门', field: 'CreatorDepId', width: 100, align: 'center', sortable: true  },
+		//{ title: '创建部门姓名', field: 'CreatorDepName', width: 100, align: 'center', sortable: true  },
+		//{ title: '删除人员', field: 'DeleterEmpId', width: 100, align: 'center', sortable: true  },
+		//{ title: '删除人员姓名', field: 'DeleterEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '设备名称', field: 'EquipId', width: "10%", align: 'center', sortable: true  },
+		{ title: '处置状态', field: 'DealStatusId', width: "10%", align: 'center', sortable: true  },
+		{ title: '设备数量', field: 'EquipCount', width: "10%", align: 'center', sortable: true  },
+		{ title: '处置备注', field: 'EquipNote', width: "30%", align: 'center', sortable: true  },
+		{ title: '登记人', field: 'RepairReportEmpId', width: "10%", align: 'center', sortable: true  },
+		{ title: '处置时间', field: 'DealDate', width: "10%", align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+                 { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'OaEquipDeal' },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", @ViewBag.CurrentEmpID)
+                    },
+                    {
+                        field: "opt", title: "操作", align: "center", halign: "center", width: 40,
+                        formatter: function (value, row, index) {
+
+                            var title = "查看";
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                            }
+                            return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"ShowOaFileSendDialogue('" + row.Id + "')\">" + title + "</>";
+                        }
+                    }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#OaEquipDealGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+        });
+
+        function ShowOaFileSendDialogue(Id) {
+            JQ.dialog.dialog({
+                title: "编辑设备处置单",
+                url: '@Url.Action("edit")' +equipType+ '&Id=' + Id,
+                width: '800',
+                height: '600',
+                onClose: function () {
+                    $("#OaEquipDealGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaEquipDealGrid"></table>
+    <div id="OaEquipDealPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            
+        </span>
+
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ 'Key': 'EquipNote', 'Contract': 'like' }" />
+
+    </div>
+}
+

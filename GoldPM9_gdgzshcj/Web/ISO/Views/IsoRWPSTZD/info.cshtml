@@ -1,0 +1,391 @@
+﻿@model DataModel.Models.IsoRWPSTZD
+@using JQ.Web;
+<script type="text/javascript">
+    var  btnPer=@Html.Raw(ViewBag.permission);
+
+    JQ.form.submitInit({
+        formid: 'IsoRWPSTZDForm',//formid提交需要用到
+        buttonTypes: ['close','exportForm'],//默认按钮
+        docName: 'IsoRWPSTZD',
+        beforeFormSubmit: function () {
+
+            var valA = '';
+            $("[name='itemsA']").each(function(index, element) {
+                if($(this).attr('Checked')=='checked')
+                {
+                    valA += $(this).val() + ",";
+                }
+            });
+            $("#stritemsA").val(JQ.Flow.htmlEncode(valA));
+
+            var valB = '';
+            $("[name='itemsB']").each(function(index, element) {
+                if($(this).attr('Checked')=='checked')
+                {
+                    valB += $(this).val() + ",";
+                }
+            });
+            $("#stritemsB").val(JQ.Flow.htmlEncode(valB));
+
+            var valC = '';
+            $("[name='itemsC']").each(function(index, element) {
+                if($(this).attr('Checked')=='checked')
+                {
+                    valC += $(this).val() + ",";
+                }
+            });
+            $("#stritemsC").val(JQ.Flow.htmlEncode(valC));
+
+            var valD = '';
+            $("[name='itemsD']").each(function(index, element) {
+                if($(this).attr('Checked')=='checked')
+                {
+                    valD += $(this).val() + ",";
+                }
+            });
+            $("#stritemsD").val(JQ.Flow.htmlEncode(valD));
+
+            var valE = '';
+            $("[name='itemsE']").each(function(index, element) {
+                if($(this).attr('Checked')=='checked')
+                {
+                    valE += $(this).val() + ",";
+                }
+            });
+            $("#stritemsE").val(JQ.Flow.htmlEncode(valE));
+            debugger;
+        },
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            var _tempFrame = window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+            if (_tempFrame) {
+                _tempFrame.contentWindow.refreshGrid();
+            }
+            _flowInstance.$form.parent().dialog("close");
+        },
+        flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "ISO,ISO.FlowProcessor.IsoRWPSTZDFlow",
+            refID: "@(Model.Id)",
+            refTable: "IsoRWPSTZD",
+            dataCreator: "@(ViewBag.CurrEmpID)",
+            getStepUsers: function (step, action) {
+            },
+            onLoaded: function () {
+                $("#stepOrder").val(this.stepOrder);
+            }
+        },
+        onBefore: function (resultArr) {
+            var bit="0";
+            if($.inArray("allDown", btnPer)!=-1){
+                bit="1";
+            }
+            resultArr.push({ Key: "Permission", Value: bit});
+        }
+    });
+    function SelectProjectInfo() {
+        JQ.dialog.dialog({
+            title: "选择项目信息",
+            url: '@Url.Action("ChooseProjectList1", "EmpManage", new { @area = "Engineering" })?CompanyType=FGS&TaskGroupId=0',
+            width: '1024',
+            height: '100%',
+            JQID: 'ShowProjectTreeGridList',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-plus',
+        });
+    }
+    var _ProjCallBack = function (param) {
+
+
+        $("#projId").val(param[0].Id);
+        $("#projPhaseId").val(param[0].ProjPhaseId);
+        $("#desTaskGroupId").val(param[0].TaskGroupId);
+        $("#CompanyID").val(param[0].CompanyID);
+
+        $("#ProjNumber").textbox('setValue', param[0].ProjNumber);
+        $("#ProjName").textbox('setValue', param[0].ProjName);
+        $("#ProjPhaseName").textbox('setValue', param[0].ProjPhaseName);
+
+
+        $("#CompanyName").textbox('setValue', param[0].CustName);
+        $("#CompanyLinkMan").textbox('setValue', param[0].CustLinkMan);
+        $("#CompanyTel").textbox('setValue', param[0].CustLinkTel);
+
+        $("#ProjDeptName").textbox('setValue', param[0].ProjDeptName);
+        $("#ColAttType1Name").textbox('setValue', param[0].ColAttType1Name);
+        $("#ProjAreaName").textbox('setValue', param[0].ProjAreaName);
+
+    }
+
+    $(function () {
+
+        if(@(Model.Id)>0)
+        {
+            $("#projId").val(@Model.ProjID);
+            $("#projPhaseId").val(@Model.ProjPhaseId);
+            $("#desTaskGroupId").val(@Model.DesTaskGroupId);
+            $("#CompanyID").val(@Model.CompanyID);
+
+
+            $("#itemsA").val(@(ViewBag.stritemsA));
+            $("#itemsB").val(@(ViewBag.stritemsB));
+            $("#itemsC").val(@(ViewBag.stritemsC));
+            $("#itemsD").val(@(ViewBag.stritemsD));
+            $("#itemsE").val(@(ViewBag.stritemsE));
+        }
+
+    })
+
+</script>
+@using (Html.BeginForm("save", "IsoRWPSTZD", FormMethod.Post, new { @area = "Iso", @id = "IsoRWPSTZDForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <div style="width:100%;text-align:center;font-size:20px;font-weight:bold;margin-top:10px;">
+            <a>任务评审通知单</a>
+        </div>
+        <div style="float:left;margin-left:20px;margin-top:10px;">
+            表<label>@Model.TableNumber</label><input name="TableNumber" type="hidden" value="@Model.TableNumber" />
+        </div>
+        <div style="float:right;margin-right:20px;margin-top:10px;margin-bottom:10px;">
+            编号<input name="Number" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@Model.Number" />
+        </div>
+
+        <tr>
+            <th width="10%">
+                项目编号
+            </th>
+            <td width="40%">
+                <input name="ProjNumber" id="ProjNumber" style="width:65%;" class="easyui-textbox" validType="length[0,500]" value="@Model.ProjNumber" data-options="required:true,readonly:true" />
+                <a class="easyui-linkbutton" name="btnChoiceProject" data-options="plain:true,iconCls:'fa fa-plus'" onclick="SelectProjectInfo()" style="display:none;">选择项目信息</a>
+            </td>
+            <th width="10%">项目名称</th>
+            <td width="40%">
+                <input name="ProjName" id="ProjName" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@Model.ProjName" data-options="required:true,readonly:true" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">阶段</th>
+            <td width="40%">
+                <input name="ProjPhaseName" id="ProjPhaseName" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@Model.ProjPhaseName" data-options="required:true,readonly:true" />
+            </td>
+            <th width="10%">主体设计部门</th>
+            <td width="40%">
+                <input name="ProjDeptName" id="ProjDeptName" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@ViewBag.ProjDeptName" data-options="readonly:true" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">项目类型</th>
+            <td width="40%">
+                <input name="ColAttType1Name" id="ColAttType1Name" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@ViewBag.ColAttType1Name" data-options="readonly:true" />
+            </td>
+            <th width="10%">工程地点</th>
+            <td width="40%">
+                <input name="ProjAreaName" id="ProjAreaName" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@ViewBag.ProjAreaName" data-options="readonly:true" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">管理等级</th>
+            <td width="40%">
+                <input name="ManageClass" id="ManageClass" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@Model.ManageClass" />
+            </td>
+            <th width="10%">客户单位</th>
+            <td width="40%">
+                <input name="CompanyName" id="CompanyName" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@ViewBag.CompanyName" data-options="readonly:true" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">联系人</th>
+            <td width="40%">
+                <input name="CompanyLinkMan" id="CompanyLinkMan" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@ViewBag.CompanyLinkMan" data-options="readonly:true" />
+            </td>
+            <th width="10%">电  话</th>
+            <td width="40%">
+                <input name="CompanyTel" id="CompanyTel" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@ViewBag.CompanyTel" data-options="readonly:true" />
+            </td>
+        </tr>
+        <Tr>
+            <th width="10%">任务创建依据</th>
+            <td width="40%" combotreemark="TaskPursuant">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "TaskPursuant",
+               isRequired = true,
+               engName = "TaskPursuant",
+               width = "98%",
+               ids = Model.TaskPursuant.ToString(),
+               isMult = false
+           })
+            </td>
+            <th width="10%">工程等级</th>
+            <td width="40%" combotreemark="ProjectClass">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ProjectClass",
+               isRequired = true,
+               engName = "ProjectClass",
+               width = "98%",
+               ids = Model.ProjectClass.ToString(),
+               isMult = false
+           })
+            </td>
+        </Tr>
+        <Tr>
+            <th width="10%">评审方式</th>
+            <td width="40%" combotreemark="AppraisalWay">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "AppraisalWay",
+               isRequired = true,
+               engName = "AppraisalWay",
+               width = "98%",
+               ids = Model.AppraisalWay.ToString(),
+               isMult = false
+           })
+            </td>
+            <th width="10%">资料要求</th>
+            <td width="40%" combotreemark="DataRequire">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "DataRequire",
+               isRequired = true,
+               engName = "DataRequire",
+               width = "98%",
+               ids = Model.DataRequire.ToString(),
+               isMult = false
+           })
+            </td>
+        </Tr>
+        <tr>
+            <th width="10%">评审内容</th>
+            <Td colspan="3">
+                <table id="dgGrid">
+                    <thead>
+                        <tr>
+                            <th style="width:400px;text-align:center">评审内容</th>
+                            <th style="width:100px;text-align:center">选择项</th>
+                            <th style="width:500px;text-align:center">补充说明</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td style="text-align:left">1.专业技术人员配备是否满足要求</td>
+                            <td style="text-align:center">
+                                @Html.CheckBoxList("itemsA");
+                            </td>
+                            <td style="width:500px;text-align:left">
+                                <input name="AppraisalContents1" id="AppraisalContents1" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@ViewBag.AppraisalContents1" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:left">2.如顾客进度要求明确，是否能够满足进度要求</td>
+                            <td style="text-align:center">
+                                @Html.CheckBoxList("itemsB");
+                            </td>
+                            <td style="width:500px;text-align:left">
+                                <input name="AppraisalContents2" id="AppraisalContents2" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@ViewBag.AppraisalContents2" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:left">3.是否同意对承接内容管理等级的确定</td>
+                            <td style="text-align:center">
+                                @Html.CheckBoxList("itemsC");
+                            </td>
+                            <td style="width:500px;text-align:left">
+                                <input name="AppraisalContents3" id="AppraisalContents3" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@ViewBag.AppraisalContents3" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:left"> 4.项目有关质量、环境、职业健康安全方面是否存在风险</td>
+                            <td style="text-align:center">
+                                @Html.CheckBoxList("itemsD");
+                            </td>
+                            <td style="width:500px;text-align:left">
+                                <input name="AppraisalContents4" id="AppraisalContents4" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@ViewBag.AppraisalContents4" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:left">5.是否申请无产值工日</td>
+                            <td style="text-align:center">
+                                @Html.CheckBoxList("itemsE");
+                            </td>
+                            <td style="width:500px;text-align:left">
+                                <input name="AppraisalContents5" id="AppraisalContents5" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@ViewBag.AppraisalContents5" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>6.其他评审意见</td>
+                            <td style="width:600px;text-align:left" colspan="2">
+
+                                <input name="AppraisalContents6" id="AppraisalContents6" style="width:590px;" class="easyui-textbox" validType="length[0,500]" value="@ViewBag.AppraisalContents6" />
+
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+
+            </Td>
+        </tr>
+        <tr>
+            <th width="10%" rowspan="4">项目基本内容</th>
+        </tr>
+        <tr>
+            <td colspan="3">
+                任务内容:
+                <textarea name="TaskContents1" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.TaskContents1</textarea>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="3">
+                创建任务时可以明确的分包或合作设计单位及设计内容
+                <textarea name="TaskContents2" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.TaskContents2</textarea>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                顾客对项目进度的要求
+                <textarea name="TaskContents3" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.TaskContents3</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">备注</th>
+            <td width="40%" colspan="3">
+                <textarea name="Contents" style="width:99%;height:120px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.Contents</textarea>
+            </td>
+
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "IsoBCRWTZD";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <input type="hidden" id="projId" name="projId" value="@Model.ProjID" />
+    <input type="hidden" id="projPhaseId" name="projPhaseId" value="@Model.ProjPhaseId" />
+    <input type="hidden" id="desTaskGroupId" name="desTaskGroupId" value="@Request.Params["taskGroupId"]" />
+    <input type="hidden" id="CompanyID" name="CompanyID" value="0" />
+    <input type="hidden" id="stepOrder" name="stepOrder" value="0" />
+    <input type="hidden" id="IsMultiSelect" name="IsMultiSelect" value="1" />
+    <input type="hidden" id="stritemsA" name="stritemsA" value="" />
+        <input type="hidden" id="stritemsB" name="stritemsB" value="" />
+        <input type="hidden" id="stritemsC" name="stritemsC" value="" />
+        <input type="hidden" id="stritemsD" name="stritemsD" value="" />
+        <input type="hidden" id="stritemsE" name="stritemsE" value="" />
+                    }

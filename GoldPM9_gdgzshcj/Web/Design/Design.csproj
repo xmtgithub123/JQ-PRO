@@ -1,0 +1,909 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{25357C12-DE71-4F77-A2ED-0882021EDCC7}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Design</RootNamespace>
+    <AssemblyName>Design</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Aspose.Words">
+      <HintPath>..\..\Lib\Aspose.Words.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+      <HintPath>..\..\Lib\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+      <HintPath>..\..\Lib\Microsoft.AspNet.SignalR.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="RazorGenerator.Mvc, Version=2.0.0.0, Culture=neutral, PublicKeyToken=7b26dc2a43f6a0d4, processorArchitecture=MSIL">
+      <HintPath>..\..\Lib\RazorGenerator.Mvc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Mvc, Version=4.0.0.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\System.Web.WebPages.Razor.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="WebActivatorEx">
+      <HintPath>..\..\Lib\WebActivatorEx.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\web.config" />
+    <Content Include="Web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_Start\RazorGeneratorMvcStart.cs" />
+    <Compile Include="Controllers\DesExchMobileController.cs" />
+    <Compile Include="Controllers\DesExchMobileView.cs" />
+    <Compile Include="Controllers\DesPlanTableController.cs" />
+    <Compile Include="Controllers\DesDeliveryController.cs" />
+    <Compile Include="Controllers\DesDiscussController.cs" />
+    <Compile Include="Controllers\DesEventController.cs" />
+    <Compile Include="Controllers\DesExchController.cs" />
+    <Compile Include="Controllers\DesFlowController.cs" />
+    <Compile Include="Controllers\DesFlowView.cs" />
+    <Compile Include="Controllers\DesMutiSignController.cs" />
+    <Compile Include="Controllers\DesProjFileController.cs" />
+    <Compile Include="Controllers\DesReceiveController.cs" />
+    <Compile Include="Controllers\DesTaskAltInfoController.cs" />
+    <Compile Include="Controllers\DesTaskCheckController.cs" />
+    <Compile Include="Controllers\DesTaskController.cs" />
+    <Compile Include="Controllers\DesTaskView.cs" />
+    <Compile Include="Controllers\GCADAPIController.cs" />
+    <Compile Include="DesignAreaRegistration.cs" />
+    <Compile Include="FlowProcessor\DesExchApprove.cs" />
+    <Compile Include="FlowProcessor\FlowDesMutiSign.cs" />
+    <Compile Include="FlowProcessor\ProjProgressAdjust.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Views\DesDelivery\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesDelivery\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesDiscuss\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesDiscuss\infoReply.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoReply.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesDiscuss\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesDiscuss\ProjDiscussList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjDiscussList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesDiscuss\ProjDiscussListView.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjDiscussListView.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesEvent\ChooseProjectList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ChooseProjectList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesEvent\info1.generated.cs">
+      <DependentUpon>info1.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesEvent\infoView.generated.cs">
+      <DependentUpon>infoView.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesEvent\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesEvent\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesEvent\ProjEventList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjEventList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesExchMobile\ExchInfoApprove.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ExchInfoApprove.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesExch\DesSpecExchList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DesSpecExchList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesExch\AskingExch.generated.cs">
+      <DependentUpon>AskingExch.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesExch\ExchInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ExchInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesExch\ExchInfoApprove.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ExchInfoApprove.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesExch\ExchPlanInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ExchPlanInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesExch\ExchPlanList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ExchPlanList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesExch\ExchModelData.generated.cs">
+      <DependentUpon>ExchModelData.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesExch\BackExchTaskList.generated.cs">
+      <DependentUpon>BackExchTaskList.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesExch\ExchTaskList.generated.cs">
+      <DependentUpon>ExchTaskList.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesExch\ExchRemindList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ExchRemindList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesExch\IsoExchangeInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>IsoExchangeInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesExch\IsoExchList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>IsoExchList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesExch\ProjectProgressInfoExch.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjectProgressInfoExch.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesFlow\FlowNodeList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FlowNodeList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesFlow\FlowInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FlowInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesFlow\FlowList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FlowList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesFlow\FlowNodeOption.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FlowNodeOption.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesMutiSign\DesMutiSignRemind.generated.cs">
+      <DependentUpon>DesMutiSignRemind.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesMutiSign\DesMutiSignInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DesMutiSignInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesMutiSign\DesMutiSignList.generated.cs">
+      <DependentUpon>DesMutiSignList.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesPlanTable\selectPlan.generated.cs">
+      <DependentUpon>selectPlan.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesReceive\ExchRecList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ExchRecList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesReceive\RecInfoApprove.generated.cs">
+      <DependentUpon>RecInfoApprove.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesReceive\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesReceive\ProjDesReceive.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjDesReceive.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTaskAltInfo\FeeDetailInfo.generated.cs">
+      <DependentUpon>FeeDetailInfo.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesTaskAltInfo\DesignInfo.generated.cs">
+      <DependentUpon>DesignInfo.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesTaskCheck\DesTaskCheckInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DesTaskCheckInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTaskCheck\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTaskCheck\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTaskCheck\MisTakeList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>MisTakeList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTaskCheck\TaskCheckList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskCheckList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\ChooseCheckFile.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ChooseCheckFile.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\EditGantt.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EditGantt.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\EditTask.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>EditTask.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\PlanTableHtml.generated.cs">
+      <DependentUpon>PlanTableHtml.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesTask\PlanTableInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PlanTableInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\PlanTableList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PlanTableList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\ProjectGantt.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjectGantt.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\ProjectPlanInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjectPlanInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\ProjectPlanList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjectPlanList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\ProjectProgressListPW.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjectProgressListPW.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\SpecPlanBatch.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SpecPlanBatch.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\ProjectProgressInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjectProgressInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\ProjectProgressInfoOrg.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjectProgressInfoOrg.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\ProjectProgressInfoPlan.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjectProgressInfoPlan.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\ProjectProgressList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjectProgressList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\selectContent.generated.cs">
+      <DependentUpon>selectContent.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesTask\SpecPlanInfo.generated.cs">
+      <DependentUpon>SpecPlanInfo.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesTask\ProjectPlanMain.generated.cs">
+      <DependentUpon>ProjectPlanMain.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\DesTask\SpecPlanInfoAddSummary.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SpecPlanInfoAddSummary.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\SpecPlanList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SpecPlanList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskAttach.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskAttach.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskAttachApprove.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskAttachApprove.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\ProjectProgressInfoAttach.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ProjectProgressInfoAttach.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskAttachProgress.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskAttachProgress.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskAttachSplitFilesList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskAttachSplitFilesList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskGroupInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskGroupInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskInfoApprove.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskInfoApprove.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskInfoApprovePostBack.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskInfoApprovePostBack.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskInfoApprovePostPass.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskInfoApprovePostPass.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskInfoPostApprove.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskInfoPostApprove.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskPhaseInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskPhaseInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskProgressList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskProgressList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskRemindList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskRemindList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskSpecInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskSpecInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskWorkList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskWorkList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\DesTask\TaskWorkMain.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TaskWorkMain.cshtml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\DesDelivery\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesDelivery\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesEvent\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesEvent\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesExch\ExchInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ExchInfo.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesExch\ExchRemindList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ExchRemindList.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesFlow\FlowNodeList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>FlowNodeList.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesFlow\FlowInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>FlowInfo.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesFlow\FlowList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>FlowList.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesTaskCheck\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesTaskCheck\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesTask\SpecPlanInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>SpecPlanInfo.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\DesDiscuss\infoReply.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoReply.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesDiscuss\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesDiscuss\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\DesEvent\ProjEventList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjEventList.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesDiscuss\ProjDiscussList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjDiscussList.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\DesDiscuss\ProjDiscussListView.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjDiscussListView.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\DesReceive\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesExch\ExchInfoApprove.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ExchInfoApprove.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\DesEvent\ChooseProjectList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ChooseProjectList.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\DesEvent\infoView.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoView.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesEvent\info1.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info1.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\DesExchMobile\ExchInfoApprove.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ExchInfoApprove.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesExch\DesSpecExchList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>DesSpecExchList.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\DesExch\AskingExch.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>AskingExch.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\DesExch\ExchPlanList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ExchPlanList.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\DesExch\ExchModelData.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ExchModelData.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesMutiSign\DesMutiSignList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>DesMutiSignList.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesExch\ExchTaskList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ExchTaskList.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesExch\BackExchTaskList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>BackExchTaskList.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\DesExch\IsoExchangeInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>IsoExchangeInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesExch\IsoExchList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>IsoExchList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesExch\ProjectProgressInfoExch.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjectProgressInfoExch.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesFlow\FlowNodeOption.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>FlowNodeOption.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesMutiSign\DesMutiSignRemind.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>DesMutiSignRemind.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesMutiSign\DesMutiSignInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>DesMutiSignInfo.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\DesReceive\ExchRecList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ExchRecList.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesReceive\RecInfoApprove.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>RecInfoApprove.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesPlanTable\selectPlan.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>selectPlan.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\DesReceive\ProjDesReceive.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjDesReceive.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\DesTaskAltInfo\DesignInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>DesignInfo.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\DesTaskAltInfo\FeeDetailInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>FeeDetailInfo.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\DesTaskCheck\DesTaskCheckInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>DesTaskCheckInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTaskCheck\MisTakeList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>MisTakeList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTaskCheck\TaskCheckList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskCheckList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\ChooseCheckFile.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ChooseCheckFile.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\EditTask.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>EditTask.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\EditGantt.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>EditGantt.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\PlanTableHtml.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>PlanTableHtml.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\PlanTableInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>PlanTableInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\PlanTableList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>PlanTableList.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\DesTask\ProjectGantt.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjectGantt.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\DesTask\ProjectPlanInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjectPlanInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\ProjectProgressListPW.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjectProgressListPW.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\SpecPlanBatch.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>SpecPlanBatch.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\ProjectPlanMain.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjectPlanMain.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\ProjectPlanList.cshtml">
+      <LastGenOutput>ProjectPlanList.generated.cs</LastGenOutput>
+      <Generator>RazorGenerator</Generator>
+    </None>
+    <Content Include="Views\DesExch\ExchPlanInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ExchPlanInfo.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\DesTask\ProjectProgressInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjectProgressInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\ProjectProgressInfoOrg.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjectProgressInfoOrg.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\ProjectProgressInfoPlan.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjectProgressInfoPlan.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\ProjectProgressList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjectProgressList.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\DesTask\selectContent.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>selectContent.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\DesTask\SpecPlanInfoAddSummary.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>SpecPlanInfoAddSummary.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\SpecPlanList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>SpecPlanList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskAttach.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskAttach.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskAttachApprove.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskAttachApprove.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\ProjectProgressInfoAttach.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ProjectProgressInfoAttach.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskAttachProgress.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskAttachProgress.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskAttachSplitFilesList.cshtml">
+      <LastGenOutput>TaskAttachSplitFilesList.generated.cs</LastGenOutput>
+      <Generator>RazorGenerator</Generator>
+    </None>
+    <None Include="Views\DesTask\TaskGroupInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskGroupInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskInfoApprove.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskInfoApprove.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskInfoApprovePostBack.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskInfoApprovePostBack.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskInfoApprovePostPass.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskInfoApprovePostPass.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskInfoPostApprove.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskInfoPostApprove.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskPhaseInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskPhaseInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskProgressList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskProgressList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskRemindList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskRemindList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskSpecInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskSpecInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskWorkList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskWorkList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\DesTask\TaskWorkMain.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>TaskWorkMain.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+    <None Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="bin\" />
+    <Folder Include="Views\DesProjFile\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\BLLLayer\Common\JQ.Common.csproj">
+      <Project>{1d40b4ed-3210-4daa-a3d9-baa70da99f98}</Project>
+      <Name>JQ.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\BLLLayer\DataModel\DataModel.csproj">
+      <Project>{99ef246d-a5e3-4411-af05-3b9578f12284}</Project>
+      <Name>DataModel</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\BLLLayer\DBSql\DBSql.csproj">
+      <Project>{068290b4-77e2-4650-931e-c1e7205ad648}</Project>
+      <Name>DBSql</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\DALLayer\DAL\DAL.csproj">
+      <Project>{df3c0094-2e12-4d77-8219-a37e3c85711c}</Project>
+      <Name>DAL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\RWP.FrameworkForWeb\JQ.Web.csproj">
+      <Project>{d89b17b5-f256-423d-8255-5f205ebf07ef}</Project>
+      <Name>JQ.Web</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\RWP.Util\JQ.Util.csproj">
+      <Project>{90ab0830-f6da-426c-a3b0-7516535985bf}</Project>
+      <Name>JQ.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <ProjectExtensions />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

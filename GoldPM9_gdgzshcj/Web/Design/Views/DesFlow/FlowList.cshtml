@@ -1,0 +1,108 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@section head {
+    <script type="text/javascript">
+        var requestUrl = "@(Url.Action("FlowListGetListJson", "DesFlow", new { @area="Design"}))";
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: "@(Url.Action("FlowInfo","DesFlow",new {@area="Design" }))", //添加的路径
+                JQEditUrl: "@(Url.Action("FlowInfo", "DesFlow",new {@area="Design" }))",//编辑的路径
+                JQDelUrl: "@(Url.Action("Delete", "DesFlow", new { @area = "Design" }))", //删除的路径
+                JQPrimaryID: 'ID',//主键的字段
+                JQID: 'DesFlowGrid',//数据表格ID
+                JQDialogTitle: "生产流程信息",//弹出窗体标题
+                JQWidth: '400',//弹出窗体宽
+                JQHeight: '260',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                JQFields: ["ID"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: true,
+                nowrap: false,
+                toolbar: '#DesFlowPanel',//工具栏的容器ID
+                JQExcludeCol: [7],
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '流程名称',
+                },
+                columns: [[
+                    { title: 'ID', field: 'ID', width: 45, align: 'right', halign: "center" },
+		            {
+
+		                title: '流程名称', field: 'FlowName', width: 200, align: 'left', formatter: function (val, row) {
+		                    var a = document.createElement("a");
+		                    a.setAttribute("href", "javascript:void(0)");
+		                    a.appendChild(document.createTextNode(val));
+		                    a.setAttribute("onclick", "showModelNodeDialog(" + row.ID + ",\"" + encodeURIComponent(val) + "\")");
+		                    return a.outerHTML;
+		                }
+		            },
+		            {
+		                title: '适用专业类型', field: 'FlowSpecTypeText', width: 200, align: 'center'
+		            },
+		            {
+		                title: '适用任务类型', field: 'FlowLevelTypeText', width: 200, align: 'center'
+		            },
+		            { title: '创建人', field: 'CreatorEmpName', width: 100, align: 'center' },
+		            {
+		                title: '最后修改时间', field: 'LastModificationTime', width: 100, align: 'center', formatter: function (value, rowData) {
+		                    var text = JQ.tools.DateTimeFormatterByT(value);
+		                    rowData.LastModificationTime = text;
+		                    return text;
+		                }
+		            },
+                    {
+                        title: '操作', field: 'Id', width: 120, align: 'center', formatter: function (value, row, index) {
+                            return "<a class=\"easyui-linkbutton\" data-options=\"plain:true,iconCls:'fa fa-trash'\" onclick='showModelInfoDialog(" + row.ID + ",\"" + encodeURIComponent(row.FlowName) + "\")'>修改</a>";
+                        }
+                    }
+                ]]
+            });
+        });
+
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+
+        function showModelNodeDialog(modelID, modelName) {
+            JQ.dialog.dialog({
+                title: decodeURIComponent(modelName),
+                url: "@(Url.Action("FlowNodeList", "DesFlow",new { @area="Design" }))?flowID=" + modelID,
+                width: 800,
+                height: 600,
+                JQID: "",
+                JQLoadingType: "",
+                iconCls: "fa fa-table"
+            });
+            JQ.Flow.stopBubble();
+        }
+
+        function showModelInfoDialog(modelID, modelName) {
+            JQ.dialog.dialog({
+                title: decodeURIComponent(modelName),
+                url: "@(Url.Action("FlowInfo", "DesFlow",new { @area="Design" }))?ID=" + modelID,
+                width: 400,
+                height: 260,
+                JQID: "",
+                JQLoadingType: "",
+                iconCls: "fa fa-table"
+            });
+            JQ.Flow.stopBubble();
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="DesFlowGrid"></table>
+    <div id="DesFlowPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key: 'FlowName', 'Contract': 'like' }" />
+
+    </div>
+}
+

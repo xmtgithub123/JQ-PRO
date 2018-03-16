@@ -1,0 +1,137 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            $(function () {
+                var myUrl = '@Url.Action("json", "ArchTemplateFolder", new { @area="Archive"})';
+                JQ.datagrid.datagrid({
+                    JQIsSearch: true,
+                    JQPrimaryID: 'Id',//主键的字段
+                    JQID: 'ArchShareFolderFileGrid',//数据表格ID
+                    JQDialogTitle: '文件信息',//弹出窗体标题
+                    JQWidth: '600',//弹出窗体宽
+                    JQHeight: '600',//弹出窗体高
+                    JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                    JQFields: ["Id"],//追加的字段名
+                    url: myUrl, //请求的地址
+                    checkOnSelect: false,//是否包含check
+                    fitColumns: true,   
+                    nowrap: false,
+                    singleSelect:true,
+                    toolbar: '#ArchShareFolderFilePanel',//工具栏的容器ID
+                    columns: [[
+                            { title: '模板名称', field: 'FolderName', width: 100, align: 'center', sortable: true },
+                            { title: '模板描述', field: 'FolderRemark', width: 100, align: 'center', sortable: true },
+                            { title: '创建时间', field: 'CreationTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                            { title: '创建人姓名', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true },
+                            {
+                                title: "操作", field: 'Id', width: 100, align: 'center', formatter: function (value, row, index) {
+                                    debugger;
+                                    return "<a href=\"javascript:void(0)\" onclick=\"OpenMbTree(this)\"  JQPermissionName=\"add\" id=\"mb" + index + "\" dataid=\"" + row.Id + "\" flag=\"menubutton\"   >目录</a>";
+                                }
+                            }
+                    ]]
+                });
+
+                $("#JQSearch").textbox({
+                    buttonText: '筛选',
+                    buttonIcon: 'fa fa-search',
+                    height: 25,
+                    prompt: '模板名称',
+                    onClickButton: function () {
+                        JQ.datagrid.searchGrid(
+                            {
+                                dgID: 'ArchShareFolderFileGrid',
+                                loadingType: 'datagrid',
+                                queryParams: { FolderId: $("#AttID").val() }
+                            });
+                    }
+                });
+            });
+        });
+
+        function save(flag) {
+            var row = $("#ArchShareFolderFileGrid").datagrid("getSelections");
+            var Url = '';
+            if (flag == 1) {
+                Url = '@Url.Action("template_add", "ArchTemplateFolder", new {@area="Archive" })';
+                JQ.dialog.dialog({
+                    title: "模板",
+                    url: Url + '?ParentId=0',
+                    width: '600',
+                    height: '400',
+                    JQID: 'ArchShareFolderFileGrid',
+                    JQLoadingType: 'datagrid',
+                    iconCls: 'fa fa-plus'
+                });
+            }
+            else if (flag == 2) {
+                if (row.length <= 0) {
+                    JQ.dialog.info("请选择");
+                    return;
+                }
+                var id = row[0].Id;
+                Url = '@Url.Action("template_edit", "ArchTemplateFolder", new {@area="Archive" })';
+                console.log(Url);
+                JQ.dialog.dialog({
+                    title: "模板",
+                    url: Url + '?Id=' + id,
+                    width: '600',
+                    height: '400',
+                    JQID: 'ArchShareFolderFileGrid',
+                    JQLoadingType: 'datagrid',
+                    iconCls: 'fa fa-plus'
+                });
+            }
+            else {
+                if (row.length <= 0) {
+                    JQ.dialog.info("请选择");
+                    return;
+                }
+                var id = row[0].Id;
+                Url = '@Url.Action("template_del", "ArchTemplateFolder", new { @area = "Archive", })';
+                JQ.tools.ajax({
+                    doBackResult: true,
+                    url: Url,
+                    async: false,
+                    data: 'Id=' + id
+                });
+                $('#ArchShareFolderFileGrid').datagrid('reload');
+                return;
+            }
+        }
+        function OpenMbTree(obj) {
+            var dataid = $(obj).attr("dataid");
+            Url = '@Url.Action("temptree", "ArchTemplateFolder", new {@area="Archive" })';
+            JQ.dialog.dialogIframe({
+                title: "模板目录",
+                url: Url + '?MbId=' + dataid,
+                width: '600',
+                height: '500',
+                iconCls: 'fa fa-plus'
+            });
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <div id="treePanel" class="easyui-layout" style="overflow: hidden" fit="true">
+        <div data-options="region:'center'" style="background:#eee;">
+            <table id="ArchShareFolderFileGrid"></table>
+        </div>
+        <div id="ArchShareFolderFilePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+            <span JQPanel="toolbarPanel">
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" id="fileadd" onclick="save(1)">新增</a>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-pencil'" id="fileedit" onclick="save(2)">修改</a>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" id="filedel" onclick="save(3)">删除</a>
+            </span>
+            <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'FolderName', 'Contract': 'like' }" />
+        </div>
+    </div>
+    <input type="hidden" value="0" id="AttID" />
+}
+

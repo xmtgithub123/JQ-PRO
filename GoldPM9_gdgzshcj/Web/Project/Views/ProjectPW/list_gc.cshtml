@@ -1,0 +1,290 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+    <script type="text/javascript">
+
+        var requestUrl = '@Url.Action("jsonNew", "ProjectPW", new { @area= "Project" })?CompanyType=GC',
+            addUrl = '@Url.Action("add", "ProjectPW", new {@area= "Project" })?CompanyType=GC',
+            editUrl = '@Url.Action("edit", "ProjectPW", new {@area= "Project" })?CompanyType=GC',
+            delUrl = '@Url.Action("del", "ProjectPW", new { @area = "Project" })';
+
+        $(function () {
+            JQ.treegrid.treegrid({
+                pagination: true,
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: addUrl,//添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl,//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                idField: 'Id',
+                treeField: 'ProjName',
+                JQID: 'ProjectGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'treegrid',//数据表格类型 [datagrid,treegrid]
+                JQExcludeCol: [1, 11, 12, 13],//导出execl排除的列
+                singleSelect: true,
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                singleSelect: false,
+                toolbar: '#ProjectPanel',//工具栏的容器ID
+                JQMergeCells: { fields: ['ck', 'FlowProgress'], Only: 'ColAttType5' },
+                columns: [[
+                  {
+                      field: 'ck', align: 'center', checkbox: true, JQIsExclude: true, formatter: function (value, row) {
+                          return ""
+                      }
+                  },
+                  { title: 'ColAttType5', field: 'ColAttType5', hidden: true },
+	              { title: '项目名称', field: 'ProjName', width: "28%", halign: 'center', align: 'left' },
+                  { title: '设总', field: 'ProjEmpName', width: "80", halign: 'center', align: 'center' },
+                  {
+                      title: '项目阶段', field: 'PhaseNames', width: "15%", halign: 'center', align: 'left', formatter: function (value) {
+                          if (value != "") {
+                              return value.substring(0, value.length - 1);
+                          }
+                      }
+                  },
+		          { title: '项目类别', field: 'ProjTypeName', width: "80", halign: 'center', align: 'center' },
+		          { title: '建设性质', field: 'ProjPropertyName', width: "80", halign: 'center', align: 'center' },
+		          { title: '电压级别', field: 'ProjVoltName', width: "80", halign: 'center', align: 'center' },
+		          { title: '立项时间', field: 'DateCreate', width: "80", halign: 'center', align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+		          { title: '计划完成时间', field: 'DatePlanFinish', width: "80", halign: 'center', align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                  {
+                      field: 'JQFiles', title: '附件', halign: 'center', align: 'center', width: "40px", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'Project', IsShow: 'None',
+                      formatter: function (value, row) {
+                          return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                      }
+                  },
+                  {
+                      field: "FlowProgress", title: "流程进度", halign: 'center', align: "left", width: "8%", formatter: function (value, rowData) {
+                          if (rowData.ParentId != 0) {
+
+                              return JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrentEmpID)")(value, rowData);
+                          }
+                      }
+                  },
+                  {
+                      field: "opt", title: "操作", align: "center", halign: "center", width: "60px", formatter: function (value, row, index) {
+                          if (row.ParentId == 0) {
+                              return ""
+                          }
+                          else {
+                              //return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"ShowProjectInfoDialogue('" + row.Id + "')\">查看</>";
+                              var title = "查看";
+                              if (row._EditStatus == 1) {
+                                  title = "修改";
+                              }
+                              else if (row._EditStatus == 2) {
+                                  title = "处理";
+                              }
+                              return ' <a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick="ShowProjectInfoDialogue(' + row.BridgeFact + ')">' + title + '</a>';
+                          }
+                      }
+                  }
+                  ,
+                  {
+                      field: "Auxiliary", title: "辅助信息", align: "center", halign: "center", width: "60px", formatter: function (value, row, index) {
+                          if (row.ParentId == 0) {
+
+                              return ' <a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick="ShowAuxiliaryDialogue(' + row.Id + ')">完善</a>';
+                          }
+                          else {
+                              return "";
+                          }
+                      }
+                  }
+                ]],
+                onLoadSuccess: function (rowIndex, rowDatas) {
+                    var $rows = $("#ProjectGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    if ("total" in rowDatas) {
+                        for (var i = 0; i < rowDatas.rows.length; i++) {
+                            var gRow = $rows.filter("[node-id='" + rowDatas.rows[i].Id + "']");
+                            gRow.find("td[field='ck']").find("input[type='checkbox']").hide()
+                        }
+                    }
+
+                    for (var i = 0; i < rowDatas.length; i++) {
+                        if (rowDatas[i].FlowID != null) {
+                            for (var j = 0; j < rowDatas.length; j++) {
+                                if (rowDatas[j].FlowID != rowDatas[i].FlowID && rowDatas[j].BridgeGuid == rowDatas[i].BridgeGuid) {
+                                    rowDatas[j]._AllowCheck = rowDatas[i]._AllowCheck;
+                                    rowDatas[j]._EditStatus = rowDatas[i]._EditStatus;
+                                }
+                            }
+                        }
+                    }
+                    var flag, start, amount = 0;
+                    for (var i = 0; i < rowDatas.length; i++) {
+                        //验证checkbox
+                        if (rowDatas[i]._AllowCheck === false) {
+                            $rows.filter("[node-id='" + rowDatas[i].Id + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                        if (!flag || rowDatas[i].BridgeGuid != flag) {
+                            if (amount > 1) {
+                                //合并
+                                var gRow = $rows.filter("[node-id='" + start.Id + "']");
+                                if (gRow.length > 0) {
+                                    gRow.find("td[field='FlowProgress'],td[field='JQFiles'],td[field='opt'],td[field='ck']").prop("rowSpan", amount);
+                                    for (var j = 0; j < amount - 1; j++) {
+                                        gRow = gRow.next();
+                                        gRow.find("td[field='FlowProgress'],td[field='JQFiles'],td[field='opt'],td[field='ck']").remove();
+                                    }
+                                }
+                            }
+                            flag = rowDatas[i].BridgeGuid;
+                            start = rowDatas[i];
+                            amount = 1;
+                        }
+                        else {
+                            amount++;
+                        }
+                    }
+                    if (start && amount > 1) {
+                        var gRow = $rows.filter("[node-id='" + start.Id + "']");
+                        if (gRow.length > 0) {
+                            gRow.find("td[field='FlowProgress'],td[field='JQFiles'],td[field='opt'],td[field='ck']").prop("rowSpan", amount);
+                            for (var j = 0; j < amount - 1; j++) {
+                                gRow = gRow.next();
+                                gRow.find("td[field='FlowProgress'],td[field='JQFiles'],td[field='opt'],td[field='ck']").remove();
+                            }
+                        }
+                    }
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+
+                    if (rowDatas.total) {
+                        $.each(rowDatas.rows, function (index, item) {
+                            //$("input[type='checkbox']")[index + 2].style.display = "none";
+                            var number = item.row_number;
+                            $("tr[node-id='" + item.Id + "']").find("div.datagrid-cell-rownumber").text(number);
+                        });
+                    } else {
+                        var gridRoots = $("#ProjectGrid").treegrid("getRoots");
+                        var First = 0;
+                        $.each(gridRoots, function (i, n) {
+                            var num = n.row_number;
+                            var rowChildren = $("#ProjectGrid").treegrid("getChildren", n.Id);
+                            if (rowChildren.length > 0) {
+                                First += rowChildren.length;
+                                $("tr[node-id='" + n.Id + "']").find("div.datagrid-cell-rownumber").text(num);
+
+                                $.each(rowChildren, function (y, k) {
+                                    var tNum = y + num + 1;
+                                    //$("tr[node-id='" + k.Id + "']").find("div.datagrid-cell-rownumber").text(num + '-' + (y + 1));
+                                    $("tr[node-id='" + k.Id + "']").find("div.datagrid-cell-rownumber").text("");
+                                })
+                            }
+                            else {
+                                var RowNum = num + First;
+                                $("tr[node-id='" + n.Id + "']").find("div.datagrid-cell-rownumber").text(num);
+                            }
+                        });
+                    }
+                },
+                onBeforeCheck: function (rowIndex, rowData) {
+                    if (rowIndex.ParentId == 0) {
+                        return false;
+                    }
+                    else {
+                        return rowIndex._AllowCheck;
+                    }
+                },
+                onClickRow: function (rowData) {
+                    if (typeof (rowData._AllowCheck) != 'undefined') {
+                        if (!rowData._AllowCheck) {
+                            $(this).treegrid('unselect', rowData.Id);
+                        }
+
+                    }
+                    else {
+                        $(this).treegrid('unselect', rowData.Id);
+                    }
+                },
+                onBeforeLoad: function (row, param) {
+                    if ($("#category").val() == "0") {
+                        $("#ProjectGrid").treegrid('options').url = '@Url.Action("jsonNew", "ProjectPW", new { @area="Project"})?CompanyType=GC&category=0';
+                    }
+                    $("#category").val("0");
+                },
+                onBeforeExpand: function (row) {
+                    $("#category").val("1");
+                    $(this).treegrid('options').url = '@Url.Action("jsonNew", "ProjectPW", new { @area="Project"})?CompanyType=GC&category=1';
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号,项目名称',
+                //queryOptions: { 'Key': 'ProjNumber', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ProjectGrid',
+                            loadingType: 'treegrid',
+                            queryParams: null
+                        });
+                }
+            });
+
+
+        });
+
+
+        function ShowProjectInfoDialogue(Id) {
+            JQ.dialog.dialog({
+                title: "项目信息明细",
+                url: '@Url.Action("edit")?CompanyType=GC&Id=' + Id,
+                width: '1024',
+                height: '100%'
+            });
+        }
+        function ShowAuxiliaryDialogue(Id) {
+            JQ.dialog.dialog({
+                title: "项目完善信息",
+                url: '@Url.Action("perfect")?ProjId=' + Id,
+                width: '1024',
+                height: '100%'
+            });
+        }
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="ProjectGrid"></table>
+    <div id="ProjectPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'txtLike', 'Contract': 'like' }" />
+
+        <div class="moreSearchPanel">
+
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjProperty", queryOptions = "{ Key:'ProjPropertyID', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjectVolt", queryOptions = "{ Key:'ProjVoltID', Contract:'in',filedType:'Int'}" })
+
+            立项时间
+            <input id="startTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '开始时间'" JQWhereOptions="{ Key:'DateCreateS', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '完成时间'" JQWhereOptions="{ Key:'DateCreateE', Contract:'<=',filedType:'Date' }">&nbsp;
+            计划完成时间
+            <input id="startTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '开始时间'" JQWhereOptions="{ Key:'DatePlanFinishS', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '完成时间'" JQWhereOptions="{ Key:'DatePlanFinishE', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>
+    </div>
+    <input type="hidden" id="IsShowFile" name="IsShowFile" value="1" />
+    <input type="hidden" id="category" name="category" value="0" />
+}
+

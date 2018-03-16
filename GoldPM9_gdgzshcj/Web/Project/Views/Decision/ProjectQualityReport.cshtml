@@ -1,0 +1,292 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+    <script type="text/javascript" src="@(Url.Content("~/Scripts/echarts/echarts.js"))"></script>
+
+    <script type="text/javascript">
+        //$("#chartshape").buttonset().find(":radio").change(function () {
+        //    if ($(this).val() == 0) {//表示为图表
+        //        $("#monthMain").show();
+        //    }
+        //    else {
+        //        $("#monthMain").hide();
+        //    }
+        //});
+        var rwpTemp = {};
+        var rwpTemp = {};
+        rwpTemp.yheight = 200;
+        //月度统计表格
+        rwpTemp.option = {};
+        rwpTemp.myChart = null;
+        rwpTemp.myChartData = null;
+
+
+        //加载图标控件
+        rwpTemp.loadEcharts = function () {
+            //rwpTemp.yheight = 80;
+
+            rwpTemp.getChartData();
+            //合同大小月度统计
+            var dom = document.getElementById('monthNumber');
+            rwpTemp.myChart = require('echarts').init(dom);
+ 
+
+
+            rwpTemp.setOption();
+        };
+
+        //设置图标高度
+        rwpTemp.SetMain = function (height) {
+            //  var minWidth = 850  ;
+            $("#monthNumber").css({ height: $("#divContainer").height() , padding: '2px' });
+           
+        };
+
+
+        //绑定图表数据
+        rwpTemp.setOption = function () {
+
+            if (rwpTemp.myChartData != null) {
+                BindCharData(rwpTemp.option, rwpTemp.myChartData, rwpTemp.myChart, '设计差错分析');
+            }
+           
+        };
+
+        //绑定图表数据
+        function BindCharData(option, ChartData, char, tile) {
+            for (var i = 0; i < option.series.length; i++) {
+                option.series[i].data = ChartData.data[i];
+            }
+            option.xAxis[0].data = ChartData.legendData;
+            option.title.subtext = tile;
+            char.setOption(option);
+            char.hideLoading();
+        }
+
+        var chartData;
+        //设置图标数据
+        rwpTemp.getChartData = function () {
+            debugger;
+            //加载月度数据 
+            var url = "@(Url.Action("ProjectQuality", "Decision", new { @area = "Project" }))";
+            LoadData(url  );
+            rwpTemp.myChartData = chartData;
+            
+
+        }
+
+
+        //后台加载数据type 1 :获取合同金额，2 获取合同数量
+        function LoadData(url ) {
+            $.ajax({
+                type: "post",
+                async: false, //同步执行  
+                url: url,
+                dataType: "json", //返回数据形式为json  
+                data: {
+                      StartDate: $('#txtStartDate').textbox('getValue'),
+                      EndDate: $('#txtEndDate').textbox('getValue'),
+                },
+                success: function (result) {
+                    if (result) {
+                        chartData = result;
+                    }
+                },
+                error: function (errorMsg) {
+                    myChart.hideLoading();
+                }
+            });
+        }
+
+
+        //配置图表控件
+        require.config({
+            paths: {
+                //  echarts: "http://localhost/JQWebMVC/Scripts/echarts"
+                echarts: "http://" + "@this.Request.Headers["Host"]" + "@(Url.Content("~/Scripts/echarts"))"
+            }
+        });
+
+        //初设图标控件主入口
+        require(
+
+            [
+                'echarts',
+                'echarts/chart/bar',
+                'echarts/chart/line',
+                'echarts/chart/map'
+            ],
+             function (ec) {
+                 debugger;
+                 rwpTemp.getChartData();
+                 rwpTemp.SetMain($("#divContainer").height());
+                 rwpTemp.myChart = ec.init(document.getElementById('monthNumber'));
+                 rwpTemp.myChart.showLoading({
+                     text: '正在努力加载中...'
+                 });
+
+               
+
+                 rwpTemp.option = {
+
+                     title: {
+                         text: ' ',
+                         x: 'center',
+                         subtext: ' 合同分类月度分析'
+                     },
+                     tooltip: {
+                         trigger: 'axis'
+                     },
+                     legend: {
+
+                         data: ['任务个数', '原则性错误', '技术性错误', '一般性错误', '错误率']
+                     },
+                     toolbox: {
+                         show: true,
+                         orient: 'vertical',
+                         feature: {
+                             mark: { show: true },
+                             dataView: { show: true, readOnly: false },
+                             magicType: { show: true, type: ['line', 'bar'] },
+                             restore: { show: true },
+                             saveAsImage: { show: true }
+                         }
+                     },
+                     calculable: true,
+                     yAxis: [
+                         {
+                             type: 'value'
+
+                         }
+                     ],
+                     xAxis: [
+                         {
+                             type: 'category',
+                             data: null// ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+                         }
+                     ],
+                     series: [
+                         {
+                             name: '任务个数',
+                             type: 'bar',
+                             data: null,
+                             itemStyle: {
+                                 normal: {
+                                     label: {
+                                         show: true,
+                                         position: 'top',
+                                         formatter: "{c}"
+                                     }
+                                 }
+                             }
+                         },
+                          {
+                              name: '原则性错误',
+                              type: 'bar',
+                              data: null,
+                              itemStyle: {
+                                  normal: {
+                                      label: {
+                                          show: true,
+                                          position: 'top',
+                                          formatter: "{c}"
+                                      }
+                                  }
+                              }
+                          },
+                           {
+                               name: '技术性错误',
+                               type: 'bar',
+                               data: null,
+                               itemStyle: {
+                                   normal: {
+                                       label: {
+                                           show: true,
+                                           position: 'top',
+                                           formatter: "{c}"
+                                       }
+                                   }
+                               }
+                           },
+                           {
+                               name: '一般性错误',
+                               type: 'bar',
+                               data: null,
+                               itemStyle: {
+                                   normal: {
+                                       label: {
+                                           show: true,
+                                           position: 'top',
+                                           formatter: "{c}"
+                                       }
+                                   }
+                               }
+                           },
+                           
+                           {
+                               name: '错误率',
+                               type: 'bar',
+                               data: null,
+                               itemStyle: {
+                                   normal: {
+                                       label: {
+                                           show: true,
+                                           position: 'top',
+                                           formatter: "{c}"
+                                       }
+                                   }
+                               }
+                           }
+                     ]
+                 };
+
+
+
+                 rwpTemp.setOption();
+             }
+        );
+    </script>
+
+
+
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <div id="divToolbar" class="toolbar" style="border-bottom: 1px solid  #d6d6d6;">
+        <div>
+
+            <div id="divSearch" class="showFullSearch">
+                <table border="0" cellpadding="0" cellspacing="5" style="height: 100%">
+                    <tr>
+                        <td>立项日期：
+                        </td>
+                        <td>
+                            <input   class="easyui-datebox"   id="txtStartDate"  data-options="editable:false" value="2016-01-11" />
+                             <input   class="easyui-datebox"   id="txtEndDate"  data-options="editable:false"  value="2016-01-15" />
+                            
+                        </td>
+                        <td>
+                            <input name="sbtnFilter" runat="server" class="InputBttn" id="sbtnFilter" style="width: 52px; padding-left: 18px;" type="button" value="筛选" onclick="rwpTemp.loadEcharts()" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="clear"></div>
+        </div>
+    </div>
+    <div id="divContent" class="divfix" style="height: 100%; overflow-y: auto">
+        <div style="+zoom: 1; height: 90%;" id="divContainer">
+            <div id="monthNumber" style="width: 98%;"></div>@*月度数量图表容器*@
+            <div id="monthFee" style="width: 98%;"></div>@*月度金额图表容器*@
+            <div id="YearNumber" style="width: 98%;"></div>@*年度数量图表容器*@
+            <div id="YearFee" style="width: 98%;"></div>@*年度金额图表容器*@
+        </div>
+    </div>
+
+}
+

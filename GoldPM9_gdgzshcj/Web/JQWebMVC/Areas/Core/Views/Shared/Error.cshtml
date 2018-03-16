@@ -1,0 +1,28 @@
+﻿@model JQ.Util.DoResult       
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8"/>
+    <title>@Model.stateMsg</title>
+    @RenderPage("_Header.cshtml")    
+    <script type="text/javascript">
+        var url = '@Model.url';
+        function pageurl() {
+            if (url && url.length > 0) {
+                window.location.href = url;
+            }
+            else {
+                $("body").html('@Model.stateMsg');
+            }
+        }
+        $(function () {
+            alert('@Model.stateMsg');
+            pageurl();
+            //$.rwpUI.alert('@Model.stateMsg', '操作提示', 'error', pageurl);
+        });
+    </script>
+</head>
+<body>
+    错误页面
+</body>
+</html>

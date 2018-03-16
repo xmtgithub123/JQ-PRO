@@ -1,0 +1,118 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "HRAchievement",new { @area="Hr"})',
+            addUrl = '@Url.Action("add","HRAchievement",new {@area="Hr" })',
+            editUrl = '@Url.Action("edit", "HRAchievement",new {@area="Hr" })',
+            delUrl = '@Url.Action("del", "HRAchievement", new { @area = "Hr" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'HRAchievementGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQExcludeCol: [8,1],//导出execl排除的列
+                JQFields: ["Id"],//追加的字段名
+				JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '筛选字段',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+				fitColumns: false,
+                nowrap: false,
+                toolbar: '#HRAchievementPanel',//工具栏的容器ID
+                JQExcludeCol:[1,8],
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '部门', field: 'DepName', width: 100, align: 'center', sortable: true },
+                    { title: '员工', field: 'EmpName', width: 100, align: 'center', sortable: true },
+		            { title: '日期', field: 'AchievementDate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '性质', field: 'AchievementNatureName', width: 100, align: 'center', sortable: true },
+		            { title: '级别', field: 'AchievementLevelName', width: 100, align: 'center', sortable: true },
+		            { title: '内容', field: 'Content', width: 300, align: 'center', sortable: true },
+                    {
+                        field: 'opt', title: '操作', width: 100, align: 'center', JQIsExclude: true,
+                        formatter: function (value, row, index) {
+                            return "<a href=\"javascript:void(0)\" onclick=\"openDetailDialog('" + row.Id + "');\">修改</a>";
+                        }
+                    }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '姓名',
+                queryOptions: { 'Key': 'EmpName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'HRAchievementGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {}
+                        });
+                }
+            });
+        });
+        function openDetailDialog(rowID) {
+            JQ.dialog.dialog({
+                title: "修改",
+                url: '@Url.Action("edit")' + '?Id=' + rowID,
+                width: '1024',
+                height: '100%',
+                JQID: 'HRAchievementGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="HRAchievementGrid"></table>
+    <div id="HRAchievementPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            
+        </span>
+
+        <input id="JQSearch" style="width:250px;"  JQWhereOptions="{ 'Key': 'EmpName', 'Contract': 'like' }"/>
+        <div class="moreSearchPanel">
+            @BaseData.getBases(new Params() { isMult = false, engName = "department", isAll = "1", allVal = "0", allText = "全部", width="120px", queryOptions = "{ Key:'DepID', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params() { isMult = false, engName = "EmpStatus", isAll = "1", allVal = "0", allText = "全部",
+           width = "120px",queryOptions = "{ Key:'EmpStatusID', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params()
+           {
+               isMult = false,
+               engName = "AchievementNature",
+               isAll = "1",
+               allVal = "0",
+               allText = "全部",
+               width = "120px",
+               queryOptions = "{ Key:'AchievementNatureID', Contract:'in',filedType:'Int'}"
+           })
+            @BaseData.getBases(new Params()
+           {
+               isMult = false,
+               engName = "AchievementLevel",
+               isAll = "1",
+               allVal = "0",
+               allText = "全部",
+               width = "120px",
+               queryOptions = "{ Key:'AchievementLevelID', Contract:'in',filedType:'Int'}"
+           })
+        </div>
+    </div>
+}
+

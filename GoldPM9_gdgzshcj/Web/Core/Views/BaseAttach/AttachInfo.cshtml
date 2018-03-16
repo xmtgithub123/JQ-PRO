@@ -1,0 +1,86 @@
+﻿@model DataModel.Models.BaseAttach
+<script>
+    JQ.form.submitInit({
+        formid: "form_attachinfo",
+        buttonTypes: ["close"],
+        beforeButtons: [
+            {
+                icon: "fa-save", text: "保存", onClick: function () {
+                    if (!$("#form_attachinfo").form("validate")) {
+                        return
+                    }
+                    $.ajax({
+                        url: "@(Url.Action("SaveAttachNote", "BaseAttach",new { @area="Core" }))",
+                        type: "POST",
+                        data: { attachID: "@(Model.AttachID)", attachnote: $("#attachnote").textbox("getText") },
+                        success: function (result) {
+                            JQ.dialog.dialogClose();
+                        }
+                    });
+                }
+            }
+        ],
+        succesCollBack: function (data) {
+        }
+    });
+    $(function () {
+        $("#AttachSize").html(JQ.tools.getFileSizeText(@(Model.AttachSize)));
+    });
+</script>
+
+<form id="form_attachinfo">
+    <table class="table table-hover table-bordered">
+        <tr>
+            <th class="info">
+                文件名称：
+            </th>
+            <td>
+                @Model.AttachName
+            </td>
+        </tr>
+        <tr>
+            <th class="info" style="width: 100px;">
+                文件版本：
+            </th>
+            <td>
+                @Model.AttachVer
+            </td>
+        </tr>
+        <tr>
+            <th class="info">
+                文件大小：
+            </th>
+            <td id="AttachSize"></td>
+        </tr>
+        <tr>
+            <th class="info">
+                修改时间：
+            </th>
+            <td>
+                @Model.AttachDateChange.ToString("yyyy-MM-dd HH:mm:ss")
+            </td>
+        </tr>
+        <tr>
+            <th class="info">
+                上传时间：
+            </th>
+            <td>
+                @Model.AttachDateUpload.ToString("yyyy-MM-dd HH:mm:ss")
+            </td>
+        </tr>
+        <tr>
+            <th class="info" style="width: 100px;">
+                上传人员：
+            </th>
+            <td>
+                @Model.AttachEmpName
+            </td>
+        </tr>
+        <tr>
+            <th class="info">备注</th>
+            <td>
+                <textarea id="attachnote" name="attachnote" style="width:98%;height:60px" class="easyui-textbox" spellcheck="false" data-options="multiline:true" validType="length[0,200]">@(ViewBag.Note)</textarea>
+            </td>
+        </tr>
+    </table>
+</form>

@@ -1,0 +1,262 @@
+﻿@model DataModel.Models.ProjSub
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'ProjSubForm',//formid提交需要用到
+            buttonTypes: ['close'],//默认按钮
+            beforeFormSubmit: function () {
+                debugger;
+                var _Id = $("#Id").val();
+                var _SubNumber = $("#SubNumber").val();
+                var bit=0;
+                $.ajax({
+                    doBackResult: false,
+                    url: '@Url.Action("GetSubNumberCount", "ProjSub")',
+                    data: { Number: _SubNumber, Id: _Id },
+                    async: false,
+                    success: function (data) {
+                        bit=data
+                    }
+                })
+                if (bit > 0) {
+                    JQ.dialog.warning('存在相同的外委项目编号:[' + _SubNumber + "]");
+                    return false;
+                }
+            },
+            flow: {
+                flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+                flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+                url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+                instance: "_flowInstance",
+                processor: "Project,Project.FlowProcessor.ProjSubProcessor",
+                refID: "@(Model.Id)",
+                refTable: "ProjSub"
+            },
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                var tab = $('#mainTab').tabs('getSelected');
+                var index = $('#mainTab').tabs('getTabIndex', tab);
+                $("#mainTab").find("iframe")[index].contentWindow.refreshGrid();
+                _flowInstance.$form.parent().dialog("close");
+            }
+        });
+        //外委负责人
+        JQ.combotree.selEmp({ id: 'SubEmpId', width: '98%'});
+        //选人员
+        if(@ViewData["SubEmpId1"]!=0&&@ViewData["SubEmpId2"]!=0)
+        {
+            $("#SubEmpId").combotree('setValue',@ViewData["SubEmpId1"]+"-"+ @ViewData["SubEmpId2"]);
+        }
+        $("#projId").val(@Model.ProjID);
+
+        if(@Model.Id>0)
+        {
+            $("#ProjInfo").val('@ViewBag.ProjInfo');
+        }
+    });
+
+    function SelectProjectInfo() {
+        JQ.dialog.dialog({
+            title: "选择项目信息",
+            url: '@Url.Action("ListInfo", "Project", new { @area = "Project" })',
+            width: '1024',
+            height: '100%',
+            JQID: 'ShowProjectTreeGridList',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-plus',
+        });
+    }
+
+    JQ.combobox.common({
+        id: 'CustomerID',
+        toolbar: '#tbCustomer',//工具栏的容器ID
+        url: '@Url.Action("GetCustomerList", "BussCustomer", new { @area= "Bussiness" })',
+        panelWidth: 650,
+        panelHeight: 320,
+        valueField: 'Id',
+        textField: 'CustName',
+        editable: false,
+        multiple: false,
+        pagination: true,//是否分页
+        queryParams:{TypeID:1},
+        JQSearch: {
+            id: 'fullNameSearchCustomer',
+            prompt: '客户名称',
+            $panel: $("#tbCustomer")
+        },
+        columns: [[
+                    { field: 'Id', hidden: true },
+                    { field: 'CustName', title: '单位名称', width: 150 },
+                    { field: 'CustAddress', title: '单位地址', width: 400 }
+        ]],
+    });
+
+    var _ProjSubBack = function (param) {
+        var json = JSON.parse(param);
+        $("#projId").val(json.Id);
+        $("#ProjInfo").textbox('setText', "项目编号："+json.ProjNumber+",项目名称:"+json.ProjName);
+    }
+</script>
+@using (Html.BeginForm("save", "ProjSub", FormMethod.Post, new { @area = "Project", @id = "ProjSubForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+
+    <table class="table table-bordered">
+        <tr>
+            <td colspan="4" style="padding: 15px; font-size: 20px; text-align: center; font-weight: bold; border: none;">外委项目申请表</td>
+        </tr>
+        <tr>
+            <th width="10%"></th>
+            <td width="40%"></td>
+            <th width="10%">外委项目编号</th>
+            <td width="40%"><input id="SubNumber" name="SubNumber" style="width:98%;" class="easyui-textbox" data-options="required:true" validtype="length[0,50]" value="@Model.SubNumber" /></td>
+        </tr>
+        <tr>
+            <th width="10%">申请部门</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "CreatorDepId",
+               isRequired = true,
+               engName = "department",
+               width = "40%",
+               ids = Model.CreatorDepId.ToString()
+           }) &nbsp;登记人
+                <input name="CreatorEmpName" style="width:30%;" class="easyui-textbox" data-options="required:true,readonly:true" validtype="length[0,50]" value="@Model.CreatorEmpName" />
+            </td>
+            <th width="10%">登记时间</th>
+            <td width="40%"><input name="CreationTime" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.CreationTime" /></td>
+        </tr>
+        <tr>
+            <th rowspan="2" width="10%">项目信息</th>
+            <th colspan="3" style="text-align:left"><a class="easyui-linkbutton" name="btnAdd" data-options="plain:true,iconCls:'fa fa-plus'" onclick="SelectProjectInfo()">选择项目信息</a></th>
+        </tr>
+        <tr>
+            <th colspan="3" style="text-align:left"><input id="ProjInfo" name="ProjInfo" class="easyui-textbox" style="width:100%;" data-options="required:true,readonly:true" /></th>
+        </tr>
+        <tr>
+            <th width="10%">外委项目名称</th>
+            <td width="40%"><input name="SubName" style="width:98%;" class="easyui-textbox" validtype="length[0,200]" value="@Model.SubName" /></td>
+            <th width="10%">外委项目阶段</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "SubPhase",
+               isRequired = true,
+               engName = "ProjectPhase",
+               width = "98%",
+               ids = Model.SubPhase.ToString(),
+               isMult = true
+           })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">外委专业</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "SubSpecial",
+               isRequired = true,
+               engName = "Special",
+               width = "98%",
+               ids = Model.SubSpecial.ToString(),
+               isMult = true
+           })
+            </td>
+            <th width="10%">外委负责人</th>
+            <td width="40%">
+                <select id="SubEmpId" name="SubEmpId"></select>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">提供产品类别</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ColAttType1",
+               isRequired = true,
+               engName = "ProjSubProductType",
+               width = "98%",
+               ids = Model.ColAttType1.ToString()
+           })
+            </td>
+            <th width="10%">外委性质</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "SubType",
+               isRequired = true,
+               engName = "ProjSubType",
+               width = "98%",
+               ids = Model.SubType.ToString()
+           })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">外委时间</th>
+            <td width="40%">
+                <input name="ColAttDate1" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.ColAttDate1" />
+
+            </td>
+            <th width="10%">综合评审时间</th>
+            <td width="40%">
+                <input name="ColAttDate2" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.ColAttDate2" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">审核时间</th>
+            <td width="40%"><input name="ColAttDate3" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.ColAttDate3" /></td>
+            <th width="10%">成品提交时间</th>
+            <td width="40%"><input name="ColAttDate4" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.ColAttDate4" /></td>
+        </tr>
+        <tr>
+            <th>确认外委单位</th>
+            <td colspan="3">
+                <input id="CustomerID" name="CustomerID" data-options="required:true,multiple:false" style="width:99%;" value="@(@Model.ColAttType2==0 ? "" :@Model.ColAttType2.ToString())" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">外委原因</th>
+            <td width="90%" colspan="3">
+                <textarea name="SubReason" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.SubReason</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">外委内容</th>
+            <td width="90%" colspan="3">
+                <textarea name="SubContent" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.SubContent</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">验收要求</th>
+            <td width="90%" colspan="3">
+                <textarea name="SubAcceptance" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.SubAcceptance</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">备注</th>
+            <td width="90%" colspan="3">
+                <textarea name="ColAttVal1" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.ColAttVal1</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "ProjSub";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+
+    <div id="tbCustomer" style="padding:5px;height:auto; display:none;">
+        <input id="fullNameSearchCustomer" style="width:250px;" JQWhereOptions="{ Key: 'CustName', 'Contract': 'like' }" />
+    </div>
+    <input type="hidden" id="projId" name="projId" />
+                    }

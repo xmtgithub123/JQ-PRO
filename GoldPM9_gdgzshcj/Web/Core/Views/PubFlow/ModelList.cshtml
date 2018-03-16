@@ -1,0 +1,69 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ["add", "edit", "del"],
+                JQAddUrl: "@(Url.Action("Edit", "PubFlow"))",
+                JQEditUrl: "@(Url.Action("Edit", "PubFlow"))",
+                JQDelUrl: "@(Url.Action("Delete","PubFlow"))",
+                JQPrimaryID: "Id",
+                JQID: "tbList",
+                JQDialogTitle: "流程模版",
+                JQWidth: "768",//弹出窗体宽
+                JQHeight: '700',//弹出窗体高
+                JQLoadingType: "datagrid",
+                url: "@(Url.Action("GetModelList", "PubFlow", new { @area="Core"}))",
+                checkOnSelect: true,
+                fitColumns: true,
+                nowrap: false,
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '模版名称',
+                },
+                toolbar: "#list_toolbar",
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '模板ID', field: 'Id', width: 45, align: 'right', halign: "center" },
+                    { title: '模板编号', field: 'ModelNumber', width: 80, align: 'center', halign: "center", sortable: true },
+                    {
+                        title: '模版名称', field: 'ModelName', width: 120, align: 'left', halign: "center", sortable: true, formatter: function (value, row) {
+                            var a = document.createElement("a");
+                            a.setAttribute("href", "javascript:void(0)");
+                            a.appendChild(document.createTextNode(value));
+                            a.setAttribute("onclick", "showModelNodeDialog(" + row.Id + ",\"" + encodeURIComponent(row.ModelName) + "\")");
+                            return a.outerHTML;
+                        }
+                    },
+                    { title: '关联名称', field: 'ModelRefTable', width: 150, align: 'center', halign: "center", sortable: true },
+                    { title: '处理页面', field: 'ModelUrl', width: 300, align: 'left', halign: "center" },
+                    { title: '列表页面', field: 'ModelListUrl', width: 260, align: 'left', halign: "center" },
+                ]]
+            });
+        });
+
+        function showModelNodeDialog(modelID, modelName) {
+            JQ.dialog.dialog({
+                title: decodeURIComponent(modelName),
+                url: "@(Url.Action("ModelNode", "PubFlow",new { @area="Core" }))?flowModelID=" + modelID,
+                width: 800,
+                height: 600,
+                JQID: "",
+                JQLoadingType: "",
+                iconCls: "fa fa-table"
+            });
+            JQ.Flow.stopBubble();
+        }
+    </script>
+}
+@section Body_Content{
+    <table id="tbList"></table>
+    <div id="list_toolbar" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+        </span>
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'ModelName,ModelRefTable', 'Contract': 'like' }" />
+    </div>
+}

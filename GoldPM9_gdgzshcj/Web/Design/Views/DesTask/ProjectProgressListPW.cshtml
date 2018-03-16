@@ -1,0 +1,176 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                pagination: true,
+                JQButtonTypes: ['moreSearch'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")',//添加的路径
+                JQEditUrl: '@Url.Action("edit")',//编辑的路径
+                JQDelUrl: '@Url.Action("del", "ProjectPW", new { @area="Project"})?FormMenu=ProjectProgressListPW',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                idField: 'Id',
+                JQID: 'ProjectGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: '@Url.Action("jsonNew", "ProjectPW", new { @area="Project"})?FormMenu=ProjectProgressListPW',//请求的地址
+                checkOnSelect: true,//是否包含check
+                singleSelect: false,
+                toolbar: '#ProjectPanel',//工具栏的容器ID
+                queryParams: { IsShowMain: 1, FormMenu: "ProjProgressPW" },
+                nowrap: false,
+                columns: [[
+                  { title: '项目编号', field: 'ProjNumber', width: "8%", halign: 'center', align: 'left' },
+	              { title: '项目名称', field: 'ProjName', width: "16%", halign: 'center', align: 'left', sortable: true },
+                  {
+                      title: '项目地区', field: 'ProjAreaID', width: "4%", halign: 'center', sortable: true, align: 'center', formatter: function (value, row, index) {
+                          row.ProjAreaID = row.ProjAreaName;
+                          return row.ProjAreaName;
+                      }
+                  },
+                  { title: '客户名称', field: 'CustName', width: "10%", halign: 'center', align: 'left' },
+                  { title: '主办部门', field: 'ProjDeptName', width: "5%", halign: 'center', align: 'center' },
+                  { title: '协办部门', field: 'ProjJoinDeptName', width: "5%", halign: 'center', align: 'center' },
+                  { title: '下达时间', field: 'DateCreate', width: "5%", halign: 'center', align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                  {
+                      title: '建设性质', field: 'ProjPropertyID', width: "5%", halign: 'center', align: 'center', sortable: true, formatter: function (value, row, index) {
+                          row.ProjPropertyID = row.ProjPropertyName;
+                          return row.ProjPropertyName;
+                      }
+                  },
+                  {
+                      title: '任务来源', field: 'ProjTaskSource', width: "5%", halign: 'center', align: 'center', sortable: true, formatter: function (value, row, index) {
+                          row.ProjTaskSource = row.ProjTaskSourceName;
+                          return row.ProjTaskSourceName;
+                      }
+                  },
+                  {
+                      title: '任务依据', field: 'ColAttType1', width: "5%", halign: 'center', align: 'center', sortable: true, formatter: function (value, row, index) {
+                          row.ColAttType1 = row.ProjTaskTypeName;
+                          return row.ProjTaskTypeName;
+                      }
+                  },
+                  {
+                      title: '任务类型', field: 'ColAttType2', width: "5%", halign: 'center', align: 'center', sortable: true, formatter: function (value, row, index) {
+                          row.ColAttType2 = row.ProjectTaskName;
+                          return row.ProjectTaskName;
+                      }
+                  },
+                  {
+                      title: '项目负责人', field: 'ProjEmpId', width: "4%", halign: 'center', align: 'center', sortable: true, formatter: function (value, row, index) {
+                          row.ProjEmpId = row.ProjEmpName;
+                          return row.ProjEmpName;
+                      }
+                  },
+                  {
+                      title: '项目阶段', field: 'PhaseNames', width: "5%", halign: 'center', align: 'center', formatter: function (value) {
+                          if (value != "") {
+                              return value.substring(0, value.length - 1);
+                          }
+                      }
+                  },
+		          {
+		              title: '电压级别', field: 'ProjVoltID', width: "5%", halign: 'center', align: 'center', sortable: true, formatter: function (value, row, index) {
+		                  row.ProjVoltID = row.ProjVoltName;
+		                  return row.ProjVoltName;
+		              }
+		          },
+                  {
+                      title: "操作", field: "Operate", width: "5%", halign: "center", align: "center", formatter: function (value, rowData) {
+                          return "<a href=\"javascript:void(0)\" onclick=\"openViewProgressDialog('" + rowData.Id + "','" + encodeURIComponent(rowData.ProjName) + "');\">查看</a>"
+                      }
+                  }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号,项目名称',
+                //queryOptions: { 'Key': 'ProjNumber', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ProjectGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                IsShowMain: 1,
+                                FormMenu: "ProjProgressPW"
+                            }
+                        });
+                }
+            });
+        });
+
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+
+
+        function openViewProgressDialog(projectID, projectName) {
+            JQ.dialog.dialogIframe({
+                title: decodeURIComponent(projectName) + " 进度",
+                url: '@Url.Action("ProgressDetail", "ProjectPW",new { @area = "Project" })?projectID=' + projectID,
+                width: "1200",
+                height: "800"
+            });
+        }
+
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="ProjectGrid"></table>
+    <div id="ProjectPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+        主办部门
+        @BaseData.getBases(new Params() { isMult = true, engName = "department", queryOptions = "{ Key:'ProjDepId', Contract:'in',filedType:'Int'}" })
+        下达时间
+        <input id="startTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '下达开始时间'" JQWhereOptions="{ Key:'DateCreateS', Contract:'>=',filedType:'Date' }">
+        至
+        <input id="endTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '下达结束时间'" JQWhereOptions="{ Key:'DateCreateE', Contract:'<=',filedType:'Date' }">&nbsp;
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'txtLike', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjectArea", queryOptions = "{ Key:'ProjAreaID', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params()
+       {
+           isMult = true,
+           engName = "ProjProperty",
+           typeName = "ProjProperty",
+           typeAtt = "BaseAtt4",
+           typeId = "1",
+           queryOptions = "{ Key:'ProjPropertyID', Contract:'in',filedType:'Int'}"
+       })
+            @BaseData.getBases(new Params()
+       {
+           isMult = true,
+           engName = "ProjectVolt",
+           typeName = "ProjectVolt",
+           typeAtt = "BaseAtt2",
+           typeId = "1",
+           queryOptions = "{ Key:'ProjVoltID', Contract:'in',filedType:'Int'}"
+       })
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjTaskSource", queryOptions = "{ Key:'ProjTaskSource', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params() { isMult = true, engName = "TaskType", queryOptions = "{ Key:'ColAttType1', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params()
+       {
+           isMult = true,
+           engName = "ProjectTask",
+           typeName = "ProjectTask",
+           typeAtt = "BaseAtt4",
+           typeId = "1",
+           queryOptions = "{ Key:'ColAttType2', Contract:'in',filedType:'Int'}"
+       })
+
+        </div>
+    </div>
+    <input type="hidden" id="IsShowFile" name="IsShowFile" value="1" />
+}

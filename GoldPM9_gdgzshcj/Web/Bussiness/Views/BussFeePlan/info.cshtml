@@ -1,0 +1,205 @@
+﻿@model DataModel.Models.BussFeePlan
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'BussFeePlanForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.treegrid.autoReftreegrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }
+        });
+    });
+</script>
+@using (Html.BeginForm("save", "BussFeePlan", FormMethod.Post, new { @area = "Bussiness", @id = "BussFeePlanForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+	 
+                        <tr>
+                        <th width="10%">计划收款金额(元)</th>
+                        <td width="40%">
+						<input name="FeeMoney" style="width:98%;" class="easyui-numberspinner"   validType="length[0,18]" value="@Model.FeeMoney" />
+                        </td>
+                        <th width="10%">类型</th>
+                        <td width="40%">
+						<input name="FeeType" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.FeeType" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">项目ID</th>
+                        <td width="40%">
+						<input name="PorjID" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.ProjID" />
+                        </td>
+                        <th width="10%">收款合同ID</th>
+                        <td width="40%">
+						  @BaseData.getBase(new Params()
+           {
+               controlName = "ConID",
+               isRequired = true,
+               engName = "department",
+               width = "98%",
+               ids = Model.ConID.ToString()
+           })
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">备注说明</th>
+                        <td width="40%">
+						<input name="FeeNote" style="width:98%;" class="easyui-textbox"  data-options="required:true"  validType="length[0,200]" value="@Model.FeeNote" />
+                        </td>
+                        <th width="10%">计划收款日期</th>
+                        <td width="40%">
+						<input name="FeeDate" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.FeeDate" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">是否完成</th>
+                        <td width="40%">
+						<input name="IsFinished" style="width:98%;" class="CheckBox"   validType="length[0,1]" value="@Model.IsFinished" />
+                        </td>
+                        <th width="10%">关联表ID</th>
+                        <td width="40%">
+						<input name="FormTableID" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.FormTableID" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">扩展类别1</th>
+                        <td width="40%">
+						<input name="ColAttType1" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.ColAttType1" />
+                        </td>
+                        <th width="10%">扩展类别2</th>
+                        <td width="40%">
+						<input name="ColAttType2" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.ColAttType2" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">扩展时间1</th>
+                        <td width="40%">
+						<input name="ColAttDate1" style="width:98%;" class="easyui-datebox"   validType="length[0,16]" value="@Model.ColAttDate1" />
+                        </td>
+                        <th width="10%">扩展时间2</th>
+                        <td width="40%">
+						<input name="ColAttDate2" style="width:98%;" class="easyui-datebox"   validType="length[0,16]" value="@Model.ColAttDate2" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">扩展系数1</th>
+                        <td width="40%">
+						<input name="ColAttFloat1" style="width:98%;" class="easyui-numberspinner"   validType="length[0,18]" value="@Model.ColAttFloat1" />
+                        </td>
+                        <th width="10%">扩展系数2</th>
+                        <td width="40%">
+						<input name="ColAttFloat2" style="width:98%;" class="easyui-numberspinner"   validType="length[0,18]" value="@Model.ColAttFloat2" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">最后修改时间</th>
+                        <td width="40%">
+						<input name="LastModificationTime" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.LastModificationTime" />
+                        </td>
+                        <th width="10%">最后修改人ID</th>
+                        <td width="40%">
+						<input name="LastModifierEmpId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,19]" value="@Model.LastModifierEmpId" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">最后修改人姓名</th>
+                        <td width="40%">
+						<input name="LastModifierEmpName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.LastModifierEmpName" />
+                        </td>
+                        <th width="10%">创建时间</th>
+                        <td width="40%">
+						<input name="CreationTime" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.CreationTime" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">创建人ID</th>
+                        <td width="40%">
+						<input name="CreatorEmpId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,19]" value="@Model.CreatorEmpId" />
+                        </td>
+                        <th width="10%">创建人姓名</th>
+                        <td width="40%">
+						<input name="CreatorEmpName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.CreatorEmpName" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">流程ID</th>
+                        <td width="40%">
+						<input name="FlowID" style="width:98%;" class="easyui-numberspinner"   validType="length[0,19]" value="@Model.FlowID" />
+                        </td>
+                        <th width="10%">审批结束时间</th>
+                        <td width="40%">
+						<input name="FlowTime" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.FlowTime" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">代理人ID</th>
+                        <td width="40%">
+						<input name="AgenEmpId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,19]" value="@Model.AgenEmpId" />
+                        </td>
+                        <th width="10%">代理人姓名</th>
+                        <td width="40%">
+						<input name="AgenEmpName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.AgenEmpName" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">创建部门</th>
+                        <td width="40%">
+						<input name="CreatorDepId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,19]" value="@Model.CreatorDepId" />
+                        </td>
+                        <th width="10%">创建部门姓名</th>
+                        <td width="40%">
+						<input name="CreatorDepName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.CreatorDepName" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">删除人员</th>
+                        <td width="40%">
+						<input name="DeleterEmpId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,19]" value="@Model.DeleterEmpId" />
+                        </td>
+                        <th width="10%">删除人员姓名</th>
+                        <td width="40%">
+						<input name="DeleterEmpName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.DeleterEmpName" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">删除日期</th>
+                        <td width="40%">
+						<input name="DeletionTime" style="width:98%;" class="easyui-datebox"   validType="length[0,16]" value="@Model.DeletionTime" />
+                        </td>
+                        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @Html.Action("uploadFile", "usercontrol", new
+           {
+               @area = "Core",
+               AttachRefID = Model.Id,
+               AttachRefTable = "BussFeePlan"
+           })
+            </td>
+        </tr>
+    </table>
+	
+}
+
+
+

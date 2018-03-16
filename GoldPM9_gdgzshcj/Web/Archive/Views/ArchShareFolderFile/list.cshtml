@@ -1,0 +1,77 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "ArchShareFolderFile",new { @area="Archive"})',
+            addUrl = '@Url.Action("add","ArchShareFolderFile",new {@area="Archive" })',
+            editUrl = '@Url.Action("edit", "ArchShareFolderFile",new {@area="Archive" })',
+            delUrl = '@Url.Action("del", "ArchShareFolderFile", new { @area = "Archive" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'ArchShareFolderFileGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#ArchShareFolderFilePanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '典型图库文件表', field: 'Id', width: 100, align: 'center', sortable: true },
+                    { title: '典型图库目录Id', field: 'ArchShareFolderId', width: 100, align: 'center', sortable: true }, { title: '文件名称', field: 'FileName', width: 100, align: 'center', sortable: true },
+                    { title: '文件描述', field: 'FileRemark', width: 100, align: 'center', sortable: true },
+                    { title: '最后修改时间', field: 'LastModificationTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '最后修改人ID', field: 'LastModifierEmpId', width: 100, align: 'center', sortable: true },
+                    { title: '最后修改人姓名', field: 'LastModifierEmpName', width: 100, align: 'center', sortable: true },
+                    { title: '创建时间', field: 'CreationTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '创建人ID', field: 'CreatorEmpId', width: 100, align: 'center', sortable: true },
+                    { title: '创建人姓名', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true },
+                    { title: '创建部门', field: 'CreatorDepID', width: 100, align: 'center', sortable: true },
+                    { title: '创建部门名称', field: 'CreatorDepName', width: 100, align: 'center', sortable: true },
+                    { title: '删除日期', field: 'DeletionTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '删除人员', field: 'DeleterEmpId', width: 100, align: 'center', sortable: true },
+                    { title: '删除人员姓名', field: 'DeleterEmpName', width: 100, align: 'center', sortable: true },
+                    { title: '流程ID', field: 'FlowID', width: 100, align: 'center', sortable: true },
+                    { title: '审批结束时间', field: 'FlowTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'ArchShareFolderFile' }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '文件名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ArchShareFolderFileGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="ArchShareFolderFileGrid"></table>
+    <div id="ArchShareFolderFilePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;"  JQWhereOptions="{ 'Key': 'FileName', 'Contract': 'like' }"/>
+
+    </div>
+}
+

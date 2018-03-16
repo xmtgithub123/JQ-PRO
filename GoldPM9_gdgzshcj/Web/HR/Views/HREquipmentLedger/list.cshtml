@@ -1,0 +1,151 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "HREquipmentLedger",new { @area="HR"})',
+               addUrl = '@Url.Action("add","HREquipmentLedger",new {@area="HR" })',
+               editUrl = '@Url.Action("edit", "HREquipmentLedger",new {@area="HR" })',
+               delUrl = '@Url.Action("del", "HREquipmentLedger", new { @area = "HR" })';
+        $(function () {
+            var btnPer=@Html.Raw(ViewBag.permission);
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'HREquipmentLedgerGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '设备名称、设备型号',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: false,
+                nowrap: false,
+                JQExcludeCol:[1,8,9],
+                toolbar: '#HREquipmentLedgerPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '设备名称', field: 'EquipmentName', width: '10%', align: 'center', sortable: true },
+		            { title: '设备型号', field: 'EquipmentType', width: '10%', align: 'center', sortable: true },
+		            { title: '采购时间', field: 'PurchasingTime', width: '10%', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '报废时间', field: 'ScrapTime', width: '10%', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '设备保管人姓名', field: 'EquipmentEmpName', width: '10%', align: 'center', sortable: true },
+		            {
+		                title: '设备状态', field: 'ShowState', width: '5%', align: 'center', sortable: true, formatter: function (data, row) {
+		                    var show = "";
+		                    if (row.State == 0) {
+		                        show = "<font color='green'>正常</font>";
+                                row.ShowState = "正常";
+		                    } else if (row.State == 1) {
+		                        show = "<font color='red'>报废</font>";
+                                row.ShowState = "报废";
+		                    } else if (row.State == 2) {
+		                        show = "<font color='gray'>维修</font>";
+                                row.ShowState = "维修";
+		                    } else {
+		                        show = "<font color='blue'>其它</font>";
+                                row.ShowState = "其它";
+		                    }
+		                    if($.inArray("edit", btnPer)!=-1||$.inArray("alledit", btnPer)!=-1){
+                                return show;
+		                    }
+		                }
+		            },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: '5%', JQIsExclude: true, JQRefTable: 'HREquipmentLedger' },
+                    {
+                        field: 'CZ', title: '操作', align: 'center', width: 100, JQIsExclude: true, formatter: function (value, row, index) {
+                            if($.inArray("edit",btnPer)!=-1||$.inArray("alledit",btnPer)!=-1){
+                                return "<a href=\"javascript:void(0)\"  JQPermissionName=\"add\" id=\"mb" + index + "\" dataid=\"" + row.Id + "\" flag=\"menubutton\" >操作</a>";
+                            }
+                        }
+                    }
+                ]],
+                rowStyler: function (index, row) {
+                    if (row.Id != undefined && row.State == "0") {
+                        debugger;
+                        if (Date.jsonStringToDateString(row.ScrapTime, "yyyy-MM-dd") != "") {
+                            var timeNow = '@ViewBag.TimeNow';
+                            var difDay = Date.jsonStringToDate(row.ScrapTime).dateDiff("d", timeNow);
+                            if (difDay > -30) {
+                                return 'background-color:pink;color:blue;font-weight:bold;';
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        $.extend($.fn.datagrid.defaults.view, {
+            onAfterRender: function () {
+                $("a[flag='menubutton']").mouseover(function () {
+                    $("#list").attr("rowid", $(this).attr("dataid"));
+                    $("#div1").html('<div class="menu-text" style="height: 20px; line-height: 20px;">正常</div>')
+                    $("#div2").html('<div class="menu-text" style="height: 20px; line-height: 20px;">报废</div>')
+                    $("#div3").html('<div class="menu-text" style="height: 20px; line-height: 20px;">维修</div>')
+                    $("#div4").html('<div class="menu-text" style="height: 20px; line-height: 20px;">其它</div>')
+                }).menubutton({
+                    iconCls: 'fa fa-edit',
+                    menu: '#list'
+                });
+            }
+        });
+
+        function menuHandler(item) {
+            JQ.dialog.confirm("是否确认修改此设备状态", function () {
+                var state = 0;
+                switch (item.text) {
+                    case "正常":
+                        state = 0;
+                        break;
+                    case "报废":
+                        state = 1;
+                        break;
+                    case "维修":
+                        state = 2;
+                        break;
+                    case "其它":
+                        state = 3;
+                        break;
+                }
+                var key = $("#list").attr("rowid");
+
+                jQuery.post("@Url.Action("editState", "HREquipmentLedger", new {area="HR"})", "id=" + key+"&state="+state+"", function (data) {
+                    jQuery("#HREquipmentLedgerGrid").datagrid('reload');
+                },"json");
+
+            });
+        }
+
+    </script>
+
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="HREquipmentLedgerGrid"></table>
+    <div id="HREquipmentLedgerPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'EquipmentName,EquipmentType', 'Contract': 'like' }" />
+
+        <div id="list" class="easyui-menu" style="width:80px;" data-options="onClick:menuHandler">
+            <div id="div1">正常</div>
+            <div id="div2">报废</div>
+            <div id="div3">维修</div>
+            <div id="div4">其它</div>
+        </div>
+    </div>
+}
+

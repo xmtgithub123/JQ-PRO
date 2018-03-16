@@ -1,0 +1,261 @@
+﻿@model DataModel.Models.OaCarUse
+
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'OaCarUseForm',//formid提交需要用到
+        buttonTypes: ['close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            var tab = $('#mainTab').tabs('getSelected');
+            var index = $('#mainTab').tabs('getTabIndex', tab);
+            debugger;
+            $("#mainTab").find("iframe")[index].contentWindow.refreshGrid();
+            _flowInstance.$form.parent().dialog("close");
+        },
+        flow: {
+        flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+        flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+        url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+        instance: "_flowInstance",
+        processor: "OA,OA.FlowProcessor.OaCarUseFlow",
+            dataCreator:"@(ViewBag.CreatorEmpId)",
+            permission: "@Html.Raw(ViewBag.permission)",
+            refID: "@(Model.Id)",
+        refTable: "CarUse",
+        beforeFormSubmit: function (mode, action) {
+            var result = false;
+            //  alert($("#hCarID").val());
+            if ($("#hCarID").val() == "0")
+            {
+                $.messager.alert("提示", "请选择车辆！！！");
+                return false;
+            }
+
+            $.ajax({
+                url: "@(Url.Action("CheckCarIsUse", "OaCarUse",new { @area="Oa" }))",
+                type: "POST",
+            async: false,
+            data: { Id: "@Model.Id", hCarID: $("#hCarID").val() },
+            // data: { hFormType: "", hCarID: "", Id: "" },
+            success: function (data) {
+                // alert(data);
+                result = data;
+            },
+            complete:function(data)
+            {
+                // alert(1121212);
+            }
+        });
+        if (!result) {
+            $.messager.alert("提示", "车辆使用中请重新选择！！！");
+        }
+        return result;
+    },
+    onInit: function () {
+        @*var ActionFlag = '@ViewBag.ActionFlag';
+        if (ActionFlag == "Look") {
+            flowNodeID = -1;
+        }*@
+        }
+    }
+    });
+    var _CarCallBack = function (param) {
+        var BackInfo = param;
+        var carid = BackInfo["Id"];
+        var carName = BackInfo["CarName"];
+        var carNumber = BackInfo["CarNumber"];
+        var carInfo = carName + "[" + carNumber + "]";
+        //$("#CarID").val(carid);
+        $("input[name='CarName']").val(carInfo);
+        $("#hCarID").val(carid);
+
+
+    }
+    //?lower='+$('input[name='DateLeavePlan']').val()+'&upper='+$('input[name='DateArrivePlan']').val()
+    function selectcar(useid) {
+
+        JQ.dialog.dialog({
+            title: "选择车辆",
+            url: '@Url.Action("selectcar")?useid=' + useid,
+            width: '1024',
+
+            height: '100%',
+            JQID: 'CarTable',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-list',
+
+        });
+    }
+    $(function () {
+        if ('@Model.IsNeedDriver' == "1")
+            $('#yes').attr('checked', 'checked');
+        else
+            $('#no').attr('checked', 'checked');
+
+        $('#UseCarDriver').combobox({
+            url: '@Url.Action("GetDirverList", "OaCarUse", new { @area = "Oa"})',
+            valueField: 'CarDriver',
+            textField: 'CarDriver',
+            panelHeight: "auto",
+            editable: false, //不允许手动输入
+        });
+    });
+    JQ.combobox.selEmpEx({
+        id: 'UseLeaderEmp',
+    });
+    function myformatter(date) {
+        return date.format('yyyy-MM-dd hh') == '1900-01-01 00' ? "" : date.format('yyyy-MM-dd hh');
+        //return date.format('yyyy-MM-dd hh');
+    }
+</script>
+@using (Html.BeginForm("save", "OaCarUse", FormMethod.Post, new { @area = "Oa", @id = "OaCarUseForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+
+        <tr>
+            <th width="15%">用途
+                <input type="hidden" name="hFormType" id="hFormType" value="Finish" /></th>
+             <td width="85%">
+                <input name="UsePurpose" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,200]" value="@Model.UsePurpose" />
+            </td>
+
+        </tr>
+        <tr>
+            <th width="15%">去向</th>
+             <td width="85%">
+                <input name="UsePlace" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.UsePlace" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="15%">计划出车时间</th>
+             <td width="85%">
+                <input name="DateLeavePlan" style="width:98%;" class="easyui-datetimebox" validType="length[0,23]" value="@Model.DateLeavePlan" data-options="formatter:myformatter"/>
+            </td>
+
+        </tr>
+        <tr>
+            <th width="15%">计划归队时间</th>
+             <td width="85%">
+                <input name="DateArrivePlan" style="width:98%;" class="easyui-datetimebox" validType="length[0,23]" value="@Model.DateArrivePlan" data-options="formatter:myformatter"/>
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">带车责任人</th>
+             <td width="85%">
+                 <input name="UseLeaderEmp" id="UseLeaderEmp" style="width:98%;" value="@Model.UseLeaderEmp" />
+            </td>
+
+        </tr>
+        <tr>
+            <th width="15%">同车人员</th>
+             <td width="85%">
+                <input name="UsePeople" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.UsePeople" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">乘车人数</th>
+             <td width="85%">
+                <input name="UsePeopleNum" style="width:98%;" class="easyui-numberspinner" validType="length[0,10]" value="@Model.UsePeopleNum" />
+            </td>
+
+        </tr>
+        <tr>
+            <th width="10%">是否需要司机</th>
+            <td width="40%">
+                是 <input type="checkbox" name="needDriver" disabled id="yes" />
+                否 <input type="checkbox" name="needDriver" disabled id="no" />
+                @Html.Hidden("IsNeedDriver", Model.IsNeedDriver)
+                @*<input id="IsNeedDriver" name="IsNeedDriver" value="@Model.IsNeedDriver"/>*@
+            </td>
+        </tr>
+        <tr>
+            <th>
+                派车信息
+                <input type="hidden" name="hCarID" id="hCarID" value="@Model.CarID"  />
+            </th>
+            <td colspan="3">
+                <input name="CarName" type="text" style="width:70%;" validType="length[0,200]" value="@(ViewData["CarInfo"])" readonly="readonly"  />
+
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="selectcar(@Model.Id)" style="display:none;">选择车辆</a>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">司机</th>
+            <td width="40%">
+                <input id="UseCarDriver" name="UseCarDriver" value="@Model.UseCarDriver">
+            </td>
+        </tr>
+
+        <tr>
+            <th width="15%">备注</th>
+             <td width="85%">
+                <input name="UseNote" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@Model.UseNote" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="15%">实际出车时间</th>
+             <td width="85%">
+                <input name="DateLeave" style="width:98%;" class="easyui-datetimebox" validType="length[0,23]" value="@Model.DateLeave" data-options="formatter:myformatter"/>
+            </td>
+
+        </tr>
+        <tr>
+            <th width="15%">实际归队时间</th>
+             <td width="85%">
+                <input name="DateArrive" style="width:98%;" class="easyui-datetimebox" validType="length[0,23]" value="@Model.DateArrive" data-options="formatter:myformatter"/>
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">出车时公里数</th>
+             <td width="85%">
+                <input name="KmLeave" style="width:98%;" class="easyui-textbox"  min="0" validType="length[0,25]" value="@Model.KmLeave" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">归队时公里数</th>
+             <td width="85%">
+                <input name="KmArrive" style="width:98%;" class="easyui-textbox"  min="0" validType="length[0,25]" value="@Model.KmArrive" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="15%">过桥过路停车费(元)</th>
+             <td width="85%">
+                <input name="UseCarFee" style="width:98%;" class="easyui-numberspinner"  min="0" validType="length[0,18]" value="@Model.UseCarFee" />
+            </td>
+
+        </tr>
+        <tr>
+            <th width="15%">报销单据张数</th>
+             <td width="85%">
+                <input name="UseCarFeeInvoice" style="width:98%;" class="easyui-numberspinner"  min="0" validType="length[0,10]" value="@Model.UseCarFeeInvoice" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "OaCarUse";
+                    uploader.Name = "UploadFile1";
+                    uploader.AllowDelete = ViewBag.AllowDelete;
+                    uploader.AllowUpload = ViewBag.AllowUpload;
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+
+
+            </td>
+        </tr>
+    </table>
+
+}
+
+
+

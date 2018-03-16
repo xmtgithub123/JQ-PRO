@@ -1,0 +1,66 @@
+﻿@model DataModel.Models.ArchPaperFolderType
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'ArchPaperFolderTypeForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            var divId = '@Request.Params["divid"]';
+            debugger;
+            if (divId != null) {
+                if (typeof (window.top["_tree_" + divId]) == "function") {
+                    window.top["_tree_" + divId]();
+                }
+            }
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+
+    $(function () {
+        var Id = '@Request.Params["Id"].ToString()';
+        $("#ArchPaperFolderId").val(Id);
+        var ParentId = '@Request.Params["ParentId"].ToString()';
+        $("#ParentId").val(ParentId);
+        var type = '@Model.Type';
+        $("#SType").val(type);
+
+        $("#SType").combobox({
+            onSelect: function (data) {
+                $("#Type").val(data.value);
+            }
+        });
+    });
+</script>
+@using (Html.BeginForm("save", "ArchPaperFolderType", FormMethod.Post, new { @area = "Archive", @id = "ArchPaperFolderTypeForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th>编号</th>
+            <td>
+                <input name="Number" style="width:98%;" class="easyui-textbox" validType="length[0,50]" value="@Model.Number" />
+                <input type="hidden" id="ArchPaperFolderId" name="ArchPaperFolderId" value="@Model.ArchPaperFolderId" />
+                <input type="hidden" id="ParentId" name="ParentId" value="@Model.ParentId" />
+            </td>
+
+        </tr>
+
+        <tr>
+            <th>名称</th>
+            <td>
+                <input name="Name" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,200]" value="@Model.Name" />
+            </td>
+        </tr>
+
+        <tr>
+            <th>类型</th>
+            <td>
+                <select class="easyui-combobox" data-options="editable:false" id="SType" name="SType" >
+                    <option value="0">档案</option>
+                    <option value="1">设计文件</option>
+                </select>
+                <input type="hidden" id="Type" name="Type" value="@Model.Type" />
+            </td>
+        </tr>
+    </table>
+}

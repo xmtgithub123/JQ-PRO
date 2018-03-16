@@ -1,0 +1,120 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+<script type="text/javascript">
+    var requestUrl = '@Url.Action("json", "ArchPaperFolder",new { @area="Archive"})',
+            addUrl = '@Url.Action("add","ArchPaperFolder",new {@area="Archive" })',
+            editUrl = '@Url.Action("edit", "ArchPaperFolder",new {@area="Archive" })',
+            delUrl = '@Url.Action("del", "ArchPaperFolder", new { @area = "Archive" })';
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+            JQAddUrl: addUrl, //添加的路径
+            JQEditUrl: editUrl,//编辑的路径
+            JQDelUrl: delUrl, //删除的路径
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'ArchPaperFolderGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '768',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQFields: ["Id"],//追加的字段名
+            url: requestUrl,//请求的地址
+            checkOnSelect: true,//是否包含check
+            fitColumns: false,
+            nowrap: false,
+            JQExcludeCol: [1,9,10],//导出execl排除的列
+            toolbar: '#ArchPaperFolderPanel',//工具栏的容器ID
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '工程编号', field: 'ProjNumber', width: '10%', align: 'center', sortable: true },
+                { title: '档案编号', field: 'ArchNumber', width: '15%', align: 'center', sortable: true },
+                { title: '工程名称', field: 'ProjName', width: '15%', align: 'center', sortable: true },
+                { title: '设计阶段', field: 'ProjPhaseName', width: '10%', align: 'center', sortable: true },
+                { title: '项目负责人', field: 'ProjEmpName', width: '10%', align: 'center', sortable: true },
+                { title: '存放位置', field: 'Path', width: '10%', align: 'center', sortable: true },
+                { title: '存放内容', field: 'Remark', width: '10%', align: 'center', sortable: true },
+                { field: 'JQFiles', title: '附件', align: 'center', width: '5%', JQIsExclude: true, JQRefTable: 'ArchPaperFolder' },
+                {
+                    field: 'opt', title: '操作', width: "5%", align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                        return '<a class="easyui-linkbutton" onclick="Look(' + row.Id + ')">查档</a>';
+                    }
+                }
+            ]]
+        });
+
+        var _data = JSON.parse(replace('@ViewBag._data'));
+
+        $('#JQYear').combobox({
+            data:_data,
+            valueField: 'Id',
+            textField: 'Text',
+            onLoadSuccess: function () {
+                $('#JQYear').combobox("setValue", '@ViewBag.Year');
+            },
+            onSelect: function (data) {
+                debugger;
+                $('#ArchPaperFolderGrid').datagrid('load', {
+                    Year: data.Id,
+                    TxtLike: $("#JQSearch").textbox("getValue")
+                });
+            }
+        });
+
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '工程编号、工程名称、档案编号',
+            onClickButton: function () {
+                $("#ArchPaperFolderGrid").datagrid("load", {
+                    Year: $("#JQYear").combobox("getValue"),
+                    TxtLike: $("#JQSearch").textbox("getValue")
+
+                });
+            }
+        });
+
+    });
+
+        //替换字符
+    function replace(str) {
+        re = new RegExp("&quot;", "g");
+        var newstart = str.replace(re, '"');
+        return newstart;
+    }
+
+    function Look(id) {
+        JQ.dialog.dialog({
+            title: "档案信息",
+            url: '@Url.Action("archPaperFile", "ArchPaperFolder",new {@area="Archive" })?Id=' + id,
+            width: '1000',
+            height: '100%',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-search',
+            onClose: function () {
+                $("#ArchPaperFolderGrid").datagrid("reload");
+            }
+
+        });
+    }
+
+</script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="ArchPaperFolderGrid"></table>
+    <div id="ArchPaperFolderPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" name="JQSearch" style="width:250px;" />
+        <span style="padding-left:10px;">年份：</span><input id="JQYear" name="JQYear" />
+
+    </div>
+}
+

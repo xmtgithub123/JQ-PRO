@@ -1,0 +1,272 @@
+﻿@model DataModel.Models.IsoForm
+@using JQ.Web;
+<script type="text/javascript">
+    var  btnPer=@Html.Raw(ViewBag.permission);
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'IsoFormProjSubPFForm',//formid提交需要用到
+            docName: 'isoformprojsubpf',
+            ExportName: '项目外委评分表',
+            buttonTypes: ['exportForm','close'],//默认按钮
+            onBefore: function () {
+                $("#ProjSubTableGrid").datagrid('hideColumn', "ck");
+            } ,
+            onAfter: function () {
+                $("#ProjSubTableGrid").datagrid('showColumn', "ck");
+            },
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            },
+            beforeFormSubmit: function () {
+                var _Id = $("#ProjSubIDs").val();
+                if (_Id == "") {
+                    JQ.dialog.warning("请先选择项目外委信息!");
+                    return false;
+                }
+                var val = '';
+                $("[name='items']").each(function(index, element) {
+                    if($(this).attr('Checked')=='checked')
+                    {
+                        val += $(this).val() + ",";
+                    }
+                });
+                $("#stritems").val(JQ.Flow.htmlEncode(val));
+
+
+                var valA = '';
+                $("[name='itemsA']").each(function(index, element) {
+                    if($(this).attr('Checked')=='checked')
+                    {
+                        valA += $(this).val() + ",";
+                    }
+                });
+                $("#stritemsA").val(JQ.Flow.htmlEncode(valA));
+
+                var valB = '';
+                $("[name='itemsB']").each(function(index, element) {
+                    if($(this).attr('Checked')=='checked')
+                    {
+                        valB += $(this).val() + ",";
+                    }
+                });
+                $("#stritemsB").val(JQ.Flow.htmlEncode(valB));
+
+                var valC = '';
+                $("[name='itemsC']").each(function(index, element) {
+                    if($(this).attr('Checked')=='checked')
+                    {
+                        valC += $(this).val() + ",";
+                    }
+                });
+                $("#stritemsC").val(JQ.Flow.htmlEncode(valC));
+
+                var valD = '';
+                $("[name='itemsD']").each(function(index, element) {
+                    if($(this).attr('Checked')=='checked')
+                    {
+                        valD += $(this).val() + ",";
+                    }
+                });
+                $("#stritemsD").val(JQ.Flow.htmlEncode(valD));
+
+            }, flow: {
+                flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+                flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+                url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+                instance: "_flowInstance",
+                processor: "ISO,ISO.FlowProcessor.IsoFormGrade",
+                onInit: function () {
+                    _flowInstance = this;
+                },
+                refID: "@(Model.FormID)",
+                refTable: "IsoFormGrade",
+                dataCreator:"@(ViewBag.CreatorEmpId )"
+            },
+            onBefore: function (resultArr) {
+                var bit="0";
+                if($.inArray("allDown", btnPer)!=-1){
+                    bit="1";
+                }
+                resultArr.push({ Key: "Permission", Value: bit});
+            }
+        });
+        if(@Model.FormID>0)
+        {
+            $("#ProjSubIDs").val(@Model.ProjID);
+
+            $("#stritems").val(@(ViewBag.stritems));
+            $("#stritemsA").val(@(ViewBag.stritemsA));
+            $("#stritemsB").val(@(ViewBag.stritemsB));
+            $("#stritemsC").val(@(ViewBag.stritemsC));
+            $("#stritemsD").val(@(ViewBag.stritemsD));
+
+        }
+        $('#ProjSubTableGrid').datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'ProjSubTable',//数据表格ID
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            url: '@Url.Action("GetProjSubList", "ProjSub", new { @area = "Project" })?CompanyType=FGS',
+            queryParams: { ProjSubIDs: $("#ProjSubIDs").val() },
+            toolbar: '#ProjSubTablePanel',//工具栏的容器ID
+            pagination: false,
+            idField:"Id",
+            columns: [[
+                     { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                     { title: '外委项目编号', field: 'SubNumber', width: 100, align: 'left', sortable: true },
+                     { title: '外委项目名称', field: 'SubName', width: 160, align: 'left', sortable: true },
+                     { title: '项目编号', field: 'ProjNumber', width: 100, align: 'left', sortable: true },
+                     { title: '项目名称', field: 'ProjName', width: 250, align: 'left', sortable: true },
+                     { title: '外委时间', field: 'ColAttDate1', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                     { title: '登记时间', field: 'CreationTime', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+
+            ]],
+
+        });
+        var flag = $("#divXml").text().trim();
+        if (flag) {
+            var xml = GoldPM.loadXml(flag);
+            var items = GoldPM.selectNodes(xml, "Root/Item");
+            for (var i = 0; i < items.length; i++) {
+                var name = items[i].getAttribute("name");
+                var text = items[i].text || items[i].innerHTML;
+                $("#" + name).val(text);
+            }
+        }
+    });
+
+    function SelectProjSub() {
+        JQ.dialog.dialog({
+            title: "选择项目外委",
+            url: '@Url.Action("selectprojsub", "ProjSub", new { @area = "Project" })?CompanyType=FGS&typeID=4&FilterConSubID=0&IsMultiSelect=1',
+            width: '1024',
+            height: '100%',
+            JQID: 'ProjSubTable',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-plus',
+        });
+    }
+    var _ProjCallBackByPF = function (param) {
+        $("#ProjSubIDs").val(param);
+        $("#ProjSubTableGrid").datagrid({
+            url: '@Url.Action("GetProjSubContractList", "ProjSub", new { @area = "Project" })?CompanyType=FGS',
+            queryParams: { ProjSubIDs: $("#ProjSubIDs").val() },
+            onLoadSuccess: function (row) {
+                $("#ConSubNumber").textbox('setValue',row.rows[0].ConSubNumber);
+                $("#ConSubName").textbox('setValue',row.rows[0].ConSubName);
+                $("#ConSubFee").textbox('setValue',row.rows[0].ConSubFee);
+                $("#HZSJName").textbox('setValue',row.rows[0].HZSJName);
+                $("#CustName").textbox('setValue',row.rows[0].CustName);
+            }
+        });
+    }
+
+</script>
+@using (Html.BeginForm("save", "IsoFormProjSubPF", FormMethod.Post, new { @area = "Iso", @id = "IsoFormProjSubPFForm" }))
+{
+    @Html.HiddenFor(m => m.FormID)
+    <input type="hidden" id="CompanyType" name="CompanyType" value="FGS" />
+    <table class="table table-bordered">
+        <tr>
+            <td colspan="4" style="padding: 15px; font-size: 20px; text-align: center; font-weight: bold; border: none;">
+                分包合作单位评价表
+                <div id="divXml" style="display:none">@(ViewBag.contentXml)</div>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                项目外委信息
+                <div id="ProjSubTablePanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+                    <span jqpanel="toolbarPanel">
+                        <a class="easyui-linkbutton" name="SelectProjSub" data-options="plain:true,iconCls:'fa fa-plus'" onclick="SelectProjSub()">选择外委项目</a>
+                    </span>
+                </div>
+            </th>
+            <td colspan="3">
+                <table id="ProjSubTableGrid" bookmark="ProjSubTableGrid"></table>
+
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">合同编号</th>
+            <td width="40%">
+                <input id="ConSubNumber" name="ConSubNumber" style="width:98%;" class="easyui-textbox" value="@ViewBag.ConSubNumber" data-options="readonly:true" />
+            </td>
+            <th width="10%">合同名称</th>
+            <td width="40%">
+                <input id="ConSubName" name="ConSubName" style="width:98%;" class="easyui-textbox" value="@ViewBag.ConSubName" data-options="readonly:true" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">合同金额</th>
+            <td width="40%">
+                <input id="ConSubFee" name="ConSubFee" style="width:98%;" class="easyui-textbox" value="@ViewBag.ConSubFee" data-options="readonly:true" />
+            </td>
+            <th width="10%">合作方式</th>
+            <td width="40%">
+                <input id="HZSJName" name="HZSJName" style="width:98%;" class="easyui-textbox" value="@ViewBag.HZSJName" data-options="readonly:true" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">分包合作单位</th>
+            <td width="40%">
+                <input id="CustName" name="CustName" style="width:98%;" class="easyui-textbox" value="@ViewBag.CustName" data-options="readonly:true" />
+            </td>
+            <th width="10%">填报单位</th>
+            <td width="40%">
+                <input name="CompanyName" style="width:98%;" class="easyui-textbox" value="@ViewBag.CompanyName" data-options="readonly:true" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">是否为我放选定</th>
+            <td colspan="3">
+                @Html.CheckBoxList("items");
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">分包合作项目服务情况</th>
+            <td colspan="3">
+                (1)服务进度 @Html.CheckBoxList("itemsA");<br />
+                (2)设计质量 @Html.CheckBoxList("itemsB");<br />
+                (3)服务态度 @Html.CheckBoxList("itemsC");<br />
+                (4)总体评价 @Html.CheckBoxList("itemsD");<br />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">
+                备注
+            </th>
+            <td colspan="3">
+                <textarea name="BZ" id="BZ" class="easyui-textbox" data-options="multiline:true" style="width:99%;height:80px;"></textarea>
+            </td>
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.FormID;
+                    uploader.RefTable = "IsoForm";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <input type="hidden" id="ProjSubIDs" name="ProjSubIDs" />
+
+    <input type="hidden" id="stritems" name="stritems" value="" />
+    <input type="hidden" id="stritemsA" name="stritemsA" value="" />
+    <input type="hidden" id="stritemsB" name="stritemsB" value="" />
+    <input type="hidden" id="stritemsC" name="stritemsC" value="" />
+    <input type="hidden" id="stritemsD" name="stritemsD" value="" />
+    <input type="hidden" id="ProjName" name="ProjName" value="@ViewBag.ProjName" />
+
+                    }

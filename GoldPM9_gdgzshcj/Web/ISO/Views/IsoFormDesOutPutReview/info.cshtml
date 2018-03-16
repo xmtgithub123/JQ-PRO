@@ -1,0 +1,478 @@
+﻿@model DataModel.Models.IsoForm
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoFormDesOutPutReviewForm',//formid提交需要用到
+        docName: 'IsoDesignOutReview',
+        ExportName: '设计输出评审',
+        buttonTypes:@Html.Raw(ViewBag.ExportPermission),//默认按钮
+        onBefore: function ()
+        {
+            getTexts();
+            $("#DetailGrid").datagrid('hideColumn', "ck");
+            $("#DetailGrid").datagrid('hideColumn', "SpecialId");
+            $("#DetailGrid").datagrid('showColumn', "SpecialName");
+        },
+        onAfter:function()
+        {
+            $("#DetailGrid").datagrid('showColumn', "ck");
+            $("#DetailGrid").datagrid('showColumn', "SpecialId");
+            $("#DetailGrid").datagrid('hideColumn', "SpecialName");
+
+        },
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }, flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+        url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+        instance: "_flowInstance",
+        processor: "ISO,ISO.FlowProcessor.IsoDesignOutputFlow",
+        onInit: function () {
+            _flowInstance = this;
+        },
+        refID: "@(Model.FormID)",
+            refTable: "IsoFormDesOutPutReview",
+            beforeFormSubmit: function () {
+                accept();
+            }
+            @Html.Raw(ViewBag.editPermission)
+        }
+
+
+    });
+    @Html.Raw(ViewBag.submitPermission)
+    JQ.combotree.selEmp({ id: 'ReviewPerson', isMult: true, width: '750' });
+    $("#ReviewPerson").combotree('setValues', '@ViewData["ReviewPerson"]');
+  
+    var selectValue="";
+    var selectText="";
+
+    JQ.combobox.common({
+        id: 'ProjID',
+        toolbar: '#tbProj',//工具栏的容器ID
+        url: '@Url.Action("combogridJson", "Project",new { @area="Project"})',//请求的地址
+        panelWidth: 600,
+        panelHeight: 400,
+        valueField: 'Id',
+        textField: 'ProjName',
+        editable: false,
+        multiple: false,
+        pagination: true,//是否分页
+        queryParams:
+            {
+                projId:'@Model.ProjID',
+                Words:$("#fullNameSearchProj").val()
+            },
+        columns: [[
+            { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true },
+            { title: '项目名称', field: 'ProjName', width: 260, align: 'center', sortable: true },
+            { title: '项目阶段', field: 'PhaseName', width: 140, align: 'center', sortable: true }
+        ]],
+        onSelect: function (val, row) {
+            $("#PhaseID").text(row.PhaseName);
+            $("#ProjNumber").text(row.ProjNumber);
+            selectValue=row.Id;
+            selectText=row.ProjName;
+        },
+        onLoadSuccess: function () {
+             $("#PhaseID").text('@ViewBag.Phase');
+            $("#ProjNumber").text('@ViewBag.ProjNumber');
+            var selectRow=$(this).combogrid('grid').datagrid('getSelected');
+            if(selectRow!=undefined)
+            {
+                selectText=$(this).combogrid('getText');
+            }
+            if(selectRow==undefined)
+            {
+                $(this).combogrid('setText',selectText);
+            }
+        }
+
+    });
+    $("#fullNameSearchProj").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '项目名称、项目编号',
+        onClickButton: function () {
+            JQ.datagrid.searchGrid(
+                {
+                    $dg:$("#ProjID").combogrid('grid'),
+                    loadingType: 'datagrid',
+                    queryParams:
+                             {
+                                 projId:'@Model.ProjID',
+                                 Words:$("#fullNameSearchProj").val()
+                             }
+                });
+        }
+
+    });
+
+    $("#DetailGrid").datagrid({
+        iconCls: 'icon-edit',
+        multiSelect: true,
+        rownumbers: true,
+        fitColumns: true,
+        url: '@Url.Action("ReviewJson", "IsoFormNode", new { @area="Iso"})?FormID=@Model.FormID',//请求的地址
+        toolbar: '#toolBar',
+        columns: [[
+             {
+                 field: 'ck', align: 'center', checkbox: true
+             }, {
+
+                 title: '评审对象', field: 'ReviewTarget', width: 120, align: 'center',
+                 editor: {
+                     type: 'textbox',
+                     options:
+                         {
+                             required: true
+                         }
+                 }
+             },
+             {
+
+                 title: '评审内容', field: 'ReviewContent', width: 170, align: 'center',
+                 editor: {
+                     type: 'textbox',
+                     options:
+                         {
+                             required: true
+                         }
+                 }
+             },
+             {
+
+                 title: '评审结果', field: 'ReviewResult', width: 170, align: 'center',
+                 editor: {
+                     type: 'textbox',
+                     options:
+                         {
+                             required: true
+                         }
+                 }
+             },
+             {
+
+                 title: '评审意见', field: 'ReviewSugg', width: 170, align: 'center',
+                 editor: {
+                     type: 'textbox',
+                     options: {
+                         required: true
+                     }
+                 }
+             },
+             {
+
+                 title: '专业', field: 'SpecialId', width: 180, align: 'center',
+                 formatter: function (val, row) {
+                     return row.SpecialName
+                 },
+                 editor: {
+                     type: 'combobox',
+                     options: {
+                         required: true,
+                         editable:false,
+                         prompt: '下拉选择专业',
+                         valueField: 'id',
+                         textField: 'text',
+                         url: 'Core/basedata/treejson?engName=Special'
+                     }
+                 }
+             },
+             {
+                 title: '专业', field: 'SpecialName', width: 180, align: 'center', hidden:true
+             }
+        ]],
+        onDblClickRow: onDblClickRow
+    });
+
+
+    var editIndex = undefined;
+    function endEditing() {
+        if (editIndex == undefined) { return true }
+        if ($('#DetailGrid').datagrid('validateRow', editIndex)) {
+            var Special = $('#DetailGrid').datagrid('getEditor', { index: editIndex, field: 'SpecialId' });
+            var SpecialName = $(Special.target).combobox('getText');
+            var SpecialId = $(Special.target).combobox('getValue');
+            $('#DetailGrid').datagrid('getRows')[editIndex]['SpecialName'] = SpecialName;
+            $('#DetailGrid').datagrid('getRows')[editIndex]['SpecialId'] = SpecialId;
+            $('#DetailGrid').datagrid('endEdit', editIndex);
+            editIndex = undefined;
+            getRows();
+            return true;
+        } else {
+            return false;
+        }
+    }
+    function onDblClickRow(index) {
+        var editList='@ViewBag.detailPermission';//判断是否有编辑权
+        if(editList=='1')
+        {
+            if (editIndex != index) {
+                if (endEditing()) {
+                    $('#DetailGrid').datagrid('selectRow', index)
+                            .datagrid('beginEdit', index);
+                    editIndex = index;
+                    getRows();
+                    //alert($("#JsonRows").val());
+                } else {
+                    $('#DetailGrid').datagrid('selectRow', editIndex);
+                    JQ.dialog.warning('请将当前信息填写完整，再编辑其他信息');
+                }
+            }
+        }
+    }
+    function append() {
+        if (endEditing()) {
+            $('#DetailGrid').datagrid('appendRow', { FormID: 0, RefID: 0 });
+            editIndex = $('#DetailGrid').datagrid('getRows').length - 1;
+            $('#DetailGrid').datagrid('selectRow', editIndex)
+                    .datagrid('beginEdit', editIndex);
+        }
+        else {
+            JQ.dialog.warning('请将当前信息填写完整，再添加记录');
+        }
+    }
+    var insert = function (row) {
+
+        $('#DetailGrid').datagrid('appendRow', {
+            FormID: row.FormID,
+            RefID: 0,
+            SpecialId: row.SpecialId,
+            ReviewTarget: row.ReviewTarget,
+            ReviewContent: row.ReviewContent,
+            ReviewResult: row.ReviewResult,
+            ReviewSugg: row.ReviewSugg,
+            SpecialName: row.SpecialName
+        });
+
+
+    }
+    function removexit() {
+        var rows = $("#DetailGrid").datagrid('getSelections');
+        if (rows.length <= 0) {
+            JQ.dialog.warning('请选择要删除的行');
+            return;
+        }
+        for (var i = 0; i < rows.length; i++) {
+            var index = $("#DetailGrid").datagrid('getRowIndex', rows[i]);
+            $('#DetailGrid').datagrid('cancelEdit', index)
+                .datagrid('deleteRow', index);
+        }
+        editIndex = undefined;
+        if ($("#DetailGrid").datagrid("getRows").length > 0) {
+            getRows();
+        }
+    }
+    function accept() {
+        if (endEditing()) {
+            $('#DetailGrid').datagrid('acceptChanges');
+            getRows();
+        }
+        else {
+            JQ.dialog.warning('请将信息填写完整');
+            return false;
+        }
+    }
+
+    function getRows() {
+        var rows = $('#DetailGrid').datagrid('getRows');
+        $("#JsonRows").val(JSON.stringify(rows));
+    }
+    function openInsertDialog() //导入数据
+    {
+        if (endEditing()) {
+            JQ.dialog.dialog({
+                title: "选择评审",
+                url: '@Url.Action("selectReview")',
+                width: '1024',
+                height: '100%',
+                JQID: 'ReviewTable',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus',
+
+            });
+        }
+        else {
+            JQ.dialog.warning('请将当前信息填写完整,再导入数据');
+        }
+    }
+    function editSelected() {
+        var selectedRow = $("#DetailGrid").datagrid('getSelections');
+        if (selectedRow.length <= 0) {
+            JQ.dialog.warning("请选择要编辑的行记录");
+        }
+        else {
+
+            var index = $('#DetailGrid').datagrid("getRowIndex", selectedRow[0]);
+            $('#DetailGrid').datagrid('beginEdit', index);
+
+        }
+    }
+
+
+    function getTexts()
+    {
+        $("#Person").val(JQ.combotree.geCheckedTexts({ treeID: 'ReviewPerson' }));
+
+    }
+    var detailPermission='@ViewBag.detailPermission';
+    if(detailPermission!='1')
+    {
+        $("#toolBar").hide();//隐藏评审列表相关的按钮
+    }
+    @Html.Raw(ViewBag.Upload)
+</script>
+
+@using (Html.BeginForm("save", "IsoFormDesOutPutReview", FormMethod.Post, new { @area = "Iso", @id = "IsoFormDesOutPutReviewForm" }))
+{
+    @Html.HiddenFor(m => m.FormID)
+    <input type="hidden" name="JsonRows" id="JsonRows" />
+    <table class="table table-bordered">
+        <tr style="border:none;">
+            <td colspan="6" style="border:none;text-align:center;">
+                <span style="font-weight:bold;font-size:x-large;">设计评审记录单</span>
+            </td>
+        </tr>
+        <tr style="border:none;">
+            <td colspan="4" style="border:none;"></td>
+            <td style="border:none;">
+                编号
+            </td>
+            <td style="border:none;">
+                <input name="Number" style="width:200px;" class="easyui-textbox" validtype="length[0,200]" data-options="required:true" value='@ViewData["Number"]' />
+            </td>
+        </tr>
+        <tr>
+            <th style="width:80px;">
+                项目名称
+            </th>
+            <td colspan="5">
+                <input id="ProjID" name="ProjID" data-options="required:true,multiple:false" style="width:99%;" value="@(@Model.ProjID==0 ? "" :@Model.ProjID.ToString())" />
+                <input type="hidden" name="ProjName" value="@ViewBag.ProjName" />
+            </td>
+
+        </tr>
+        <tr>
+            <th>
+                设计阶段
+            </th>
+            <td colspan="2" style="text-align:center;">
+                <label id="PhaseID"></label>
+            </td>
+            <th>
+                项目编号
+            </th>
+            <td colspan="2">
+                <label id="ProjNumber"></label>
+                <input type="hidden" name="PhaseName" value="@ViewBag.Phase" />
+                <input type="hidden" name="ProjNumber" value="@ViewBag.ProjNumber" />
+                <input type="hidden" name="RecordMan" value="@ViewData["EmpName"]" />
+            </td>
+        </tr>
+
+        <tr>
+            <th style="width:100px;">
+                评审主持人
+            </th>
+            <td style="width:240px;">
+                <input name="ReviewName" style="width:98%;" class="easyui-textbox" validtype="length[0,200]" value='@ViewData["ReviewName"]' />
+            </td>
+            <th style="width:60px;">
+                记录人
+            </th>
+            <td style="width:160px;">
+                <label id="EmpName">@ViewData["EmpName"]</label>
+            </td>
+            <th>
+                评审时间
+            </th>
+            <td>
+                <input id="FormDate" name="FormDate" style="width:200px;" class="easyui-datebox" validtype="dateISO" value="@Model.FormDate" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                参加评审人员
+            </th>
+            <td colspan="5">
+                <select name="ReviewPerson" id="ReviewPerson" style="width:98%;height:60px;" />
+                <input type="hidden" name="Person" id="Person" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="6">
+                <table id="DetailGrid"  style="width:900px;height:auto" bookmark="DetailGrid"></table>
+
+                <div id="toolBar" style="height:auto;text-align:right;">
+                    <span style="color:red;font-weight:bold;padding-right:80px;">  * 双击行记录可进行编辑</span>
+                    <a href="javascript:void(0)" class="easyui-linkbutton l-btn l-btn-small l-btn-plain" data-options="iconCls:'fa fa-plus',plain:true" onclick="append()">新增</a>
+                    <a href="javascript:void(0)" class="easyui-linkbutton l-btn l-btn-small l-btn-plain" data-options="iconCls:'fa fa-filter',plain:true" onclick="openInsertDialog()">导入标准模板评审内容</a>
+                    <a href="javascript:void(0)" class="easyui-linkbutton l-btn l-btn-small l-btn-plain" data-options="iconCls:'fa fa-trash',plain:true" onclick="removexit()">删除</a>
+
+                </div>
+
+            </td>
+        </tr>
+        <tr>
+            <th>
+                评审结论
+            </th>
+            <td colspan="5">
+                <input name="FormReason" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validtype="length[0,500]" value="@Model.FormReason" />
+            </td>
+        </tr>
+        @*<tr>
+            <th rowspan="2">
+                批准
+            </th>
+            <td colspan="5" style="border:none;">
+                <input name="FormNote" style="width:98%;height:120px;" class="easyui-textbox" data-options="multiline:true" validtype="length[0,2000]" value="@Model.FormNote" />
+            </td>
+        </tr>
+        <tr style="border:none;">
+            <td style="border:none;"></td>
+            <td style="border:none;text-align:right;">
+                签字：
+            </td>
+            <td style="border:none;">
+                <input name="SignName" style="width:150px;" class="easyui-textbox" validtype="length[0,200]" value='@ViewData["SignName"]' />
+            </td>
+            <td style="border:none;text-align:right;">
+                日期：
+            </td>
+            <td style="border:none;">
+                <input name="SignDate" style="width:200px;" class="easyui-textbox" validtype="length[0,200]" value='@ViewData["SignDate"]' />
+            </td>
+        </tr>*@
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="5"></td>
+        </tr>
+
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="5">
+                @{
+    var uploader = new DataModel.FileUploader();
+    uploader.RefID = Model.FormID;
+    uploader.RefTable = "IsoFormDesOutPutReview";
+    uploader.Name = "uploadfile1";
+    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <div id="tbProj" style="padding:5px;height:auto; display:none;">
+        <input id="fullNameSearchProj" name="Words" style="width:250px;" JQWhereOptions="{ Key: 'ProjName', 'Contract': 'like' }" />
+    </div>
+
+                    }
+
+
+

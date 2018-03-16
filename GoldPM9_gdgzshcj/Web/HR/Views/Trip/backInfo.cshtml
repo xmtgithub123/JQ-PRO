@@ -1,0 +1,140 @@
+﻿@model DataModel.Models.Trip
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'TripForm',//formid提交需要用到
+        buttonTypes: ['close', 'exportForm'],//默认按钮
+        docName: 'Trip',
+        ExportName: '出差报销单',
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }, flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "Hr,Hr.FlowProcessor.TripBack",
+            onInit: function () {
+                _flowInstance = this;
+            },
+            refID: "@(Model.Id)",
+            refTable: "HrCCBXD",
+            dataCreator: "@(ViewBag.CreatorEmpId )"
+        },
+        beforeFormSubmit: function () {
+
+        },
+        onBefore: function (resultArr) {
+            resultArr.push({ Key: "Permission", Value: '@ViewBag.isExport' });
+        }
+    });
+
+</script>
+@using (Html.BeginForm("save", "Trip", FormMethod.Post, new { @area = "Hr", @id = "TripForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <div style="width:100%;text-align:center;font-size:20px;font-weight:bold;margin-top:10px;">
+            <a>出差申请单</a>
+        </div>
+        <div style="float:right;margin-right:20px;margin-top:10px;margin-bottom:10px;">
+            申请日期：@Model.ApplicationDate.ToString("yyyy-MM-dd")
+        </div>
+        <tr>
+            <th style="width:10%;">出差人</th>
+            <td style="width:40%;">
+                @Model.CreatorEmpName
+            </td>
+            <th style="width:10%;">出差天数</th>
+            <td style="width:40%;">
+                @Model.Days
+            </td>
+        </tr>
+
+        <tr>
+            <th>出差起始日期</th>
+            <td>
+                @Model.StartDate.ToString("yyyy-MM-dd")
+            </td>
+            <th>出差结束日期</th>
+            <td>
+                @Model.EndDate.ToString("yyyy-MM-dd")
+            </td>
+        </tr>
+
+        <tr>
+            <th>出差省市与地区</th>
+            <td colspan="3">
+                @Model.TripReceive
+            </td>
+        </tr>
+
+        <tr>
+            <th>出差事由</th>
+            <td height="150px" colspan="3">
+                @Model.TripReason
+            </td>
+        </tr>
+
+        <tr>
+            <th>配合类型</th>
+            <td colspan="3">
+                @Model.TripType
+            </td>
+        </tr>
+
+        <tr>
+            <th>实际天数</th>
+            <td><input name="SJTS" class="easyui-numberbox" data-options="min:0,precision:0" value="@Model.SJTS" /></td>
+            <th>补贴属性</th>
+            <td>
+                @BaseData.getBase(new Params()
+                {
+                    isMult = false,
+                    controlName = "BTSX",
+                    isRequired = true,
+                    engName = "BTSX",
+                    width = "98%",
+                    ids=Model.BTSX.ToString()
+                })
+            </td>
+        </tr>
+
+        <tr>
+            <th>补贴费用</th>
+            <td><input class="easyui-numberbox" name="BTFY" data-options="min:0,precision:2" value="@Model.BTFY" /></td>
+            <th>补贴方式</th>
+            <td>
+                @BaseData.getBase(new Params()
+                {
+                    isMult = false,
+                    controlName = "BTFS",
+                    isRequired = true,
+                    engName = "BTFS",
+                    width = "98%",
+                    ids=Model.BTFS.ToString()
+                })
+            </td>
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "Trip";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+
+                    }

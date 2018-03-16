@@ -1,0 +1,40 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="save()">
+        <span class="fa fa-save"></span>
+        <span>保存</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <form id="form1">
+        <div style="margin:5px">
+            <table class="documenttable">
+                <tr>
+                    <th style="width:80px">名称</th>
+                    <td style="width:280px"><input type="text" id="txtName" name="" placeholder="请输入数据表名称" class="yc_textbox" style="width:260px" value="@(ViewBag.Name)"></td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript">
+    function save() {
+        YChart.ajaxSubmit({
+            form: "form1",
+            url: "@(Url.Action("TableSave","Setup",new { @area="Form" }))?id=@(ViewBag.ID)",
+            type: "POST",
+            success: function (result) {
+                window.frameElement.api.refreshGrid();
+                frameElement.closeDialog();
+            }
+        });
+    }
+</script>

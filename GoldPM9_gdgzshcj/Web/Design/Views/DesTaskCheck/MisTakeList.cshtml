@@ -1,0 +1,130 @@
+﻿
+<div id="MisTakeListDiv" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',border:false" style="overflow:hidden;">
+        <div style="height:30px;padding:5px 0px;">
+            <a class="easyui-linkbutton" data-options="iconCls:'fa fa-plus'" id="MisTake">添加到校审意见</a>
+            <span style="margin-left:8px;font-size:13px"> 已选择<strong style="margin:0px 5px;" id="selectMisTake" data-misTake="">0</strong>项</span>
+        </div>
+    </div>
+    <div data-options="region:'center',border:false">
+        <div id="TaskMisTakeListDiv" style="width:100%;height:100%;">
+            <table id="TaskMisTakeList"></table>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    var _selectId = [];
+
+    $("#MisTake").click(function () {
+        if (_selectId.length == 0) {
+            JQ.dialog.show("请至少选择一项！！！");
+            return false;
+        }
+
+        JQ.dialog.confirm("你确定将此" + _selectId.length + "项，添加到校审意见中嘛？", function () {
+            JQ.tools.ajax({
+                url: '@Url.Action("AddToDesCheck")',
+                data: { taskId: '@ViewBag.taskId', isoCheckIds: _selectId.join(',') },
+                succesCollBack: function (param) {
+                    if (param.stateValue > 0) {
+                        var info = JQ.tools.findDialogInfo();
+                        if (typeof (window["TabSelect_" + info.divid]) == "function") {
+                            window["TabSelect_" + info.divid]("校审意见");
+                        }
+                    }
+                }
+            })
+        })
+    });
+
+    function showSelectCount() {
+        $("#selectMisTake", "#MisTakeListDiv").text(_selectId.length);
+    }
+
+    function showTaskMisTakeGrid() {
+        JQ.datagrid.datagrid({
+            idField: 'Id',//主键的字段
+            JQID: 'TaskMisTakeList',//数据表格ID
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+            JQFields: ["Id"],//追加的字段名
+            url: '@Url.Action("MisTakeJson")',//请求的地址
+            queryParams: { taskId: '@ViewBag.taskId' },
+            pagination: false,
+            rownumbers: true,
+
+            checkOnSelect: true,
+            fit: true,
+            columns: [[
+                {field: 'ck', align: 'center', checkbox: true, JQIsExclude: true,},
+                { title: '角色', field: 'CheckTypeName', width: '12%', align: 'center', },
+                { title: '差错内容', field: 'CheckItem', width: '50%', align: 'left', },
+                { title: '备注', field: 'CheckNote', width: '20%', align: 'left', },
+                {
+                    title: '是否添加', field: 'IsCreate', width: '10%', align: 'left', formatter: function (value, row, idnex) {
+                        if (value == "1") {
+                            return "已添加";
+                        }
+                        else {
+                            return "";
+                        }
+                    }
+                },
+            ]],
+            onCheck: function (index, row) {
+                if (_selectId.indexOf(row.Id) == -1) {
+                    _selectId.push(row.Id);
+                }
+                showSelectCount();
+            },
+            onUncheck: function (index, row) {
+                _selectId = Enumerable.From(_selectId).Where("x=>x!=" + row.Id + "").ToArray();
+                showSelectCount();
+            },
+            onCheckAll: function (rows) {
+                $.each(rows, function (i, e) {
+                    if (_selectId.indexOf(e.Id) == -1) {
+                        _selectId.push(e.Id);
+                    }
+                });
+                showSelectCount();
+            },
+            onUncheckAll: function (rows) {
+                var _unSelect = Enumerable.From(rows).Select("x=>x.Id").ToArray();
+                _selectId = Enumerable.From(_selectId).Where(function (i) {
+                    return _unSelect.indexOf(i) == -1;
+                }).ToArray();
+                showSelectCount();
+            },
+            onLoadSuccess:function (data) {
+                //if (data.total > 0) {
+                //    $.each(data.rows, function (i, e) {
+                //        if (e.IsCreate == "1") {
+                //            var checkB = $("#TaskMisTakeList").datagrid("getPanel").find(".datagrid-btable").find("td[field=\"ck\"]");
+                //            $(checkB[i]).empty();
+                //            $("<div class='datagrid-header-check' title='已添加'><i class='fa fa-check' ></i></div>").appendTo($(checkB[i]));
+                //        }
+                //    })
+                //}
+            }
+        });
+    }
+
+    // 页面初始化
+    function MisTakeListPageInfo() {
+        if ('@ViewBag.from' == "TaskInfoApprove") {
+            $("#MisTake", "#MisTakeListDiv").show();
+        } else {
+            $("#MisTake", "#MisTakeListDiv").hide();
+        }
+    }
+
+    $(function () {
+        // 页面初始化
+        MisTakeListPageInfo();
+
+        // 显示排查模板
+        showTaskMisTakeGrid();
+    });
+
+</script>

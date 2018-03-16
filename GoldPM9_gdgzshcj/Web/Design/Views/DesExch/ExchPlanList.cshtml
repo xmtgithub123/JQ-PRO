@@ -1,0 +1,88 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("SpecPlanListJson", "DesTask",new { @area="Design"})';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'DesTaskGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                JQExcludeCol: [1, 10],//导出execl排除的列
+                JQMergeCells: { fields: ['ProjNumber', 'ProjName'], Only: 'Id' },//当字段值相同时会自动的跨行(只对相邻有效)
+                toolbar: '#DesTaskPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true },
+		            { title: '项目名称', field: 'ProjName', width: 300, align: 'left', sortable: true },
+                    { title: '阶段', field: 'ProjPhaseName', width: 100, align: 'center', sortable: true },
+                    { title: '阶段负责人', field: 'ProjPhaseEmpName', width: 100, align: 'center', sortable: true },
+                    { title: '专业', field: 'ProjSpecName', width: 100, align: 'center', sortable: true },
+                    { title: '专业负责人', field: 'ProjSpecEmpName', width: 100, align: 'center', sortable: true },
+		            { title: '计划开始', field: 'DatePlanStart', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '计划结束', field: 'DatePlanFinish', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    {
+                        title: '操作', field: 'Id', width: 120, align: 'center', formatter: function (value, row, index) {
+                            //var _titleName = "[" + row.ProjNumber.escapeHTML() + "]" + row.ProjName.escapeHTML();
+                            var _titleName = "提资策划：[{0}]{1} &gt; {2} &gt; {3}".format(row.ProjNumber.escapeHTML(), row.ProjName.escapeHTML(), row.ProjPhaseName, row.ProjSpecName);
+
+                            //var _titleName = "[" + decodeURIComponent(row.ProjNumber) + "]" + decodeURIComponent(row.ProjName);
+                            //return "<a class=\"easyui-linkbutton\" data-options=\"plain:true,iconCls:'fa fa-trash'\" onclick=\"openProjPlanInfo('" + _titleName + "'," + row.Id + "," + row.TaskGroupId + ")\">提资策划</a>";//openProjPlanInfo(\"" + _titleName + "\"," + row.Id + "," + row.TaskGroupId + ")
+                            return "<a class=\"easyui-linkbutton\" data-options=\"plain:true,iconCls:'fa fa-trash'\" onclick=\"openExchPlanInfo('{0}',{1},{2},{3})\">提资策划</a>".format(_titleName, row.Id, row.TaskGroupId, row.ProjSpecId);
+
+                        }
+                    }
+                ]]
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目名称、编号',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'DesTaskGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+
+        });
+
+        function openExchPlanInfo(title, projId, taskGroupId, taskSpecId) {
+            var url = '@Url.Action("ExchPlanInfo")?tabId=2&projID=' + projId + '&taskGroupId=' + taskGroupId + '&taskSpecId=' + taskSpecId;
+
+            JQ.dialog.dialogIframe({
+                title: title,
+                url: url,
+                width: 1200,
+                height: 800
+            });
+        }
+    </script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+
+    <table id="DesTaskGrid"></table>
+    <div id="DesTaskPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel"></span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'ProjNumber,ProjName', Contract:'like'}" />
+
+    </div>
+}
+

@@ -1,0 +1,118 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        debugger;
+        var requestUrl = '@Url.Action("json", "DesEvent",new { @area="Design"})';
+        addUrl = '@Url.Action("add", "DesEvent", new {@area= "Design" })?taskGroupId=@ViewBag.taskGroupId',
+        delUrl = '@Url.Action("del", "DesEvent", new { @area = "Design" })';
+        editUrl = '@Url.Action("edit", "DesEvent", new { @area = "Design" })';
+        $(function () {
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '记事标题',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'DesEventGrid',
+                            loadingType: 'datagrid',
+                            queryParams: getQueryParameters()
+                        });
+                }
+            });
+
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'DesEventGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#DesEventPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '记事标题', field: 'EventTitle', width: "60%", halign: 'center', align: 'left', sortable: true },
+                    { title: '创建人姓名', field: 'CreatorEmpName', width: "10%", halign: 'center', align: 'center', sortable: true },
+		            {
+		                title: '创建时间', field: 'CreationTime', width: "10%", halign: 'center', align: 'center', sortable: true, formatter: function (value, row, index) {
+		                    row.CreationTime = JQ.tools.DateTimeFormatterByT(value, row, index);
+		                    return row.CreationTime;
+		                }
+		            },
+                     {
+                         field: 'JQFiles', title: '附件', align: 'center', width: "10%", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'DesEvent', formatter: function (value, row) {
+                             return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                         }
+                     },
+                     {
+                         title: '操作', field: 'Id', width: 40, halign: 'center', align: 'center', formatter: function (value, row, index) {
+                             var _titleName = "[" + row.EventTitle.escapeHTML() + "]";
+                             return "<a class=\"easyui-linkbutton\" data-options=\"plain:true,iconCls:'fa fa-trash'\" onclick='ViewInfo("+ row.Id + ")'>查看</a>";
+                         }
+                     }
+
+                ]],
+                onClose:function () {
+                    $("#DesEventGrid").datagrid("reload");
+                },
+                queryParams: getQueryParameters(),
+                JQExcludeCol: [1,5,6]//导出execl排除的列
+
+            });
+
+
+
+        });
+        window.refreshGrid_Event = function () {
+            var query = getQueryParameters();
+            query.text = $("#JQSearch").textbox("getText");
+            $("#DesEventGrid").datagrid("load", query);
+        }
+
+        function getQueryParameters() {
+            return { taskGroupId: '@ViewBag.taskGroupId' };
+        }
+
+        function ViewInfo(Id) {
+            JQ.dialog.dialog({
+                title: "记事明细",
+                url: '@Url.Action("editView")?id='+Id+'&View=1',
+                width: '1024',
+                height: '100%',
+                onClose: function () {
+                    //$("#DesEventGrid").datagrid("reload");
+                    //console.log("reload")
+                    //var query = getQueryParameters();
+                    //query.text = $("#JQSearch").textbox("getText");
+                    //$("#DesEventGrid").datagrid("load", query);
+                }
+            });
+        }
+
+    </script>
+}
+
+@section Body_Content{
+
+    <table id="DesEventGrid"></table>
+    <div id="DesEventPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'EventTitle', Contract:'like'}" />
+
+    </div>
+}
+

@@ -1,0 +1,324 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.IsoForm
+
+@section head {
+    <style type="text/css">
+    .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+    .p-15{
+        padding:15px;
+    }
+
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+        #dialog .checkbox {
+            margin: 0;
+        }
+</style>
+}
+
+@section Body_Content{
+    <div class="aui-content" style="overflow-x:hidden">
+        <form id="IsoFormArchiveForm" class="aui-form">
+            <input type="hidden" name="ColAttVal1" id="ColAttVal1" value="@Model.ColAttVal1" />
+            <div class="aui-input-row">
+
+                <label class="aui-input-addon">&nbsp;&nbsp;申请人</label>
+                <input type="hidden" id="ProjID" name="ProjID" />
+                <input type="hidden" id="FormID" name="FormID" value="@(Model.FormID)" />
+                <div class="aui-input-block" id="CreatorEmpNameText">@Model.CreatorEmpName</div>
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;申请时间</label>
+                <div class="aui-input-block">@Model.FormDate</div>
+            </div>
+            <div class="aui-input-row">
+                <b class="aui-input-addon aui-text-danger">*</b>
+                <label class="aui-input-addon">&nbsp;&nbsp;申请原因</label>
+                <textarea rows="6" name="FormReason" id="FormReason" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.FormReason</textarea>
+            </div>
+        
+            <div class="row">
+                <div class="table-responsive">
+                    <table class="table table-select-show table-bordered" id="dgGrid" style="font-size:12px;">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center;">&nbsp;&nbsp;项目编号</th>
+                                <th style="text-align:center;">&nbsp;&nbsp;项目经理</th>
+                                <th style="text-align:center;">&nbsp;&nbsp;文件名称</th>
+                                <th style="text-align:center;">&nbsp;&nbsp;文件大小</th>
+                                <th style="text-align:center;">&nbsp;&nbsp;上传时间</th>
+                                <th style="text-align:center;">&nbsp;&nbsp;上传人</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gridListShow" style="font-size:12px;"></tbody>
+                    </table>
+                </div>
+
+                <script id="listTp2" type="text/x-dot-template">
+                    {{~it:appendselectArrayInfoData:index}}
+                    <tr>
+                        <td>
+
+                            @*<input type="text" name="EquipNumber" id="EquipNumber" value="{{=appendselectArrayInfoData.EquipNumber}}" />*@
+                            <span id="ProjNumber" name="ProjNumber">&nbsp;&nbsp;{{=appendselectArrayInfoData.ElecNumber}}</span>
+                        </td>
+                        <td>
+                           
+                            <span id="ProjName" name="ProjName">&nbsp;&nbsp;{{=appendselectArrayInfoData.ProjEmpName}}</span>
+                        </td>
+                        <td>
+                            <span id="ElecFileName" name="ElecFileName">&nbsp;&nbsp;{{=appendselectArrayInfoData.ElecFileName}}</span>
+                        </td>
+                        <td>
+                            <span id="ElecSize" name="ElecSize">&nbsp;&nbsp;{{=appendselectArrayInfoData.ElecSize}}</span>
+                        </td>
+                        <td>
+                            
+                            <span id="CreationTime" name="CreationTime">&nbsp;&nbsp;{{=(Date.jsonStringToDate(appendselectArrayInfoData.CreationTime)).getFullYear() =='1900' ? '':(Date.jsonStringToDate(appendselectArrayInfoData.CreationTime)).format("yyyy-MM-dd")}}</span>
+                        </td>
+                        <td>
+                            <span id="CreatorEmpName" name="CreatorEmpName">&nbsp;&nbsp;{{=appendselectArrayInfoData.CreatorEmpName}}</span>
+                        </td>
+                    </tr>
+                    {{~}}
+                </script>
+            </div>
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+       
+    </div>
+    <script type="text/javascript">
+
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                initFormBegin(JSON.stringify({
+                    "Result": true,
+                    "Message": null,
+                    "NodeName": null,
+                   // "AllowEditControls": "ColAttVal1;btnChooseProject;ProjIDName;Number;ProjID;Words;ConstructUnit;SupplyUnit;FormDate;ColAttVal2;ModifyContent;DesignName;FormNote;DesChangeUpload;ColAttVal3;ProjName;DesignReason;ColAttVal4",
+                    "SignControls": "DesignName(签名)",
+                    "SignControls": null,
+                    "AllowEditControls":"{}"
+
+                }));
+                //initFormBegin();
+            }
+
+        })
+
+        var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+        };
+        function getFileSizeText(size) {
+            if (!size && size != 0) {
+                return "";
+            }
+            var st = "";
+            if (size >= 1024 * 1024 * 1024) {
+                st = (size / 1024 / 1024 / 1024).toFixed(2) + "GB";
+            } else if (size >= 1024 * 1024) {
+                st = (size / 1024 / 1024).toFixed(2) + "MB";
+            } else if (size >= 1024) {
+                st = (size / 1024).toFixed(2) + "KB";
+            } else {
+                st = size + "B";
+            }
+            return st;
+        }
+        //页面初始化
+        function initFormBegin(params) {
+           // alert(params)
+
+            //去除换行
+            //alert(window.location.href)
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+            //alert(JSON.stringify(paramsObj.AllowEditControls))
+
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+            //paramsObj.AllowEditControls = paramsObj.AllowEditControls.replace("ProjID", "selectProjNameBtn").replace("ColAttVal2","btnChooseReason");
+            //alert(1)
+
+            console.log($('#ColAttVal1').val())
+            var ColAttVal1 = $('#ColAttVal1').val()
+            $.post('@Url.Action("json", "ArchElecFile", new { @area= "Archive" })' + "?ids=" + ColAttVal1, function (_rData) {
+                console.log(_rData)
+                var rowData = JSON.parse(_rData);
+                console.log(rowData)
+                if (rowData.rows.length > 0) {
+                    var interText = doT.template($("#listTp2").text())
+                    $("#gridListShow").html(interText(rowData.rows));
+
+                    var test = getFileSizeText($('#ElecSize').text());
+                    //alert($('#ElecSize').text())
+                    $('#ElecSize').text(test);
+                }
+            })
+           
+            //var url = _webconfig.serverUrl + 'archive/ArchElecFile/json?ids=' + ColAttVal1;
+            //$.ajax({
+            //    type: 'POST',
+            //    url: url,
+            //    data: '',
+            //    success: function (data) {
+            //        console.log(data)
+            //    },
+            //    error: function (error) {
+            //        console.log(error)
+            //    }
+            //})
+            //alert(2)
+           
+           
+           // $('#ElecSize').text() =  getFileSizeText($('#ElecSize').text());
+
+             //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('IsoFormArchiveForm'));
+
+            
+            //修改内容，替换换行符
+            var FormReasonValue = $('#FormReason').val();
+            FormReasonValue = FormReasonValue.replace(/[\r\n]/g, "")
+            $('#FormReason').val(FormReasonValue);
+           
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#IsoFormArchiveForm').validate({
+                rules: {
+                    ConstructUnit: { //修改内容
+                        required: false,
+                        maxlength: 500
+                    },
+                },
+                messages: {
+
+                    ConstructUnit: {
+                        maxlength: '内容长度必须介于0-500之间'
+                    },
+
+                }
+            });
+            //if ($('#ProjName').val() == '') {
+            //    $.alert('请选择项目！')
+            //    return false;
+            //}
+            isValidate = formVali.form();
+            if (isValidate) {
+                var formData = DomUtil.serialize(document.getElementById('IsoFormArchiveForm'));//json or =&
+                console.log(formData)
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+            var formData = DomUtil.serialize(document.getElementById('IsoFormArchiveForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+
+    </script>
+}

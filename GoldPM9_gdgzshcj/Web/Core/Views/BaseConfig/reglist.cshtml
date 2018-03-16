@@ -1,0 +1,112 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "BaseConfig",new { @area="Core"})',
+               editUrl = '@Url.Action("edit", "BaseConfig",new {@area="Core" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQEditUrl: editUrl,//编辑的路径
+                JQPrimaryID: 'ConfigID',//主键的字段
+                JQID: 'BaseConfigGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '500',//弹出窗体宽
+                JQHeight: '400',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["ConfigID"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: false,//是否包含check
+                JQIsSearch: true,
+                fitColumns: true,
+                nowrap: false,
+                JQExcludeCol: [0],//导出execl排除的列
+                toolbar: '#BaseConfigPanel',//工具栏的容器ID
+                columns: [[
+		                { title: '配置名称', field: 'ConfigName', width: 200, align: 'center', sortable: true },
+		                { title: '配置英文标识', field: 'ConfigEngName', width: 150, align: 'center', sortable: true },
+		                { title: '配置内容', field: 'ConfigValue', width: 400, align: 'center', sortable: true },
+		                { title: '配置备注', field: 'ConfigNote', width: 200, align: 'center', sortable: true }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '配置名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BaseConfigGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+
+
+        function code() {
+            var Url = '@Url.Action("RegServerCode", "BaseConfig", new { @area = "Core"})';
+            JQ.tools.ajax({
+                doBackResult: true,
+                url: Url,
+                data: null
+            });
+        }
+
+        function serverStatus() {
+            var Url = '@Url.Action("RegStatus", "BaseConfig", new { @area = "Core"})';
+            JQ.tools.ajax({
+                doBackResult: false,
+                url: Url,
+                data: null,
+                succesCollBack: function (ret) {
+                    JQ.dialog.info(ret.stateMsg);
+                }
+            });
+        }
+
+        function JinQuCode() {
+            var Url = '@Url.Action("JinQuRegStatus", "BaseConfig", new { @area = "Core"})';
+            JQ.tools.ajax({
+                doBackResult: false,
+                url: Url,
+                data: null,
+                succesCollBack: function (ret) {
+                    JQ.dialog.info(ret.stateMsg);
+                }
+            });
+        }
+
+        function edit() {
+            var url = '@Url.Action("edit", "BaseConfig", new { @area="Core"})';
+            JQ.dialog.dialog({
+                title: "软件注册",
+                url: url + '?id=' + 1,
+                width: '500',
+                height: '400',
+                JQID: 'BaseConfigGrid',
+                JQLoadingType: 'datagrid'
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="BaseConfigGrid"></table>
+    <div id="BaseConfigPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="edit()">软件注册</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="code()">查看机器码</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="serverStatus()">查看注册状态</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="JinQuCode()">查看标准版注册码</a>
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'ConfigName', 'Contract': 'like' }"/>
+        <input type="hidden" JQWhereOptions="{ Key:'ConfigEmpID', Contract:'=',filedType:'Int' }" value="-1">
+    </div>
+}
+

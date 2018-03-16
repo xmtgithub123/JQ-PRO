@@ -1,0 +1,88 @@
+﻿@model DataModel.Models.OaBookUse
+@using JQ.Web;
+<script type="text/javascript">
+        JQ.form.submitInit({
+            formid: 'OaBookUseForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }
+            ,
+            beforeFormSubmit: function () {
+            var result = true;
+            var LendCount = $("#LendCount").textbox("getValue");
+            var rowCount = @ViewBag.rowCount;
+                if (LendCount<=0||LendCount>rowCount) {
+                    result = false;
+                    JQ.dialog.info("请填写正确的[借阅数量]!<br/>借阅数量不能超过[" + rowCount + "]本");
+                }
+                //if (LendCount>rowCount) {
+                //    result = false;
+                //    JQ.dialog.info("借阅数量不能超过--[" + rowCount + "]--本");
+                //}
+            return result;
+        }
+
+
+    });
+
+</script>
+@using (Html.BeginForm("save", "OaBookUse", FormMethod.Post, new { @area = "OA", @id = "OaBookUseForm" }))
+{
+    <input name="Id" type="hidden" value="@Model.Id" />
+
+    @Html.HiddenFor(m => m.ReturnEmpId)
+    @Html.HiddenFor(m => m.ReturnEmpName)
+    var bookModel = ViewBag.bookModel as DataModel.Models.OaBook;
+    <input name="BookID" type="hidden" value="@bookModel.Id" />
+    <table class="table table-bordered">
+        <tr>
+
+            <th width="20%">图书编号 </th>
+            <td width="80%">
+                @Html.Label("BookNameNumber", bookModel.BookNameNumber)
+            </td>
+
+        </tr>
+        <tr>
+            <th width="20%">图书名称</th>
+            <td width="80%">
+                @Html.Label("BookName", bookModel.BookName)
+            </td>
+        </tr>
+        <tr>
+            <th width="20%">借阅时间</th>
+            <td width="80%">
+                <input id="DateLend" name="DateLend" style="width:50%;" data-options="required:true" class="easyui-textbox" value="@Model.DateLend" readonly="readonly" />
+            </td>
+        </tr>
+        <tr>
+
+            <th width="20%">借阅数量</th>
+            <td width="80%">
+                <input id="LendCount" name="LendCount" style="width:50%;" class="easyui-numberbox" data-options="required:true" value="@Model.LendCount" />
+
+            </td>
+        </tr>
+        <tr>
+
+            <th width="20%">计划归还时间</th>
+            <td width="80%">
+                <input id="DateReturnPlan" name="DateReturnPlan" style="width:50%;" class="easyui-datebox" data-options="required:true" value="@Model.DateReturnPlan" />
+
+            </td>
+        </tr>
+        <tr>
+            <th width="20%">借阅备注</th>
+            <td width="80%">
+                <textarea name="LendNote" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validtype="length[0,1000]">@Model.LendNote</textarea>
+            </td>
+        </tr>
+    </table>
+
+}
+
+
+
+

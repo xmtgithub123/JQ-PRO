@@ -1,0 +1,120 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "OaMeetingRoom",new { @area="Oa"})',
+               addUrl = '@Url.Action("add","OaMeetingRoom",new {@area="Oa" })',
+               editUrl = '@Url.Action("edit", "OaMeetingRoom",new {@area="Oa" })',
+               delUrl = '@Url.Action("del", "OaMeetingRoom", new { @area = "Oa" })';
+        //查看使用情况
+        function RoomUseRecordList(MeetingID) {
+            JQ.dialog.dialog({
+                title: '查看使用记录',
+                width: '1024',
+                height: '768',
+                url: '@Url.Action("RoomUseList","OaMeetingRoom",new { @area="Oa"})?MeetingID=' + MeetingID
+            });
+        }
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaMeetingRoomGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '550',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '会议名称',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                JQExcludeCol: [1,7,8,9],//导出execl排除的列
+                fitColumns: false,
+                nowrap: false,
+                toolbar: '#OaMeetingRoomPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		{ title: '会议室名称', field: 'RoomName', width: '20%', align: 'center', sortable: true },
+		{ title: '会议室容纳人数', field: 'RoomPeoLength', width: '12%', align: 'center', sortable: true },
+		{ title: '会议面积(㎡)', field: 'RoomArea', width: '15%', align: 'center', sortable: true },
+		{
+		    title: '会议室状态', field: 'RoomStatusName', width: '12%', align: 'center', sortable: true,
+		    formatter: function (val, row) {
+		        if (row.RoomStatus == "1466") {
+		            return '<span style="color:blue;">' + row.RoomStatusName + '</span>';
+		        }
+		        else {
+		            if (row.RoomStatus == "1467") {
+		                return '<span style="color:red;">' + row.RoomStatusName + '</span>'
+		            }
+		            else {
+		                return row.RoomStatusName;
+		            }
+		        }
+		    }
+		},
+        { title: '会议室备注', field: 'RoomNote', width: '18%', align: 'center', sortable: true },
+        {
+            field: 'JQFiles', title: '附件', align: 'center', width: "7%", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'OaMeetingRoom',
+            formatter: function (value, row) {
+                return "<span id=\"grid_files_" + row.Id + "\"></span>"
+            }
+        },
+        {
+            title: '使用情况', field: 'UseState', width: '8%', align: 'center',
+            formatter: function (val, row) {
+                return '<a class="easyui-linkbutton" onclick="RoomUseRecordList(' + row.Id + ')">使用情况</a>'
+            }
+        },
+                {
+                    title: '操作', field: 'Info', width: '4%', align: 'center',
+                    formatter: function (val, row) {
+                        return '<a class="easyui-linkbutton" onclick="Info(' + row.Id + ')">修改</a>'
+                    }
+                }
+                ]]
+            });
+        });
+
+        function Info(Id) {
+            JQ.dialog.dialog({
+                title: '查看会议室信息',
+                width: '800',
+                height: '550',
+                url: '@Url.Action("edit","OaMeetingRoom",new {@area="Oa"})?id=' + Id
+            });
+        }
+
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="OaMeetingRoomGrid"></table>
+    <div id="OaMeetingRoomPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'RoomName', 'Contract': 'like' }" />
+        <span style="margin-left:20px;">会议室状态:</span>
+        @BaseData.getBases(
+           new Params() { isMult = true, engName = "MeetinfRoomState", queryOptions = "{ Key:'RoomStatus', Contract:'in',filedType:'Int'}" }
+           )
+
+
+    </div>
+}
+

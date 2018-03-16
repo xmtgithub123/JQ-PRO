@@ -1,0 +1,192 @@
+﻿@using JQ.Web;
+
+<script type="text/javascript">
+
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQButtonTypes: [],
+            JQPrimaryID: "FlowID",
+            JQID: "IsoList",
+            JQDialogTitle: "表单",
+            JQWidth: "1024",//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: "datagrid",
+            url: "@(Url.Action("GetFormsByProjID1", "IsoForm", new { @area = "Iso" }))",
+            checkOnSelect: true,
+            singleSelect: true,
+            nowrap: false,
+            toolbar: "#list_toolbar",
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: "表单标题", field: "FlowTitle", width: "40%", align: "left", halign: "center" },
+                { title: "流程名称", field: "FlowName", width: "13%", align: "left", halign: "center" },
+                { title: "发起日期", field: "CreationTime", width: "10%", align: "center",sortable:true, halign: "center", formatter: JQ.tools.DateTimeFormatterByT },
+                { title: "发起人", field: "CreatorEmpName", width: "10%", align: "center", halign: "center" },
+                {
+                    title: "进度", field: "FlowStatusName", width: "13%", align: "left", halign: "center", formatter: function (value, rowData) {
+                        var a = document.createElement("a");
+                        a.setAttribute("href", "javascript:void(0)");
+                        a.appendChild(document.createTextNode(value));
+                        a.setAttribute("onclick", "openProgressDialog(" + rowData.FlowId + ",'" + encodeURIComponent(rowData.FlowName) + "');");
+                        return a.outerHTML;
+                    }
+                },
+                {
+                    title: "操作", field: "CZ", width: "8%", align: "center", halign: "center", formatter: function (value, row, index) {
+                        return '<a btn  class="easyui-linkbutton"  data-options="iconCls:\'fa fa-check\'"   onclick="Edit(' + row.ID + ')">' + row.NodeState + '</a>';
+                    }
+                }
+            ]],
+            queryParams: { projectID:@Request.Params["projId"], phaseID:@Request.Params["phaseID"] },
+            onBeforeCheck: function (rowIndex, rowData) {
+                if (rowData.FlowStatusID == 3) {
+                    return false;
+                } else if (rowData.FlowStatusID == 2 && rowData.FlowStatusName.indexOf("退回至") == -1) {
+                    return false;
+                } else if (rowData.FlowStatusID == 2 && rowData.FlowStatusName.indexOf("退回至") != -1 && rowData.CreatorEmpId != rowData.FlowNodeEmpId) {
+                    return false;
+                }
+            },
+            onClickRow: function (rowIndex, rowData) {
+                if (rowData.FlowStatusID == 3) {
+                    $(this).datagrid('unselectRow', rowIndex);
+                } else if (rowData.FlowStatusID == 2 && rowData.FlowStatusName.indexOf("退回至") == -1) {
+                    $(this).datagrid('unselectRow', rowIndex);
+                } else if (rowData.FlowStatusID == 2 && rowData.FlowStatusName.indexOf("退回至") != -1 && rowData.CreatorEmpId != rowData.FlowNodeEmpId) {
+                    $(this).datagrid('unselectRow', rowIndex);
+                }
+            },
+            onLoadSuccess: function (data) {
+                $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                var rowViews = $("#IsoList").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                for (var i = 0; i < data.rows.length; i++) {
+                    debugger;
+                    if (data.rows[i].FlowStatusID == 3) {
+                       rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                    } else if (data.rows[i].FlowStatusID == 2 && data.rows[i].FlowStatusName.indexOf("退回至") == -1) {
+                        rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                    } else if (data.rows[i].FlowStatusID == 2 && data.rows[i].FlowStatusName.indexOf("退回至") != -1 && data.rows[i].CreatorEmpId != data.rows[i].FlowNodeEmpId && data.rows[i].CreatorEmpId == '@ViewBag.CurrEmpId') {
+                        rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                    }
+                }
+            }
+        });
+
+        $("#IsoType").datagrid({
+            url: "@(Url.Action("getAllFormJson", "IsoForm", new { @area = "Iso" }))",
+            singleSelect: true,
+            columns: [[
+                { title: "表单名称", field: "text", width: "100%", align: "center", halign: "center" }
+            ]],
+            onClickRow: function (index, row) {
+                var addUrl = '/GoldPM9_gdgzshcj/iso/' + row.ModelRefTable + '/add?projId=@Request.Params["projId"]&phaseID=@Request.Params["phaseID"]&taskGroupId=@Request.Params["taskGroupId"]';
+                $("#add").attr("src", addUrl);
+
+                $('#IsoList').datagrid('load',{
+                    projectID:@Request.Params["projId"],
+                    phaseID:@Request.Params["phaseID"] ,
+                    tableName : row.text
+                });
+            }
+        });
+    });
+
+    function openProgressDialog(flowID, flowName) {
+        JQ.Flow.showProgressDialog(decodeURIComponent(flowName), "@(Url.Action("Progress","PubFlow",new { @area="Core" }))?flowID=" + flowID);
+        JQ.Flow.stopBubble();
+    }
+
+    function add() {
+        var isTrue = false;
+        var row = $("#IsoType").datagrid("getSelected");
+        if (row == null) {
+            JQ.dialog.warning("请选择表单类型！！！");
+            isTrue = true;
+        }
+        if(isTrue)
+            return;
+
+        if(row.text == '设计报出单' )
+        {
+            $.ajax({
+                url:'@Url.Action("GetIsFinish")?projId=@Request.Params["projId"]&phaseId=@Request.Params["phaseID"]',
+                type:"get",
+                dataType:"html",
+                async:false,
+                success : function(data){
+                    if(data == "False")
+                    {
+                        JQ.dialog.warning("请填写必要表单.有设计策划单,专业指导纪要,工程地质勘察条件单,工程测量条件单(设计策划单中如勾选要求评审,则需提交设计评审纪要表)");
+                        isTrue = true;
+                    }
+                }
+            });
+            if(isTrue)
+                return;
+        }
+
+        var src = $("#add").attr("src");
+        JQ.dialog.dialog({
+            title: row.text,
+            url: src,
+            width: '1024',
+            height: '100%',
+            iconCls: 'fa fa-plus',
+            onClose: function () {
+                $("#IsoList").datagrid("reload");
+            }
+        });
+    }
+
+    function Edit(id) {
+        var data = $("#IsoList").datagrid("getRows");
+        var row = Enumerable.From(data).Where("x=>x.ID==" + id + "").FirstOrDefault();
+        var FlowUrl = row.FlowUrl;
+
+        JQ.dialog.dialog({
+            title: "查看",
+            url: "@(ViewBag.sitePath)" + FlowUrl+'&projId=@Request.Params["projId"]&phaseId=@Request.Params["phaseID"]&taskGroupId=@Request.Params["taskGroupId"]',
+            width: '1024',
+            height: '100%',
+            onClose: function () {
+                $("#IsoList").datagrid("reload");
+            }
+        });
+    }
+
+    function Delete() {
+        var data = $("#IsoList").datagrid("getChecked");
+        if (data.length == 0) {
+            JQ.dialog.warning("请选择要删除的数据");
+            return;
+        } else {
+            JQ.dialog.confirm("是否确认删除选中数据？？？", function () {
+                debugger
+                $.ajax({
+                    url: "@(Url.Action("DelIso1", "Project",new { @area="Project"} ))?Id=" + data[0].ID + "&tableName=" + data[0].FlowName,
+                    type: "POST",
+                    dataType:"json",
+                    success: function (data) {
+                        $("#IsoList").datagrid("reload");
+                    }
+                })
+            });
+        }
+    }
+</script>
+
+<div id="treePanel" class="easyui-layout" style="overflow: hidden" fit="true">
+    <div data-options="region:'west',split:false" style="width:220px;">
+        <table id="IsoType"></table>
+    </div>
+
+    <div data-options="region:'center'" style="background:#eee;height:100%;">
+        <div id="list_toolbar" jqpanel="searchPanel" style="padding:5px;height:auto;">
+            <span jqpanel="toolbarPanel">
+                <a class="easyui-linkbutton" id="add" data-options="plain:true,iconCls:'fa fa-plus'" onclick="add()">新增</a>
+                <a class="easyui-linkbutton" id="add" data-options="plain:true,iconCls:'fa fa-plus'" onclick="Delete()">删除</a>
+            </span>
+        </div>
+        <table id="IsoList"></table>
+    </div>
+</div>

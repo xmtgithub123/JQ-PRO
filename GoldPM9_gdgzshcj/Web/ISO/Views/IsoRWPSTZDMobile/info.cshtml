@@ -1,0 +1,539 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.IsoRWPSTZD
+
+@section head {
+    <style type="text/css">
+        .aui-btn {
+            padding: 10px 15px;
+            font-size: 13px;
+        }
+
+        .aui-btn-row:after {
+            border: 0;
+        }
+
+        .p-15 {
+            padding: 15px;
+        }
+
+
+        .set-disabled {
+            pointer-events: none !important
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .aui-input-hook {
+            line-height: 34px;
+            text-align: left;
+            padding-left: 20px;
+            background: #efefef;
+        }
+
+        .aui-display-hook {
+            display: none;
+            width: 30%;
+            float: right;
+            font-size: 13px;
+            line-height: 33px;
+            margin-right: 6px;
+            padding: 3px 6px;
+        }
+
+        .aui-input-width {
+            width: 98%;
+        }
+
+        .hiddenShow {
+            height: 0;
+        }
+
+        .aui-input-row label.aui-input-addon {
+            min-width: 90px;
+        }
+
+        .set-selected-icon select {
+            float: right;
+            margin-right: 5px;
+            border: 0;
+            margin-bottom: 0;
+        }
+
+        .set-selected-icon i {
+            position: absolute;
+            right: 25px;
+            top: 15px;
+        }
+
+        .aui-input-row-position {
+            position: relative;
+            display: table;
+            padding: 6px 0;
+        }
+
+        .aui-input-row label.aui-input-addon {
+            font-size: 14px;
+        }
+
+        .jq-text-disabled {
+            color: #898787;
+            width: 98%;
+            pointer-events: none;
+            background-color: #efefef !important;
+            border: 0;
+            font-size: 13px;
+        }
+
+        .aui-input-check-disable {
+            font-size: 12px !important;
+            font-weight: normal !important;
+        }
+
+            .aui-input-check-disable label {
+                line-height: 45px;
+                margin-right: 15px;
+            }
+
+            .aui-input-check-disable input[type="checkbox"], .aui-input-check-disable input[type="radio"] {
+                width: auto;
+                margin: 0 5px 0 0;
+                line-height: 45px;
+            }
+
+        .aui-input-block-row-text {
+            width: 300px;
+            overflow-x: auto;
+        }
+    </style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="IsoRWPSTZDForm" class="aui-form">
+            <div class="p-15">
+                表 <label>@Model.TableNumber</label><input type="hidden" name="TableNumber" value="@Model.TableNumber" />
+                <br />编号 <input id="Number" name="Number" type="text" class="aui-input" style="display:inline;min-width: 60px;max-width: 60%;border: 1px solid #dbdbdb; border-radius: 6px;padding: 3px 6px;margin:0 3px;text-align:center;" class="form-control" validType="length[0,200]" value="@Model.Number" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目编号</label>
+                <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+                <input name="ProjNumber" id="ProjNumber" type="hidden" class="aui-input" value="@Model.ProjNumber" style="width:60%;margin-right:15px;text-overflow: ellipsis;" />
+                <div class="aui-input-block">@Model.ProjNumber</div>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目名称</label>
+                <input name="ProjName" id="ProjName" type="hidden" class="aui-input" value="@Model.ProjName" />
+                <div class="aui-input-block">@Model.ProjName</div>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;阶段</label>
+                <div class="aui-input-block">@Model.ProjPhaseName</div>
+                <input type="hidden" id="ProjPhaseName" name="ProjPhaseName" class="aui-input" value="@Model.ProjPhaseName" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;主体设计部门</label>
+                <div class="aui-input-block">@ViewBag.ProjDeptName</div>
+                <input type="hidden" id="ProjDeptName" name="ProjDeptName" class="aui-input" value="@ViewBag.ProjDeptName" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目类型</label>
+                <div class="aui-input-block">@ViewBag.ColAttType1Name</div>
+                <input type="hidden" id="ColAttType1Name" name="ColAttType1Name" class="aui-input" value="@ViewBag.ColAttType1Name" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;工程地点</label>
+                <div class="aui-input-block">@ViewBag.ProjAreaName</div>
+                <input type="hidden" id="ProjAreaName" name="ProjAreaName" class="aui-input" value="@ViewBag.ProjAreaName" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;管理等级</label>
+                <input type="text" id="ManageClass" name="ManageClass" class="aui-input" value="@Model.ManageClass" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;客户单位</label>
+                <input type="hidden" id="CompanyName" name="CompanyName" class="aui-input" value="@ViewBag.CompanyName" />
+                <div class="aui-input-block">@ViewBag.CompanyName</div>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;联系人</label>
+                <div class="aui-input-block">@ViewBag.CompanyLinkMan</div>
+                <input type="hidden" id="CompanyLinkMan" name="CompanyLinkMan" class="aui-input" value="@ViewBag.CompanyLinkMan" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;电  话</label>
+                <div class="aui-input-block">@ViewBag.CompanyTel</div>
+                <input type="hidden" id="CompanyTel" name="CompanyTel" class="aui-input" value="@ViewBag.CompanyTel" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;任务创建依据</label>
+                <input type="hidden" id="TaskPursuant_i" name="TaskPursuant_i" value="@Model.TaskPursuant" />
+                @BaseData.getBaseSelect(new Params()
+               {
+                   controlName = "TaskPursuant",
+                   engName = "TaskPursuant",
+                   width = "98%;",
+                   ids = Model.TaskPursuant.ToString(),
+                   isRequired = true
+               })
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;工程等级</label>
+                <input type="hidden" id="ProjectClass_i" name="ProjectClass_i" value="@Model.ProjectClass" />
+                @BaseData.getBaseSelect(new Params()
+               {
+                   controlName = "ProjectClass",
+                   engName = "ProjectClass",
+                   width = "98%;",
+                   ids = Model.ProjectClass.ToString(),
+                   isRequired = true
+               })
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;评审方式</label>
+                <input type="hidden" id="AppraisalWay_i" name="AppraisalWay_i" value="@Model.AppraisalWay" />
+                @BaseData.getBaseSelect(new Params()
+               {
+                   controlName = "AppraisalWay",
+                   engName = "AppraisalWay",
+                   width = "98%;",
+                   ids = Model.AppraisalWay.ToString(),
+                   isRequired = true
+               })
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;资料要求</label>
+                <input type="hidden" id="DataRequire_i" name="DataRequire_i" value="@Model.DataRequire" />
+                @*   <div class="aui-input-block" id="DataRequireNames"></div>*@
+                @BaseData.getBaseSelect(new Params()
+               {
+                   controlName = "DataRequire",
+                   isRequired = true,
+                   engName = "DataRequire",
+                   width = "98%",
+                   ids = Model.DataRequire.ToString(),
+                   isMult = false
+               })
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="dgGrid" style="font-size:12px;">
+                    <thead>
+                        <tr>
+                            <th>评审内容</th>
+                            <th>选择项</th>
+                            <th>补充说明</th>
+                        </tr>
+                    </thead>
+                    <tbody style="font-size:12px;">
+                        <tr>
+                            <td>1.专业技术人员配备是否满足要求</td>
+                            <td>@Html.CheckBoxList("itemsA");</td>
+                            <td>
+                                @*<div class="aui-input-block-row-text">@ViewBag.AppraisalContents1</div>*@
+                                <textarea rows="1" name="AppraisalContents1" id="AppraisalContents1" style="width:100%;padding:2px;margin-bottom:0;overflow:auto;" class="aui-input">@ViewBag.AppraisalContents1</textarea>
+                                @*<input name="AppraisalContents1" id="AppraisalContents1" class="aui-input" type="hidden" style="width:98%;"  validType="length[0,100]" value="@ViewBag.AppraisalContents1" />*@
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>2.如顾客进度要求明确，是否能够满足进度要求 </td>
+                            <td>@Html.CheckBoxList("itemsB");</td>
+                            <td>
+                                <textarea rows="1" name="AppraisalContents2" id="AppraisalContents2" style="width:100%;padding:2px;margin-bottom:0;overflow:auto;" class="aui-input">@ViewBag.AppraisalContents2</textarea>
+                                @*<div class="aui-input-block-row-text">@ViewBag.AppraisalContents2</div>*@
+                                @*<input name="AppraisalContents2" id="AppraisalContents2" class="aui-input" type="hidden" style="width:98%;" validType="length[0,100]" value="@ViewBag.AppraisalContents2" />*@
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>3.是否同意对承接内容管理等级的确定</td>
+                            <td>@Html.CheckBoxList("itemsC");</td>
+                            <td>
+                                <textarea rows="1" name="AppraisalContents3" id="AppraisalContents3" style="width:100%;padding:2px;margin-bottom:0;overflow:auto;" class="aui-input">@ViewBag.AppraisalContents3</textarea>
+                                @*<div class="aui-input-block-row-text">@ViewBag.AppraisalContents3</div>*@
+                                @* <input name="AppraisalContents3" id="AppraisalContents3" class="aui-input" style="width:98%;" type="hidden"  validType="length[0,100]" value="@ViewBag.AppraisalContents3" />*@
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>4.项目有关质量、环境、职业健康安全方面是否存在风险</td>
+                            <td>@Html.CheckBoxList("itemsD");</td>
+                            <td>
+                                <textarea rows="1" name="AppraisalContents4" id="AppraisalContents4" style="width:100%;padding:2px;margin-bottom:0;overflow:auto;" class="aui-input">@ViewBag.AppraisalContents4</textarea>
+                                @*<div class="aui-input-block-row-text">@ViewBag.AppraisalContents4</div>*@
+                                @* <input name="AppraisalContents4" id="AppraisalContents4" class="aui-input" style="width:98%;" type="hidden" validType="length[0,100]" value="@ViewBag.AppraisalContents4" />*@
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>5.是否申请无产值工日</td>
+                            <td>@Html.CheckBoxList("itemsE"); </td>
+                            <td>
+                                <textarea rows="1" name="AppraisalContents5" id="AppraisalContents5" style="width:100%;padding:2px;margin-bottom:0;overflow:auto;" class="aui-input">@ViewBag.AppraisalContents5</textarea>
+                                @*<div class="aui-input-block-row-text">@ViewBag.AppraisalContents5</div>*@
+                                @*<input name="AppraisalContents5" id="AppraisalContents5" class="aui-input" style="width:98%;" type="hidden" validType="length[0,100]" value="@ViewBag.AppraisalContents5" />*@
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>6.其他评审意见</td>
+                            <td colspan="2">
+                                <textarea rows="1" name="AppraisalContents6" id="AppraisalContents6" style="width:100%;padding:2px;margin-bottom:0;overflow:auto;" class="aui-input">@ViewBag.AppraisalContents6</textarea>
+                                @*<div class="aui-input-block-row-text">@ViewBag.AppraisalContents6</div>*@
+                                @*<input name="AppraisalContents6" id="AppraisalContents6" class="aui-input" style="width:98%;" type="hidden"  validType="length[0,100]" value="@ViewBag.AppraisalContents6" />*@
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;任务内容</label>
+                <textarea rows="6" name="TaskContents1" id="TaskContents1" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.TaskContents1</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;创建任务时<br />&nbsp;&nbsp;可以明确的<br />&nbsp;&nbsp;分包或合作<br />&nbsp;&nbsp;设计单位及<br />&nbsp;&nbsp;设计内容</label>
+                <textarea rows="6" name="TaskContents2" id="TaskContents2" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.TaskContents2</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;顾客对项目<br />&nbsp;&nbsp;进度的要求</label>
+                <textarea rows="6" name="TaskContents3" id="TaskContents3" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.TaskContents3</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;备注</label>
+                <textarea rows="6" name="Contents" id="Contents" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.Contents</textarea>
+            </div>
+            <input type="hidden" id="projId" name="projId" value="@Model.ProjID" />
+            <input type="hidden" id="projPhaseId" name="projPhaseId" value="@Model.ProjPhaseId" />
+            <input type="hidden" id="desTaskGroupId" name="desTaskGroupId" value="@Request.Params["taskGroupId"]" />
+            <input type="hidden" id="CompanyID" name="CompanyID" value="0" />
+            <input type="hidden" id="stepOrder" name="stepOrder" value="0" />
+            <input type="hidden" id="IsMultiSelect" name="IsMultiSelect" value="1" />
+            <input type="hidden" id="stritemsA" name="stritemsA" value="" />
+            <input type="hidden" id="stritemsB" name="stritemsB" value="" />
+            <input type="hidden" id="stritemsC" name="stritemsC" value="" />
+            <input type="hidden" id="stritemsD" name="stritemsD" value="" />
+            <input type="hidden" id="stritemsE" name="stritemsE" value="" />
+
+
+            @*<div class="aui-input-row">
+                    <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+                </div>*@
+        </form>
+    </div>
+    <script type="text/javascript">
+
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                initFormBegin(JSON.stringify({
+                    "Result": true,
+                    "Message": null,
+                    "NodeName": null,
+                    //"AllowEditControls": "ColAttVal1;btnChooseProject;ProjIDName;Number;ProjID;Words;ConstructUnit;SupplyUnit;FormDate;ColAttVal2;ModifyContent;DesignName;FormNote;DesChangeUpload;ColAttVal3;ProjName;DesignReason;ColAttVal4",
+                    "SignControls": "DesignName(签名)",
+                    "SignControls": null,
+                    "AllowEditControls": "{}"
+
+                }));
+                //initFormBegin();
+            }
+
+        })
+        //页面初始化
+        function initFormBegin(params) {
+
+            //alert(params)
+            //去除换行
+            //alert(window.location.href)
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+
+            //资料要求
+            $('#DataRequire').val($('#DataRequire_i').val());
+            //评审方式
+            $('#AppraisalWay').val($('#AppraisalWay_i').val());
+            //工程等级
+            $('#ProjectClass').val($('#ProjectClass_i').val());
+            //任务创建依据
+            $('#TaskPursuant').val($('#TaskPursuant_i').val());
+
+            $('#DataRequire').val($('#DataRequire_i').val());
+            // //资料要求-内容显示
+            //$('#DataRequire').css('display', 'none')
+            //$('#DataRequireNames').text($('#DataRequire option:selected').text())
+
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+
+            if ((paramsObj.AllowEditControls) == "-") {
+                $('input[type="checkbox"]').attr("disabled", "disabled");
+                $('input[type="radio"]').attr("disabled", "disabled");
+            }
+            //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('IsoRWPSTZDForm'));
+
+            $('#dgGrid :input').removeClass('jq-text-disabled').css('width', 'auto');
+
+            //任务内容，替换换行符
+            var TaskContents1Value = $('#TaskContents1').val();
+            TaskContents1Value = TaskContents1Value.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#TaskContents1').val(TaskContents1Value);
+
+            //设计内容，替换换行符
+            var TaskContents2Value = $('#TaskContents2').val();
+            TaskContents2Value = TaskContents2Value.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#TaskContents2').val(TaskContents2Value);
+
+            //顾客对项目进度的要求，替换换行符
+            var TaskContents3Value = $('#TaskContents3').val();
+            TaskContents3Value = TaskContents3Value.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#TaskContents3').val(TaskContents3Value);
+
+            //备注，替换换行符
+            var ContentsValue = $('#Contents').val();
+            ContentsValue = ContentsValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#Contents').val(ContentsValue);
+
+            //$('#TaskContents1,#TaskContents2,#TaskContents3,#Contents').removeClass('jq-text-disabled').attr("readonly", "readonly")
+            //$("#TaskContents1,#TaskContents2,#TaskContents3,#Contents").css({
+            //    overflow: 'auto',
+            //    background: '#efefef',
+            //    color: '#898787'
+            //})
+            if (((paramsObj.AllowEditControls).indexOf('TaskContents1')) != -1) {
+                $("#TaskContents1").removeClass('jq-text-disabled')
+                $("#TaskContents1").css({
+                    overflow: 'auto',
+                })
+            }
+            if (((paramsObj.AllowEditControls).indexOf('TaskContents2')) != -1) {
+                $("#TaskContents2").removeClass('jq-text-disabled')
+                $("#TaskContents2").css({
+                    overflow: 'auto',
+                })
+            }
+            if (((paramsObj.AllowEditControls).indexOf('TaskContents3')) != -1) {
+                $("#TaskContents3").removeClass('jq-text-disabled')
+                $("#TaskContents3").css({
+                    overflow: 'auto',
+                })
+            }
+            if (((paramsObj.AllowEditControls).indexOf('Contents')) != -1) {
+                $("#Contents").removeClass('jq-text-disabled')
+                $("#Contents").css({
+                    overflow: 'auto',
+                })
+            }
+
+
+
+
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+
+
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#IsoRWPSTZDForm').validate({
+                //rules: {
+                //    Number:'required',//编号
+                //    ProjectName: 'required',//项目名称
+                //    ColAttVal2:'required',//变更原因
+                //    ModifyContent: { //修改内容
+                //        required: false,
+                //        maxlength: 500
+                //    },
+                //    FormNote: { // 监理单位意见
+                //        required: false,
+                //        maxlength: 500
+                //    }
+                //},
+                //messages: {
+                //    Number:'请输入编号',
+                //    ProjectName: '请输入项目名称 ',
+                //    ColAttVal2:'请输入变更原因',
+                //    ModifyContent: {
+                //        maxlength: '内容长度必须介于0-500之间'
+                //    },
+                //    FormNote: {
+                //        maxlength: '内容长度必须介于0-500之间'
+                //    }
+                //}
+            });
+            //if ($('#ProjName').val() == '') {
+            //    $.alert('请选择项目！')
+            //    return false;
+            //}
+            isValidate = formVali.form();
+            if (isValidate) {
+                var valA = '';
+                var valAarr = [], valBarr = [], valCarr = [], valDarr = [], valEarr = [];
+                $("[name='itemsA']:checked").each(function (index, element) {
+                    valAarr.push($(this).val())
+                    valA += $(this).val() + ",";
+                    // console.log(valAarr)
+                });
+                $("#stritemsA").val(valAarr);
+
+                var valB = '';
+                $("[name='itemsB']:checked").each(function (index, element) {
+                    valBarr.push($(this).val())
+                    valB += $(this).val() + ",";
+                });
+                $("#stritemsB").val(valBarr);
+
+                var valC = '';
+                $("[name='itemsC']:checked").each(function (index, element) {
+                    valCarr.push($(this).val())
+                    valC += $(this).val() + ",";
+                });
+                $("#stritemsC").val(valCarr);
+
+                var valD = '';
+                $("[name='itemsD']:checked").each(function (index, element) {
+                    valDarr.push($(this).val())
+                    valD += $(this).val() + ",";
+                });
+                $("#stritemsD").val(valDarr);
+
+                var valE = '';
+                $("[name='itemsE']:checked").each(function (index, element) {
+                    valEarr.push($(this).val())
+                    valE += $(this).val() + ",";
+                });
+                $("#stritemsE").val(valEarr);
+                var formData = DomUtil.serialize(document.getElementById('IsoRWPSTZDForm'));//json or =&
+                console.log(formData)
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+            var formData = DomUtil.serialize(document.getElementById('IsoRWPSTZDForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+    </script>
+}

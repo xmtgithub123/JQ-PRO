@@ -1,0 +1,490 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.IsoForm
+
+
+@section head {
+    <style type="text/css">
+        .aui-btn {
+            padding: 10px 15px;
+            font-size: 13px;
+        }
+
+        .aui-btn-row:after {
+            border: 0;
+        }
+
+        .jq-text-disabled {
+            color: #898787;
+            width: 98%;
+            pointer-events: none;
+            background-color: #efefef !important;
+            border: 0;
+            font-size: 13px;
+        }
+
+        .set-disabled {
+            pointer-events: none !important
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .aui-input-hook {
+            line-height: 34px;
+            text-align: left;
+            padding-left: 20px;
+            background: #efefef;
+        }
+
+        .aui-display-hook {
+            display: none;
+            width: 30%;
+            float: right;
+            font-size: 13px;
+            line-height: 33px;
+            margin-right: 6px;
+            padding: 3px 6px;
+        }
+
+        .aui-input-width {
+            width: 98%;
+        }
+
+        .hiddenShow {
+            height: 0;
+        }
+
+        .aui-input-row label.aui-input-addon {
+            min-width: 90px;
+        }
+
+        .set-selected-icon select {
+            float: right;
+            margin-right: 5px;
+            border: 0;
+            margin-bottom: 0;
+        }
+
+        .set-selected-icon i {
+            position: absolute;
+            right: 25px;
+            top: 15px;
+        }
+        /*.aui-input-row input, .aui-input-row select, .set-selected-icon .aui-input-addon {
+            color: #9e9e9e;
+        }*/
+
+        .aui-input-row-position {
+            position: relative;
+            display: table;
+            padding: 6px 0;
+        }
+
+        .aui-input-row label.aui-input-addon {
+            font-size: 14px;
+        }
+
+        .error-border {
+            border: 1px solid red !important;
+        }
+        .aui-input-check-disable {
+            font-size: 12px !important;
+            font-weight: normal !important;
+        }
+        .aui-input-check-disable label {
+            line-height:45px;
+            margin-right:15px;
+        }
+        .aui-input-check-disable input[type="checkbox"] {
+            width: auto;
+            line-height: 45px;
+        }
+    </style>
+}
+
+@section Body_Content{
+    <div class="aui-content" style="overflow-x:hidden">
+        <form id="IsoFormProjSubPFForm" class="aui-form">
+            <div class="aui-input-row">
+                <div id="divXml" style="display:none">@(ViewBag.contentXml)</div>
+                <input type="hidden" id="CompanyType" name="CompanyType" value="FGS" />
+                <input id="FormID" name="FormID" type="hidden" value="@Model.FormID" />
+               
+            </div>
+           
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目外委信息：</label>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="ProjPhaseGrid" style="font-size:12px;">
+                    <thead>
+                        <tr>
+                            <th>
+                                <div class="checkAll">
+                                    <input type="checkbox" name="name" value="" />
+                                </div>
+                            </th>
+                            <th>外委编号</th>
+                            <th>外委名称</th>
+                            <th>项目编号</th>
+                            <th>项目名称</th>
+                            <th>外委时间</th>
+                            <th>登记时间</th>
+
+                        </tr>
+                    </thead>
+                    <tbody id="gridList" style="font-size:12px;"></tbody>
+                </table>
+            </div>
+
+            <script id="listTpl" type="text/x-dot-template">
+                {{~it:appendProjectGetInfoData:index}}
+                <tr id="tr_{{=index}}">
+
+                    <td>
+                        <div class="checkbox" style="margin:0">
+                            <input type="checkbox" name="subBox" value="" />
+                        </div>
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.SubNumber}}
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.SubName}}
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.ProjNumber}}
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.ProjName}}
+                    </td>
+                    <td>
+                        {{=(Date.jsonStringToDate(appendProjectGetInfoData.ColAttDate1)).getFullYear() =='1900' ? '':(Date.jsonStringToDate(appendProjectGetInfoData.ColAttDate1)).format("yyyy-MM-dd")}}
+                        @*{{=appendProjectGetInfoData.ColAttDate1}}*@
+                    </td>
+                    <td>
+                        {{=(Date.jsonStringToDate(appendProjectGetInfoData.CreationTime)).getFullYear() =='1900' ? '':(Date.jsonStringToDate(appendProjectGetInfoData.CreationTime)).format("yyyy-MM-dd")}}
+                    </td>
+                </tr>
+                {{~}}
+            </script>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;合同编号：</label>
+                <input type="text" id="ConSubNumber" class="aui-input" name="ConSubNumber" value="@ViewBag.ConSubNumber" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;合同名称：</label>
+                <div class="aui-input-block" id="ConSubNameText"></div>
+                <input type="hidden" id="ConSubName" class="aui-input" name="ConSubName" value="@ViewBag.ConSubName" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;合同金额：</label>
+                <input type="text" id="ConSubFee" class="aui-input" name="ConSubFee" value="@ViewBag.ConSubFee" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;合作方式：</label>
+                <input type="text" id="HZSJName" class="aui-input" name="HZSJName" value="@ViewBag.HZSJName" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;分包合作单位：</label>
+                <input type="text" id="CustName" class="aui-input" name="CustName" value="@ViewBag.CustName" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;填报单位：</label>
+                <input type="text" id="CompanyName" class="aui-input" name="CompanyName" value="@ViewBag.CompanyName" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable" id="WFXD">
+                <label class="aui-input-addon">&nbsp;&nbsp;是否为我方选定：</label>
+                @Html.CheckBoxList("items");
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;分包合作项目服务情况：</label>
+            </div>
+            <div class="aui-input-row aui-input-check-disable" style="width:100%;">
+                <div id="FWJD">&nbsp;&nbsp;&nbsp;&nbsp;(1)服务进度 @Html.CheckBoxList("itemsA");</div>
+                <div id="SJZL">&nbsp;&nbsp;&nbsp;&nbsp;(2)设计质量 @Html.CheckBoxList("itemsB");</div>
+                <div id="FWTD">&nbsp;&nbsp;&nbsp;&nbsp;(3)服务态度 @Html.CheckBoxList("itemsC");</div>
+                <div id="ZJPJ">&nbsp;&nbsp;&nbsp;&nbsp;(4)总体评价 @Html.CheckBoxList("itemsD");</div>
+                </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;备注</label>
+                <textarea rows="6" name="BZ" id="BZ" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]"></textarea>
+            </div>
+            <input type="hidden" id="ProjSubIDs" name="ProjSubIDs" />
+
+            <input type="hidden" id="stritems" name="stritems" value="" />
+            <input type="hidden" id="stritemsA" name="stritemsA" value="" />
+            <input type="hidden" id="stritemsB" name="stritemsB" value="" />
+            <input type="hidden" id="stritemsC" name="stritemsC" value="" />
+            <input type="hidden" id="stritemsD" name="stritemsD" value="" />
+            <input type="hidden" id="ProjName" name="ProjName" value="@ViewBag.ProjName" />
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+    </div>
+
+
+    <script type="text/javascript">
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                initFormBegin(JSON.stringify({
+
+                    "SignControls": "",
+                    "AllowEditControls":"{}"
+                }));
+                //initFormBegin();
+            }
+        })
+
+
+        //表单初始化
+        function initFormBegin(params) {
+           //alert(params)
+            //获取数据
+             if(@Model.FormID>0)
+            {
+                $("#ProjSubIDs").val(@Model.ProjID);
+            }
+
+
+            $.post('@Url.Action("GetProjSubList", "ProjSub", new { @area= "Project" })' + "?CompanyType=FGS" + "", {
+                ProjSubIDs: $("#ProjSubIDs").val()
+            }, function (_rData) {
+                console.log(JSON.parse(_rData))
+                //datas = JSON.parse(_rData)
+                var appendProjectGetInfoData = JSON.parse(_rData).rows
+                if (appendProjectGetInfoData.length > 0) {
+                    var interText = doT.template($("#listTpl").text())
+                    $("#gridList").html(interText(appendProjectGetInfoData));
+                }
+                else {
+                    console.log('暂无数据')
+                }
+            })
+
+            var GoldPM = {
+                loadXml: function (xmlContent) {
+                    var xmlDoc;
+                    if ("ActiveXObject" in window) {
+                        xmlDoc = new ActiveXObject("Microsoft.XMLDOM");
+                        xmlDoc.async = "false";
+                        xmlDoc.loadXML(xmlContent);
+                    }
+                    else if (window.DOMParser) {
+                        parser = new DOMParser();
+                        xmlDoc = parser.parseFromString(xmlContent, "text/xml");
+                    }
+                    return xmlDoc;
+                },
+                selectNodes: function (node, xpath) {
+                    if ("ActiveXObject" in window) {
+                        return node.selectNodes(xpath);
+                    }
+                    else {
+                        var xpe = new XPathEvaluator();
+                        var nsResolver = xpe.createNSResolver(node.ownerDocument == null ? node.documentElement : node.ownerDocument.documentElement);
+                        var result = xpe.evaluate(xpath, node, nsResolver, 0, null);
+                        var found = [];
+                        var res;
+                        while (res = result.iterateNext())
+                            found.push(res);
+                        return found;
+                    }
+                }
+            }
+            var flag = decodeURIComponent($("#divXml").text().trim());
+            if (flag) {
+                var xml = GoldPM.loadXml(flag);
+                var items = GoldPM.selectNodes(xml, "Root/Item");
+                for (var i = 0; i < items.length; i++) {
+                    var name = items[i].getAttribute("name");
+                    var text = items[i].text || items[i].innerHTML;
+                    $("#" + name).val(text);
+                }
+            }
+
+            params = params.replace(/[\r\n]/g, "");//去除换行
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+
+            $('#ConSubNameText').text($('#ConSubName').val())
+
+
+
+
+            //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('IsoFormProjSubPFForm'));
+
+            $('#ConSubNumber,#ConSubFee,#HZSJName,#CustName,#CompanyName').addClass('jq-text-disabled').attr("readonly", "readonly");
+
+
+            if (paramsObj.AllowEditControls == '{}') {
+                // alert('ok')
+                $('input[name="items"]').removeClass('jq-text-disabled').attr("disabled", false)
+                $('input[name="itemsA"]').removeClass('jq-text-disabled').attr("disabled", false)
+                $('input[name="itemsB"]').removeClass('jq-text-disabled').attr("disabled", false)
+                $('input[name="itemsC"]').removeClass('jq-text-disabled').attr("disabled", false)
+                $('input[name="itemsD"]').removeClass('jq-text-disabled').attr("disabled", false)
+
+            }
+            else {
+                // alert('ok1')
+                $('input[name="items"]').addClass('jq-text-disabled').attr("disabled", "disabled")
+                $('input[name="itemsA"]').addClass('jq-text-disabled').attr("disabled", "disabled")
+                $('input[name="itemsB"]').addClass('jq-text-disabled').attr("disabled", "disabled")
+                $('input[name="itemsC"]').addClass('jq-text-disabled').attr("disabled", "disabled")
+                $('input[name="itemsD"]').addClass('jq-text-disabled').attr("disabled", "disabled")
+
+            }
+
+            //备注，替换换行符
+            var BZValue = $('#BZ').val();
+            BZValue = BZValue.replace(/[\r\n]/g, "")
+            $('#BZ').val(BZValue);
+
+            if (paramsObj.AllowEditControls == "{}") {
+                $('#BZ').removeClass('jq-text-disabled').addClass('aui-input')
+                $("#BZ").css({
+                    overflow: 'auto',
+
+                })
+            }
+            else {
+                $('#BZ').removeClass('jq-text-disabled').attr("readonly", "readonly")
+                $("#BZ").css({
+                    overflow: 'auto',
+                    background: '#efefef',
+                    color: '#898787'
+                })
+
+            }
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+        function validateFormBegin() {
+            var formVali = $('#IsoFormProjSubPFForm').validate({
+                rules: {
+
+                },
+                messages: {
+
+                }
+            });
+            isValidate = formVali.form();
+            if (isValidate) {
+
+
+                //1
+                var wfxdIdArr = [];
+                $('#WFXD input[type="checkbox"]:checked').each(function (i, e) {
+                    console.log($(this).val())
+                    wfxdIdArr.push($(this).val())
+                })
+                $('#stritems').val(wfxdIdArr)
+
+                //2
+                var fwjdIdArr = [];
+                $('#FWJD input[type="checkbox"]:checked').each(function (i, e) {
+                    fwjdIdArr.push($(this).val())
+                })
+                $('#stritemsA').val(fwjdIdArr)
+
+                //3
+                var sjzlIdArr = [];
+                $('#SJZL input[type="checkbox"]:checked').each(function (i, e) {
+                    sjzlIdArr.push($(this).val())
+                })
+                $('#stritemsB').val(fwjdIdArr)
+
+                //4
+                var fwtdIdArr = [];
+                $('#FWTD input[type="checkbox"]:checked').each(function (i, e) {
+                    fwtdIdArr.push($(this).val())
+                })
+                $('#stritemsC').val(fwtdIdArr)
+
+                //5
+                var ztpjIdArr = [];
+                $('#ZJPJ input[type="checkbox"]:checked').each(function (i, e) {
+                    ztpjIdArr.push($(this).val())
+                })
+                $('#stritemsD').val(ztpjIdArr)
+
+                var formData = DomUtil.serialize(document.getElementById('IsoFormProjSubPFForm'));//json or =&
+                console.log(formData)
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin(params) {
+
+            //1
+            var wfxdIdArr = [];
+            $('#WFXD input[type="checkbox"]:checked').each(function (i, e) {
+                console.log($(this).val())
+                wfxdIdArr.push($(this).val())
+            })
+            $('#stritems').val(wfxdIdArr)
+
+            //2
+            var fwjdIdArr = [];
+            $('#FWJD input[type="checkbox"]:checked').each(function (i, e) {
+                fwjdIdArr.push($(this).val())
+            })
+            $('#stritemsA').val(fwjdIdArr)
+
+            //3
+            var sjzlIdArr = [];
+            $('#SJZL input[type="checkbox"]:checked').each(function (i, e) {
+                sjzlIdArr.push($(this).val())
+            })
+            $('#stritemsB').val(fwjdIdArr)
+
+            //4
+            var fwtdIdArr = [];
+            $('#FWTD input[type="checkbox"]:checked').each(function (i, e) {
+                fwtdIdArr.push($(this).val())
+            })
+            $('#stritemsC').val(fwtdIdArr)
+
+            //5
+            var ztpjIdArr = [];
+            $('#ZJPJ input[type="checkbox"]:checked').each(function (i, e) {
+                ztpjIdArr.push($(this).val())
+            })
+            $('#stritemsD').val(ztpjIdArr)
+
+            var formData = DomUtil.serialize(document.getElementById('IsoFormProjSubPFForm'));//json or =&
+            //告诉移动端页面验证完毕
+
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+    </script>
+}

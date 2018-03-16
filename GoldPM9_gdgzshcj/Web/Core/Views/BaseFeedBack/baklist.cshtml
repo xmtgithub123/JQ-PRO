@@ -1,0 +1,113 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("bakjson", "BaseFeedBack", new { @area="Core"})';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQPrimaryID: 'FileFullName',//主键的字段
+                JQID: 'BaseConfigGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '500',//弹出窗体宽
+                JQHeight: '400',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: requestUrl,//请求的地址     
+                singleSelect: true,
+                checkOnSelect: true,//是否包含check              
+                toolbar: '#BaseConfigPanel',//工具栏的容器ID
+                columns: [[
+                         { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                         { title: '文件名称', field: 'FileName', width: 400, align: 'center', sortable: true },
+                         { title: '最后修改时间', field: 'FileDate', width: 150, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByH }
+                ]]
+            });
+            //$("#JQSearch").textbox({
+            //    buttonText: '筛选',
+            //    buttonIcon: 'fa fa-search',
+            //    height: 25,
+            //    prompt: '文件名称',
+            //    queryOptions: { 'Key': 'FileName', 'Contract': 'like' },
+            //    onClickButton: function () {
+            //        JQ.datagrid.searchGrid(
+            //            {
+            //                dgID: 'BaseConfigGrid',
+            //                loadingType: 'datagrid',
+            //                queryParams: null
+            //            });
+            //    }
+            //});
+        });
+
+        function del() {
+            var data = $('#BaseConfigGrid').datagrid('getSelected');
+            debugger;
+            if (!JQ.tools.isNotEmpty(data)) {
+                var url = '@Url.Action("delbak", "BaseFeedBack", new { @area="Core"})';
+                JQ.tools.ajax({
+                    doBackResult: true,
+                    url: url,
+                    data: 'FileFullName=' + data.FileFullName,
+                    succesCollBack: function () {
+                        $('#BaseConfigGrid').datagrid('reload');
+                    }
+                });
+            }
+        }
+
+        function down() {
+            var data = $('#BaseConfigGrid').datagrid('getSelected');
+
+            if (!JQ.tools.isNotEmpty(data)) {
+                var url = '@Url.Action("downbak", "BaseFeedBack", new { @area="Core"})';
+                //JQ.tools.ajax({
+                //    doBackResult: false,
+                //    url: url,
+                //    data: 'FullFileName=' + data.FileFullName,
+                //    succesCollBack: function () {
+                //        //$('#BaseConfigGrid').datagrid('reload');
+                //    }
+                //});
+                //alert(data.URL);
+                //downurl(data.URL);
+                url += "?FullFileName=" + data.FileFullName;
+                window.location.href = url;
+            }
+        }
+
+        function downurl(url) {           
+            var _a = document.createElement("a");
+            _a.setAttribute("href", url);
+            document.body.appendChild(_a);
+            _a.click();
+            document.body.removeChild(_a);
+        }
+
+        function bak() {
+            var url = '@Url.Action("bak", "BaseFeedBack",new { @area="Core"})';
+            JQ.tools.ajax({
+                doBackResult: true,
+                url: url,
+                succesCollBack: function () {
+                    $('#BaseConfigGrid').datagrid('reload');
+                }
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="BaseConfigGrid"></table>
+    <div id="BaseConfigPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="bak()">备份数据</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="del()">删除备份</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="down()">下载备份</a>
+        </span>
+
+        @*<input id="JQSearch" style="width:250px;" />*@
+
+    </div>
+}
+

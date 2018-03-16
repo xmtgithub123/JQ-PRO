@@ -1,0 +1,279 @@
+﻿@model DataModel.Models.DesTaskCheck
+@using JQ.Web;
+
+<script type="text/javascript" src="@Url.Content("~/Scripts/jquery.flex-images.js")"></script>
+<link href="@(Url.Content("~/Scripts/picbox/css/picbox.css"))" rel="stylesheet" />
+@*<script type="text/javascript" src="@Url.Content("~/Scripts/jquery.min.js")"></script>*@
+<script type="text/javascript" src="@Url.Content("~/Scripts/picbox/jquery.mousewheel.js")"></script>
+<script type="text/javascript" src="@Url.Content("~/Scripts/picbox/picbox.js")"></script>
+<script type="text/javascript">
+    var CheckCurrentEmpID=@ViewBag.CheckCurrentEmpID;
+    JQ.form.submitInit({
+        formid: 'DesTaskCheckForm',//formid提交需要用到
+        //$form:$("#DesTaskCheckform"),
+        buttonTypes: ['submit', 'close'],//默认按钮
+        beforeFormSubmit: function () {
+            var roots = $("#designFile").treegrid("getRoots");
+            var addData = [];
+
+            if (roots != null && roots.length > 0) {
+                $.each(roots, function (i, e) {
+                    if (e.AttachExt != ".") {
+                        addData.push({
+                            AttachId: e.AttachID,
+                            AttachFlowNode: e.AttachFlowNodeJson == "" ? [] : JSON.parse(e.AttachFlowNodeJson).hasOwnProperty("root") ? JSON.stringify((JSON.parse(e.AttachFlowNodeJson).root.item)) : e.AttachFlowNodeJson
+                        });
+                    }
+
+
+                    var childroot = $("#designFile").treegrid("getChildren", e.AttachID);
+                    if (childroot != null && childroot.length > 0) {
+                        $.each(childroot, function (ic, ec) {
+                            if (ec.AttachExt == ".") {
+                                return true;
+                            }
+                            addData.push({
+                                AttachId: ec.AttachID,
+                                AttachFlowNode: ec.AttachFlowNodeJson == "" ? [] : ec.AttachFlowNodeJson.hasOwnProperty("root") ? JSON.stringify((JSON.parse(ec.AttachFlowNodeJson).root.item)) : ec.AttachFlowNodeJson
+                            });
+                        });
+                    }
+                })
+                $("#AttachIDDate").val(JSON.stringify(addData));
+            }
+
+        },
+        succesCollBack: function (data) {
+            //成功回调函数,data为服务器返回值
+            var info = JQ.tools.findDialogInfo();
+            //刷新上一级数据表格
+            if (typeof (window["FormCheckRefresh_" + info.parentid]) == "function") {
+                window["FormCheckRefresh_" + info.parentid]();
+            }
+            //关闭窗体放在最后一步执行，以避免找不到事件源
+            window.top.$("#" + info.divid).dialog('close');
+        }
+    });
+
+
+    function getImg() {
+        if (window.JinQu) {
+            JinQu.query('httpScreenShot', { url: '@ViewBag.Url?EmpID='+CheckCurrentEmpID }, function (file, uploadSize, totalSize) {
+                console.log(file);
+            }, function (response, request) {   // onSuccess
+                showlist();
+
+            }, function (error_code, error_message) {
+                console.log(error_message);
+                JQ.dialog.warning(error_message);
+            });
+        }
+        else {
+            JQ.dialog.warning("请使用金曲客户端！！！");
+        }
+    }
+
+
+</script>
+<style type="text/css">
+    #DesTaskCheckForm .panel-body {
+        border-width: 1px;
+        border-style: solid;
+    }
+
+
+    .flex-images {
+        overflow: hidden;
+    }
+
+        .flex-images .item {
+            float: left;
+            margin: 4px;
+            border: 1px solid #eee;
+            box-sizing: content-box;
+            overflow: hidden;
+            position: relative;
+        }
+
+            .flex-images .item img {
+                display: block;
+                width: auto;
+                height: 100%;
+                margin-top: 0px;
+            }
+
+        .flex-images .over {
+            position: absolute;
+            text-align: center;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 4px 6px;
+            font-size: 13px;
+            color: #fff;
+            background: #222;
+            background: rgba(0,0,0,.7);
+        }
+
+        .flex-images .del {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin-top: 5px;
+            margin-right: 5px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+</style>
+@using (Html.BeginForm("save", "DesTaskCheck", FormMethod.Post, new { @area = "Design", @id = "DesTaskCheckForm" }))
+{
+    @*@Html.HiddenFor(m => m.Id)
+        @Html.HiddenFor(m => m.TaskID)*@
+    <input type="hidden" id="TaskID" name="TaskID" value="@ViewBag.TaskID" />
+    <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+    <input type="hidden" id="AttachIDDate" name="AttachIDDate" />
+    <table class="table table-bordered">
+
+        <tr>
+            <th width="10%">提出人</th>
+            <td width="40%">
+                <span nane="CheckEmpIDName">@Model.CheckEmpIDName</span>
+                @*<a onclick="getImg()">获取剪贴板</a>*@
+
+            </td>
+            <th width="10%">提出日期</th>
+            <td width="40%">
+                <span nane="CheckDate">@Model.CheckDate.ToString("yyyy-MM-dd")</span>
+                @*<input name="CheckNodeID" style="width:98%;" class="easyui-numberspinner" validType="length[0,10]" value="@Model.CheckNodeID" />*@
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">校审建议</th>
+            <td width="40%" colspan="3">
+                @BaseData.getBaseSystem(new Params()
+           {
+               controlName = "CheckErrTypeID",
+               isRequired = true,
+               engName = "DesignErrorType",
+               width = "98%",
+               //ids = "CheckErrTypeID"
+           })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">校审意见</th>
+            <td colspan="3">
+                <textarea name="CheckNote" style="width:98%;height:200px" class="easyui-textbox" data-options="multiline:true" validType="length[0,4000]">@(Model.CheckNote)</textarea>
+
+            </td>
+        </tr>
+        <tr>
+            <th>设计文件</th>
+            <td colspan="3">
+                <script type="text/javascript">
+                    $(function () {
+
+                        JQ.treegrid.treegrid({
+                            JQID: 'designFile',//数据表格ID
+                            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                            idField: 'AttachID',
+                            treeField: 'AttachName',
+                            url: '@Url.Action("TaskInfoGetDesTaskAttachSelDataJson","DesTask")',//请求的地址
+                            queryParams: { taskId: '@ViewBag.taskId', AttachIds: '@Html.Raw(ViewBag.fileIds)' },
+                            pagination: false,
+                            rownumbers: true,
+                            fit: false,
+                            lines: true,
+                            columns: [[
+                                { title: '文件名称', field: 'AttachName', width: 400, align: 'left', halign: 'center', sortable: true },
+                                {
+                                    title: '文件版本', field: 'AttachVer', width: 100, align: 'center', sortable: true, formatter: function (value, row, index) {
+                                        if (row.AttachExt == ".") {
+                                            return "";
+                                        } else {
+
+                                            return value;
+                                        }
+                                    }
+                                },
+                                { title: '上传日期', field: 'AttachDateUpload', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                                { title: '上传人', field: 'AttachEmpName', width: 100, align: 'center', sortable: true },
+                            ]],
+                        });
+
+                        showlist();
+                    })
+
+                    function showlist() {
+                        $.get("@Url.Action("GetImgList")",{},function (data) {
+                            if (data.length>0) {
+                                $("#showImg").empty();
+                                $.each(data,function (i,e) {
+                                    $("<div class=\"item\" data-w=\"100\" data-h=\"100\" rel=\"lightbox-group\" href=\"@Url.Action("GetImg")?Id="+e+"\"  ><img src=\"@Url.Action("GetImg")?Id="+e+"\" ><div class=\"over\" >查看大图</div><i class='fa fa-times-circle del' onclick='removeEmp(this,"+e+")' ><i/></div>").appendTo($("#showImg"));
+                                })
+                                $("<div class=\"item\" data-w=\"100\" data-h=\"100\" style=\"width:100px;height:100px;text-align: center;line-height: 100px;border:1px dashed red\" onclick=\"getImg()\"><span>贴图</span></div>").appendTo($("#showImg"));
+                            }
+                            //$("#").appendTo($("#showImg"));
+
+                            $("#showImg").flexImages({ rowHeight: 100 });
+                            if (window.JinQu) {
+                                JinQu.clearClipboard();
+                            }
+                            showBigPic();
+
+                        },"json")
+                    }
+                </script>
+                <table id="designFile"></table>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                贴图信息
+            </th>
+            <td colspan="3">
+                <div id="showImg" class="flex-images">
+                    @*<div class="item" data-w="100" data-h="100" ><img data-src="@Url.Action("GetImg")?Id=4" /></div>*@
+                    <div class="item" data-w="100" data-h="100" style="text-align: center;line-height: 100px;border:1px dashed red" onclick="getImg()"><span>贴图</span></div>
+                </div>
+                <script type="text/javascript">
+
+                    //显示大图
+                    function showBigPic() {
+                        $("div[rel^='lightbox']").picbox({}, null, function (el) {
+                            return (this == el) || (($(this).attr("rel").length > 8) && ($(this).attr("rel") == $(el).attr("rel")));
+                        });
+                    }
+
+                    function removeEmp(thisDiv,id) {
+
+                        $.post('@Url.Action("DelImg")',{'id':id},function () {
+                            $(thisDiv).parent().remove();
+                        })
+                        if (window.event) {
+                            window.event.stopPropagation();
+                        }
+                    }
+                </script>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "DesTaskCheck";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+
+
+            </td>
+        </tr>
+    </table>
+
+                    }

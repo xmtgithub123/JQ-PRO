@@ -1,0 +1,151 @@
+﻿@model DataModel.Models.IsoForm
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoFormArchiveForm',//formid提交需要用到
+        docName: 'da',
+        ExportName : '档案申请表',
+        buttonTypes: ['close', 'exportForm'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            try {
+                var _tempFrame=window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+                if(_tempFrame){
+                    _tempFrame.contentWindow.refreshGrid();
+                }
+            } catch (e) { }
+            _flowInstance.$form.parent().dialog("close");
+        },
+        flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "ISO,ISO.FlowProcessor.IsoFormArchiveFlow",
+            refID: "@(Model.FormID)",
+            refTable: "IsoFormArchive",
+            dataCreator: "@(ViewBag.CreatorEmpId )"
+        }
+    });
+    JQ.datagrid.datagrid({
+        JQPrimaryID: 'Id',//主键的字段
+        JQID: 'ElecFileGrid',//数据表格ID
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+        JQFields: ["Id", "ArchProjId", "ArchElecFileId"],//追加的字段名
+        url: '@Url.Action("json", "ArchElecFile",new { @area="Archive"})?ids=' + "@Model.ColAttVal1",
+        checkOnSelect: true,
+        fitColumns: true,
+        nowrap: false,
+        pagination: false,
+        JQMergeCells: { fields: ['ElecNumber', 'ProjEmpName'], Only: 'ElecNumber' },
+        columns: [[
+                { title: '项目编号', field: 'ElecNumber', JQfield: 'FK_ArchElecFile_ArchProjId.ElecNumber', width: 100, align: 'center' },
+                //{ title: '项目名称', field: 'ElecName', JQfield: 'FK_ArchElecFile_ArchProjId.ElecName', width: 100, align: 'center' },
+                { title: '项目经理', field: 'ProjEmpName', JQfield: 'FK_ArchElecFile_ArchProjId.ProjEmpName', width: 100, align: 'center' },
+                //{ title: '项目阶段', field: 'PhaseName', JQfield: 'FK_ArchElecFile_ArchProjId.PhaseName', width: 100, align: 'center' },
+                { title: '文件名称', field: 'ElecFileName', width: 200, align: 'center', sortable: true },
+                //{ title: '文件类型', field: 'ElecExt', width: 100, align: 'center', sortable: true },
+                 {
+                     title: "文件大小", field: "ElecSize", width: "100", align: "right", halign: "center", formatter: function (value, row) {
+                         row.ElecSize = getFileSizeText(value)
+                         return row.ElecSize;
+                     }
+                 },
+                //{ title: '文件大小', field: 'ElecSize', width: 100, align: 'center', sortable: true },
+                { title: '上传时间', field: 'CreationTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '上传人', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true },
+        ]], onLoadSuccess: function (data) {
+            if (data != null && data.rows.length > 0) {
+                $("#ProjID").val(data.rows[0]["ArchProjId"]);
+            }
+        }
+    });
+    function getFileSizeText(size) {
+        if (!size && size != 0) {
+            return "";
+        }
+        var st = "";
+        if (size >= 1024 * 1024 * 1024) {
+            st = (size / 1024 / 1024 / 1024).toFixed(2) + "GB";
+        } else if (size >= 1024 * 1024) {
+            st = (size / 1024 / 1024).toFixed(2) + "MB";
+        } else if (size >= 1024) {
+            st = (size / 1024).toFixed(2) + "KB";
+        } else {
+            st = size + "B";
+        }
+        return st;
+    }
+    function downfile() {
+        var row = "@Model.ColAttVal1".split(',');
+        if (row.length <= 0) {
+            return;
+        }
+
+        var parm;
+        $.each(row, function (i, n) {
+            if (i == 0) {
+                parm = "id=" + n;
+
+            } else {
+                parm += "&id=" + n;
+            }
+        });
+
+
+        Url = '@Url.Action("DownFile", "ArchElecFile", new { @area = "Archive" })?';
+        downurlfile(Url + parm);
+        $('#ElecFileGrid').datagrid('reload');
+    }
+
+    function downurlfile(url) {
+        var _a = document.createElement("a");
+        _a.setAttribute("href", url);
+        document.body.appendChild(_a);
+        _a.click();
+        document.body.removeChild(_a);
+    }
+
+
+</script>
+@using (Html.BeginForm("save", "IsoFormArchive", FormMethod.Post, new { @area = "Iso", @id = "IsoFormArchiveForm" }))
+{
+    @Html.HiddenFor(m => m.FormID)
+
+    <div JQPanel='dialogButtonPanel'>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-arrow-up'" JQPermissionName="a" onclick="downfile()">打包下载</a>
+    </div>
+    <table class="table table-bordered">
+        <tr>
+            <td colspan="4" style="padding: 15px; font-size: 20px; text-align: center; font-weight: bold; border: none;">
+                档案申请单
+                <input type="hidden" name="ColAttVal1" value="@Model.ColAttVal1" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">申请人</th>
+            <td width="40%" bookmark="CreatorEmpName">
+                @Model.CreatorEmpName
+            </td>
+            <th width="10%">申请时间</th>
+            <td width="40%"  bookmark="FormDate">
+                @Model.FormDate
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">申请原因</th>
+            <td colspan="3">
+                <input name="FormReason" id="FormReason" style="width:98%;height:80px" class="easyui-textbox" data-options="required:true,multiline:true" validType="length[0,500]" value="@Model.FormReason" />
+            </td>
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+    </table>
+    <table id="ElecFileGrid" style="height:500px; min-height:300px" bookmark="ElecFileGrid"></table>
+    <input type="hidden" id="ProjID" name="ProjID" />
+}
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+
+

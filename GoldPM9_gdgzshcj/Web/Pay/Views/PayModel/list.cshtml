@@ -1,0 +1,140 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "PayModel",new { @area= "Pay" })',
+               addUrl = '@Url.Action("add", "PayModel", new {@area="Pay" })',
+               editUrl = '@Url.Action("edit", "PayModel", new {@area= "Pay" })',
+               delUrl = '@Url.Action("del", "PayModel", new { @area = "Pay" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'PayModelGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1000',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: requestUrl,//请求的地址
+                singleSelect: false,//是否包含check
+                JQExcludeCol: [1,16],//导出execl排除的列
+                checkOnSelect: true,//是否包含check
+                toolbar: '#PayModelPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		{ title: '模板名称', field: 'ModelName', width: "15%", align: 'center', sortable: true },
+		{ title: '工程阶段', field: 'PhaseName', width: "8%", align: 'center', sortable: true },
+		{ title: '公司提奖比例（%）', field: 'CompanyPercent', width: "10%", align: 'center', sortable: true },
+		{ title: '工程类别比例（%）', field: 'EngiTypePercent', width: "10%", align: 'center', sortable: true },
+		{ title: '工程难度系数', field: 'EngiHardPercent', width: "10%", align: 'center', sortable: true },
+		{ title: '项目经理比例（%）', field: 'ProjManagerPercent', width: "10%", align: 'center', sortable: true },
+		{ title: '一次（%）', field: 'EletricFirst', width: "6%", align: 'center', sortable: true },
+		{ title: '二次（%）', field: 'EletricSecond', width: "6%", align: 'center', sortable: true },
+		{ title: '线路（%）', field: 'LineRoad', width: "6%", align: 'center', sortable: true },
+		{ title: '土建（%）', field: 'DirtyConstruct', width: "6%", align: 'center', sortable: true },
+		{ title: '通信（%）', field: 'Communication', width: "6%", align: 'center', sortable: true },
+		{ title: '技经（%）', field: 'TechBalace', width: "6%", align: 'center', sortable: true },
+		{ title: '测量（%）', field: 'TestExtend', width: "6%", align: 'center', sortable: true },
+		{ title: '系统（%）', field: 'SystemPercent', width: "6%", align: 'center', sortable: true }
+                ]],
+                onHeaderContextMenu: function (e, field) {
+                    e.preventDefault();
+                    if (!cmenu) {
+                        createColumnMenu();
+                    }
+                    cmenu.menu('show', {
+                        left: e.pageX,
+                        top: e.pageY
+                    });
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '模板名称',
+                queryOptions: { Key: 'ModelName', Contract: 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'PayModelGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+        var cmenu;
+        function createColumnMenu() {
+            cmenu = $('<div id="menu" style="width:160px"/>').appendTo('body');
+            cmenu.menu({});//显示Menu 
+            var fields = $('#PayModelGrid').datagrid('getColumnFields');
+            for (var i = 1; i < fields.length; i++) {
+                var field = fields[i];
+                var col = $('#PayModelGrid').datagrid('getColumnOption', field);
+                cmenu.append('<input name="'+field+'" type="checkbox" checked="true" style="margin-right:20px;">' + col.title + '<br/>');
+            }
+            cmenu.append('<input style="margin-left:30px;margin-top:5px;" onclick="SetShowOrHideCol();" type="button" value="确定"/>');
+            cmenu.append('<input style="margin-left:20px;margin-top:5px;" onclick="hide();" type="button" value="关闭"/>');
+        }
+        function hide() {
+            $("#menu").hide();
+            $("div[class='menu-shadow']").hide();
+        }
+        function SetShowOrHideCol() {
+            var fields = $('#PayModelGrid').datagrid('getColumnFields');
+            for (var i = 1; i < fields.length; i++)
+            {
+                var field = fields[i];
+                var col = $('#PayModelGrid').datagrid('getColumnOption', field);
+                var check = $("#menu").find('input[name="' + field + '"]').attr('checked');
+                if (check == 'checked')
+                {
+                    $('#PayModelGrid').datagrid('showColumn', field);
+                }
+                else
+                {
+                    $('#PayModelGrid').datagrid('hideColumn', field);
+                }
+                
+                
+            }
+            hide();
+        }
+        function ALL() {
+            JQ.dialog.dialog({
+                title: "人员系数配置",
+                url: "@(Url.Action("listAllEmployee", "PayPasssWord", new { @area = "Pay" }))",
+                width: '1024',
+                height: '100%',
+                JQID: 'PayModelGrid',
+                JQLoadingType: 'datagrid',
+                type: "POST",
+                iconCls: 'fa fa-cogs'
+            });
+        }
+
+    </script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="PayModelGrid"></table>
+    <div id="PayModelPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'ModelName', Contract:'like'}" />
+        &nbsp;&nbsp;&nbsp;&nbsp;
+        工程阶段：
+        @BaseData.getBases(new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{Key:'EngPhaseID', Contract:'in',filedType:'Int'}" })
+        <a id="btn" href="#" class="easyui-linkbutton" jqpermissionname="add" onclick="ALL()" data-options="iconCls:'fa fa-cogs'" jqpermissionname="CanEdit">人员系数配置</a>
+        <span style="font-size:13px;color:red;margin-left:40px;font-weight:bold;">*在列头上点击鼠标右键,可筛选需要的列</span>
+    </div>
+}
+

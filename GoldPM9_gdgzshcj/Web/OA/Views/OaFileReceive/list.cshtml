@@ -1,0 +1,130 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "OaFileReceive",new { @area="Oa"})',
+               addUrl = '@Url.Action("add","OaFileReceive",new {@area="Oa" })',
+               editUrl = '@Url.Action("edit", "OaFileReceive",new {@area="Oa" })',
+               delUrl = '@Url.Action("del", "OaFileReceive", new { @area = "Oa" })';
+
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaFileReceiveGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#OaFileReceivePanel',//工具栏的容器ID
+                JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+                JQExcludeCol: [1, 10, 11, 12],//导出execl排除的列
+                columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		        { title: '申请人', field: 'CreatorEmpName', width: 80, align: 'center', sortable: true },
+		        { title: '申请日期', field: 'CreationTime', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		        { title: '文件名', field: 'OaFileName', width: "12%", align: 'left', sortable: true },
+		        { title: '页数', field: 'OaFilePage', width: 80, align: 'center', sortable: true },
+		        { title: '发文部门', field: 'OaFileSend', width: "10%", align: 'left', sortable: true },
+		        { title: '收文日期', field: 'OaFileDate', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		        { title: '收文人', field: 'AcceptEmpNames', width: "10%", align: 'left', sortable: true },
+		        { title: '收文部门', field: 'AcceptDeptNames', width: "10%", align: 'left', sortable: true },
+                {
+                    field: 'JQFiles', title: '附件', align: 'center', width: 40, JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'OaFileReceive', formatter: function (value, row) {
+                        return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                    }
+                },
+                {
+                    field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrentEmpID)")
+                },
+                {
+                    field: "opt", title: "操作", align: "center", halign: "center", width: 40,
+      
+                    formatter: function (value, row, index) {
+                        var title = "查看";
+                        if (row._EditStatus == 1) {
+                            title = "修改";
+                        }
+                        else if (row._EditStatus == 2) {
+                            title = "处理";
+                        }
+                        return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"ShowOaFileReceiveDialogue('" + row.Id + "')\">" + title + "</>";
+                    }
+                }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#OaFileReceiveGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '文件名称',
+                queryOptions: { 'Key': 'OaFileName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'OaFileReceiveGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+        function ShowOaFileReceiveDialogue(Id) {
+            JQ.dialog.dialog({
+                title: "收文明细",
+                url: '@Url.Action("edit")?Id=' + Id,
+                width: '768',
+                height: '100%'
+
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaFileReceiveGrid"></table>
+    <div id="OaFileReceivePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'OaFileName', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '申请开始日期'" JQWhereOptions="{ Key:'CreationTimeS', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '申请结束日期'" JQWhereOptions="{ Key:'CreationTimeE', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>
+    </div>
+}
+

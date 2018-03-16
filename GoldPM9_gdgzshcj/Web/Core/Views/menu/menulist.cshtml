@@ -1,0 +1,84 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.treegrid.treegrid({
+                JQButtonTypes: ['add', 'edit', 'export', 'refreshByTree'],
+                JQAddUrl: '@Url.Action("addmenu")',
+                JQEditUrl: '@Url.Action("editmenu")',
+                JQDelUrl: '@Url.Action("delmenu")',
+                JQPrimaryID: 'id',
+                JQID: 'tt',
+                JQDialogTitle: '菜单信息',
+                JQWidth: '560',
+                JQHeight: '80%',
+                JQLoadingType: 'treegrid',
+                url: '@Url.Action("menujsonlist", "menu",new {@area="Core" })?isAll=true',
+                toolbar: '#tb',
+                JQExcludeCol: [6, 7],
+                animate: true,
+                columns: [[
+                   { title: '主键', field: 'id', width: 60, align: 'center', hidden: true },
+                   { title: '菜单名称', field: 'text', width: 250, align: 'left' },
+                   { title: '菜单路径', field: 'attributes', width: 380, align: 'center' },
+                   { title: '菜单排序', field: 'orderCode', width: 100, align: 'left' },
+                   {
+                       title: '菜单图标', field: 'MenuImageUrl', width: 80, align: 'center', formatter: function (v) {
+                           return "<div class='" + v + "'/>";
+                       }
+                   }
+                ]]
+            });
+            $('#MenuCombox').combobox({
+                url: '@Url.Action("PermitTopjson", "menu", new { @area = "Core"})',
+                valueField: 'MenuID',
+                textField: 'MenuName',
+                panelHeight: "auto",
+                editable: false, //不允许手动输入
+                onLoadSuccess: function () { //数据加载完毕事件
+                    var data = $('#MenuCombox').combobox('getData');
+                    if (data.length > 0) {
+                        $("#MenuCombox").combobox('select', data[0].MenuID);
+                    }
+                },
+                onSelect: function (node) {
+                    $('#tt').treegrid('load', {
+                        MenuID: $("#MenuCombox").combobox('getValue'),
+                    });
+                }
+            });
+        });
+
+        function updateMove(type) {
+            var row = $('#tt').treegrid('getSelections');
+            if (row.length != 1) {
+                window.top.JQ.dialog.warning('您必须选择至少一项进行操作！！！');
+            }
+            else {
+                window.top.JQ.dialog.confirm("您是否确定要移动该数据？", function () {
+                    var id = row[0]['id'];
+                    JQ.tools.ajax({
+                        url:  '@Url.Action("movemenu", "menu", new { @area = "Core"})',
+                        data: { id: id, type: type },
+                        succesCollBack: function () {
+                            $('#tt').treegrid('reload');
+                        }
+                    });
+                }, null)
+            }
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="tt"> </table>
+    <div id="tb" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-arrow-up'" onclick="updateMove(1)">上移</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-arrow-down'" onclick="updateMove(2)">下移</a>
+            <select id="MenuCombox" name="MenuCombox" style="width:100px;height:28px;" data-options="editable: false"></select>
+        </span>
+    </div>
+}

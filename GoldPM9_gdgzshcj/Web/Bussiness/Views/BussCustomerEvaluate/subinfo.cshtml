@@ -1,0 +1,448 @@
+﻿@model DataModel.Models.BussCustomerEvaluate
+@using JQ.Web;
+<script type="text/javascript">
+
+    JQ.form.submitInit({
+        formid: 'BussCustomerEvaluateForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        beforeFormSubmit: function () {
+            accept();
+        }
+
+
+    });
+    $('#CustID').combogrid({
+        panelWidth: 550,
+        panelHeight: 385,
+        value: '@Model.CustID',
+        idField: 'Id',
+        textField: 'CustName',
+        url: '@Url.Action("dropListJson", "BussCustomer",new { @area="Bussiness", @TypeID =1})&custId=@Model.CustID',//请求的地址
+        editable: true,
+        pagination: true,           //是否分页
+        rownumbers: true,           //序号
+        collapsible: false,         //是否可折叠的
+        method: 'post',
+        columns: [[
+    { title: '客户名称', field: 'CustName', width: 150, align: 'center', sortable: true },
+    { title: '地址', field: 'CustAddress', width: 150, align: 'center', sortable: true },
+    { title: '首次合作时间', field: 'CustBusinessCreateDate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT }
+        ]],
+        keyHandler: {
+            up: function () {               //【向上键】押下处理
+                var selected = $('#CustID').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    var index = $('#CustID').combogrid('grid').datagrid('getRowIndex', selected);
+                    if (index > 0) {
+                        $('#CustID').combogrid('grid').datagrid('selectRow', index - 1);
+                    }
+                }
+                else {
+                    var rows = $('#CustID').combogrid('grid').datagrid('getRows');
+                    $('#CustID').combogrid('grid').datagrid('selectRow', rows.length - 1);
+                }
+            },
+            down: function () {             //【向下键】押下处理
+                //取得选中行
+                var selected = $('#CustID').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    var index = $('#CustID').combogrid('grid').datagrid('getRowIndex', selected);
+                    if (index < $('#CustID').combogrid('grid').datagrid('getData').rows.length - 1) {
+                        $('#CustID').combogrid('grid').datagrid('selectRow', index + 1);
+                    }
+                } else {
+                    $('#CustID').combogrid('grid').datagrid('selectRow', 0);
+                }
+            },
+            enter: function () {             //【回车键】押下处理
+                var row = $('#CustID').combogrid('grid').datagrid('getSelected');
+                $('#CustID').combogrid('hidePanel');
+            },
+            query: function (keyword) {     //【动态搜索】处理
+                //设置查询参数
+                var queryParams = $('#CustID').combogrid("grid").datagrid('options').queryParams;
+                queryParams.keyword = keyword;
+                $('#CustID').combogrid("grid").datagrid('options').queryParams = queryParams;
+                //重新加载
+                var pager = $('#CustID').combogrid('grid').datagrid('getPager');
+                pager.pagination('refresh');
+                pager.pagination('select', 1);
+                $('#CustID').combogrid("grid").datagrid("reload");
+                $('#CustID').combogrid("setValue", keyword);                    //将查询条件存入隐藏域
+                $('#keyword').val(keyword);
+            }
+        },
+        onSelect: function (val, row) {
+            $("#CustAddress").textbox('setValue', row.CustAddress);
+            $("#CustPost").textbox('setValue', row.CustPost);
+            $("#CustChineseName").textbox('setValue', row.CustChineseName);
+            $("#CustEmail").textbox('setValue', row.CustEmail);
+            $("#CustBankName").textbox('setValue', row.CustBankName);
+            $("#CustBankAccount").textbox('setValue', row.CustBankAccount);
+            $("#CustLinkManName").textbox('setValue', row.CustLinkManName);
+            $("#CustLinkManJob").textbox('setValue', row.CustLinkManJob);
+            $("#CustLinkManTel").textbox('setValue', row.CustLinkManTel);
+            $("#CustLinkManDepartMent").textbox('setValue', row.CustLinkManDepartMent);
+            $("#CustBusinessCreateDate").datebox('setValue', row.CustBusinessCreateDate);
+        }
+    });
+
+    $("#CustID").combogrid({
+        readonly: true
+    });
+    $("#EvaluateGrid").datagrid({
+        iconCls: 'icon-edit',
+        multiSelect: true,
+        rownumbers: true,
+        fitColumns: true,
+        toolbar: '#toolBar',
+        url: '@Url.Action("json","BussCustomerEvaluateDetail",new { @area="Bussiness"})?Id=@Model.Id',
+        columns: [[
+             { field: 'ck', align: 'center', checkbox: true },
+             {
+                 field: 'DeptId', align: 'center', hidden: true,
+                 editor: {
+                     type: 'textbox'
+                 }
+             },
+
+         {
+
+             title: '人员姓名', field: 'EmpId', width: 200, align: 'center',
+             formatter: function (val, row) {
+                 return row.EmpName;
+             },
+             editor: {
+                 type: 'combobox',
+                 options:
+                     {
+                         required: true,
+                         prompt: ' 下拉选择人员',
+                         width: '180',
+                         valueField: 'EmpID',
+                         textField: 'EmpName',
+                         groupField: 'EmpDepName',
+                         validType: 'comboboxVali[true]',//是否做完整性验证
+                         url: JQ.tools.getRootPath() + '/Core/usercontrol/employeeJson',
+                         groupFormatter: function (group) {
+                             return '<b style="color:black">' + group + '</b>';
+                         },
+                         onLoadSuccess: function () {
+                             if ($(this).combobox('getValue') == "0") {
+                                 $(this).combobox('setValue', '');
+                             }
+                         },
+                         onChange: function (newVal, oldVal) {
+                             if (!isNaN(newVal) && newVal != "0" && newVal != "") {
+                                 if (editIndex != undefined) {
+                                     $.post('@Url.Action("GetDeptName")', { EmpId: newVal },
+                                         function (data) {
+                                             var DeptName = $('#EvaluateGrid').datagrid('getEditor', { index: editIndex, field: 'DeptName' });
+                                             $(DeptName.target).textbox('setValue', data.DeptName);
+                                             var DeptId = $('#EvaluateGrid').datagrid('getEditor', { index: editIndex, field: 'DeptId' });
+                                             $(DeptId.target).textbox('setValue', data.DeptId);
+                                         });
+
+                                 }
+                             }
+                         }
+                     }
+             }
+         },
+         {
+
+             title: '部门', field: 'DeptName', width: 200, align: 'center',
+             editor: {
+                 type: 'textbox',
+                 options:
+                     {
+                         readonly: true
+                     }
+             }
+         },
+                    {
+                        title: '评价意见', field: 'EvaluateIdea', width: 400, align: 'center',
+                        editor: {
+                            type: 'textbox',
+                            options: {
+                                required: true
+                            }
+                        }
+                    },
+
+                    {
+                        title: '时间', field: 'EvaluateDate', width: 150, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT,
+                        editor: {
+                            type: 'datebox',
+                            options: {
+                                required: true
+                            }
+                        }
+                    }
+        ]],
+        onDblClickRow: onDblClickRow
+    });
+
+    var editIndex = undefined;
+    function endEditing() {
+        if (editIndex == undefined) { return true }
+        if ($('#EvaluateGrid').datagrid('validateRow', editIndex)) {
+            //var edDeptName = $('#EvaluateGrid').datagrid('getEditor', { index: editIndex, field: 'DeptId' });
+            //var DeptName = $(edDeptName.target).combobox('getText');
+            //var DeptId = $(edDeptName.target).combobox('getValue');
+            //$('#EvaluateGrid').datagrid('getRows')[editIndex]['DeptName'] = DeptName;
+            //$('#EvaluateGrid').datagrid('getRows')[editIndex]['DeptId'] = DeptId;
+            var edEmpName = $('#EvaluateGrid').datagrid('getEditor', { index: editIndex, field: 'EmpId' });
+            var EmpName = $(edEmpName.target).combobox('getText');
+            $('#EvaluateGrid').datagrid('getRows')[editIndex]['EmpName'] = EmpName;
+            var EmpId = $(edEmpName.target).combobox('getValue');
+            $('#EvaluateGrid').datagrid('getRows')[editIndex]['EmpId'] = EmpId;
+
+
+
+            $('#EvaluateGrid').datagrid('endEdit', editIndex);
+            editIndex = undefined;
+            getRows();
+            return true;
+        } else {
+            return false;
+        }
+    }
+    function onDblClickRow(index) {
+        if (editIndex != index) {
+            if (endEditing()) {
+                $('#EvaluateGrid').datagrid('selectRow', index)
+                        .datagrid('beginEdit', index);
+                editIndex = index;
+                getRows();
+            } else {
+                $('#EvaluateGrid').datagrid('selectRow', editIndex);
+            }
+        }
+    }
+    function append() {
+        if (endEditing()) {
+            $('#EvaluateGrid').datagrid('appendRow', { Id: 0, EvaluateDate: '@DateTime.Now' });
+            editIndex = $('#EvaluateGrid').datagrid('getRows').length - 1;
+            $('#EvaluateGrid').datagrid('selectRow', editIndex)
+                    .datagrid('beginEdit', editIndex);
+        }
+        else {
+            JQ.dialog.warning('请将当前信息填写完整，再添加记录');
+        }
+    }
+    function removexit() {
+        //if (editIndex == undefined) { return }
+        var rows = $("#EvaluateGrid").datagrid('getSelections');
+        if (rows.length <= 0) {
+            JQ.dialog.warning('请选择要删除的行');
+            return;
+        }
+        for (var i = 0; i < rows.length; i++) {
+            var index = $("#EvaluateGrid").datagrid('getRowIndex', rows[i]);
+            $('#EvaluateGrid').datagrid('cancelEdit', index)
+                .datagrid('deleteRow', index);
+        }
+        editIndex = undefined;
+        if ($("#EvaluateGrid").datagrid("getRows").length > 0) {
+            getRows();
+        }
+    }
+    function accept() {
+        if (endEditing()) {
+            $('#EvaluateGrid').datagrid('acceptChanges');
+            getRows();
+        }
+        else {
+            JQ.dialog.warning('请将信息填写完整');
+            return false;
+        }
+    }
+    function getRows() {
+        var rows = $('#EvaluateGrid').datagrid('getRows');
+        $("#JsonRows").val(JSON.stringify(rows));
+    }
+
+</script>
+@using (Html.BeginForm("savesub", "BussCustomerEvaluate", FormMethod.Post, new { @area = "Bussiness", @id = "BussCustomerEvaluateForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+
+    <input type="hidden" name="JsonRows" id="JsonRows" />
+
+    <table class="table table-bordered">
+
+        <tr>
+            <th width="15%">外委单位名称</th>
+            <td width="35%">
+                <select id="CustID" name="CustID" class="easyui-combogrid" style="width:98%;"></select>
+                <input type="hidden" name="keyword" value="keyword" />
+            </td>
+            <th width="15%">供方编号</th>
+            <td width="35%">
+                <input id="CustNumber" name="CustNumber" style="width:98%;" class="easyui-textbox" validType="length[0,1000]" value="@Model.CustNumber" />
+            </td>
+        </tr>
+        <tr>
+            <th style="width:15%;">
+                地址
+            </th>
+            <td style="width:35%;">
+                <input id="CustAddress" name="CustAddress" style="width:98%;" class="easyui-textbox" validType="length[0,1000]" value="@ViewBag.CustAddress" />
+            </td>
+            <th style="width:15%;">
+                邮政编码
+            </th>
+            <td style="width:35%;">
+                <input id="CustPost" name="CustPost" style="width:98%;" class="easyui-textbox" validType="length[0,50]" value="@ViewBag.CustPost" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">法人代表</th>
+            <td>
+
+                <input id="CustChineseName" name="CustChineseName" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@ViewBag.CustChineseName" />
+            </td>
+            <th>
+                电子邮箱
+            </th>
+            <td>
+                <input id="CustEmail" name="CustEmail" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@ViewBag.CustEmail" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">开户行</th>
+            <td>
+
+                <input id="CustBankName" name="CustBankName" value="@ViewBag.CustBankName" style="width:98%;" class="easyui-textbox" validType="length[0,1000]" />
+            </td>
+            <th>
+                银行账号
+            </th>
+            <td>
+                <input id="CustBankAccount" name="CustBankAccount" value="@ViewBag.CustBankAccount" style="width:98%;" class="easyui-textbox" validType="length[0,1000]" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">联系人</th>
+            <td>
+
+                <input id="CustLinkManName" name="CustLinkManName" value="@ViewBag.CustLinkManName" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,100]" />
+            </td>
+            <th>
+                职务
+            </th>
+            <td>
+                <input id="CustLinkManJob" name="CustLinkManJob" value="@ViewBag.CustLinkManJob" style="width:98%;" class="easyui-textbox" validType="length[0,100]" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">联系方式</th>
+            <td>
+
+                <input id="CustLinkManTel" name="CustLinkManTel" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@ViewBag.CustLinkManTel" />
+            </td>
+            <th>
+                联系人部门
+            </th>
+            <td>
+                <input id="CustLinkManDepartMent" name="CustLinkManDepartMent" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@ViewBag.CustLinkManDepartMent" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">首次合作时间</th>
+            <td colspan="3">
+
+                <input id="CustBusinessCreateDate" name="CustBusinessCreateDate" value="@ViewBag.CustBusinessCreateDate" style="width:40%;" class="easyui-datebox" validType="dateISO" />
+            </td>
+
+        </tr>
+        <tr>
+            <th width="15%">提供的产品或服务</th>
+            <td colspan="3">
+                <input name="OutstandingNote" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" value="@Model.OutstandingNote" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="15%">主要业绩</th>
+            <td colspan="3">
+                <input name="MainOutstanding" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" value="@Model.MainOutstanding" />
+            </td>
+
+        </tr>
+        <tr>
+            <th width="15%">资质情况</th>
+            <td colspan="3">
+                <input name="AptitudeCondition" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" value="@Model.AptitudeCondition" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">管理体系情况</th>
+            <td colspan="3">
+                <input name="ManageSystem" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" value="@Model.ManageSystem" />
+            </td>
+
+        </tr>
+        <tr>
+            <th width="15%">获奖情况</th>
+            <td colspan="3">
+                <input name="AwardCondition" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" value="@Model.AwardCondition" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">经营情况</th>
+            <td colspan="3">
+                <input name="OperateCondition" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" value="@Model.OperateCondition" />
+            </td>
+
+        </tr>
+        <tr>
+            <th width="15%">
+                备注
+            </th>
+            <td colspan="3">
+                <input name="EvaluaterNote" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" value="@Model.EvaluaterNote" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">供方评定意见</th>
+            <td colspan="3">
+                <input name="EvaluateConclusion" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" value="@Model.EvaluateConclusion" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="4">
+                <table id="EvaluateGrid" class="easyui-datagrid" style="width:100%;height:auto"></table>
+
+                <div id="toolBar" style="height:auto">
+                    <a href="javascript:void(0)" class="easyui-linkbutton l-btn l-btn-small l-btn-plain" data-options="iconCls:'fa fa-plus',plain:true" onclick="append()">新增</a>
+                    <a href="javascript:void(0)" class="easyui-linkbutton l-btn l-btn-small l-btn-plain" data-options="iconCls:'fa fa-trash',plain:true" onclick="removexit()">删除</a>
+                    <span style="color:red;font-weight:bold;">  * 双击行记录可进行编辑</span>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "BussCustSubEvaluate";
+                    uploader.Name = "BussCustSubEvaluateLoader";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+                    }
+
+
+

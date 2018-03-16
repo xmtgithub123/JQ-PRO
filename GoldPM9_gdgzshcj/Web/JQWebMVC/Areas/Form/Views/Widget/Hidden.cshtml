@@ -1,0 +1,160 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div style="padding:5px">
+        <div class="yc_headtoolbar2" style="border:1px solid #EFEFEF;float:none;width:588px">
+            <div style="float:left;width:5px">
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="appendGridData()">
+                <span class="fa fa-plus"></span>
+                <span>添加</span>
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="deleteRow()">
+                <span class="fa fa-minus"></span>
+                <span>删除</span>
+            </div>
+        </div>
+        <div id="div_rulegrid" style="margin-top:-1px"></div>
+    </div>
+</div>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.grid.js"))"></script>
+<script type="text/javascript">
+
+
+    var yGrid, temp = 0;
+
+    function init() {
+        var dataFields = frameElement.api.getColumns();
+        yGrid = new YChart.Grid({
+            height: 290,
+            container: document.getElementById("div_rulegrid"),
+            idField: "id",
+            checkbox: true,
+            columns: [
+                {
+                    title: "名称", width: 120, field: "name", align: "center", formatter: function (cell, rowData) {
+                        cell.appendChild(YChart.createElement("input", { id: "txtName" + rowData.id, type: "text", className: "yc_textbox", value: rowData.name }, { width: "100px" }));
+                    }
+                },
+                {
+                    title: "默认值", width: 120, field: "value", formatter: function (cell, rowData) {
+                        cell.appendChild(YChart.createElement("input", { id: "txtValue" + rowData.id, type: "text", className: "yc_textbox", value: rowData.value }, { width: "100px" }));
+                    }
+                },
+                {
+                    title: "字段", width: 120, field: "dataField", formatter: function (cell, rowData) {
+                        var select = YChart.createElement("select", { id: "listDataField" + rowData.id, className: "yc_select" }, { width: "110px" });
+                        var option = YChart.createElement("option", { value: "" }, null, "无");
+                        select.appendChild(option);
+                        if (dataFields && dataFields.length > 0) {
+                            for (var i = 0; i < dataFields.length; i++) {
+                                option = document.createElement("option");
+                                option.setAttribute("value", dataFields[i].value);
+                                option.appendChild(document.createTextNode(dataFields[i].name));
+                                if (dataFields[i].value == rowData.dataField) {
+                                    option.selected = true;
+                                }
+                                select.appendChild(option);
+                            }
+                        }
+                        cell.appendChild(select);
+                    }
+                },
+                {
+                    title: "变量名称", width: 120, field: "variableName", formatter: function (cell, rowData) {
+                        cell.appendChild(YChart.createElement("input", { id: "txtVariableName" + rowData.id, type: "text", className: "yc_textbox", value: rowData.variableName }, { width: "100px" }));
+                    }
+                }, {
+                    title: "操作", width: 60, field: "OP", align: "center", formatter: function (cell, rowData) {
+                        var a = YChart.createElement("a", { href: "javascript:void(0)", className: "yc_a" }, null, "移除");
+                        a.setAttribute("dataid", rowData.id);
+                        a.onclick = function () {
+                            if (!confirm("确定要移除吗？")) {
+                                return;
+                            }
+                            yGrid.deleteData(this.getAttribute("dataid"));
+                        }
+                        cell.appendChild(a);
+                    }
+                }
+            ]
+        });
+        var hiddens = frameElement.api.getData();
+        if (hiddens && hiddens.length > 0) {
+            yGrid.setDatas(hiddens);
+            for (var i = 0; i < hiddens.length; i++) {
+                if (hiddens[i].id > temp) {
+                    temp = hiddens[i].id;
+                }
+            }
+        }
+    }
+
+    init();
+
+    function appendGridData() {
+        var data = {
+            id: ++temp,
+            name: "",
+            value: "",
+            dataField: "",
+            variableName: ""
+        };
+        yGrid.appendData(data);
+    }
+
+    function deleteRow() {
+        if (yGrid.choosed.length == 0) {
+            return;
+        }
+        YChart.Dialog.confirm("提示", "确定要删除吗？", function (flag) {
+            if (!flag) {
+                return;
+            }
+            for (var i = 0; i < yGrid.choosed.length; i++) {
+                yGrid.removeRow(yGrid.getRowID(yGrid.choosed[i]));
+                i--;
+            }
+        });
+    }
+
+    function sure() {
+        var datas = [];
+        for (var i = 0; i < yGrid.datas.length; i++) {
+            var name = YChart.trim(document.getElementById("txtName" + yGrid.datas[i].id).value);
+            if (name == "") {
+                YChart.showTip(document.getElementById("txtName" + yGrid.datas[i].id), "请输入名称！");
+                return;
+            }
+            datas.push({ id: yGrid.datas[i].id, name: name, value: YChart.trim(document.getElementById("txtValue" + yGrid.datas[i].id).value), dataField: YChart.getSelectedValue(document.getElementById("listDataField" + yGrid.datas[i].id)), variableName: YChart.trim(document.getElementById("txtVariableName" + yGrid.datas[i].id).value) })
+        }
+        //验证name是否存在重复
+        for (var i = 0; i < datas.length; i++) {
+            for (var j = i + 1; j < datas.length; j++) {
+                if (datas[i].name == datas[j].name) {
+                    YChart.showTip(document.getElementById("txtName" + datas[i].id), "名称存在重复！");
+                    return;
+                }
+            }
+            if (window.frameElement.api.isExists(datas[i].name)) {
+                YChart.showTip(document.getElementById("txtName" + datas[i].id), "名称存在重复！");
+            }
+        }
+        frameElement.api.saveData(datas);
+        frameElement.closeDialog();
+    }
+</script>

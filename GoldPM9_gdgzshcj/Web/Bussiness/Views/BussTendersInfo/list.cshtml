@@ -1,0 +1,149 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")',//添加的路径
+                JQEditUrl: '@Url.Action("edit")',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussTendersInfoGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                //JQCustomSearch: [  //自定义搜索的字段
+                //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+                //],
+                JQExcludeCol: [1, 14, 15, 16],//导出execl排除的列
+                //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+                //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+                //JQFields: ["", ""],//追加的字段名
+                JQMergeCells: { fields: ['ck', 'TendersNumber', 'TendersName', 'TenderProjectTypeName', 'TenderStateName', 'TenderOpenTime', 'TenderScope', 'JQFiles', 'FlowProgress', 'opt'], Only: 'Id' },//当字段值相同时会自动的跨行(只对相邻有效)
+                url: '@Url.Action("jsonList", "BussTendersInfo",new { @area="Bussiness"})',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussTendersInfoPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },              
+		          { title: '招标编号', field: 'TendersNumber', width: "8%", align: 'left' },
+		          { title: '招标名称', field: 'TendersName', width: "12%", align: 'left' },
+                  { title: '项目类型', field: 'TenderProjectTypeName', width: "80px", align: 'center' },
+		          { title: '招标状态', field: 'TenderStateName', width: "80px", align: 'center' },
+		          { title: '开标时间', field: 'TenderOpenTime', width: "80px", align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                  { title: '设计范围', field: 'TenderScope', width: "12%", align: 'left' },
+                  { title: '投标单位', field: 'CustName', width: "12%", align: 'left' },
+                  { title: '商务得分', field: 'BusinessPoints', width: "60px", align: 'right' },
+                  { title: '技术得分', field: 'TechnologyPoints', width: "60px", align: 'right' },
+                  { title: '总体得分', field: 'TotalityPoints', width: "60px", align: 'right' },
+                  { title: '投标状态', field: 'WinStateName', width: "60px", align: 'center' },
+                  { title: '中标日期', field: 'WinTime', width: "80px", align: 'left', formatter: JQ.tools.DateTimeFormatterByT },
+                  {
+                      field: 'JQFiles', title: '附件', align: 'center', width: "40px", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'BussTendersInfo', formatter: function (value, row) {
+                          return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                      }
+                  },
+                   {
+                       field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrentEmpID)")
+                   },
+                {
+                    field: "opt", title: "操作", align: "center", halign: "center", width: "40px",                   
+                    formatter: function (value, row, index) {
+                        var title = "查看";
+                        if (row._EditStatus == 1) {
+                            title = "修改";
+                        }
+                        else if (row._EditStatus == 2) {
+                            title = "处理";
+                        }
+                        return '<a class="easyui-linkbutton" onclick="ShowTendersInfoDialogue(' + row.Id + ')">' + title + '</a>';
+                    }
+        }
+        ]],
+        onBeforeCheck: function (rowIndex, rowData) {
+            return rowData._AllowCheck;
+        },
+        onClickRow: function (rowIndex, rowData) {
+            if (!rowData._AllowCheck) {
+                $(this).datagrid('unselectRow', rowIndex);
+            }
+        },
+        onLoadSuccess: function (data) {
+            $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+            var rowViews = $("#BussTendersInfoGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+            for (var i = 0; i < data.rows.length; i++) {
+                if (!data.rows[i]._AllowCheck) {
+                    rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                }
+            }
+        }
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '招标名称 招标编号,投标单位',
+            queryOptions: { 'Key': 'TendersName,TendersNumber', 'Contract': 'like' },
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+                    {
+                        dgID: 'BussTendersInfoGrid',
+                        loadingType: 'datagrid',
+                        queryParams: null
+                    });
+            }
+        });
+        });
+
+        function ShowDialog(id) {
+            JQ.dialog.dialog({
+                title: "查看招标费用明细",
+                url: '@Url.Action("edit", "BussTendersCost", new { @area = "Bussiness" })?id=' + id,
+                width: '768',
+                height: '100%',
+                JQID: 'TendersInfoCost',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus',
+
+            });
+        }
+
+        function ShowTendersInfoDialogue(Id) {
+            JQ.dialog.dialog({
+                title: "招标信息明细",
+                url: '@Url.Action("edit")?Id=' + Id,
+                width: '1024',
+                height: '100%'
+            });
+        }
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+
+    </script>
+}
+
+@section Body_Content{
+    <table id="BussTendersInfoGrid"></table>
+    <div id="BussTendersInfoPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+        @*投标状态筛选*@
+        @BaseData.getBases(new Params() { isMult = true, engName = "TenderState", queryOptions = "{ Key:'TenderState', Contract:'in',filedType:'Int'}" })
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'txtLike', 'Contract': 'like' }" />
+
+        <div class="moreSearchPanel">
+            开标时间
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'TenderOpenTimeS', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'TenderOpenTimeE', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>
+    </div>
+}
+

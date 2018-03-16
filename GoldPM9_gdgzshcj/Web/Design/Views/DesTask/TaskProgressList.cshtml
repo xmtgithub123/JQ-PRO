@@ -1,0 +1,129 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+}
+
+@section Body_Content{
+
+    <table id="TaskProgressGrid"></table>
+    <div id="DesTaskPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel"></span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'p.ProjNumber,p.ProjName', Contract:'like'}" />
+
+        <div class="moreSearchPanel">
+
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{ Key:'g.TaskGroupPhaseId', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjectVolt", queryOptions = "{ Key:'p.ProjVoltID', Contract:'in',filedType:'Int'}" })
+
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '计划开始时间'" JQWhereOptions="{ Key:'s.DatePlanStart', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '计划结束时间'" JQWhereOptions="{ Key:'s.DatePlanStart', Contract:'<=',filedType:'Date' }">&nbsp;
+
+        </div>
+    </div>
+    <script type="text/javascript">
+        var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+        };
+
+        var requestUrl = _webconfig.serverUrl + 'Design/DesTask/TaskProgressListJson?FormMenu=SpecPlanList';
+
+        var params = {
+        };
+
+        $(function () {
+
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export', 'moreSearch'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'TaskProgressGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                JQFields: ["TaskId"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: false,
+                selectOnCheck: false,
+                singleSelect: true,
+                JQExcludeCol: [9],
+                queryParams: params,
+                //JQMergeCells: { fields: ['ProjNumber', 'ProjName'], Only: 'Id' },//当字段值相同时会自动的跨行(只对相邻有效)
+                toolbar: '#DesTaskPanel',//工具栏的容器ID
+                JQExcludeCol: [9],
+                columns: [[
+                    //{ field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '项目编号', field: 'ProjNumber', width: '8%', align: 'center', sortable: false },
+		            { title: '项目名称', field: 'ProjName', width: '26%', align: 'left', sortable: false },
+                    { title: '阶段', field: 'ProjPhaseName', width: '8%', align: 'center', sortable: false },
+                    //{ title: '阶段负责人', field: 'ProjPhaseEmpName', width: '8%', align: 'center', sortable: false },
+                    { title: '专业', field: 'ProjSpecName', width: '8%', align: 'center', sortable: false },
+                    //{ title: '专业负责人', field: 'ProjSpecEmpName', width: '8%', align: 'center', sortable: false },
+                    { title: '任务编号', field: 'TaskNumber', width: '8%', align: 'center', sortable: false },
+                    { title: '任务名称', field: 'TaskName', width: '8%', align: 'center', sortable: false },
+                    //{
+                    //    title: '任务信息', field: 'TaskNames', width: '8%', align: 'left', halign: 'center', formatter: function (value, row, index) {
+                    //        if (row.TaskNumber == "") {
+                    //            row.TaskNames = "{0}".format(row.TaskName.escapeHTML());
+                    //        } else {
+                    //            row.TaskNames = "[{0}]{1}".format(row.TaskNumber.escapeHTML(), row.TaskName.escapeHTML());
+                    //        }
+                    //        return row.TaskNames;
+                    //    }
+                    //},
+                    { title: '设计人员', field: 'TaskEmpName', width: '8%', align: 'center', sortable: false },
+		            { title: '完成时间', field: 'DatePlanFinish', width: 80, align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '出版时间', field: 'DateForPrint', width: 80, align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '交付时间', field: 'DateForPublish', width: 80, align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT },
+                    {
+                        title: '操作', field: 'Id', width: 80, align: 'center', formatter: function (value, row, index) {
+                            if (row.TaskNumber == "") {
+                                row.TaskNames = "{0}".format(row.TaskName.escapeHTML());
+                            } else {
+                                row.TaskNames = "[{0}]{1}".format(row.TaskNumber.escapeHTML(), row.TaskName.escapeHTML());
+                            }
+                            var _titleName = "任务详情：{0}".format(row.TaskNames);
+                            return "<a href=\"javascript:void(0);\" class=\"easyui-linkbutton\" data-options=\"plain:true,iconCls:'fa fa-trash'\" onclick=\"showTaskInfo('{0}','{1}','{2}')\">任务详情</a>".format(_titleName, row.ProjSpecId, row.TaskId);
+                        }
+                    }
+                ]],
+                onClickRow: function (rowIndex, rowData) {
+                    $("#TaskProgressGrid").datagrid('unselectRow', rowIndex);
+                }
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目名称、编号',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid({
+                        dgID: 'TaskProgressGrid',
+                        loadingType: 'datagrid',
+                        queryParams: params
+                    });
+                }
+            });
+
+        });
+
+        // 查看任务
+        function showTaskInfo(Title,SpecId,Id) {
+            JQ.dialog.dialog({
+                title: Title,
+                url: _webconfig.serverUrl + 'Design/DesTask/TaskInfo?Id='+Id,
+                width: '1200',
+                height: '900',
+                toolbar: null,
+                //JQID: 'TaskPerson',
+                //JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-list',
+            });
+        }
+    </script>
+}
+

@@ -1,0 +1,65 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "V_SystemTableXtype",new { @area= "Core" })',
+            addUrl = '@Url.Action("add","V_SystemTableXtype",new {@area= "Core" })',
+            editUrl = '@Url.Action("edit", "V_SystemTableXtype",new {@area= "Core" })',
+            delUrl = '@Url.Action("del", "V_SystemTableXtype", new { @area = "Core" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit','del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'XName',//主键的字段
+                JQID: 'V_SystemTableXtypeGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["XName"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#V_SystemTableXtypePanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+				  		{ title: '', field: 'TableName', width: 100, align: 'center', sortable: true  },
+		{ title: '', field: 'XName', width: 100, align: 'center', sortable: true  },
+		{ title: '', field: 'XType', width: 100, align: 'center', sortable: true  },
+		{ title: '', field: 'CreateDate', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+                 { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'V_SystemTableXtype' }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '筛选字段',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'V_SystemTableXtypeGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="V_SystemTableXtypeGrid"></table>
+    <div id="V_SystemTableXtypePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'TableName', 'Contract': 'like' }"/>
+
+    </div>
+}
+

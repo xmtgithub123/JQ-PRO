@@ -1,0 +1,71 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "OaStampInfo",new { @area="Oa"})',
+               addUrl = '@Url.Action("add","OaStampInfo",new {@area="Oa" })',
+               editUrl = '@Url.Action("edit", "OaStampInfo",new {@area="Oa" })',
+               delUrl = '@Url.Action("del", "OaStampInfo", new { @area = "Oa" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaStampInfoGrid',//数据表格ID
+                JQDialogTitle: '用章信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQExcludeCol: [1],//导出execl排除的列
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '印章名称',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: false,
+                nowrap: false,
+                toolbar: '#OaStampInfoPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		{ title: '印章名称', field: 'StampName', width: "20%", align: 'center', sortable: true },
+		{ title: '印章类型', field: 'StampTypeID', width: "15%", align: 'center', sortable: true },
+		//{ title: '保管人ID', field: 'KeepEmpId', width: 100, align: 'center', sortable: true },
+		{ title: '保管人', field: 'KeepEmpName', width: "10%", align: 'center', sortable: true },
+		{ title: '启用时间', field: 'StampStartDate', width: "10%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '印章备注', field: 'StampNote', width: "25%", align: 'center', sortable: true },
+        {
+            title: '印章状态', field: 'StampStatusID', width: "15%", align: 'center', sortable: true, 
+            formatter: function (val, row) {
+                return val == "作废" ? "<span style='color:red'>作废</span>" : "<span style='color:green'>使用中</span>";
+            }
+        },
+		//{ title: '模版ID', field: 'FlowModelID', width: 100, align: 'center', sortable: true  },
+                ]]
+            });
+        });
+    </script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="OaStampInfoGrid"></table>
+    <div id="OaStampInfoPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+
+        </span>
+        @BaseData.getBases(
+                                        new Params() { isMult = false, engName = "StampStatus", queryOptions = "{ Key:'StampStatusID', Contract:'in',filedType:'Int'}" },
+                                                     new Params() { isMult = true, engName = "StampType", queryOptions = "{ Key:'StampTypeID', Contract:'in',filedType:'Int'}" }
+                             )
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ 'Key': 'StampName', 'Contract': 'like' }" />
+
+    </div>
+}
+

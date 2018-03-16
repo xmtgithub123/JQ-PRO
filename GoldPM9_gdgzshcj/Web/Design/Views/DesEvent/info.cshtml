@@ -1,0 +1,213 @@
+﻿@model DataModel.Models.DesEvent
+@using JQ.Web;
+@using DataModel.Models;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'DesEventForm',//formid提交需要用到
+        buttonTypes: @Html.Raw(ViewBag.editPermission),//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            try {
+                var tab = $('#mainTab').tabs('getSelected');
+                var index = $('#mainTab').tabs('getTabIndex', tab);
+                var _iframe=$("#mainTab").find("iframe")[index].contentWindow;
+                if (typeof(_iframe.refreshGrid_Event)=="function") {
+                    _iframe.refreshGrid_Event();
+                }else {
+                    var childIframe=$(_iframe.document).find("iframe[src*='ProjEventList']")[0].contentWindow;
+                    if (typeof(childIframe.refreshGrid_Event)=="function") {
+                        childIframe.refreshGrid_Event();
+                    }
+                }
+            } catch (e) {
+    
+            }
+          
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+
+        },
+        beforeFormSubmit: function () {
+            var rows = $("#ProjTable").datagrid("getRows");
+            if (rows.length < 1) {
+                alert("请选择项目！");
+                return false;
+            }
+            $("#hidGridData").val(JSON.stringify($("#ProjTable").datagrid("getData").rows));
+            return true;
+        }
+    });
+
+
+    $(function () {
+        var xx='@ViewBag.ActionFlag';
+
+        if (xx != null && xx == "Edit")
+        {
+            $("a[name='DelEng']").hide();
+            $("a[name='selectEng']").hide();
+        }
+        var isView='@ViewBag.IsView';
+        if(isView!=null&&isView=="1")
+        {
+
+        }
+
+        //选人
+        JQ.combotree.selEmp({ id: 'SubEmpId', width: '600', isMult: true });
+        var array = [];
+        @{
+
+            if (ViewBag.list!=null)
+            {
+                foreach (var item in ViewBag.list as List<DesEventAlert>)
+                {
+                    string str = item.AlertEmpId + "-" +item.AlertEmpDepId;
+                    <text>
+        array.push('@str');
+        </text>
+                }
+                <text>
+        $("#SubEmpId").combotree('setValues',array);
+        </text>
+            }
+        }
+
+
+    });
+
+    function ChooseProjcet(){
+
+    }
+</script>
+@using (Html.BeginForm("save", "DesEvent", FormMethod.Post, new { @area = "Design", @id = "DesEventForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.EventRefId);
+    @Html.HiddenFor(m => m.EventRefTable);
+    <table class="table table-bordered">
+        <tr>
+            <th>
+                项目名称
+                <input type="hidden" id="hidGridData" name="hidGridData" />
+            </th>
+            <td colspan="3">
+                <div id="ProjTablePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+                    <span JQPanel="toolbarPanel">
+                        <a name="selectEng" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="selectEng()">选择项目</a>
+                        <a name="DelEng" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="DeleteRow()">删除</a>
+                        <script type="text/javascript">
+                            var TaskGroupArray = new Array();
+                            $(function () {
+                                TaskGroupArray.push(@Model.EventRefId);
+                                $('#ProjTable').datagrid({
+                                    width: 'auto',
+                                    striped: false,
+                                    singleSelect: true,
+                                    url: '@Url.Action("ProjectPlanListJsonAll", "DesTask", new { @area = "Design" })'+"?InTaskGroupId=" + TaskGroupArray.join('_') + "",
+                                    loadMsg: '数据加载中请稍后……',
+                                    pagination: false,
+                                    rownumbers: false,
+                                    onLoadSuccess: function (data) {
+                                    }
+                                });
+                            });
+
+                            var insert = function (row) {
+                                $('#ProjTable').datagrid('appendRow', {
+                                    Id: row.Id,
+                                    ProjNumber: row.ProjNumber,
+                                    ProjName: row.ProjName,
+                                    TaskGroupStatus:-1,
+                                    TaskGroupId:row.TaskGroupId,
+                                });
+                                TaskGroupArray.push(row.TaskGroupId);
+                            }
+
+                            //选择工程
+                            function selectEng() {
+                                var url='@Url.Action("ChooseProjectList", "DesEvent", new { @area = "Design" })';
+                                var TaskGroupId=TaskGroupArray.join('_').toString();
+                                JQ.dialog.dialog({
+                                    title: "选择项目",
+                                    url: url+"?TaskGroupId=" + TaskGroupId,
+                                    width: '1024',
+                                    height: '100%',
+                                    JQID: 'ProjTable',
+                                    JQLoadingType: 'datagrid',
+                                    iconCls: 'fa fa-list',
+                                });
+                            }
+
+                            function DeleteRow() {
+                                var row = $('#ProjTable').datagrid('getSelected');
+                                if (row != undefined) {
+                                    var rowIndex = $('#ProjTable').datagrid('getRowIndex', row);
+
+                                    $('#ProjTable').datagrid('deleteRow', rowIndex);
+
+                                    TaskGroupArray.splice($.inArray(row.TaskGroupId, TaskGroupArray), 1);
+                                }
+                            }
+
+                        </script>
+                    </span>
+                </div>
+                <table id="ProjTable" data-options="singleSelect: true">
+                    <thead>
+                        <tr>
+                            <th data-options="field:'ck',checkbox: true"></th>
+                            <th data-options="field:'ProjNumber'" style="width:49%;">项目编号</th>
+                            <th data-options="field:'ProjName'" style="width:49%;">项目名称</th>
+                        </tr>
+                    </thead>
+                </table>
+        </tr>
+        <tr>
+            <th width="10%">标题</th>
+            <td width="40%" colspan="3">
+                <input name="EventTitle" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,50]" value="@Model.EventTitle" />
+        </tr>
+        <tr>
+            <th width="10%">类型</th>
+            <td width="40%" colspan="3">
+                @JQ.Web.BaseData.getBase(new Params()
+           {
+               controlName = "EventGroupId",
+               isRequired = true,
+               engName = "ProjEventType",
+               width = "90%",
+               ids = Model.EventGroupId.ToString(),
+           })
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">内容</th>
+            <td width="40%" colspan="3">
+                @Html.TextAreaFor(f => f.EventContent, new { @style = "width:99%;height:100px;" })
+            </td>
+
+        </tr>
+        <tr>
+            <th width="10%">选人</th>
+            <td width="40%" colspan="3">
+                <select id="SubEmpId" name="SubEmpId"></select>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "DesEvent";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+
+    </table>
+
+                    }

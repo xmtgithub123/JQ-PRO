@@ -1,0 +1,349 @@
+﻿@model DataModel.Models.IsoFBSJCH
+@using JQ.Web;
+<script type="text/javascript">
+    var  btnPer=@Html.Raw(ViewBag.permission);
+    $(function () {
+        $("#ProjSubID").val(@Model.ProjSubID);
+        JQ.form.submitInit({
+            formid: 'IsoFBSJCHForm',//formid提交需要用到
+            docName: 'IsoFBSJCHD',
+            ExportName: '分包设计策划单',
+            buttonTypes: ['close', 'exportForm'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }, flow: {
+                flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+                flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+                url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+                instance: "_flowInstance",
+                processor: "ISO,ISO.FlowProcessor.IsoFBSJCHFlow",
+                refID: "@(Model.Id)",
+                refTable: "IsoFBSJCH",
+                dataCreator: "@(ViewBag.CurrEmpID)",
+            },
+            onBefore: function (resultArr) {
+                var bit = "0";
+                if ($.inArray("allDown", btnPer) != -1) {
+                    bit = "1";
+                }
+                resultArr.push({ Key: "Permission", Value: bit });
+            }, beforeFormSubmit: function () {
+                debugger;
+                var data = $("#ProjSubTableGrid").datagrid("getRows");
+                if (data == undefined || data.length < 1) {
+                    JQ.dialog.warning("必须选择一条外委项目！！！");
+                    return false;
+                }
+            }
+        });
+
+        $('#ProjSubTableGrid').datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'ProjSubTableGrid',//数据表格ID
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            url: '@Url.Action("GetProjSubList", "ProjSub", new { @area = "Project" })',
+            toolbar: '#ProjSubTablePanel',//工具栏的容器ID
+            pagination: false,
+            queryParams: { ProjSubIDs: $("#ProjSubID").val() },
+            columns: [[
+                     { title: '外委项目编号', field: 'SubNumber', width: 100, halign: 'center', align: 'left', sortable: true, exportWidth: 120 },
+                     { title: '外委项目名称', field: 'SubName', width: 300, halign: 'center', align: 'left', sortable: true, exportWidth: 120 },
+                     { title: '项目编号', field: 'ProjNumber', width: 100, halign: 'center', align: 'left', sortable: true, exportWidth: 100 },
+                     { title: '项目名称', field: 'ProjName', width: 300, halign: 'center', align: 'left', sortable: true, exportWidth: 120 },
+                     { title: '外委单位', field: 'CustName', width: 160, halign: 'center', align: 'left', sortable: true, exportWidth: 100 },
+                     { title: '设计部门', field: 'CreatorDepName', width: 100, halign: 'center', align: 'left', sortable: true, exportWidth: 100 }
+            ]],
+        });
+
+
+
+        SetCheck("IsZD", '@Model.IsGuide');
+        SetCheck("IsPS", '@Model.IsReview');
+        SetCheck("IsHQ", '@Model.IsMulsign');
+        SetCheck("IsBGS", '@Model.IsOwnerEmp');
+    });
+
+
+
+
+    //选中控件，隐藏控件，id，name，是否单选
+    function Checked(ckControl, hidCon, value, valName, isOnlyName) {
+        if ($("#" + ckControl).attr("checked")) {
+            if (isOnlyName != undefined) {
+                $(':checkbox[name=' + isOnlyName + ']').removeAttr('checked');
+                $("#" + ckControl).attr('checked', 'checked');
+            }
+            switch (hidCon) {
+                case "HZSJ":
+                    $("#CooperativeDesign").val(value);
+                    break;
+                default:
+                    $("#" + hidCon).val(value);
+                    break;
+            }
+        } else {
+            switch (hidCon) {
+                case "HZSJ":
+                    $("#CooperativeDesign").val("");
+                    break;
+                default:
+                    $("#" + hidCon).val("");
+                    break;
+            }
+        }
+    }
+
+    function SetCheck(contId, paras) {
+        $(':checkbox[name=' + contId + ']').removeAttr('checked');
+        var paraArr = Enumerable.From(paras.split(',')).Where("x=>x!=''").Select("x=>x").ToArray();
+        $.each(paraArr, function (index, data) {
+            $("#" + contId + paraArr[index]).attr("checked", "checked");
+        })
+
+        var val = "0";
+        if (paraArr.length == 0) {
+            val = "0";
+        } else {
+            val = paraArr[0];
+        }
+
+        switch (contId) {
+            default:
+                switch (val) {
+                    case "1":
+                        $("#" + contId + "_Ex").val("☑是  □否");
+                        break;
+                    case "2":
+                        $("#" + contId + "_Ex").val("□是  ☑否");
+                        break;
+                    default:
+                        $("#" + contId + "_Ex").val("□是  □否");
+                        break;
+                }
+                break;
+        }
+    }
+
+    function SelectProjSub() {
+        JQ.dialog.dialog({
+            title: "选择项目外委",
+            url: '@Url.Action("selectprojsub", "ProjSub", new { @area = "Project" })?CompanyType=FGS&typeID=1&FilterConSubID=1&isMultiSelect=0',
+            width: '1024',
+            height: '100%',
+            JQID: 'ProjSubTableGrid',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-plus',
+        });
+    }
+
+    var _ProjCallBack = function (param) {
+        $("#ProjSubID").val(param);
+        $("#ProjSubTableGrid").datagrid({
+            url: '@Url.Action("GetProjSubList", "ProjSub", new { @area = "Project" })?CompanyType=FGS',
+            queryParams: { ProjSubIDs: $("#ProjSubID").val() },
+        });
+    }
+
+</script>
+@using (Html.BeginForm("save", "IsoFBSJCH", FormMethod.Post, new { @area = "Iso", @id = "IsoFBSJCHForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+
+    <table class="table table-bordered">
+        <div style="width:100%;text-align:center;font-size:20px;font-weight:bold;margin-top:10px;">
+            <a>分包合作设计策划单</a>
+        </div>
+        <div style="float:left;margin-left:20px;margin-top:10px;">
+            表<label>@Model.TableNumber</label><input name="TableNumber" type="hidden" value="@Model.TableNumber" />
+        </div>
+        <div style="float:right;margin-right:20px;margin-top:10px;margin-bottom:10px;">
+            编号<input id="Number" name="Number" style="width:140px;" class="easyui-textbox" validtype="length[0,50]" value="@Model.Number" />
+        </div>
+        <tr>
+            <th width="10%">
+                外委项目名称
+            </th>
+            <td width="90%" colspan="3">
+                <table id="ProjSubTableGrid" bookmark="DetailGrid"></table>
+                <div id="ProjSubTablePanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+                    <span jqpanel="toolbarPanel">
+                        <a class="easyui-linkbutton" name="SelectProjSub" data-options="plain:true,iconCls:'fa fa-plus'" onclick="SelectProjSub()">选择外委项目</a>
+                    </span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">分包/合作内容、设计阶段及责任分界</th>
+            <td colspan="3">
+                <input name="SubContent" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,10]" value="@Model.SubContent" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">分包/合作设计标准</th>
+            <td colspan="3">
+                <input name="SubStandard" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,500]" value="@Model.SubStandard" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">接口控制要求和成果验证要求</th>
+            <td colspan="3">
+                <span style="display:block;float:left;margin-left:5px;">是否专业指导？</span>
+                <span style="display:block;width:50px;float:left;">
+                    <input type="checkbox" id="IsZD1" style="vertical-align:middle;" name="IsZD" onclick="Checked(this.id,'IsGuide','1','','IsZD')" />
+                    <label for="IsZD1" style="vertical-align:middle;" name="IsZD1">是</label>
+                </span>
+                <span style="display:block;width:50px;float:left;">
+                    <input type="checkbox" id="IsZD2" style="vertical-align:middle;" name="IsZD" onclick="Checked(this.id,'IsGuide','2','','IsZD')" />
+                    <label for="IsZD2" style="vertical-align:middle;">否</label>
+                </span>
+                <input type="hidden" id="IsGuide" name="IsGuide" value="@Model.IsGuide" />
+                <input type="hidden" id="IsZD_Ex" name="IsZD_Ex" />
+                <span style="display:block;float:left;">专业指导时机：</span>
+                <span style="display:block;width:80px;float:left;">
+                    <input id="GuideTime" name="GuideTime" class="easyui-datebox" data-options="editable:false" style="vertical-align:middle;" value="@Model.GuideTime" />
+                </span>
+                <div style="clear:both;"></div>
+                <span style="display:block;float:left;margin-left:5px;">是否设计评审？</span>
+                <span style="display:block;width:50px;float:left;">
+                    <input type="checkbox" id="IsPS1" style="vertical-align:middle;" name="IsPS" onclick="Checked(this.id,'IsReview','1','','IsPS')" />
+                    <label for="IsPS1" style="vertical-align:middle;">是</label>
+                </span>
+                <span style="display:block;width:50px;float:left;">
+                    <input type="checkbox" id="IsPS2" style="vertical-align:middle;" name="IsPS" onclick="Checked(this.id,'IsReview','2','','IsPS')" />
+                    <label for="IsPS2" style="vertical-align:middle;">否</label>
+                </span>
+                <input type="hidden" id="IsReview" name="IsReview" value="@Model.IsReview" />
+                <input type="hidden" id="IsPS_Ex" name="IsPS_Ex" />
+                <span style="display:block;float:left;">设计评审时机：</span>
+                <span style="display:block;width:80px;float:left;">
+                    <input id="ReviewTime" name="ReviewTime" class="easyui-datebox" data-options="editable:false" style="vertical-align:middle;" value="@Model.ReviewTime" />
+                </span>
+                <div style="clear:both;"></div>
+                <span style="display:block;float:left;margin-left:5px;">是否专业会签？</span>
+                <span style="display:block;width:50px;float:left;">
+                    <input type="checkbox" id="IsHQ1" style="vertical-align:middle;" name="IsHQ" onclick="Checked(this.id,'IsMulsign','1','','IsHQ')" />
+                    <label for="IsHQ1" style="vertical-align:middle;">是</label>
+                </span>
+                <span style="display:block;width:50px;float:left;">
+                    <input type="checkbox" id="IsHQ2" style="vertical-align:middle;" name="IsHQ" onclick="Checked(this.id,'IsMulsign','2','','IsHQ')" />
+                    <label for="IsHQ2" style="vertical-align:middle;">否</label>
+                </span>
+                <input type="hidden" id="IsMulsign" name="IsMulsign" value="@Model.IsMulsign" />
+                <input type="hidden" id="IsHQ_Ex" name="IsHQ_Ex" />
+                <span style="display:block;float:left;">专业会签时机：</span>
+                <span style="display:block;width:80px;float:left;">
+                    <input id="MulsignTime" name="MulsignTime" class="easyui-datebox" data-options="editable:false" style="vertical-align:middle;" value="@Model.MulsignTime" />
+                </span>
+                <div style="clear:both;"></div>
+                <span style="display:block;float:left;margin-left:5px;">其他要求：</span>
+                <div style="clear:both;"></div>
+                <input name="OtherNote" style="width:98%;height:50px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,500]" value="@Model.OtherNote" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">设计文件交付要求</th>
+            <td colspan="3">
+                <input name="DeliveryNote" style="width:98%;height:60px;" class="easyui-textbox" validType="length[0,500]" data-options="multiline:true" value="@Model.DeliveryNote" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">工程后期服务的要求和责任</th>
+            <td colspan="3">
+                <input name="EngineeringService" style="width:98%;height:60px;" class="easyui-textbox" validType="length[0,500]" data-options="multiline:true" value="@Model.EngineeringService" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">质量控制措施及质量记录要求</th>
+            <td colspan="3">
+                <input name="QualityNote" style="width:98%;height:60px;" class="easyui-textbox" validType="length[0,500]" data-options="multiline:true" value="@Model.QualityNote" />
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="4">
+                联合设计、外聘人员设计签署人：<input name="DesSign" style="width:60%;" class="easyui-textbox" validType="length[0,50]" value="@Model.DesSign" />
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="4">
+                <table class="table table-bordered" style="width:99%;">
+                    <tr>
+                        <td></td>
+                        <td>设计人</td>
+                        <td>校核人</td>
+                        <td>审核人</td>
+                        <td>审定人</td>
+                        <td>专业负责人</td>
+                        <td>项目负责人</td>
+                    </tr>
+                    <tr>
+                        <td>我公司人员</td>
+                        <td><input name="OwnerDes" style="width:80px;" class="easyui-textbox" validType="length[0,50]" value="@Model.OwnerDes" /></td>
+                        <td><input name="OwnerCheck" style="width:80px;" class="easyui-textbox" validType="length[0,50]" value="@Model.OwnerCheck" /></td>
+                        <td><input name="OwnerAudit" style="width:80px;" class="easyui-textbox" validType="length[0,50]" value="@Model.OwnerAudit" /></td>
+                        <td><input name="OwnerApproval" style="width:80px;" class="easyui-textbox" validType="length[0,50]" value="@Model.OwnerApproval" /></td>
+                        <td><input name="OwnerProjEmpName" style="width:80px;" class="easyui-textbox" validType="length[0,50]" value="@Model.OwnerProjEmpName" /></td>
+                        <td><input name="OwnerSpecEmpName" style="width:80px;" class="easyui-textbox" validType="length[0,50]" value="@Model.OwnerSpecEmpName" /></td>
+                    </tr>
+                    <tr>
+                        <td>合作单位人员</td>
+                        <td><input name="OtherDes" style="width:80px;" class="easyui-textbox" validType="length[0,50]" value="@Model.OtherDes" /></td>
+                        <td><input name="OtherCheck" style="width:80px;" class="easyui-textbox" validType="length[0,50]" value="@Model.OtherCheck" /></td>
+                        <td><input name="OtherAudit" style="width:80px;" class="easyui-textbox" validType="length[0,50]" value="@Model.OtherAudit" /></td>
+                        <td><input name="OtherApproval" style="width:80px;" class="easyui-textbox" validType="length[0,50]" value="@Model.OtherApproval" /></td>
+                        <td><input name="OtherProjEmpName" style="width:80px;" class="easyui-textbox" validType="length[0,50]" value="@Model.OtherProjEmpName" /></td>
+                        <td><input name="OtherSpecEmpName" style="width:80px;" class="easyui-textbox" validType="length[0,50]" value="@Model.OtherSpecEmpName" /></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+        <tr>
+            <th colspan="4" style="text-align:left;">
+                专业负责人和审定人员是否为本公司人员<br />
+                <span>
+                    <input type="checkbox" id="IsBGS1" style="vertical-align:middle;" name="IsBGS" onclick="Checked(this.id,'IsOwnerEmp','1','','IsBGS')" />
+                    <label for="IsBGS1" style="vertical-align:middle;">是</label>
+                </span>
+                <span>
+                    <input type="checkbox" id="IsBGS2" style="vertical-align:middle;" name="IsBGS" onclick="Checked(this.id,'IsOwnerEmp','2','','IsBGS')" />
+                    <label for="IsBGS2" style="vertical-align:middle;">否</label>
+                </span>
+                <input type="hidden" id="IsOwnerEmp" name="IsOwnerEmp" value="@Model.IsOwnerEmp" />
+                <input type="hidden" id="IsBGS_Ex" name="IsBGS_Ex" />
+            </th>
+        </tr>
+
+        <tr>
+            <th width="10%">策划调整内容</th>
+            <td colspan="3"><input name="ChangePlanNote" style="width:98%;height:60px;" class="easyui-textbox" validType="length[0,500]" data-options="multiline:true" value="@Model.ChangePlanNote" /></td>
+        </tr>
+
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "IsoFBSJCH";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <input type="hidden" id="ProjSubID" name="ProjSubID" value="0" />
+                    }

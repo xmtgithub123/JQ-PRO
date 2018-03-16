@@ -1,0 +1,511 @@
+﻿
+@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+@model DataModel.Models.OaEquipUse
+@using JQ.Web;
+
+@section head {
+    @*<link rel="stylesheet" href="~/Scripts/jointjs/rappid.min.css" />*@
+
+    <style type="text/css">
+        .aui-btn {
+            padding: 10px 15px;
+            font-size: 13px;
+        }
+
+        .aui-btn-row:after {
+            border: 0;
+        }
+
+        .set-disabled {
+            pointer-events: none !important;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .aui-input-hook {
+            line-height: 34px;
+            text-align: left;
+            padding-left: 20px;
+            background: #efefef;
+        }
+
+        .aui-display-hook {
+            display: none;
+            width: 30%;
+            float: right;
+            font-size: 13px;
+            line-height: 33px;
+            margin-right: 6px;
+            padding: 3px 6px;
+        }
+
+        .aui-input-width {
+            width: 98%;
+        }
+
+        .table-select-show tr td {
+            padding: 5px !important;
+            font-size: small;
+            text-align: center;
+        }
+
+        .table-select-show tr td input {
+            padding: 5px;
+            width: 60px;
+            margin-bottom: 0;
+        }
+
+        .jq-text-disabled {
+            color: #898787;
+            width: 98%;
+            pointer-events: none;
+            background-color: #efefef !important;
+            border: 0;
+            font-size: 13px;
+        }
+        #dialog .checkbox {
+            margin: 0;
+        }
+    </style>
+}
+
+@section Body_Content{
+    <div class="aui-content" style="overflow:hidden">
+        <form id="OaEquipUseForm" class="aui-form">
+            <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+            <input type="hidden" id="EquipId" name="EquipId" />
+          @*  <input type="hidden" name="EquipOrOffice" id="EquipOrOffice" value="1" />*@
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;办公用品</label>
+                <input type="button" id="btnChooseEquipment" namne="btnChooseEquipment" class="aui-btn aui-btn-block aui-btn-success p-0" style="width:40%;" onclick="EquipmentChooseBegin();" value="选择用品" />
+                <br />
+            </div>
+            <div class="row">
+                <input type="hidden" id="EquipId" name="EquipId" />
+                <input type="hidden" id="EquipOrOffice" name="EquipOrOffice" value='1' />
+                <div class="table-responsive" style="overflow:hidden">
+                    <table class="table table-select-show table-bordered" id="dgGrid" style="font-size:12px;">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center;">办公用品编号</th>
+                                <th style="text-align:center;">办公用品名称</th>
+                                <th style="text-align:center;">规格</th>
+                                <th style="text-align:center;">领用数量</th>
+                                <th style="text-align:center;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gridListShow" style="font-size:12px;"></tbody>
+                    </table>
+                </div>
+
+                <script id="listTp2" type="text/x-dot-template">
+                    {{~it:appendselectArrayInfoData:index}}
+                    <tr>
+                        <td>
+                            <span class="hidden" name="E_Id" id="E_Id">{{=appendselectArrayInfoData.Id}}</span>
+                            <span class="hidden" name="EquipId_Id" id="EquipId_Id">{{=appendselectArrayInfoData.EquipId}}</span>
+                            @*<input type="text" name="EquipNumber" id="EquipNumber" value="{{=appendselectArrayInfoData.EquipNumber}}" />*@
+                            <span id="EquipNumber" name="EquipNumber">{{=appendselectArrayInfoData.EquipNumber}}</span>
+                        </td>
+                        <td>
+                            @*<input type="text" name="EquipName" id="EquipName" value="{{=appendselectArrayInfoData.EquipName}}" />*@
+                            <span id="EquipName" name="EquipName">{{=appendselectArrayInfoData.EquipName}}</span>
+                        </td>
+                        <td>
+                            @*<input type="text" name="EquipModel" id="EquipModel" value="{{=appendselectArrayInfoData.EquipModel}}" />*@
+                            <span id="EquipModel" name="EquipModel">{{=appendselectArrayInfoData.EquipModel}}</span>
+                        </td>
+                        <td>
+                            <input type="number" id="EquipTotalCount" name="EquipTotalCount" value="{{=appendselectArrayInfoData.EquipTotalCount}}" style="width:60px;padding:0;text-align:center" />
+                          @*  <span id="EquipTotalCount" name="EquipTotalCount">{{=appendselectArrayInfoData.EquipTotalCount}}</span>*@
+                            <input type="hidden" id="Equip_sjkc" name="Equip_sjkc" value="{{=appendselectArrayInfoData.SJKC}}" style="width:60px;padding:0;text-align:center" />
+                        </td>
+                        <td style="margin:0 auto;text-align:center">
+                            <input type="button" name="DeleteRowBtn" id="DeleteRowBtn_{{=index}}" class="delete-btn aui-btn aui-btn-block aui-btn-success p-0" value="删除" onclick="removeTrInfo(this);" style="width:auto;margin:0;font-size:12px;" />
+                            @*<span onclick="removeTrInfo(this);" id="remove_{{=index}}"><i class="aui-iconfont">&#xe646;</i></span>*@
+                        </td>
+                    </tr>
+                    {{~}}
+                </script>
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;领用时间</label>
+                <input name="EquipLendDate" id="EquipLendDate" type="date" class="aui-input" value="@Model.EquipLendDate.ToString("yyyy-MM-dd")" />
+            </div>
+         
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;备注</label>
+                <textarea rows="6" name="EquipLendNote" id="EquipLendNote" style="width:98%;overflow:auto;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.EquipLendNote</textarea>
+            </div>
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+        <div class="aui-dialog aui-hidden" id="dialog" style="top:50%;">
+            <div class="aui-dialog-header">选择设备</div>
+            <div class="aui-dialog-body aui-text-left">
+                <div class="aui-card aui-noborder">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <div class="checkAll">
+                                            <input type="checkbox" name="name" value="" />
+                                        </div>
+                                    </th>
+                                    <th>编号</th>
+                                    <th>名称</th>
+                                    <th>规格</th>
+                                    <th>总量</th>
+                                    <th>库存</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gridList" style="max-height:250px;overflow-y:auto;margin-bottom:0;"></tbody>
+                        </table>
+                    </div>
+
+
+                    <!--模板-->
+                    <script id="listTpl" type="text/x-dot-template">
+                        {{~it:appendEquipGetInfoData:index}}
+
+                        <tr id="tr_{{=index}}">
+
+                            <td>
+                                <div class="checkbox">
+                                    <input type="checkbox" name="subBox" value="" />
+                                </div>
+                            </td>
+                            <td>
+                                {{=appendEquipGetInfoData.EquipNumber}}
+                            </td>
+                            <td>
+                                {{=appendEquipGetInfoData.EquipName}}
+                            </td>
+                            <td>
+                                {{=appendEquipGetInfoData.EquipModel}}
+                            </td>
+                            <td>
+                                {{=appendEquipGetInfoData.EquipTotalCount}}
+                            </td>
+                            <td>
+                                {{=appendEquipGetInfoData.SJKC}}
+                            </td>
+                            <td class="hidden">{{=appendEquipGetInfoData.Id}}</td>
+
+                        </tr>
+                        {{~}}
+                    </script>
+                </div>
+            </div>
+            <div class="aui-dialog-footer">
+                <div class="aui-dialog-btn aui-text-danger" tapmode onclick="cancel()">取消</div>
+                <div class="aui-dialog-btn aui-text-info" tapmode onclick="confirm()">确定</div>
+            </div>
+        </div>
+
+
+
+        </div>
+
+
+
+    <script>
+        var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+        };
+        var EquipArray = new Array();
+        var chooseUrl = '@Url.Action("EquipmentOaChoose", "OaEquipUse", new { @area = "Oa" })';
+        var datas,equipdatas;
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                initFormBegin(JSON.stringify({
+                    "AllowEditControls": "{}"
+                }));
+               // initFormBegin()
+            }
+
+
+        });
+        //表单初始化交互
+        function initFormBegin(params) {
+           // alert(params);
+
+            var url = _webconfig.serverUrl + '/oa/OaEquipment/jsonOaChoose?EquIds=' + EquipArray.join(',') + "";
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: '',
+                success: function (data) {
+                    console.log(JSON.parse(data))
+                    equipdatas = JSON.parse(data)
+                }
+            })
+
+
+            //编辑界面显示设备明细
+            $.post('@Url.Action("json", "OaEquipStock", new { @area="Oa"})' + "?EquipFormID=@Model.Id&EquipFormType=OaEquipUseOfficeFlow", function (_rData) {
+                var rowData = JSON.parse(_rData);
+                datas = rowData;
+               // console.log(rowData)
+                if (rowData.rows.length > 0) {
+                    $.each(rowData.rows, function (idx, ele) {
+                        ele.EquipTotalCount = ele.Number;
+                    });
+                    for (var i = 0; i < rowData.rows.length; i++) {
+                        var rows = rowData.rows[i];
+                        for (var j = 0; j < equipdatas.rows.length; j++) {
+                            var cols = equipdatas.rows[j];
+                            if (rows.EquipId == cols.Id) {
+                                rows.SJKC = cols.SJKC;
+                               // console.log(cols.SJKC)
+                            }
+                        }
+                    }
+                    console.log(rowData.rows)
+                    var interText = doT.template($("#listTp2").text())
+                    $("#gridListShow").html(interText(rowData.rows));
+
+
+                    if ($("#btnChooseEquipment").hasClass('jq-text-disabled')) {
+                        $(".delete-btn").addClass("jq-text-disabled");
+                        $('input[name="EquipTotalCount"]').addClass("jq-text-disabled").attr("readonly", "readonly");
+                    }
+                }
+            })
+            //alert(2);
+            params = params.replace(/[\r\n]/g, "");//去除换行
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls
+                .replace("btn", "btnChooseEquipment");
+
+
+
+            //清除时间审批时，默认为1900-01-01改为空
+            var EquipLendDate = $('#EquipLendDate').val(); //申请时间
+
+            if ((EquipLendDate == '1900-01-01')) {
+                $('#EquipLendDate').val('');
+            }
+
+            //任务内容，替换换行符
+            var EquipGetNoteValue = $('#EquipGetNote').val();
+            //alert(EquipGetNoteValue);
+            if (typeof (EquipGetNoteValue) != 'undefined' && EquipGetNoteValue.length > 0) {
+                EquipGetNoteValue = EquipGetNoteValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            }
+            $('#EquipGetNote').val(EquipGetNoteValue);
+
+           
+
+
+
+            $('form :input').addClass('jq-text-disabled');
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('OaEquipUseForm'));
+
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+        //表单验证交互
+        function validateFormBegin() {
+            //验证表单内容
+            var isValidate = false;
+            var formVali = $('#OaEquipUseForm').validate({
+                //rules: {
+                //    EquipGetCustomer: 'required'
+                //},
+                //messages: {
+                //    EquipGetCustomer: '请输入外委单位'
+                //}
+            });
+            isValidate = formVali.form();
+            var $gridTr = $("#gridListShow").find("tr");
+            var hasFloatNumber = 0;
+            $.each($gridTr, function (index, ele) {
+                // 归还数量应小于等于应归还数量
+                var kc = parseInt($(ele).find("#Equip_sjkc").val());
+                var lysl = parseInt($(ele).find("#EquipTotalCount").val());
+                var number = $(ele).find("#EquipTotalCount").val();
+                if (lysl > kc) {
+                    isValidate = false;
+                    $.alert('领用数量不允许超过库存数量！');
+                    hasFloatNumber = 1;
+                    return false;
+                }
+
+                if (number == '' || lysl == '0') {
+                    $.alert('请输入办公用品数量！！！');
+                    hasFloatNumber = 1;
+                    return false;
+                }
+                if (number.indexOf('.') > 0) {
+                    $.alert('请确认用品数量，不能为小数');
+                    hasFloatNumber = 1;
+                    return false;
+                }
+                if (number < 0) {
+                    $.alert('请确认用品数量，不能为负数');
+                    hasFloatNumber = 1;
+                    return false;
+                }
+            })
+            if (hasFloatNumber == 0) {
+                if (isValidate) {
+
+                    var gridData = [];
+
+                    $.each($gridTr, function (index, ele) {
+                        gridData.push({
+                            Id: $(ele).find("#E_Id").text(),
+                            EquipId: $(ele).find("#EquipId_Id").text(),
+                            EquipNumber: $(ele).find("#EquipNumber").text(),
+                            EquipName: $(ele).find("#EquipName").text(),
+                            EquipModel: $(ele).find("#EquipModel").text(),
+                            Number: $(ele).find("#EquipTotalCount").val(),
+                        })
+                    })
+
+
+                    $("#EquipId").val(JSON.stringify(gridData));
+                    //console.log($("#EquipId").val())
+                    var formData = DomUtil.serialize(document.getElementById('OaEquipUseForm'));//json or
+                    formData.EquipId = $("#EquipId").val();
+                    //alert(JSON.stringify(formData))
+                    console.log(formData)
+                    //告诉移动端页面初始完完毕
+                    if (window.JinQuMobile) {
+                        window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                    }
+                }
+            }
+           
+            
+        }
+
+        //不走验证流程
+        function noValidateFormBegin(params) {
+            var gridData = [];
+            var $gridTr = $("#gridListShow").find("tr");
+            $.each($gridTr, function (index, ele) {
+                gridData.push({
+                    Id: $(ele).find("#E_Id").text(),
+                    EquipId: $(ele).find("#EquipId_Id").text(),
+                    EquipNumber: $(ele).find("#EquipNumber").text(),
+                    EquipName: $(ele).find("#EquipName").text(),
+                    EquipModel: $(ele).find("#EquipModel").text(),
+                    Number: $(ele).find("#EquipTotalCount").val(),
+                })
+            })
+
+            $("#EquipId").val(JSON.stringify(gridData));
+            var formData = DomUtil.serialize(document.getElementById('OaEquipUseForm'));//json or
+            formData.EquipId = $("#EquipId").val();
+           // alert(JSON.stringify(formData))
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+        //选择设备
+
+
+
+        function EquipmentChooseBegin() {
+            //var url = _webconfig.serverUrl + 'OaEquipment/json?EquIds=';
+            var url = _webconfig.serverUrl + '/oa/OaEquipment/jsonOaChoose?EquIds=' + EquipArray.join(',') + "";
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: '',
+                success: function (data) {
+                    console.log(data)
+                    var appendEquipGetInfoData = JSON.parse(data).rows
+                    if (appendEquipGetInfoData.length > 0) {
+                        var interText = doT.template($("#listTpl").text())
+                        $("#gridList").html(interText(appendEquipGetInfoData));
+                        $('body').append('<div class="aui-mask"></div>');
+                        $(".aui-dialog.aui-hidden").removeClass('aui-hidden');
+
+
+                        $('#gridList tr').each(function (index, value) {
+                            var trID = '#tr_' + index;
+                            $('.checkAll input[type="checkbox"]').click(function () {
+                                $(trID).find('.checkbox input[name="subBox"]').prop("checked", this.checked)
+                            })
+                            var allLen = $('.checkbox input[name="subBox"]').length;
+                            $('.checkbox input[name="subBox"]').each(function (index, value) {
+                                $(this).bind('click', function (i) {
+                                    var selectedLen = $('.checkbox input[name="subBox"]:checked').length;
+                                    if (selectedLen == allLen) {
+                                        $('.checkAll input[type="checkbox"]').prop("checked", true)
+                                    }
+                                    else {
+                                        $('.checkAll input[type="checkbox"]').prop("checked", false)
+                                    }
+                                })
+                            })
+                        })
+                    }
+                }
+            })
+        }
+
+
+
+        //信息弹出框-----------------------------------------------------------------------
+        function cancel() {
+            $('div').removeClass("aui-mask")
+            $('.aui-dialog').addClass("aui-hidden")
+        }
+        function confirm() {
+            var checkValueLength = $(".checkbox input[name='subBox']:checked").length;
+
+            if (checkValueLength > 0) {
+                $('div').removeClass('aui-mask');
+                $('.aui-dialog').addClass("aui-hidden");
+                var selectArray = [];
+                $(".checkbox input[name='subBox']:checked").closest("tr").each(function (i, e) {
+                    var selectString = $(this).children().text().trim();
+                    var arr = selectString.split(/[ |,]/)
+                    console.log(arr)
+                    for (var i = 0; i < arr.length; i++) {
+                        if (arr[i].length === 0) {
+                            arr.splice(i, 1)
+                        }
+                    }
+                    selectArray.push({ EquipNumber: arr[0], EquipName: arr[1], EquipModel: arr[2], SJKC: arr[4], EquipTotalCount:arr[4], EquipId: arr[5] })
+                    console.log(selectArray)
+                    var appendselectArrayInfoData = selectArray;
+                    if (appendselectArrayInfoData.length > 0) {
+                        var interText = doT.template($("#listTp2").text())
+                        $("#gridListShow").html(interText(appendselectArrayInfoData));
+
+                    }
+                })
+            }
+            else {
+                $.alert('请选择设备');
+            }
+        }
+        function removeTrInfo(e) {
+            $(e).parent().parent().remove();
+        }
+
+    </script>
+}

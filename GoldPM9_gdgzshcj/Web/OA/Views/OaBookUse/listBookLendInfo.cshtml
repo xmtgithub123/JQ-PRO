@@ -1,0 +1,164 @@
+﻿
+@using JQ.Web;
+
+    <script type="text/javascript">
+    $(function () {
+        $('#lefttreeemp').treegrid({
+            url: '@Url.Action("employeeByDepJson", "usercontrol", new { @area = "Core", state = "closed" })',
+            idField: 'id',
+            treeField: 'text',
+            border: 0,
+            fit: true,
+            animate: true,
+            singleSelect: true,
+            columns: [[
+               { title: '', field: 'text', width: 240, align: 'left' }
+            ]],
+            onLoadSuccess: function (row, data) {
+
+            },
+            onSelect: function (node) {
+                if (node.isEmp) {
+                    $('#SelectPerson').html("<b>选择人员</b>：" + node.text);
+                    $('#SelectPerson').attr({ "EmpID": node.empid });
+                    $('#menulist').datagrid('load', {
+                        EmpID: node.empid
+                    });
+
+                }
+            }
+        });
+
+
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'id',
+            JQID: 'menulist',
+            JQDialogTitle: '菜单信息',
+            JQWidth: '100%',
+            JQHeight: '100%',
+            JQLoadingType: 'treegrid',
+            url: '@Url.Action("GetJsonByPerson", "OaBookUse",new {@area="OA" })',
+            toolbar: '#tbMenu',
+            animate: true,
+            columns: [[
+                 { title: '图书类别', field: 'BookTypeName', width: "8%", align: 'center', sortable: true },
+                { title: '图书名称', field: 'BookName', width: "20%", align: 'center', sortable: true },
+                { title: '图书编号', field: 'BookNameNumber', width: "15%", align: 'center', sortable: true },
+                 { title: '出版商', field: 'BookPublisher', width: "15%", align: 'center', sortable: true },
+                  { title: '作者', field: 'BookAuthor', width: "8%", align: 'center', sortable: true },
+                  { title: '借阅数量', field: 'LendCount', width: "10%", align: 'center', sortable: true },
+                      { title: '借阅时间', field: 'DateLend', width: "10%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                   {
+                       field: 'opt', title: '操作', width: "14%", align: 'center', JQIsExclude: true,
+                       formatter: function (value, row, index) {
+                           if (JQ.tools.DateTimeFormatterByT(row.DateReturnFact) != "") {
+                               return "已归还";
+                           } else {
+                               //return "<a href=\"javascript:void(0)\" id=\"mb" + index + "\" dataid=\"" + row.Id + "\" flag=\"menubutton\"   >操作</a>";
+                               return '<a btn  class="easyui-linkbutton"  data-options="iconCls:\'fa fa-check\'"   onclick="borrHistory(' + row.Id + ')">归还</a>';
+                           }
+
+                       }
+                   }
+            ]],
+            queryParams: {
+                EmpID: 0
+            }  ,
+            onLoadSuccess: function (value, row, index) {
+                $("a[btn]").linkbutton({ iconCls: 'fa fa-edit' });
+            }
+        });
+
+    });
+
+    //归还
+    function borrHistory(Id) {
+        JQ.dialog.dialog({
+            title: "归还图书",
+            url: '@Url.Action("returnBackBook")' + '?borrID=' + Id,
+            width: '900',
+            height: '100%',
+            JQID: 'menulist',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-plus'
+        });
+    }
+
+
+    function borrMenu() {
+        var empid = $('#SelectPerson').attr("EmpID");
+        if (!empid) {
+            JQ.dialog.warning('请先选人~');
+            return false;
+        }
+
+        JQ.dialog.dialog({
+            title: "借阅",
+            url: '@Url.Action("borrBook")?id=@ViewBag.bookModel.Id' + '&empID=' + empid + '&rowCount='+@ViewBag.rowCount,//+ '&EmpName='
+            width: '1024',
+        height: '100%',
+        JQID: 'menulist',
+        JQLoadingType: 'datagrid',
+        iconCls: 'fa fa-list',
+
+        });
+    }
+    window.top._BookBorrCallBack = function () {
+        $('#menulist').treegrid('load', {
+            EmpID: $('#SelectPerson').attr("EmpID")
+        });
+    };
+
+    function menuHandler(item) {
+        var key = $("#mm3").attr("rowid");
+        switch (item.text) {
+            case "归还":
+                JQ.dialog.dialog({
+                    title: "归还图书",
+                    url: '@Url.Action("returnBackBook")' + '?borrID=' + key,
+                    width: '900',
+                    height: '100%',
+                    JQID: 'menulist',
+                    JQLoadingType: 'datagrid',
+                    iconCls: 'fa fa-plus'
+                });
+                break;
+            default:
+                break;
+        }
+    }
+
+    $.extend($.fn.datagrid.defaults.view, {
+        onAfterRender: function () {
+            $("a[flag='menubutton']").mouseover(function () {
+                document.getElementById("mm3").setAttribute("rowid", this.getAttribute("dataid"));
+            }).menubutton({
+                iconCls: 'icon-edit',
+                menu: '#mm3'
+            });
+        }
+    });
+
+    </script>
+
+    <div id="cc" class="easyui-layout" style="overflow: hidden" fit="true">
+        <div data-options="region:'west',split:false" style="width:200px;">
+            <div id="tt" class="easyui-tabs" data-options="fit:true" style="width:200px;height:100%;">
+                <div title="按人员选择" data-options="closable:false" style="overflow:auto;padding:2px;">
+                    <table id="lefttreeemp"></table>
+                </div>
+            </div>
+        </div>
+        <div data-options="region:'center'" style="background:#eee;">
+            <table id="menulist"> </table>
+        </div>
+        <div id="tbMenu" style="padding:5px;height:auto;">
+            <span id="SelectPerson">选择人员：</span>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="borrMenu()">借阅</a>
+            @*<a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="borrHistory()">借阅历史</a>*@
+        </div>
+    </div>
+@*<div id="mm3" class="easyui-menu" style="width:80px;" data-options="onClick:menuHandler">
+    <div id="div1">归还</div>
+</div>*@
+

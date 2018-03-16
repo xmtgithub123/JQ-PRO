@@ -1,0 +1,772 @@
+﻿@model DataModel.Models.DesPlanTable
+@using JQ.Web;
+@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+
+@section head {
+    <style type="text/css">
+        #rightdg .panel-body {
+            border-width: 1px;
+            border-style: solid;
+        }
+    </style>
+    <style>
+        .panel-body {
+            padding: 0px !important;
+        }
+
+        .tabs-panels {
+            border-style: none !important;
+        }
+
+        .wordpage {
+            margin: 20px;
+            background-color: #FFFFFF;
+            -moz-box-shadow: 0px 0px 7px #808080;
+            -webkit-box-shadow: 0px 0px 7px #808080;
+            box-shadow: 0px 0px 7px #808080;
+        }
+    </style>
+    <style>
+        .btn-medium {
+            padding: 5px 15px;
+            font-size: 18px;
+            color: white !important;
+        }
+
+        .pageheader {
+            text-align: center;
+        }
+
+            .pageheader h1 {
+                font-size: 24px;
+                font-weight: bold;
+                padding: 20px 10px 10px 10px;
+            }
+
+        .pagefoot {
+            text-align: center;
+            padding: 10px 10px 20px 10px;
+        }
+
+            .pagefoot .l-btn-text {
+                vertical-align: middle !important;
+            }
+
+            .pagefoot .btn-blue {
+                background: -webkit-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+                background: -moz-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+                background: -o-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+                background: linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+                border: none;
+            }
+
+            .pagefoot .btn-green {
+                background: -webkit-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+                background: -moz-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+                background: -o-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+                background: linear-gradient(top,#6cd2b7 0,#69a898 100%);
+                border: none;
+            }
+
+            .pagefoot .btn-blue:hover {
+                background: #3d93cf;
+            }
+
+            .pagefoot .btn-green:hover {
+                background: #69a898;
+            }
+
+        .ml-10 {
+            margin-left: 10px;
+        }
+
+        .mr-10 {
+            margin-right: 10px;
+        }
+    </style>
+
+}
+
+@section Body_Content{
+    <div class="easyui-layout" data-options="fit:true">
+        <div data-options="region:'north',border:false" style="border-bottom-width:1px;overflow:hidden">
+            <div style="height:30px;padding:5px;">
+                <div style="float:left;margin-left:5px;">
+                    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save fa-lg'" onclick="savePlanTableInfo()">保存</a>
+                    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-file-powerpoint-o fa-lg'" onclick="pdfPlanInfo()">导出PDF</a>
+                </div>
+                <div style="float:right;margin-right:5px;margin-top:7px;">
+                </div>
+            </div>
+        </div>
+        <div data-options="region:'center',border:false">
+            <div class="nowordpage">
+                <div class="pageheader">
+                    @*<h1>项目计划表</h1>*@
+                    <div class="row-fluid-wrap">
+                        <ul class="clearfix ul-fluid ">
+                            <li class="active">
+                                <div class="list-wrap">
+                                    <div class="line"></div>
+                                    <a href="#"><div class="small-tag"><i class="fa fa-check" aria-hidden="true"></i></div></a>
+                                    <div class="line"></div>
+                                </div>
+                                <div class="clearfix"></div>
+                                <p>计划要求</p>
+                            </li>
+                            <li>
+                                <div class="list-wrap">
+                                    <div class="line"></div>
+                                    <a href="#"><div class="small-tag"><i class="fa fa-check" aria-hidden="true"></i></div></a>
+                                    <div class="line"></div>
+                                </div>
+                                <div class="clearfix"></div>
+                                <p>项目策划</p>
+                            </li>
+                            <li>
+                                <div class="list-wrap">
+                                    <div class="line"></div>
+                                    <a href="#"><div class="small-tag">4</div></a>
+                                    <div class="line"></div>
+                                </div>
+                                <div class="clearfix"></div>
+                                <p>提资策划</p>
+                            </li>
+                            <li>
+                                <div class="list-wrap">
+                                    <div class="line"></div>
+                                    <a href="#"><div class="small-tag">3</div></a>
+                                    <div class="line"></div>
+                                </div>
+                                <div class="clearfix"></div>
+                                <p>专业策划</p>
+                            </li>
+                            <li>
+                                <div class="list-wrap">
+                                    <div class="line"></div>
+                                    <a href="#"><div class="small-tag">5</div></a>
+                                    <div class="line"></div>
+                                </div>
+                                <div class="clearfix"></div>
+                                <p>关键节点</p>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+
+                <div style="padding-top:20px;margin-left:20px;margin-right:20px;">
+                    @using (Html.BeginForm("PlanTableInfoSave", "DesTask", FormMethod.Post, new { @area = "Design", @id = "PlanTableForm" }))
+                    {
+
+                        <table id="rightdg" class="table table-bordered">
+                            <tr>
+                                <th width="15%">
+                                    项目名称
+                                    <br />
+                                    <a name="selectProject" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="selectProject()">选择项目模版</a>
+                                </th>
+                                <td width="35%">
+                                    <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+                                    <input type="hidden" name="PhaseId" value="@Model.PhaseId" />
+                                    <input type="hidden" name="ProjId" value="@Model.ProjId" />
+                                    <input type="hidden" name="TaskGroupId" value="@Model.TaskGroupId" />
+                                    <span name="ProjName" bookmark="ProjName">
+                                        @Html.Raw(ViewBag.ProjModel.ProjName)
+                                    </span>
+                                </td>
+                                <th width="15%">项目编号</th>
+                                <td width="35%" bookmark="ProjNumber">
+                                    <span name="ProjNumber">@Html.Raw(ViewBag.ProjModel.ProjNumber)</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>设总</th>
+                                <td>
+                                    <span name="ProjEmpName" bookmark="ProjEmpName">@ViewBag.ProjModel.ProjEmpName</span>
+                                </td>
+                                <th>设计阶段</th>
+                                <td>
+                                    <span name="ProjPhase" bookmark="PhaseName">@ViewBag.PhaseName</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>参与专业</th>
+                                <td colspan="3" bookmark="SpecJoins">
+                                    @{
+                                        if (ViewBag.JoinSpecList.Count > 0)
+                                        {
+                                            string names = "";
+                                            foreach (var item in ViewBag.allSpec)
+                                            {
+                                                if (ViewBag.JoinSpecList.Contains(item.BaseID))
+                                                {
+                                                    names += item.BaseName + "，";
+                                                }
+                                            }
+                                            <text>@names.Trim('，')</text>
+                                        }
+                                        else
+                                        {
+                                            <text>请先项目策划</text>
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <th align="center">设计依据</th>
+                                <td colspan="3">
+                                    <input name="DesignBasis" style="width:100%;height:80px" value="@Model.DesignBasis" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>设计范围</th>
+                                <td colspan="3">
+                                    <input name="DesignScope" style="width:100%;height:80px" value="@Model.DesignScope" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>设计成品</th>
+                                <td colspan="3">
+                                    <input name="DesignProduct" style="width:100%;height:80px" value="@Model.DesignProduct" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>其他说明</th>
+                                <td colspan="3">
+                                    <input name="OtherDescription" style="width:100%;height:80px" value="@Model.OtherDescription" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" />
+                                </td>
+                            </tr>
+                            @*<tr>
+                                    <th>人员组织</th>
+                                    <td colspan="3"></td>
+                                </tr>*@
+                            <tr>
+                                <th>设计输入</th>
+                                <td colspan="3">
+                                    <input name="DesignInput" style="width:100%;height:80px" value="@Model.DesignInput" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>主要设计原则</th>
+                                <td colspan="3">
+                                    <input name="DesignPrinciple" style="width:100%;height:80px" value="@Model.DesignPrinciple" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>过程评审</th>
+                                <td colspan="3">
+                                    <table id="designProcess" bookmark="GCPS_grid"></table>
+                                    <script type="text/javascript">
+                                        $(function () {
+                                            JQ.datagrid.datagrid({
+                                                JQPrimaryID: 'FormID',//主键的字段
+                                                JQID: 'designProcess',//数据表格ID
+                                                url: '@Url.Action("json", "IsoFormDesInputReview", new { @area="ISO"})',//请求的地址
+                                                checkOnSelect: true,//是否包含check
+                                                singleSelect: true,
+                                                rownumbers: true,
+                                                pagination: false,
+                                                queryParams:{ProjID:@Model.ProjId},
+                                                fit:false,
+                                                columns: [[
+                                                  {
+                                                      title: '评审资料', field: 'MeterialName', width: '65%', align: 'center', sortable: false
+                                                  },
+                                                  {
+                                                      title: '评审时间', field: 'FormDate', width: '20%', align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT
+                                                  },
+                                                  {
+                                                      title: '评审人员', field: 'ReviewName', width: '15%', align: 'center', sortable: false
+                                                  },
+
+                                                ]]
+                                            });
+                                        })
+                                    </script>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>质量目标</th>
+                                <td colspan="3">
+                                    <input name="QualityParget" style="width:100%;height:80px" value="@Model.QualityParget" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>质量保证措施</th>
+                                <td colspan="3">
+                                    <input name="QualityAssurance" style="width:100%;height:80px" value="@Model.QualityAssurance" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>危险源识别与控制</th>
+                                <td colspan="3">
+                                    <table id="designDanger" bookmark="YJSX_grid"></table>
+                                    <div id="BussContractPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+                                        <span JQPanel="toolbarPanel">
+                                            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="AddRow('designDanger')">新增</a>
+                                            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-filter'" onclick="InsertRow('designDanger')">导入</a>
+                                            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" onclick="DelRow('designDanger')">删除</a>
+                                            <input id="inputdesignDanger" name="inputdesignDanger" type="hidden" />
+                                        </span>
+                                    </div>
+                                    <script type="text/javascript">
+                                        $(function () {
+                                            JQ.datagrid.datagrid({
+                                                JQPrimaryID: 'fromId',//主键的字段
+                                                JQID: 'designDanger',//数据表格ID
+                                                url: '@Url.Action("GetgridContent", "DesPlanTable")',//请求的地址
+                                                queryParams:{formId:@Model.Id,Type:'DangerType'},
+                                                checkOnSelect: true,//是否包含check
+                                                singleSelect: false,
+                                                rownumbers: true,
+                                                pagination: false,
+                                                fit:false,
+                                                toolbar:'#BussContractPanel',
+                                                columns: [[
+                                                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                                                  {
+                                                      title: '危险源辨识', field: 'DangerName', width: '30%', align: 'center',editor:{type:'textbox',options:{
+                                                          required:true,
+                                                          validType:"length[0,200]",
+                                                      } }
+
+
+                                                  },
+                                                  {
+                                                      title: '风险评价和控制措施', field: 'DangerContent', width: '65%', align: 'center',editor:{type:'textbox',options:{
+                                                          validType:"length[0,200]",
+                                                          multiline:true,
+                                                          height:'44px',
+                                                      }}
+                                                  },
+                                                ]],
+                                                onLoadSuccess:function (data) {
+                                                    if (data.rows) {
+                                                        $.each(data.rows,function (i,e) {
+                                                            $("#designDanger").datagrid("beginEdit",i);
+
+                                                        })
+                                                    }
+                                                }
+                                            });
+                                        })
+
+                                        function AddRow(gridId) {
+                                            var $grid=$("#"+gridId);
+
+                                            var rowlength=$grid.datagrid("getRows").length;
+                                            var rowIndex=rowlength;
+                                            $grid.datagrid("appendRow",{fromId:(0-rowIndex),DangerType:(gridId=="designDanger"?"DangerType":"EmergencyType")});
+                                            $grid.datagrid("beginEdit",rowIndex);
+                                        }
+
+                                        function DelRow(gridId) {
+                                            var $grid=$("#"+gridId);
+                                            var getSelect=$grid.datagrid("getChecked");
+                                            if (getSelect.length==0) {
+                                                JQ.dialog.warning("请至少选择一项！！！");
+                                            }
+                                            for (var i = 0; i < getSelect.length>0; i++) {
+                                                var rowIndex=$grid.datagrid("getRowIndex",getSelect[i]);
+                                                $grid.datagrid("deleteRow",rowIndex);
+                                            }
+
+                                        }
+
+                                        function gridSave(gridId) {
+                                            var $grid=$("#"+gridId);
+                                            var _rows=$grid.datagrid("getRows");
+                                            $.each(_rows,function (i,e) {
+                                                $grid.datagrid("endEdit",i);
+                                            })
+
+                                            var dataRow= $grid.datagrid("getRows");
+                                            $("#input"+gridId).val(JSON.stringify(dataRow));
+                                        }
+                                        //导入
+                                        function InsertRow(gridId) {
+                                            window.top.selectPlanTableContent=[];
+                                            var openDivID=JQ.dialog.dialog({
+                                                title: "导入",
+                                                url: '@Url.Action("selectContent")?Type='+gridId,
+                                                width: '1024',
+                                                height: '100%',
+                                                iconCls: 'fa fa-plus',
+                                                onClose:function () {
+                                                    if (window.top.hasOwnProperty("selectPlanTableContent")) {
+                                                        var planIds=window.top.selectPlanTableContent;
+                                                        if (planIds.length>0) {
+                                                            var rowlength=$("#"+gridId).datagrid("getRows").length;
+                                                            $.each(planIds,function (i,e) {
+
+                                                                var rowIndex=rowlength+i;
+                                                                $("#"+gridId).datagrid("appendRow",{
+                                                                    fromId:(0-rowIndex),
+                                                                    'DangerName':e.DangerName,
+                                                                    'DangerContent': e.DangerContent,
+                                                                    DangerType:(gridId=="designDanger"?"DangerType":"EmergencyType")
+                                                                });
+                                                                $("#"+gridId).datagrid("beginEdit",rowIndex);
+                                                            })
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    </script>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>应急事项</th>
+                                <td colspan="3">
+                                    <table id="designEmergency" bookmark="WXYWB_grid"></table>
+                                    <div id="EmergencyPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+                                        <span JQPanel="toolbarPanel">
+                                            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="AddRow('designEmergency')">新增</a>
+                                            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-filter'" onclick="InsertRow('designEmergency')">导入</a>
+                                            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" onclick="DelRow('designEmergency')">删除</a>
+                                            <input id="inputdesignEmergency" name="inputdesignEmergency" type="hidden" />
+                                        </span>
+                                    </div>
+                                    <script type="text/javascript">
+                                    $(function () {
+                                        JQ.datagrid.datagrid({
+                                            JQPrimaryID: 'fromId',//主键的字段
+                                            JQID: 'designEmergency',//数据表格ID
+                                            url: '@Url.Action("GetgridContent", "DesPlanTable")',//请求的地址
+                                            queryParams:{formId:@Model.Id,Type:'Emergency'},
+                                            checkOnSelect: true,//是否包含check
+                                            singleSelect: false,
+                                            rownumbers: true,
+                                            pagination: false,
+                                            fit:false,
+                                            toolbar:'#EmergencyPanel',
+                                            columns: [[
+                                                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                                              {
+                                                  title: '应急事件', field: 'DangerName', width: '30%', align: 'center',editor:{type:'textbox',options:{
+                                                      required:true,
+                                                      validType:"length[0,200]",
+
+
+                                                  } }
+                                              },
+                                              {
+                                                  title: '应急处理措施', field: 'DangerContent', width: '65%', align: 'center',editor:{type:'textbox',options:{
+                                                      validType:"length[0,200]",
+                                                      multiline:true,
+                                                      height:'44px',
+                                                  }}
+                                              },
+                                            ]],
+                                            onLoadSuccess:function (data) {
+                                                if (data.rows) {
+                                                    $.each(data.rows,function (i,e) {
+                                                        $("#designEmergency").datagrid("beginEdit",i);
+
+                                                    })
+                                                }
+                                            }
+                                        });
+                                    })
+
+                                    </script>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th>附件上传</th>
+                                <td colspan="3">
+                                    @{
+                                        var uploader = new DataModel.FileUploader();
+                                        uploader.RefID = Model.Id;
+                                        uploader.RefTable = "PlanTableInfo";
+                                        uploader.Name = "UploadFile1";
+                                        @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                                    }
+                                </td>
+                            </tr>
+                            @*<tr>
+                                    <th rowspan="2">应急事项</th>
+                                    <td height="12px" align="center">应急事件</td>
+                                    <td colspan="2" align="center">应急处理措施</td>
+                                </tr>
+                                <tr>
+                                    <td valign="top">
+                                        <select class="easyui-combobox" name="EmergencyType" data-options="width:'100%',panelHeight:'auto',valueField:'EmergencyType',textField:'EmergencyType',url:'@Url.Action("GetComBoContent","DesPlanTable")?Type=EmergencyType', value:'@Model.EmergencyType'"></select>
+                                    </td>
+                                    <td colspan="2" valign="top">
+                                        <input name="EmergencyAction" style="width:100%;height:80px" value="@Model.EmergencyAction" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" />
+                                    </td>
+                                </tr>*@
+
+                        </table>
+                        <div style="display:none">
+                            @*导出word*@
+                            <input name="FengProjNumber" type="hidden" value="@Html.Raw(ViewBag.ProjModel.ProjNumber)" />
+                            <input name="FengProjName" type="hidden" value="@Html.Raw(ViewBag.ProjModel.ProjName)" />
+                            <input name="FengDate" type="hidden" value="@DateTime.Now.ToString("yyyy年MM月dd日")" />
+
+                            <input name="MuLuProjName" type="hidden" value="@Html.Raw(ViewBag.ProjModel.ProjName)" />
+                            <input name="MuLuEmpName" type="hidden" value="@ViewBag.ProjModel.ProjEmpName" />
+                            <input name="MuLuPhaseName" type="hidden" value="@ViewBag.PhaseName" />
+                            <input name="ExchangeProjName" type="hidden" value="@Html.Raw(ViewBag.ProjModel.ProjName)" />
+                            <input name="ExchangeProjNumber" type="hidden" value="@Html.Raw(ViewBag.ProjModel.ProjNumber)" />
+
+                            <input name="TaskProjNumber" type="hidden" value="@Html.Raw(ViewBag.ProjModel.ProjNumber)" />
+                            <input name="TaskProjName" type="hidden" value="@Html.Raw(ViewBag.ProjModel.ProjName)" />
+                            <table style="display:none" title="人员">
+                                <tbody bookmark="PlanTableInfo_Person">
+                                    <tr>
+                                        <td style="font-weight:bold;text-align:center;border:0.5pt solid windowtext;padding:2px;">专业</td>
+                                        <td style="font-weight:bold;text-align:center;border:0.5pt solid windowtext;padding:2px;">设计</td>
+                                        <td style="font-weight:bold;text-align:center;border:0.5pt solid windowtext;padding:2px;">校核</td>
+                                        <td style="font-weight:bold;text-align:center;border:0.5pt solid windowtext;padding:2px;">审核</td>
+                                        <td style="font-weight:bold;text-align:center;border:0.5pt solid windowtext;padding:2px;">批准</td>
+                                    </tr>
+
+                                    @Html.Raw(ViewBag.PersonList)
+                                </tbody>
+                            </table>
+                            <table style="display:none" title="提资列表">
+                                <tbody bookmark="plantableinfo_exchlist">
+                                    @Html.Raw(ViewBag.ExchList)
+                                </tbody>
+                            </table>
+
+                            <table style="display:none" title="卷册列表">
+                                <tbody bookmark="plantableinfo_VolList">
+                                    @Html.Raw(ViewBag.TaskList)
+                                </tbody>
+                            </table>
+                        </div>
+                                        }
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var _currentUserId = @ViewBag.currentUserId;
+        var _permission = @Html.Raw(ViewBag.permission);
+        var _mainTabsUsed = @Html.Raw(ViewBag.mainTabsUsed);
+
+        var tabId = 0;
+        var tabNum = 0;
+        var tabs = [
+               '@Url.Action("PlanTableInfo", "DesTask", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId',
+               '@Url.Action("ProjectPlanInfo", "DesTask", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId',
+               '@Url.Action("ExchPlanInfo", "DesExch", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId',
+               '@Url.Action("SpecPlanInfo", "DesTask", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId',
+               '@Url.Action("ProjectGantt", "DesTask", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId'
+        ];
+
+        $(function () {
+            // 点击导航条进行功能切换
+            $(".pageheader li").each(function(i, li) {
+                if (tabs[i].toLowerCase().indexOf(window.location.pathname.toLowerCase()) > -1) tabId = i;
+                $(li).click(function() {
+                    //window.parent.changeTabId(i);
+                    window.location.href = tabs[i];
+                });
+            });
+
+            // 页面载入后，设置导航当前页面节点，并处理前后节点状态
+            $(".pageheader li").each(function(i, li) {
+                var $li = $(li);
+                var isShow = true;
+                switch(i){
+                    case 0:
+                        isShow = _mainTabsUsed.PlanTableList;
+                        break;
+                    case 1:
+                        isShow = _mainTabsUsed.ProjectPlanList;
+                        break;
+                    case 2:
+                        isShow = _mainTabsUsed.ExchPlanList;
+                        break;
+                    case 3:
+                        isShow = _mainTabsUsed.SpecPlanList;
+                        break;
+                    case 4:
+                        isShow = _mainTabsUsed.ProjGanttList;
+                        break;
+                }
+                $li.toggle(isShow);
+                if (isShow) tabNum++;
+                if (i < tabId) {
+                    $li.addClass("visited");
+                    $li.find(".small-tag").html('<i class="fa fa-check" aria-hidden="true"></i>');
+                } else if (i == tabId) {
+                    $li.addClass("active");
+                    $li.find(".small-tag").html(tabNum);
+                } else {
+                    $li.find(".small-tag").html(tabNum);
+                }
+            });
+
+            // 权限控制
+            if (@(ViewBag.TaskGroupModel.TaskGroupEmpID) == _currentUserId || _permission.indexOf("alledit")>-1) {
+                // 如果你是这个项目的负责人，或者你拥有该模块的维护权。
+            } else {
+                // 你没有权限执行该操作,页面只读。
+                // 只读状态，所有控件只读
+                JQ.tools.DisabledCtrlFrom($("#PlanTableForm"), "");
+            }
+        });
+
+        // 保存计划表
+        function savePlanTableInfo() {
+            if (@(ViewBag.TaskGroupModel.TaskGroupEmpID) == _currentUserId || _permission.indexOf("alledit")>-1) {
+                // 如果你是这个项目的负责人，或者你拥有该模块的维护权。
+                //window.top.$.messager.progress();
+                if($('#PlanTableForm').form('validate')){
+                    var _url="@Url.Action("PlanTableInfoSave", "DesPlanTable")?id="+$("#Id").val();
+                    gridSave("designDanger");
+                    gridSave("designEmergency");
+                    //$.post(_url,$('#PlanTableForm').serialize(),function () {
+                    //    if ($("#Id").val()=="0") {
+                    //        location.reload();
+                    //    }
+                    //    setTimeout(function(){
+                    //        window.parent.changeTabId(tabId + 1);
+                    //        window.location.href = tabs[tabId + 1] + "&time=" + (new Date()).getTime();
+                    //    }, 1000);
+
+                    //    JQ.dialog.show("保存成功！");
+                    //    window.top.$.messager.progress('close');
+                    //}).error(function () {
+                    //    window.top.$.messager.progress('close');
+                    //    JQ.dialog.show("保存失败！");
+                    //});
+                    JQ.tools.ajax({
+                        url: _url,
+                        data: $('#PlanTableForm').serialize(),
+                        succesCloseProgress: false,
+                        progressWith: window,
+                        succesCollBack: function (data) {
+                            //if ($("#Id").val()=="0") {
+                            //    location.reload();
+                            //}
+                            window.location.href = tabs[tabId] + "&time=" + (new Date()).getTime();
+                        }
+                    });
+                }
+                else {
+                    //window.top.$.messager.progress('close');
+                }
+            } else {
+                //window.parent.changeTabId(tabId + 1);
+                window.location.href = tabs[tabId + 1] + "&time=" + (new Date()).getTime();
+            }
+        }
+
+        function pdfPlanInfo() {
+            JQ.form.exportForm({
+                formid:'PlanTableForm',
+                docName:'PlanTableForm',
+                IsWord:false,
+                onBefore:function () {
+                    endRow("designDanger");
+                    endRow("designEmergency");
+                    $("#designEmergency").datagrid("hideColumn","ck");
+                    $("#designDanger").datagrid("hideColumn","ck");
+                },
+                onAfter:function () {
+                    editRow("designDanger");
+                    editRow("designEmergency");
+                    $("#designEmergency").datagrid("showColumn","ck");
+                    $("#designDanger").datagrid("showColumn","ck");
+                }
+            });
+        }
+
+        function editRow(girdId) {
+            var $grid=$("#"+girdId);
+            var rows=$grid.datagrid("getRows");
+            for (var i = 0; i < rows.length; i++) {
+                var rowIndex=$grid.datagrid("getRowIndex",rows[i]);
+                $grid.datagrid("beginEdit",rowIndex);
+                $grid.datagrid("showColumn","ck");
+            }
+        }
+        function endRow(girdId) {
+            var $grid=$("#"+girdId);
+            var rows=$grid.datagrid("getRows");
+            for (var i = 0; i < rows.length; i++) {
+                var rowIndex=$grid.datagrid("getRowIndex",rows[i]);
+                $grid.datagrid("endEdit",rowIndex);
+                $grid.datagrid("hideColumn","ck");
+            }
+        }
+
+        function selectProject() {
+            window.top.selectProjectPlan=[];
+            JQ.dialog.dialog({
+                title: "选择项目",
+                url: '@Url.Action("selectPlan", "DesPlanTable")',
+                width: '1024',
+                height: '100%',
+                iconCls: 'fa fa-list',
+                onClose:function () {
+                    if (window.top.hasOwnProperty("selectProjectPlan")) {
+                        var projectPlan=window.top.selectProjectPlan;
+                        if (projectPlan) {
+                            //$("input[textboxname='DesignBasis']").textbox("setText","21212");
+                            $(".easyui-textbox[textboxname]","#rightdg").each(function (i,e) {
+                                //debugger;
+                                var inputName=$(e).attr("textboxname");
+                                if (projectPlan.hasOwnProperty(inputName)) {
+                                    try {
+                                        //$(e).textbox("setText",projectPlan[inputName]);
+                                        $(e).textbox("setValue",projectPlan[inputName]);
+                                    } catch (e) {
+
+                                    }
+                                }
+                            });
+                            //危险源识别与控制
+                            $.get('@Url.Action("GetDangerContent", "DesPlanTable")',{'Id':projectPlan.Id,'type':'designDanger'},function (data) {
+                                var _data=JSON.parse(data).rows;
+                                debugger;
+                                if (_data.length>0) {
+                                    var rowlength=$("#designDanger").datagrid("getRows").length;
+                                    $.each(_data,function (i,e) {
+                                        var rowIndex=rowlength+i;
+                                        $("#designDanger").datagrid("appendRow",{
+                                            fromId:(0-rowIndex),
+                                            'DangerName':e.DangerName,
+                                            'DangerContent': e.DangerContent,
+                                            DangerType:"DangerType"
+                                        });
+                                        $("#designDanger").datagrid("beginEdit",rowIndex);
+                                    })
+                                }
+                            })
+                            //应急事项
+                            $.get('@Url.Action("GetDangerContent", "DesPlanTable")',{'Id':projectPlan.Id,'type':'designEmergency'},function (data) {
+                                var _data=JSON.parse(data).rows;
+                                if (_data.length>0) {
+                                    var rowlength=$("#designEmergency").datagrid("getRows").length;
+                                    $.each(_data,function (i,e) {
+                                        var rowIndex=rowlength+i;
+                                        $("#designEmergency").datagrid("appendRow",{
+                                            fromId:(0-rowIndex),
+                                            'DangerName':e.DangerName,
+                                            'DangerContent': e.DangerContent,
+                                            DangerType:"designEmergency"
+                                        });
+                                        $("#designEmergency").datagrid("beginEdit",rowIndex);
+                                    })
+                                }
+                            })
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+
+}

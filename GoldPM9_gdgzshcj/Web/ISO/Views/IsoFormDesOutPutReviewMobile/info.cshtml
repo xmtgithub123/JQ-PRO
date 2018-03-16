@@ -1,0 +1,429 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.IsoForm
+
+@section head {
+    <style type="text/css">
+    .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+
+    .p-15 {
+        padding: 15px;
+    }
+
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+    .error {
+        color: red;
+        font-size: 14px;
+        display: inline-block;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+</style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="IsoFormDesOutPutReviewForm" class="aui-form">
+            <div class="p-15">
+                <b class="aui-input-addon aui-text-danger">*</b>
+                编号<input id="Number" name="Number" type="text" style="display:inline-block;width: 50%;text-overflow:ellipsis;border: 1px solid #dbdbdb; border-radius: 6px;padding: 3px 6px;margin:0 3px;text-align:center;" class="form-control" validType="length[0,200]" value="@ViewData["Number"]" />
+            </div>
+            <div class="aui-input-row">
+                <input type="hidden" name="JsonRows" id="JsonRows" />
+                <input type="hidden" id="ProjID" name="ProjID" />
+                <input type="hidden" id="FormID" name="FormID" value="@(Model.FormID)" />
+            </div>
+            <div class="aui-input-row">
+                <b class="aui-input-addon aui-text-danger">*</b>
+                <label class="aui-input-addon">&nbsp;&nbsp;项目名称</label>
+                <input id="ProjID" name="ProjID" data-options="required:true,multiple:false" type="hidden" style="width:98%;height:26px;" value="@(@Model.ProjID==0 ? "" :@Model.ProjID.ToString())" />
+                @*<input name="ProjName" id="ProjName" type="hidden" class="aui-input" value="@ViewBag.ProjName" />*@
+                <textarea rows="1" name="ProjName" id="ProjName" style="width:98%;overflow:auto" class="aui-input">@ViewBag.ProjName</textarea>
+                @*<div class="aui-input-block" id="ProjectNameText" style="width: 60%;display:inline-block;" >@ViewBag.ProjName</div>*@
+                @*<input type="button" id="selectProjNameBtn" namne="selectProjNameBtn" class="aui-btn aui-btn-block aui-btn-success p-0" style="width:32%;display:inline-block;float:right;margin-right:10px;" onclick="SetProjectSelectBegin();" value="项目选择" />*@
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;设计阶段</label>
+                <input name="PhaseName" id="PhaseName" type="text" class="aui-input" value="@ViewBag.Phase" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目编号</label>
+                <input name="ProjNum" id="ProjNum" type="text" class="aui-input" value="@ViewBag.ProjNumber" />
+                <input type="hidden" name="PhaseName" value="@ViewBag.Phase" />
+                <input type="hidden" name="ProjNumber" value="@ViewBag.ProjNumber" />
+                <input type="hidden" name="RecordMan" value="@ViewData["EmpName"]" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;评审主持人</label>
+                <input name="ReviewName" id="ReviewName" type="text" class="aui-input" value='@ViewData["ReviewName"]' />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;记录人</label>
+                <input name="EmpName" id="EmpName" type="text" class="aui-input" value='@ViewData["EmpName"]'/>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;评审时间</label>
+                <input name="FormDate" id="FormDate" type="date" class="aui-input" value="@Model.FormDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;参加评审人员</label>
+                <input type="hidden" name="Person" id="Person" class="aui-input" />
+                <input type="hidden" name="ReviewPerson" id="ReviewPerson" class="aui-input" value="@ViewData["ReviewPerson"]" />
+                <input type="hidden" name="ReviewPersonName" id="ReviewPersonName" class="aui-input" />
+                <div class="aui-input-block" id="ReviewPersonNameText" style="width:60%;display:inline-block;"></div>
+                <input type="button" id="useLeaderBtn" namne="useLeaderBtn" class="aui-btn aui-btn-block aui-btn-success p-0" value="选择人员" style="width:32%;float:right;margin-right:8px;" onclick="usePeopleFormBegin();" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目外委信息：</label>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="ProjPhaseGrid" style="font-size:12px;">
+                    <thead>
+                        <tr>
+                            <th>
+                                <div class="checkAll">
+                                    <input type="checkbox" name="name" value="" />
+                                </div>
+                            </th>
+                            <th>评审对象</th>
+                            <th>评审内容</th>
+                            <th>评审结果</th>
+                            <th>评审意见</th>
+                            <th>专业</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gridList" style="font-size:12px;"></tbody>
+                </table>
+            </div>
+
+            <script id="listTpl" type="text/x-dot-template">
+                {{~it:appendReviewTargetInfoData:index}}
+                <tr id="tr_{{=index}}">
+
+                    <td>
+                        <input type="hidden" value="{{=appendReviewTargetInfoData.FormID}}" />
+                        <input type="hidden" value="{{=appendReviewTargetInfoData.RefID}}" />
+                        <input type="hidden" value="{{=appendReviewTargetInfoData.SpecialId}}" />
+                        <div class="checkbox" style="margin:0">
+                            <input type="checkbox" name="subBox" value="" />
+                        </div>
+                    </td>
+                    <td>
+                        {{=appendReviewTargetInfoData.ReviewTarget}}
+                    </td>
+                    <td>
+                        {{=appendReviewTargetInfoData.ReviewContent}}
+                    </td>
+                    <td>
+                        {{=appendReviewTargetInfoData.ReviewResult}}
+                    </td>
+                    <td>
+                        {{=appendReviewTargetInfoData.ReviewSugg}}
+                    </td>
+                    <td>
+                        {{=appendReviewTargetInfoData.SpecialName}}
+                    </td>
+                </tr>
+                {{~}}
+            </script>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;评审结论</label>
+                <textarea rows="6" name="FormReason" id="FormReason" style="width:98%;overflow:auto;" class="aui-input">@Model.FormReason</textarea>
+            </div>
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+    </div>
+    <script type="text/javascript">
+
+        var datas;
+        var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+        };
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                initFormBegin(JSON.stringify({
+                    "Result": true,
+                    "Message": null,
+                    "NodeName": null,
+                    "AllowEditControls": "{}",
+                    "SignControls": "DesignName(签名)",
+                   
+                    //"AllowEditControls":""
+
+                }));
+            //initFormBegin();
+            }
+
+        })
+
+        //页面初始化
+        function initFormBegin(params) {
+
+            //alert(params)
+            //获取数据
+            var text = '@ViewData["ReviewPerson"]';
+            //参加评审人员
+            var SubSpecialArr = text.split(',');
+            var SubSpecialList,jsonDataList,depId,empName,empNameArr = [];
+            var url = _webconfig.serverUrl + '/Core/usercontrol/employeeByDepJson?isDialog=false';
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: '',
+                success: function (data) {
+                    var jsonData = JSON.parse(data)[0].children;
+                    for (var i = 0; i < SubSpecialArr.length; i++) {
+                        SubSpecialList = SubSpecialArr[i]
+                       // console.log(SubSpecialArr[i].split('-'))
+                        depId = SubSpecialArr[i].split('-')[0];
+                        empName = SubSpecialArr[i].split('-')[1];
+                        for (var j = 0; j < jsonData.length; j++) {
+                            //console.log(jsonData[j])
+                            jsonDataList = jsonData[j]
+                            if (empName == jsonDataList.id) {
+                                var empArr = jsonDataList.children;
+                                for (var k = 0; k < empArr.length; k++) {
+                                    //console.log(empArr[k])
+                                    if (depId == empArr[k].empid) {
+                                        console.log(empArr[k].text)
+                                        empNameArr.push(empArr[k].text)
+                                    }
+                                }
+                            }
+                            
+                        }
+                    }
+                    console.log(empNameArr)
+                    $('#ReviewPersonNameText').text(empNameArr.toString())
+                    $('#ReviewPersonName').val(empNameArr.toString())
+                }
+            })
+
+            //清除设计评审时机，默认为1900-01-01改为空
+            var FormDate = $('#FormDate').val();;
+            if ((FormDate == '1900-01-01')) {
+                $('#FormDate').val('');
+            }
+
+
+            $.post('@Url.Action("ReviewJson", "IsoFormNode", new { @area= "Iso" })' + "?FormID=@Model.FormID" , function (_rData) {
+                //console.log(JSON.parse(_rData))
+                datas = JSON.parse(_rData).rows
+                var appendReviewTargetInfoData = JSON.parse(_rData).rows
+                if (appendReviewTargetInfoData.length > 0) {
+                    var interText = doT.template($("#listTpl").text())
+                    $("#gridList").html(interText(appendReviewTargetInfoData));
+                }
+                else {
+                    console.log('暂无数据')
+                }
+            })
+
+
+
+            //验收情况记录	，替换换行符
+            var FormReasonValue = $('#FormReason').val();
+            FormReasonValue = FormReasonValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#FormReason').val(FormReasonValue);
+
+            //去除换行
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls.replace("ProjID", "selectProjNameBtn").replace('ReviewPerson','useLeaderBtn');
+
+            //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('IsoFormDesOutPutReviewForm'));
+
+           
+
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#IsoFormDesOutPutReviewForm').validate({
+                rules: {
+                    ProjectName: 'required',//项目名称
+                    Number: 'required',//编号
+
+                    FormReason: {
+                        required: false,
+                        maxlength: 500
+                    }
+
+                },
+                messages: {
+                    ProjectName: '请输入项目名称',
+                    Number: '请输入编号',
+                    FormReason: {
+                        maxlength: '内容长度必须介于0-500之间'
+                    }
+                }
+            });
+            if ($('#ProjectName').val() == '') {
+                $.alert('请选择项目！')
+                return false;
+            }
+            isValidate = formVali.form();
+
+            $('#JsonRows').val(JSON.stringify(datas))
+
+            if (isValidate) {
+                var formData = DomUtil.serialize(document.getElementById('IsoFormDesOutPutReviewForm'));//json or =&
+                console.log(formData)
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+            var formData = DomUtil.serialize(document.getElementById('IsoFormDesOutPutReviewForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+        function SetProjectSelectBegin() {
+            var selemp = {
+                ProjID: $('#ProjID').val(),
+                ProjName: $('#ProjectName').val()
+            }
+            if (window.JinQuMobile) {
+                window.JinQuMobile.ProjectSelectBegin(JSON.stringify(selemp), 'SetProjectSelectEnd');
+            }
+        }
+        function SetProjectSelectEnd(emp) {
+            alert(emp)
+            emp = JSON.parse(emp);
+
+            $('#ProjectName').val(emp.ProjName);
+            $('#PhaseName').val(emp.ProjPhaseName)
+            $('#ProjNum').val(emp.ProjNumber)
+            $('#ProjID').val(emp.ProjPhaseId);
+            $('#ProjectNameText').text(emp.ProjName);
+        }
+
+        function usePeopleFormBegin() {
+            var selectUsePeople = {
+                useName: $('#ReviewPerson').val(),
+                isSingleSelect: 1  //0：单选   1：多选
+                //UsePeopleID: $("#UsePeopleID").val()
+            }
+            if (window.JinQuMobile) {
+                window.JinQuMobile.usePeopleSingleSelectBegin(JSON.stringify(selectUsePeople), 'usePeopleFormEnd');
+            }
+        }
+       
+        //正确版本
+        function usePeopleFormEnd(emp) {
+            //alert(emp)
+            emp = JSON.parse(emp)
+            var empArr = [];
+            var empId = [];
+            emp.forEach(function (e, i) {
+                empArr.push(e.EmpName)
+                empId.push(e.EmpID+'-'+e.EmpDepID)
+            })
+           // alert(empId)
+            $('#ReviewPersonName').val(empArr);
+            $('#ReviewPersonNameText').text(empArr);
+            $('#ReviewPerson').val(empId);
+            //alert(empId)
+        }
+       
+    </script>
+}

@@ -1,0 +1,358 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+
+            $("#EmpSum").numberspinner({
+                required: true,
+                onChange: function (newVal, oldVal) {
+                    if (newVal == "0" || newVal == 0 || newVal == 0.00 || isNaN(newVal)) {
+                        $("#Average").text("0.00");
+                    }
+                    else {
+                        var result = parseFloat($(this).numberspinner('getValue'));
+                        if (result != 0) {
+                            var total = parseFloat($("#TechSumProduct").text());
+                            $("#Average").text((total / result).toFixed(2).toString())//设置平均基数
+                        }
+                        else {
+                            $("#Average").text("0.00");
+                        }
+                    }
+                }
+            });
+
+            var count = parseFloat($("#EmpSum").numberspinner('getValue'));
+            if (count != 0) {
+                var total = parseFloat($("#TechSumProduct").text());
+                $("#Average").text((total / count).toFixed(2).toString())
+            }
+            else {
+                $("#Average").text("0.00");
+            }
+
+
+            $("#ManagerBalanceGrid").datagrid({
+                iconCls: 'icon-edit',
+                multiSelect: true,
+                rownumbers: true,
+                fitColumns: true,
+                url: '@Url.Action("ManagerJson", "PayBalanceUserAccount", new { @area= "Pay" })',//请求的地址
+                toolbar: '#toolBar',
+                height: '350',
+                columns: [[
+                     {
+                         field: 'ck', align: 'center', checkbox: true
+                     }, {
+
+                         title: '姓名', field: 'EmpId', width: "25%", align: 'center',
+                         formatter: function (val, row) {
+                             return row.EmpName;
+                         },
+                         editor: {
+                             type: 'combobox',
+                             options:
+                                 {
+                                     required: true,
+                                     prompt: ' 下拉选择人员',
+                                     width: '180',
+                                     valueField: 'EmpID',
+                                     textField: 'EmpName',
+                                     groupField: 'EmpDepName',
+                                     editable: false,
+                                     validType: 'comboboxVali[true]',//是否做完整性验证
+                                     //url: JQ.tools.getRootPath() + '/Core/usercontrol/employeeJson',
+                                     url: JQ.tools.getRootPath() + '/pay/PayPasssWord/employeeJson',
+                                     groupFormatter: function (group) {
+                                         return '<b style="color:black">' + group + '</b>';
+                                     },
+                                     onLoadSuccess: function () {
+                                         if ($(this).combobox('getValue') == "0") {
+                                             $(this).combobox('setValue', '');
+                                             var RowsId = [];
+                                             var rowId = "";
+                                             var rows = $('#ManagerBalanceGrid').datagrid('getRows');
+                                             if (rows.length > 0) {
+                                                 for (var index = 0; index < rows.length; index++) {
+                                                     RowsId.push(rows[index].EmpId);
+                                                 }
+                                                 rowId = RowsId.join(',');
+                                                 $(this).combobox("reload", JQ.tools.getRootPath() + '/pay/PayPasssWord/employeeJson?RowId=' + rowId);
+                                             }
+                                         }
+                                     }
+                                 }
+                         }
+                     },
+
+                     {
+
+                         title: '系数', field: 'ManageCoeff', width: "25%", align: 'right',
+                         editor: {
+                             type: 'numberspinner',
+                             options:
+                                 {
+                                     precision: 2,
+                                     min:0,
+                                     required: true,
+                                     onChange: function (newVal, oldVal) {
+                                         if (isNaN(newVal)) {
+                                             $(this).numberspinner('setValue', '0.00');
+                                         }
+                                         else {
+                                             if (editIndex != undefined) {
+                                                 var Base = parseFloat($("#Average").text());//获取基数
+                                                 var ManageCoeff = parseFloat($(this).numberspinner('getValue'));
+                                                 var Product = Base * ManageCoeff;
+                                                 var Balance = $('#ManagerBalanceGrid').datagrid('getEditor', { index: editIndex, field: 'Amount' });
+                                                 $(Balance.target).numberspinner('setValue', Product.toFixed(2).toString());
+                                             }
+                                         }
+                                     }
+                                 }
+                         }
+                     },
+                     {
+
+                         title: '产值', field: 'Amount', width: "20%", align: 'right',
+                         formatter: function (val, row) {
+                             var Base = parseFloat($("#Average").text());//获取基数
+                             var ManageCoeff = parseFloat(row.ManageCoeff);
+                             return (Base * ManageCoeff).toFixed(2).toString();
+                         },
+                         editor: {
+                             type: 'numberspinner',
+                             options: {
+                                 required: true,
+                                 precision: 2,
+                                 min:0,
+                                 readonly: true
+                             }
+                         }
+                     },
+                     {
+                         title: '备注', field: 'BalanceNote', width: "25%", align: 'center',
+                         editor: {
+                             type: 'textbox',
+                             options: {
+                             }
+                         }
+                     }
+                ]],
+                onDblClickRow: onDblClickRow
+            });
+        });
+
+        var editIndex = undefined;
+        // 判断是否结束编辑行
+        function endEditing() {
+            if (editIndex == undefined) { return true }
+            if ($('#ManagerBalanceGrid').datagrid('validateRow', editIndex)) {
+                var Emp = $('#ManagerBalanceGrid').datagrid('getEditor', { index: editIndex, field: 'EmpId' });
+                var EmpName = $(Emp.target).combobox('getText');
+                var EmpId = $(Emp.target).combobox('getValue');
+                $('#ManagerBalanceGrid').datagrid('getRows')[editIndex]['EmpName'] = EmpName;
+                $('#ManagerBalanceGrid').datagrid('getRows')[editIndex]['EmpId'] = EmpId;
+                $('#ManagerBalanceGrid').datagrid('endEdit', editIndex);
+                editIndex = undefined;
+                getRows();
+                return true;
+            } else {
+                return false;
+            }
+        }
+        //双击事件
+        function onDblClickRow(index) {
+            if (editIndex != index) {
+                if (endEditing()) {
+                    $('#ManagerBalanceGrid').datagrid('selectRow', index)
+                            .datagrid('beginEdit', index);
+                    editIndex = index;
+                    getRows();
+                    if (editIndex != undefined) {
+                        var Base = parseFloat($("#Average").text());//获取基数
+                        var Manage = $('#ManagerBalanceGrid').datagrid('getEditor', { index: editIndex, field: 'ManageCoeff' });
+                        var ManageCoeff = parseFloat($(Manage.target).numberspinner('getValue'));
+                        var Product = Base * ManageCoeff;
+                        var Balance = $('#ManagerBalanceGrid').datagrid('getEditor', { index: editIndex, field: 'Amount' });
+                        $(Balance.target).numberspinner('setValue', Product.toFixed(2).toString());
+                    }
+
+                } else {
+                    $('#ManagerBalanceGrid').datagrid('selectRow', editIndex);
+                    JQ.dialog.warning('请将当前信息填写完整，再编辑其他信息');
+                }
+            }
+        }
+        //导入数据
+        window.copyData = function (row) {
+            $('#ManagerBalanceGrid').datagrid('appendRow',
+                {
+                    Id: 0,
+                    EmpId: row.EmpID,
+                    SpecialId: 0,
+                    ManageCoeff: row.PayManageCoeff,
+                    EmpName: row.EmpName
+                });
+        }
+
+        //追加行元素
+        function append() {
+            if (endEditing()) {
+                $('#ManagerBalanceGrid').datagrid('appendRow', { Id: 0, EmpId: 0, SpecialId: 0, ManageCoeff: 0, Amount: 0 });
+                editIndex = $('#ManagerBalanceGrid').datagrid('getRows').length - 1;
+                $('#ManagerBalanceGrid').datagrid('selectRow', editIndex)
+                        .datagrid('beginEdit', editIndex);
+            }
+            else {
+                JQ.dialog.warning('请将当前信息填写完整，再添加记录');
+            }
+        }
+        //删除行元素
+        function removexit() {
+            var rows = $("#ManagerBalanceGrid").datagrid('getSelections');
+            if (rows.length <= 0) {
+                JQ.dialog.warning('请选择要删除的行');
+                return;
+            }
+            for (var i = 0; i < rows.length; i++) {
+                var index = $("#ManagerBalanceGrid").datagrid('getRowIndex', rows[i]);
+                $('#ManagerBalanceGrid').datagrid('cancelEdit', index)
+                    .datagrid('deleteRow', index);
+            }
+            editIndex = undefined;
+            if ($("#ManagerBalanceGrid").datagrid("getRows").length > 0) {
+                getRows();
+            }
+        }
+        function accept() {
+            if (endEditing()) {
+                $('#ManagerBalanceGrid').datagrid('acceptChanges');
+                getRows();
+            }
+            else {
+                JQ.dialog.warning('请将信息填写完整');
+                return false;
+            }
+        }
+
+        function getRows() {
+            var rows = $('#ManagerBalanceGrid').datagrid('getRows');
+            $("#JsonRows").val(JSON.stringify(rows));
+        }
+        function openInsertDialog() //导入数据
+        {
+
+            if (endEditing()) {
+                var RowsId = [];
+                var rowId = "";
+                var rows = $('#ManagerBalanceGrid').datagrid('getRows');
+                if (rows.length > 0) {
+                    for (var index = 0; index < rows.length; index++) {
+                        RowsId.push(rows[index].EmpId);
+                    }
+                    rowId = RowsId.join(',');
+
+                }
+                JQ.dialog.dialog({
+                    title: "选择相关的技术人员信息",
+                    width: '1024',
+                    height: '100%',
+                    JQID: 'selectEmpTable',
+                    JQLoadingType: 'datagrid',
+                    url: '@Url.Action("selectCoffee")?RowId=' + rowId,
+                    iconCls: 'fa fa-plus',
+
+                });
+            }
+            else {
+                JQ.dialog.warning('请将当前信息填写完整,再导入数据');
+            }
+        }
+        //修改人数
+        function Modify() {
+            var PersonCount = parseInt($("#EmpSum").numberspinner('getValue'));
+            $.post('@Url.Action("UpdateCount", "PayBalanceUserAccount", new { @area= "Pay" })', { PersonCount: PersonCount },
+                function (result) {
+                    JQ.dialog.info("修改成功");
+                    $("#ManagerBalanceGrid").datagrid("reload");
+                });
+        }
+        //批量保存
+        function Save() {
+            accept();
+            var JsonRowsVal = $("#JsonRows").val();
+            $.post('@Url.Action("Save", "PayBalanceUserAccount", new { @area= "Pay" })', { JsonRowsVal: JsonRowsVal },
+                 function (result) {
+                     $("#ManagerBalanceGrid").datagrid("reload");
+                 });
+
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <input type="hidden" name="JsonRows" id="JsonRows" />
+    <table class="table table-bordered" style="width:95%;height:auto;">
+        <tr>
+            <td colspan="8">
+                <span style="font-size:16px;">本批次预结算信息</span>
+            </td>
+        </tr>
+        <tr>
+            <th style="width:10%;">
+                工程数量:
+            </th>
+            <td style="width:15%;">
+                <label id="ProjNum">@ViewBag.EngiCount</label>
+            </td>
+            <th style="width:12%">
+                技术人员总产值:
+            </th>
+            <td style="width:15%">
+                <label id="TechSumProduct">@ViewBag.SumAcount</label>
+            </td>
+            <th style="width:10%">
+                总人数:
+            </th>
+            <td style="width:15%;">
+                <input id="EmpSum" name="EmpSum" style="width:50px;" class="easyui-numberspinner" validtype="length[0,15]" value="@ViewBag.SumEmpCount" />
+                <a class="easyui-linkbutton" jqpermissionname="edit" href="#" data-options="toggle:true,group:'g2',plain:true" onclick="Modify()">[修改]</a>
+            </td>
+            <th style="width:8%;">
+                基数:
+            </th>
+            <td>
+                <label id="Average"></label>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="8">
+                <span style="font-size:16px;">管理人员结算信息</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="8">
+                <a href="javascript:void(0)" class="easyui-linkbutton l-btn l-btn-small l-btn-plain" data-options="iconCls:'fa fa-save',plain:true" jqpermissionname="add" onclick="Save()">保存</a>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="8">
+                <table id="ManagerBalanceGrid"></table>
+                <div id="toolBar" style="height:auto;text-align:left;">
+                    <a href="javascript:void(0)" class="easyui-linkbutton l-btn l-btn-small l-btn-plain" data-options="iconCls:'fa fa-plus',plain:true" jqpermissionname="add" onclick="append()">新增</a>
+                    <a href="javascript:void(0)" class="easyui-linkbutton l-btn l-btn-small l-btn-plain" data-options="iconCls:'fa fa-filter',plain:true" jqpermissionname="add" onclick="openInsertDialog()">导入</a>
+                    <a href="javascript:void(0)" class="easyui-linkbutton l-btn l-btn-small l-btn-plain" data-options="iconCls:'fa fa-trash',plain:true" jqpermissionname="del" onclick="removexit()">删除</a>
+                    <span style="font-weight:bold;padding-left:80px;">  *  双击行记录可进行编辑</span>
+                </div>
+
+            </td>
+        </tr>
+    </table>
+
+}
+

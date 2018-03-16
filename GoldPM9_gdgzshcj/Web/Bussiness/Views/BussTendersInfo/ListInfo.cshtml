@@ -1,0 +1,135 @@
+﻿
+
+@using JQ.Web;
+
+<script src="@(Url.Content("~/Scripts/extension/datagrid-detailview.js"))" type="text/javascript"></script>
+
+<script type="text/javascript">
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQButtonTypes: [],//需要显示的按钮
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'TendersInfoGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '1000',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            url: '@Url.Action("GetListInfo", "BussTendersInfo", new { @area= "Bussiness" })',//请求的地址
+            toolbar: '#TendersInfoPanel',//工具栏的容器ID
+            columns: [[
+                 { title: '招标编号', field: 'TendersNumber', width: 100, align: 'left', sortable: true },
+                 { title: '招标名称', field: 'TendersName', width: 300, align: 'left', sortable: true },
+                 { title: '项目类型', field: 'TenderProjectTypeName', width: 100, align: 'left', sortable: true },
+                 { title: '投标状态', field: 'TenderStateName', width: 100, align: 'left', sortable: true },
+                 { title: '开标时间', field: 'TenderOpenTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                 { title: '设计范围', field: 'TenderScope', width: 260, align: 'left', sortable: true }
+            ]],
+            view: detailview,
+            detailFormatter: function (index, row) {
+                return '<div style="padding:2px"><table id="ddv-' + index + '"></table></div>';
+            },
+            onExpandRow: function (index, row) {               
+                $('#ddv-' + index).datagrid({
+                    option: index,
+                    url: '@Url.Action("FilterTenderUnitInfo", "BussTendersInfo", new { @area = "Bussiness" })',
+                    queryParams: { parentId: row.Id },
+                    fitColumns: true,
+                    height: 'auto',
+                    singleSelect: true,
+                    columns: [[
+                          { field: 'ck', align: 'center', checkbox: true },
+                          { title: '客户名称', field: 'CustName', width: 300, align: 'left', sortable: true },
+                          { title: '商务得分', field: 'BusinessPoints', width: 80, align: 'center', sortable: true },
+                          { title: '技术得分', field: 'TechnologyPoints', width: 80, align: 'center', sortable: true },
+                          { title: '总体得分', field: 'TotalityPoints', width: 80, align: 'center', sortable: true },
+                          { title: '投标状态', field: 'WinStateName', width: 80, align: 'center', sortable: true },
+                          { title: '中标日期', field: 'WinTime', width: 80, align: 'left', sortable: true, formatter: JQ.tools.DateTimeFormatterByT }
+                    ]],
+                    onResize: function () {
+                        $('#TendersInfoGrid').datagrid('fixDetailRowHeight', index);
+                    },
+                    onLoadSuccess: function () {
+
+                        setTimeout(function () {
+                            $('#TendersInfoGrid').datagrid('fixDetailRowHeight', index);
+                        }, 0);
+                    },
+                    onCheck: function (rowIndex, rowData) {
+                        var currentRow = $(this).attr("id");
+                        var currentIndex = currentRow.split('-')[1];
+                        $(this).parent().find("div .datagrid-header-check").children("input[type='checkbox']").eq(0).attr("checked", false);
+                        var allIndex = $(window.document).find("table[id*='ddv']");
+                        $.each(allIndex, function (i, item) {
+                            var index = $(this).attr("id").split('-')[1];
+                            if (currentIndex != index) {
+                                try {
+                                    $('#ddv-' + index).datagrid('clearChecked');
+                                }
+                                catch (e) {
+                                }
+                            }
+                        })
+                        $("#choiceIds").val(JSON.stringify(rowData));
+                    }
+                });
+                $('#TendersInfoGrid').datagrid('fixDetailRowHeight', index);
+            },
+            onLoadSuccess: function () {
+                console.log($("#TendersInfoGrid").datagrid("options"));
+            }
+        });
+
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '招标编号、招标名称',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+            {
+                dgID: 'TendersInfoGrid',
+                loadingType: 'datagrid',
+                queryParams: null
+            });
+            }
+        });
+    });
+
+    function selectProj() {
+        var Id = $("#choiceIds").val();
+        if (Id == "") {
+            JQ.dialog.warning("请选择具体的招标单位!!!");
+        }
+        else {
+            _BussTendersCustomerBack(Id);
+            JQ.dialog.dialogClose();
+        }
+    }
+    function closedialog() {
+        JQ.dialog.dialogClose();
+    }
+
+</script>
+
+
+
+
+<table id="TendersInfoGrid"></table>
+<div id="TendersInfoPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProj()">确定选择</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="closedialog()">关闭</a>
+    </span>
+    @*分割号*@
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+
+
+    开标时间
+    <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'TenderStartTime', Contract:'>=',filedType:'Date' }">
+    至
+    <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'TenderEndTime', Contract:'<=',filedType:'Date' }">&nbsp;
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'TendersLike', Contract:'like'}" />
+
+</div>
+
+<input type="hidden" id="choiceIds" name="choiceIds" />

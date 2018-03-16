@@ -1,0 +1,414 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+    <script type="text/javascript" src="@(Url.Content("~/Scripts/echarts/echarts.js"))"></script>
+
+    <script type="text/javascript">
+        //$("#chartshape").buttonset().find(":radio").change(function () {
+        //    if ($(this).val() == 0) {//表示为图表
+        //        $("#monthMain").show();
+        //    }
+        //    else {
+        //        $("#monthMain").hide();
+        //    }
+        //});
+        var rwpTemp = {};
+        var rwpTemp = {};
+        rwpTemp.yheight = 200;
+        //月度统计表格
+        rwpTemp.option = {};
+        rwpTemp.myChart = null;
+        rwpTemp.myChartData = null;
+
+        //年度完成情况
+        rwpTemp.YearChart = null;
+        rwpTemp.YearChartData = null;
+
+        //阶段完成情况
+        rwpTemp.PhaseChart = null;
+        rwpTemp.PhaseChartData = null;
+
+        //专业室完成情况
+         rwpTemp.DepOption  = {};
+        //rwpTemp.DepChart = null;
+        rwpTemp.DepChartData = null;
+
+        
+
+
+        //加载图标控件
+        rwpTemp.loadEcharts = function () {
+            //rwpTemp.yheight = 80;
+
+            rwpTemp.getChartData();
+            //合同大小月度统计
+            var dom = document.getElementById('monthNumber');
+            rwpTemp.myChart = require('echarts').init(dom);
+
+            //合同大小年度统计
+            dom = document.getElementById('YearNumber');
+            rwpTemp.YearChart = require('echarts').init(dom);
+
+            //合同年度数量分析
+            //dom = document.getElementById('PhaseNumber');
+            //rwpTemp.PhaseChart = require('echarts').init(dom);
+
+            //年度金额分析
+            //dom = document.getElementById('DepNumber');
+            //rwpTemp.DepChart = require('echarts').init(dom);
+
+
+            rwpTemp.setOption();
+        };
+
+        //设置图标高度
+        rwpTemp.SetMain = function (height) {
+            //  var minWidth = 850  ;
+            $("#monthNumber").css({ height: $("#divContainer").height() / 3, padding: '2px' });
+            $("#YearNumber").css({ height: $("#divContainer").height() / 3, padding: '2px' });
+            //$("#PhaseNumber").css({ height: $("#divContainer").height() / 4, padding: '2px' });
+            $("#DepNumber").css({ height: $("#divContainer").height() / 2, padding: '2px' });
+        };
+
+
+        //绑定图表数据
+        rwpTemp.setOption = function () {
+
+            if (rwpTemp.myChartData != null) {
+                BindCharData(rwpTemp.option, rwpTemp.myChartData, rwpTemp.myChart, $('#txtYear').val() + '年 月度部门产值统计分析');
+            }
+            //年度统计
+            if (rwpTemp.YearChart != null) {
+                BindCharData(rwpTemp.option, rwpTemp.YearChartData, rwpTemp.YearChart, $('#txtYear').val() + '年 年度部门产值统计分析');
+            }
+
+          
+
+            //年度金额分析
+            var myDepChart = require('echarts').init( document.getElementById('DepNumber'));// 图表初始化的地方，在页面中要有一个地方来显示图表，他的ID是main  
+            rwpTemp.DepOption = getOptionByArray(rwpTemp.DepChartData, "部门产值");//得到option图形  
+            myDepChart.setOption(rwpTemp.DepOption); //显示图形  
+        };
+
+        //绑定图表数据
+        function BindCharData(option, ChartData, char, tile) {
+            for (var i = 0; i < option.series.length; i++) {
+                option.series[i].data = ChartData.data[i];
+            }
+            option.xAxis[0].data = ChartData.legendData;
+            option.title.subtext = tile;
+            char.setOption(option);
+            char.hideLoading();
+        }
+
+
+        //绑定图表数据
+        //function BindSerieCharData(option, ChartData, char, tile) {
+        //    char.setOption({
+ 
+        //        series: functionName(ChartData)
+        //    })
+        //}
+
+        function functionName(data) {
+            var serie = [];
+            for (var i = 0; i < data.data.length; i++) {
+                var item = {
+                    name: data.dataName[i],
+                    type: 'bar',
+                    data: data.data[i],
+                    itemStyle: {
+                        normal: {
+                            label: {
+                                show: true,
+                                position: 'top',
+                                formatter: "{c}"
+                            }
+                        }
+                    }
+                }
+             
+                serie.push(item);
+            };
+            return serie;
+        }
+
+        function getOptionByArray(json, reportName) {
+            var DepOption = {
+                title: {
+                    text: '',
+                    x: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b} : {c}"
+                },
+                legend: {
+                  //  orient: 'vertical',
+                    //x:'bottom',
+                    data: json.dataName
+                },
+                toolbox: {
+                    show: true,
+                    orient: 'vertical',
+                    feature: {
+                        mark: { show: true },
+                        dataView: { show: true, readOnly: false },
+                        magicType: { show: true, type: ['line', 'bar'] },
+                        restore: { show: true },
+                        saveAsImage: { show: true }
+                    }
+                },
+                calculable: true,
+                yAxis: [
+                    {
+                        type: 'value'
+
+                    }
+                ],
+                xAxis: [
+                    {
+                        type: 'category',
+                        data: json.legendData// ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+                    }
+                ],
+                series: functionName(rwpTemp.DepChartData)
+            };
+            return DepOption;
+        }
+
+        var chartData;
+        //设置图标数据
+        rwpTemp.getChartData = function () {
+            debugger;
+            //加载月度数据 
+            var url = "@(Url.Action("PayMonthReport", "Decision", new { @area = "Project" }))";
+            LoadData(url, $('#txtYear').val() );
+            rwpTemp.myChartData = chartData;
+            //月度数据
+             url = "@(Url.Action("PayYearReport", "Decision", new { @area = "Project" }))";
+            LoadData(url, $('#txtYear').val() );
+            rwpTemp.YearChartData = chartData
+            // LoadData(url, rwpTemp.YearChartData);
+            //年度数量分析
+         @*    url = "@(Url.Action("ProjectPhaseFinish", "Decision", new { @area = "Project" }))";
+            LoadData(url, $('#txtYear').val() );
+            rwpTemp.PhaseChartData = chartData;*@
+
+            //年度金额分析
+           url = "@(Url.Action("PayEmpManMonthReport", "Decision", new { @area = "Project" }))";
+            LoadData(url, $('#txtYear').val()  );
+            rwpTemp.DepChartData = chartData; 
+
+        }
+
+
+        //后台加载数据type 1 :获取合同金额，2 获取合同数量
+        function LoadData(url, Year ) {
+            $.ajax({
+                type: "post",
+                async: false, //同步执行  
+                url: url,
+                dataType: "json", //返回数据形式为json  
+                data: {
+                   
+                    StartDate: Year,
+                    EndDate: Year,
+                    ConYear: Year
+                },
+                success: function (result) {
+                    if (result) {
+                        chartData = result;
+                    }
+                },
+                error: function (errorMsg) {
+                    myChart.hideLoading();
+                }
+            });
+        }
+
+
+        //配置图表控件
+        require.config({
+            paths: {
+                //  echarts: "http://localhost/JQWebMVC/Scripts/echarts"
+                echarts: "http://" + "@this.Request.Headers["Host"]" + "@(Url.Content("~/Scripts/echarts"))"
+            }
+        });
+
+        //初设图标控件主入口
+        require(
+
+            [
+                'echarts',
+                'echarts/chart/bar',
+                'echarts/chart/line',
+                'echarts/chart/map'
+            ],
+             function (ec) {
+                 debugger;
+                 rwpTemp.getChartData();
+                 rwpTemp.SetMain($("#divContainer").height());
+                 rwpTemp.myChart = ec.init(document.getElementById('monthNumber'));
+                 rwpTemp.myChart.showLoading({
+                     text: '正在努力加载中...'
+                 });
+
+                 // rwpTemp.SetMain($("#divContent").height());
+                 rwpTemp.YearChart = ec.init(document.getElementById('YearNumber'));
+                 rwpTemp.YearChart.showLoading({
+                     text: '正在努力加载中...'
+                 });
+          
+
+                 var myDepChart = ec.init(document.getElementById('DepNumber'));// 图表初始化的地方，在页面中要有一个地方来显示图表，他的ID是main  
+                 rwpTemp.DepOption = getOptionByArray(rwpTemp.DepChartData, "部门产值");//得到option图形  
+                 myDepChart.setOption(rwpTemp.DepOption); //显示图形  
+
+
+                 rwpTemp.option = {
+
+                     title: {
+                         text: ' ',
+                         x: 'center',
+                         subtext: $('#txtYear').val() + '年 合同分类月度分析'
+                     },
+                     tooltip: {
+                         trigger: 'axis'
+                     },
+                     legend: {
+
+                         data: ['输变电室', '配电自动化室', '配电室', '技经室']
+                     },
+                     toolbox: {
+                         show: true,
+                         orient: 'vertical',
+                         feature: {
+                             mark: { show: true },
+                             dataView: { show: true, readOnly: false },
+                             magicType: { show: true, type: ['line', 'bar'] },
+                             restore: { show: true },
+                             saveAsImage: { show: true }
+                         }
+                     },
+                     calculable: true,
+                     yAxis: [
+                         {
+                             type: 'value'
+
+                         }
+                     ],
+                     xAxis: [
+                         {
+                             type: 'category',
+                             data: null// ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+                         }
+                     ],
+                     series: [
+                         {
+                             name: '输变电室',
+                             type: 'bar',
+                             data: null,
+                             itemStyle: {
+                                 normal: {
+                                     label: {
+                                         show: true,
+                                         position: 'top',
+                                         formatter: "{c}"
+                                     }
+                                 }
+                             }
+                         },
+                          {
+                              name: '配电自动化室',
+                              type: 'bar',
+                              data: null,
+                              itemStyle: {
+                                  normal: {
+                                      label: {
+                                          show: true,
+                                          position: 'top',
+                                          formatter: "{c}"
+                                      }
+                                  }
+                              }
+                          },
+                           {
+                               name: '配电室',
+                               type: 'bar',
+                               data: null,
+                               itemStyle: {
+                                   normal: {
+                                       label: {
+                                           show: true,
+                                           position: 'top',
+                                           formatter: "{c}"
+                                       }
+                                   }
+                               }
+                           },
+                            {
+                                name: '技经室',
+                                type: 'bar',
+                                data: null,
+                                itemStyle: {
+                                    normal: {
+                                        label: {
+                                            show: true,
+                                            position: 'top',
+                                            formatter: "{c}"
+                                        }
+                                    }
+                                }
+                            } 
+                     ]
+                 };
+
+                  
+
+                 rwpTemp.setOption();
+             }
+        );
+    </script>
+
+
+
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <div id="divToolbar" class="toolbar" style="border-bottom: 1px solid  #d6d6d6;">
+        <div>
+
+            <div id="divSearch" class="showFullSearch">
+                <table border="0" cellpadding="0" cellspacing="5" style="height: 100%">
+                    <tr>
+                        <td>立项日期：
+                        </td>
+                        <td>
+                            <input type="text" class="bbit-dp-input" style="width: 70px; height: 25px;" id="txtYear" value="2016" />
+                        </td>
+                        <td>
+                            <input name="sbtnFilter" runat="server" class="InputBttn" id="sbtnFilter" style="width: 52px; padding-left: 18px;" type="button" value="筛选" onclick="rwpTemp.loadEcharts()" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="clear"></div>
+        </div>
+    </div>
+    <div id="divContent" class="divfix" style="height: 100%;width:100%; overflow-x: auto">
+        <div style="+zoom: 1; height:800px;overflow: auto" id="divContainer">
+            <div id="monthNumber" style="width: 98%;"></div>@*月度数量图表容器*@
+            <div id="YearNumber" style="width: 98%;"></div>@*月度金额图表容器*@
+           @* <div id="PhaseNumber" style="width: 98%;"></div>年度数量图表容器*@
+            <div id="DepNumber" style="width: 3000px; "></div>@*年度金额图表容器*@
+        </div>
+    </div>
+
+}
+

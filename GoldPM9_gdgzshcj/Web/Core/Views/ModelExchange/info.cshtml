@@ -1,0 +1,77 @@
+﻿@model DataModel.Models.ModelExchange
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'ModelExchangeForm',//formid提交需要用到
+        buttonTypes: @Html.Raw(ViewBag.editPermission),//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "ModelExchange", FormMethod.Post, new { @area = "Core", @id = "ModelExchangeForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+
+        <tr>
+            <th width="10%">资料名称</th>
+            <td colspan="3">
+                <input name="ModelExchangeName" style="width:98%;" class="easyui-textbox" data-options="required:true" validtype="length[0,100]" value="@Model.ModelExchangeName" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">资料内容</th>
+            <td colspan="3">
+                <input name="ModelExchangeContent" style="width:98%;" class="easyui-textbox" data-options="required:true" validtype="length[0,200]" value="@Model.ModelExchangeContent" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">工程阶段</th>
+            <td colspan="3">
+                @BaseData.getBase(new Params()
+                    {
+                        controlName = "ModelExchangePhaseID",
+                        isRequired = true,
+                        engName = "ProjectPhase",
+                        width = "600px",
+                        ids = Model.ModelExchangePhaseID.ToString()
+                    })
+            </td>
+
+        </tr>
+
+        <tr>
+            <th width="10%">专业</th>
+            <td colspan="3">
+                @BaseData.getBase(new Params()
+                    {
+                        controlName = "ModelExchangeSpecID",
+                        isRequired = true,
+                        engName = "Special",
+                        width = "600px",
+                        ids = Model.ModelExchangeSpecID.ToString()
+                    })
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">接收专业</th>
+            <td colspan="3">
+                @BaseData.getBase(new Params()
+                    {
+                        controlName = "ModelReceiveSpecID",
+                        isRequired = true,
+                        isMult = true,
+                        engName = "Special",
+                        width = "600px",
+                        ids = ViewBag.IDs
+                        //ids = Model.ModelExchangeSpecID.ToString()
+                    })
+            </td>
+        </tr> 
+    </table> 
+} 

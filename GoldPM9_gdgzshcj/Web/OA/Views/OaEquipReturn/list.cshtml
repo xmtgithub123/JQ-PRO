@@ -1,0 +1,132 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+    var requestUrl = '@Url.Action("json", "OaEquipReturn",new { @area="Oa"})',
+           addUrl = '@Url.Action("add","OaEquipReturn",new {@area="Oa" })',
+           editUrl = '@Url.Action("edit", "OaEquipReturn",new {@area="Oa" })',
+           delUrl = '@Url.Action("del", "OaEquipReturn", new { @area = "Oa" })';
+
+        var equipType = "?EquipOrOffice=" + @Request.QueryString["EquipOrOffice"];
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit','del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl + equipType, //添加的路径
+                JQEditUrl: editUrl+ equipType,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaEquipReturnGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+				JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '备注',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+				url: requestUrl+ equipType,//请求的地址
+                checkOnSelect: true,//是否包含check
+				fitColumns: false,
+				JQExcludeCol: [1, 10, 11, 9],//导出execl排除的列
+				nowrap: false,
+                toolbar: '#OaEquipReturnPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+				  		{ title: '主键ID', field: 'Id', width: 100,hidden:true, align: 'center', sortable: true  },
+		{ title: '设备名称', field: 'EquipName', width: 100, align: 'center', sortable: true },
+		{ title: '设备型号', field: 'EquipModel', width: 100, align: 'center', sortable: true },
+		{ title: '归还数量', field: 'EquipCount', width: 100, align: 'center', sortable: true },
+		{ title: '归还备注', field: 'EquipLendNote', width: 100, align: 'center', sortable: true },
+		//{ title: '创建人ID', field: 'CreatorEmpId', width: 100, align: 'center', sortable: true  },
+		{ title: '归还', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '领用表的ID', field: 'UseId',hidden:true, width: 100, align: 'center', sortable: true  },
+                 { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'OaEquipReturn' },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.EmpID)")
+                    },
+                    {
+                        field: 'opt', title: '操作', width: "40", align: 'center', JQIsExclude: true,
+                        formatter: function (value, row, index) {
+                            var title = "查看";
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                            }
+                            return '<a class="easyui-linkbutton" onclick="Look(' + row.Id + ')">' + title + '</a>';
+                        }
+                    }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#OaEquipReturnGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '设备名称、备注',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'OaEquipReturnGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                Keys: $("#JQSearch").val(),
+                            }
+                        });
+                }
+            });
+
+        });
+        function Look(id) {
+            JQ.dialog.dialog({
+                title: "设备归还",
+                url: editUrl + equipType+ "&ActionFlag=Look&Id=" + id,
+                width: '1000',
+                height: '100%',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-search',
+                onClose: function () {
+                    $("#OaEquipReturnGrid").datagrid("reload");
+                }
+
+            });
+        }
+
+
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaEquipReturnGrid"></table>
+    <div id="OaEquipReturnPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <input id="JQSearch" style="width:250px;" />
+            
+        </span>
+
+
+    </div>
+}
+

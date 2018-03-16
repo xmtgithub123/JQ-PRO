@@ -1,0 +1,107 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoRemark",new { @area="Iso"})',
+               addUrl = '@Url.Action("add","IsoRemark",new {@area="Iso" })',
+               editUrl = '@Url.Action("edit", "IsoRemark",new {@area="Iso" })',
+               delUrl = '@Url.Action("del", "IsoRemark", new { @area = "Iso" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'IsoRemarkGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '项目编号、项目名称',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: false,
+                JQExcludeCol: [1,7,8,9],//导出execl排除的列
+                nowrap: false,
+                toolbar: '#IsoRemarkPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true },
+                    { title: '项目名称', field: 'ProjName', width: 250, align: 'center', sortable: true },
+                    { title: '时间', field: 'Time', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '地点', field: 'Address', width: 200, align: 'center', sortable: true },
+                    { title: '相关单位人员', field: 'UnitEmpName', width: 150, align: 'center', sortable: true },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'IsoRemark' },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrEmpID)")
+                    },
+                    {
+                        field: 'opt', title: '操作', width: "40", align: 'center', JQIsExclude: true,
+                        formatter: function (value, row, index) {
+                            var title = "查看";
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                            }
+                            return "<a class='easyui-linkbutton' onclick='Look(" + row.Id + ")'>" + title + "</a>";
+                        }
+                    }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#IsoRemarkGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+        });
+
+        function Look(val) {
+            JQ.dialog.dialog({
+                title: "项目备忘录",
+                url: editUrl + "?Id=" + val,
+                width: '1000',
+                height: '100%',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-search',
+                onClose: function () {
+                    $("#IsoRemarkGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoRemarkGrid"></table>
+    <div id="IsoRemarkPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'ProjNumber,ProjName', 'Contract': 'like' }" />
+
+    </div>
+}
+

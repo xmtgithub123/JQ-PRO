@@ -1,0 +1,70 @@
+﻿
+
+<script type="text/javascript">
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'EmpAptiudeDetail',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '768',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQFields: ["Id"],//追加的字段名
+            JQSearch: {
+                id: 'JQSearch',
+                prompt: '资质编号、资质名称',
+                loadingType: 'datagrid',//默认值为datagrid可以不传
+            },
+            url: '@Url.Action("json", "HRAptitudeManager", new { @area="Hr"})?EmpId=@Request.Params["EmpId"].ToString()',//请求的地址
+            fitColumns: false,
+            nowrap: false,
+            toolbar: '#EmpAptiudePanel',//工具栏的容器ID
+            columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '资质名称', field: 'AptitudeName', width: 100, align: 'center', sortable: true },
+		            { title: '注册时间', field: 'RegisterTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '到期时间', field: 'EndTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '注册人', field: 'AptitudeEmpName', width: 100, align: 'center', sortable: true },
+		            { title: '身份证号', field: 'IDCard', width: 100, align: 'center', sortable: true },
+		            { title: '联系电话', field: 'Phone', width: 100, align: 'center', sortable: true },
+		            { title: '地址', field: 'Address', width: 100, align: 'center', sortable: true },
+		            {
+		                title: '是否提醒', field: 'IsMess', width: 100, align: 'center', sortable: true, formatter: function (val, data) {
+		                    if (data.IsMess == "0") {
+		                        return "是";
+		                    } else {
+		                        return "否";
+		                    }
+		                }
+		            },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'HRAptitudeManager' }
+            ]],
+            rowStyler: function (index, row) {
+                if (row.IsMess != undefined && row.IsMess == 0) {
+                    if (Date.jsonStringToDateString(row.EndTime, "yyyy-MM-dd") != "") {
+                        var timeNow = '@ViewBag.TimeNow';
+                        var difDay = Date.jsonStringToDate(row.EndTime).dateDiff("d", timeNow);
+                        if (difDay > -5) {
+                            return 'background-color:pink;color:blue;font-weight:bold;';
+                        }
+                    }
+                }
+            }
+        });
+    });
+
+    function closeDia() {
+        JQ.dialog.dialogClose();
+    }
+</script>
+<table id="EmpAptiudeDetail"></table>
+<div id="EmpAptiudePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" name="btnCancel" id="btnCancel" data-options="plain:true,iconCls:'fa fa-close'" onclick="closeDia()">关闭</a>
+    </span>
+
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'AptitudeName,AptitudeNumber', 'Contract': 'like' }" />
+    <div class="moreSearchPanel">
+    </div>
+</div>
+

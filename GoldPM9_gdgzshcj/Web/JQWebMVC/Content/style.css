@@ -1,0 +1,134 @@
+a, a:hover {
+    color: #333;
+}
+
+span.gray {
+    color: #ababab;
+}
+
+li {
+    list-style: none;
+}
+
+body {
+    background: #e4e4e4;
+}
+
+.mt-10 {
+    margin-top: 10px;
+}
+
+.small {
+    font-size: 12px;
+}
+
+.dialog-box {
+    border: 1px solid #dbdbdb;
+    width: 800px;
+    margin: 30px auto;
+    background-color: white;
+    position: relative;
+}
+
+    .dialog-box .media-top {
+        padding: 15px;
+    }
+
+.media-top .media-object {
+    width: 64px;
+    height: 64px;
+    border-radius: 100%;
+}
+
+.dialog-box .media-heading {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333 !important;
+    margin-bottom: 0;
+}
+
+.gray-bg-wrap {
+    background-color: #f2f2f5;
+    padding: 15px;
+    font-size: 12px;
+}
+
+    .gray-bg-wrap ul li:not(:last-child) {
+        border-bottom: 1px solid #dbdbdb;
+        margin: 10px 0;
+    }
+
+.media-comment {
+    margin-bottom: 5px;
+}
+
+    .media-comment a {
+        color: #337ab7 !important;
+    }
+
+    .media-comment .media-object {
+        width: 32px;
+        height: 32px;
+    }
+
+.media-footer a {
+    color: #333 !important;
+}
+
+.media-footer .gray-1 {
+    color: #c5c5c5;
+}
+
+.comment-wrap {
+    padding: 15px;
+}
+
+    .comment-wrap .form-control {
+        border-color: #3d93cf;
+    }
+
+.replay-box {
+    background-color: white;
+    padding: 15px;
+    margin-top: 5px;
+}
+
+    .replay-box .form-control {
+        border-radius: 0;
+        font-size: 12px;
+        border-color: #3d93cf;
+    }
+
+.comment-wrap textarea {
+    width: 100%;
+    resize: none;
+}
+
+.pagination a {
+    text-decoration: none;
+    border: 1px solid #3d93cf;
+    color: #15B;
+    background-color: #FFFFFF;
+}
+
+.pagination a, .pagination span {
+    display: inline-block;
+    padding: 0.4em 0.8em;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    font-size:14px;
+}
+
+.pagination .current {
+    background: #3d93cf;
+    color: #FFFFFF;
+    border: 1px solid #3d93cf;
+    font-size:14px;
+}
+
+    .pagination .current.prev, .pagination .current.next {
+        color: #999;
+        border:1px solid #3d93cf;
+        background: #fff;
+        cursor: default;
+    }

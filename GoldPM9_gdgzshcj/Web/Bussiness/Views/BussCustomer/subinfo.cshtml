@@ -1,0 +1,288 @@
+﻿@*@section Body_Content{*@
+    @model DataModel.Models.BussCustomer
+    @using JQ.Web;
+    <script type="text/javascript">
+        JQ.form.submitInit({
+            formid: 'BussCustomerForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            },
+            beforeFormSubmit: function () {
+                var result = true;
+                var CustName = $("#CustName").textbox("getValue");
+                $.ajax({
+                    url: '@Url.Action("CheckCustomerExists", "BussCustomer",new { @area="Bussiness"})',
+                    data: 'TypeID=@Model.TypeID&CustName=' + CustName + '&Id=@Model.Id',
+                    async: false,
+                    success: function (data) {
+                        if (data != "0") {
+                            result = false;
+                            JQ.dialog.info("客户名称--[" + CustName + "]--已存在");
+                        }
+                    }
+                });
+                return result;
+            }
+        });
+   
+    </script>
+    @using (Html.BeginForm("save", "BussCustomer", FormMethod.Post, new { @area = "Bussiness", @id = "BussCustomerForm" }))
+    {
+        @Html.HiddenFor(m => m.TypeID)
+        @Html.HiddenFor(m => m.Id)
+        <table class="table table-bordered">
+
+            <tr>
+
+                <th width="15%">外协客户类别</th>
+                <td width="23%">
+                    @BaseData.getBase(new Params()
+                   {
+                   controlName = "CustTypeIDs",
+                   isRequired = true,
+                   engName = "SubCustType",
+                   width = "98%",
+                   ids = Model.CustTypeIDs
+               })
+                </td>
+                <th width="15%">外协客户名称</th>
+                <td colspan="3">
+                    <input id="CustName" name="CustName" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,500]" value="@Model.CustName" />
+                </td>
+            </tr>
+
+            <tr>
+             
+                <th width="15%">注册地址</th>
+                <td>
+                    <input name="CustAddress" style="width:98%;" class="easyui-textbox" validType="length[0,1000]" value="@Model.CustAddress" />
+                </td>
+                <th width="15%">
+                    邮政编码
+                </th>
+                <td colspan="3">
+                    <input name="CustPost" style="width:98%;" class="easyui-textbox" validType="length[0,50]" value="@Model.CustPost" />
+                </td>
+            </tr>
+            <tr>
+                <th width="15%">
+                    法定代表人
+                </th>
+
+                <td width="23%">
+                    <input name="CustChineseName" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@Model.CustChineseName" />
+                </td>
+                <th  style="width：60px;">技术职称</th>
+                <td width="23%">
+                    <input name="CustChineseTitle" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.CustChineseTitle" />
+                </td>
+                <th style="width:60px;">
+                    电话
+                </th>
+                <td>
+                    <input name="CustChineseTel" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.CustChineseTel" />
+                </td>
+            </tr>
+            <tr>
+                <th width="15%">
+                    技术负责人
+                </th>
+                <td>
+                    <input name="CustTechnologyName" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.CustTechnologyName" />
+                </td>
+                <th>
+                    技术职称
+                </th>
+                <td>
+                    <input name="CustTechnologyTitle" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.CustTechnologyTitle" />
+                </td>
+                <th>
+                    电话
+                </th>
+                <td>
+                    <input name="CustTechnologyTel" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.CustTechnologyTel" />
+                </td>
+            </tr>
+            <tr>
+                <th width="15%">
+                    成立时间
+                </th>
+                <td>
+                    <input name="CustBusinessCreateDate" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.CustBusinessCreateDate" />
+                </td>
+                <th width="15%">
+                    员工人数
+                </th>
+                <td colspan="3">
+                    <input name="CustPersonAll" style="width:98%;" class="easyui-numberspinner" validType="length[0,10]" data-options="min:0" value="@Model.CustPersonAll" />
+                </td>
+            </tr>
+           <tr>
+               <th>
+                   企业资质等级
+               </th>
+               <td width="23%">
+                   @BaseData.getBase(new Params()
+               {
+                   controlName = "CustQualiGrade",
+                   isRequired = true,
+                   engName = "EnterPriseType",
+                   width = "98%",
+                   ids = Model.CustQualiGrade.ToString()
+               })
+               </td>
+               <th width="15%" rowspan="5">
+                   其中
+               </th>
+               <th>
+                   项目经理（设总）
+               </th>
+               <td colspan="2">
+                   <input name="CustProjectEmpName" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@Model.CustProjectEmpName" />
+               </td>
+           </tr>
+           <tr>
+               <th>
+                   营业执照
+               </th>
+               <td>
+                   <input name="CustCommercial" style="width:98%;" class="easyui-textbox" validType="length[0,220]" value="@Model.CustCommercial" />
+               </td>
+               <th>
+                   高级人员
+               </th>
+               <td colspan="2">
+                   <input name="CustProfessionals" style="width:98%;" class="easyui-numberspinner" validType="length[0,10]" data-options="min:0" value="@Model.CustProfessionals" />
+               </td>
+           </tr>
+
+            <tr>
+               <th>
+                   注册资金（万元）
+               </th>
+                <td>
+                    <input name="CustCustomerFee" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" data-options="min:0,precision:2" value="@Model.CustCustomerFee" />
+                </td>
+                <th>
+                    中级职称人员
+                </th>
+                <td colspan="2">
+                    <input name="CustEngineers" style="width:98%;" class="easyui-numberspinner" validType="length[0,10]" data-options="min:0" value="@Model.CustEngineers" />
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    开户银行
+                </th>
+                <td>
+                    <input name="CustBankName" style="width:98%;" class="easyui-textbox" validType="length[0,1000]" value="@Model.CustBankName" />
+                </td>
+                <th>
+                    初级职称人员
+                </th>
+                <td colspan="2">
+                    <input name="CustJunior" style="width:98%;" class="easyui-numberspinner" validType="length[0,10]" data-options="min:0" value="@Model.CustJunior" />
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    账号
+                </th>
+                <td>
+                    <input name="CustBankAccount" style="width:98%;" class="easyui-textbox" validType="length[0,1000]" value="@Model.CustBankAccount" />
+                </td>
+                <th>
+                    技工
+                </th>
+                <td colspan="2">
+                    <input name="CustSkilled" style="width:98%;" class="easyui-numberspinner" validType="length[0,10]" data-options="min:0" value="@Model.CustSkilled" />
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    外协专业
+                </th>
+                <td colspan="5">
+                    @BaseData.getBase(new Params()
+                 {
+                     controlName = "CustSpecilIDs",
+                     isMult=true,
+                     isRequired = true,
+                     engName = "Special",
+                     width = "98%",
+                     ids = Model.CustSpecilIDs.ToString()
+                 })
+                </td>
+                @*<th>
+                    电压等级
+                </th>
+                <td colspan="2">
+                    @BaseData.getBase(new Params()
+               {
+                   controlName = "CustVoltName",
+                   //isRequired = true,
+                   isMult=true,
+                   engName = "ProjectVolt",
+                   width = "98%",
+                   ids = Model.CustVoltName.ToString()
+               })*@
+                    @*<input name="CustVoltName" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.CustVoltName" />*@
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    资质证书有效期
+                </th>
+                <td>
+                    <input name="CustQualification" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.CustQualification" />
+                </td>
+                <th>
+                    质量管理体系有效期
+                </th>
+                <td>
+                    <input name="CustDate" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.CustDate" />
+                </td>
+                <th>
+                    经营期限
+                </th>
+                <td>
+                    <input name="CustBusinessDate" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.CustBusinessDate" />
+                </td>
+            </tr>
+                
+           <tr>
+               <th>
+                   经营范围
+               </th>
+               <td width="90%" colspan="5">
+                   <input name="CustBusiness" style="width:98%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]" value="@Model.CustBusiness" />
+               </td>
+           </tr>
+            <tr>
+                <th width="15%">备注说明</th>
+                <td width="90%" colspan="5">
+                    <input name="CustNote" style="width:98%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]" value="@Model.CustNote" />
+                </td>
+
+            </tr>
+
+            <tr>
+                <th>
+                    上传附件
+                </th>
+                <td colspan="6">
+                    @{
+                        var uploader = new DataModel.FileUploader();
+                        uploader.RefID = Model.Id;
+                        uploader.RefTable = "SubCustomer";
+                        uploader.Name = "uploadfile1";
+                        @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                    }
+                </td>
+            </tr>
+        </table>
+
+    }
+@*}*@

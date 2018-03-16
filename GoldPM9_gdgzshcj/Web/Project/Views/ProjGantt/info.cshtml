@@ -1,0 +1,161 @@
+﻿@model DataModel.Models.IsoForm
+@using JQ.Web;
+
+<script type="text/javascript">
+    $(function () {
+        var requestUrl = '@Url.Action("GetDesTaskNameByDesTask", "DesTask", new { @area = "Design" })';
+        JQ.form.submitInit({
+            formid: 'ProjProgressForm',//formid提交需要用到
+            buttonTypes: ['close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            },
+            flow: {
+                flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+                flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+                url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+                instance: "_flowInstance",
+                processor: "Design,Design.FlowProcessor.ProjProgressAdjust",
+                onInit: function () {
+                    _flowInstance = this;
+                },
+                refID: "@(Model.FormID)",
+                refTable: "IsoFormProjProgressAdjust"
+            }
+        });
+
+        JQ.combobox.common({
+            JQFields: [],
+            id: 'TaskName',
+            toolbar: '#tbTask',//工具栏的容器ID
+            url: requestUrl,
+            panelWidth: 800,
+            panelHeight: 400,
+            valueField: 'Id',
+            textField: 'TaskName',
+            type: 'dataGrid',//控件的类型dataGrid,dataTree,combobox,
+            multiple: false,
+            pagination: true,//是否分页
+            JQSearch: {
+                id: 'fullTaskSearch',
+                prompt: '任务名称',
+                $panel: $("#tbTask")//搜索的容器，可以不传
+            },
+            columns: [[
+                         { field: 'Id', hidden: true },
+                         { title: '项目编号', field: 'ProjNumber', width: 120, align: 'left', sortable: true },
+                         { title: '项目名称', field: 'ProjName', width: 120, align: 'left', sortable: true },
+                         { title: '设计阶段', field: 'TaskPhaseName', width: 120, align: 'center', sortable: true },
+                         { title: '设计工作', field: 'TaskName', width: 120, align: 'left', sortable: true },
+                         { title: '项目负责人', field: 'ProjEmpName', width: 80, align: 'center', sortable: true },
+                         { title: '计划开始时间', field: 'DatePlanStart', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                         { title: '计划结束时间', field: 'DatePlanFinish', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT }]],
+            onSelect: function (index, row) {
+                $("#ProjNumber").textbox('setValue', row.ProjNumber);
+                $("#ProjName").textbox('setValue', row.ProjName);
+                $("#PhaseName").textbox('setValue', row.TaskPhaseName);
+                $("#ProjEmpName").textbox('setValue', row.ProjEmpName);
+                $("#DatePlanStart").datebox('setValue', row.DatePlanStart);
+                $("#DatePlanFinish").datebox('setValue', row.DatePlanFinish);
+
+                $("#projid").val(row.projID);
+                $("#phaseid").val(row.TaskPhaseId);
+                $("#specid").val(row.TaskSpecId);
+                $("#taskgroupid").val(row.TaskGroupId);
+                $("#taskid").val(row.Id);
+            }
+        });
+
+        if(@Model.TaskID>0)
+        {
+            $("#TaskName").combogrid('setValue',@Model.TaskID)
+        }
+    });
+
+</script>
+@using (Html.BeginForm("save", "ProjProgress", FormMethod.Post, new { @area = "Project", @id = "ProjProgressForm" }))
+{
+    @Html.HiddenFor(m => m.FormID)
+    <table class="table table-bordered">
+        <tr>
+            <td colspan="4" style="padding: 15px; font-size: 20px; text-align: center; font-weight: bold; border: none;">项目进度调整单</td>
+        </tr>
+        <tr>
+            <th width="10%">项目编号</th>
+            <td width="40%"><input id="ProjNumber" name="ProjNumber" style="width:98%;" data-options="required:true" class="easyui-textbox" value="@ViewBag.ProjNumber" /></td>
+            <th width="10%">项目名称</th>
+            <td width="40%">
+                <input id="ProjName" name="ProjName" style="width:98%;" data-options="required:true" readonly="readonly" class="easyui-textbox" value="@ViewBag.ProjName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">设计阶段</th>
+            <td width="40%"><input id="PhaseName" name="PhaseName" style="width:98%;" data-options="required:true" readonly="readonly" class="easyui-textbox" value="@ViewBag.PhaseName" /></td>
+            <th width="10%">项目负责人</th>
+            <td width="40%">
+                <input id="ProjEmpName" name="ProjEmpName" style="width:98%;" data-options="required:true" readonly="readonly" class="easyui-textbox" value="@ViewBag.ProjEmpName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">原计划开始时间</th>
+            <td width="40%"><input id="DatePlanStart" name="DatePlanStart" style="width:98%;" readonly="readonly" class="easyui-datebox" value="@ViewBag.DatePlanStart" /></td>
+            <th width="10%">原计划完成时间</th>
+            <td width="40%">
+                <input id="DatePlanFinish" name="DatePlanFinish" style="width:98%;" readonly="readonly" class="easyui-datebox" value="@ViewBag.DatePlanFinish" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">设计任务</th>
+            <td colspan="3"><input id="TaskName" name="TaskName" class="easyui-textbox" style="width:100%;" /></td>
+        </tr>
+        <tr>
+            <th width="10%">拟计划开始时间</th>
+            <td width="40%"><input name="DraftDatePlanStart" style="width:98%;" data-options="validType:['dateISO']" class="easyui-datebox" value="@ViewBag.DraftDatePlanStart" /></td>
+            <th width="10%">拟计划完成时间</th>
+            <td width="40%">
+                <input name="DraftDatePlanFinish" style="width:98%;" data-options="validType:['dateISO']" class="easyui-datebox" value="@ViewBag.DraftDatePlanFinish" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">调整原因</th>
+            <td colspan="3">
+                <textarea name="FormReason" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.FormReason</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">备注</th>
+            <td colspan="3">
+                <textarea name="FormNote" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.FormNote</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @Html.Action("uploadFile", "usercontrol", new
+           {
+               @area = "Core",
+               AttachRefID = Model.FormID,
+               AttachRefTable = "IsoForm",
+               Name = "uploadfile1"
+           })
+            </td>
+        </tr>
+    </table>
+
+    <div id="tbTask" style="padding:5px;height:auto;">
+        <input id="fullTaskSearch" style="width:250px;" JQWhereOptions="{ Key: 'TaskName', 'Contract': 'like' }" />
+    </div>
+
+        <input type="hidden" id="projid" name="projid" value="@Model.ProjID" />
+        <input type="hidden" id="phaseid" name="phaseid" value="@Model.PhaseID" />
+        <input type="hidden" id="specid" name="specid" value="@Model.SpecID" />
+        <input type="hidden" id="taskgroupid" name="taskgroupid" value="@Model.TaskGroupID" />
+        <input type="hidden" id="taskid" name="taskid" value="@Model.TaskID" />
+
+}
+
+
+

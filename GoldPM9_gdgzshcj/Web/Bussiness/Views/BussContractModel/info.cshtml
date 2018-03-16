@@ -1,0 +1,67 @@
+﻿@model DataModel.Models.BussContractModel
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'BussContractModelForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "BussContractModel", FormMethod.Post, new { @area = "Bussiness", @id = "BussContractModelForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+
+    <input type="hidden" id="CompanyType" name="CompanyType" value="FGS" />
+    <table class="table table-bordered">
+        <tr>
+            <th>合同模板名称</th>
+            <td colspan="3">
+                <input name="ConModelName" style="width:98%;" class="easyui-textbox" validtype="length[0,500]" data-options="required:true" value="@Model.ConModelName" />
+            </td>
+        </tr>
+        <tr>
+            @*<th width="10%">创建人ID</th>
+                <td width="40%">
+                <input name="CreatorUserId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,19]" value="@Model.CreatorUserId" /> enabled  readonly
+                </td>*@
+            <th width="10%">创建人姓名</th>
+            <td width="40%">
+                <input name="CreatorEmpName" style="width:98%;" class="easyui-textbox" validtype="length[0,50]" data-options="readonly:true" value="@Model.CreatorEmpName" />
+            </td>
+            <th width="10%">上传时间</th>
+            <td width="40%">
+                <input name="CreationTime" style="width:98%;" class="easyui-datebox" validtype="length[0,23]" data-options="readonly:true"
+                       value="@Model.CreationTime" />
+            </td>
+        </tr>
+        <tr>
+            <th>合同模板备注</th>
+            <td colspan="3">
+                <input name="ConModelNote" style="width:98%;height:80px" class="easyui-textbox" validtype="length[0,500]" data-options="multiline:true" value="@Model.ConModelNote" />
+                @*@Html.TextAreaFor(model => Model.ConModelNote, new { @style = "width:98%;height:80px" })*@
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+        
+            <td colspan="3">
+                @{
+    var uploader = new DataModel.FileUploader();
+    uploader.RefID = Model.Id;
+    uploader.RefTable = "BussContractModel";
+    uploader.Name = "uploadfile1";
+        @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+}
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+
+

@@ -1,0 +1,57 @@
+﻿@model DataModel.Models.Project
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'PayBalanceEngineeringForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+    $("#ProjBanlanceFee").numberspinner({ precision: 2 });
+    var requestUrl = '@Url.Action("json", "PayBalanceEngineering",new { @area= "Pay" })?projId=@Model.Id';
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'PayBalanceEngineeringGrids',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '1000',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            url: requestUrl,//请求的地址
+            singleSelect: false,//是否包含check
+            checkOnSelect: true,//是否包含check
+            columns: [[
+              { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+    { title: '项目编号', field: 'ProjNumber', width: "14%", align: 'left', sortable: true },
+    { title: '项目名称', field: 'ProjName', width: "20%", align: 'left', sortable: true },
+    { title: '设总', field: 'ProjEmpName', width: "10%", align: 'center', sortable: true },
+    { title: '立项时间', field: 'DateCreate', width: "10%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+    { title: '结清状态', field: 'Status', width: "10%", align: 'center', sortable: true },
+    { title: '产值', field: 'ProjBanlanceFee', width: "10%", align: 'right', sortable: true },
+    { title: '分配产值', field: 'DistributeFee', width: "10%", align: 'right', sortable: true },
+    { title: '未分配产值', field: 'UnDistrFee', width: "10%", align: 'right', sortable: true }
+            ]]
+        });
+    });
+</script>
+@using (Html.BeginForm("Save", "PayBalanceEngineering", FormMethod.Post, new { @area = "pay", @id = "PayBalanceEngineeringForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+         <tr>
+             <th colspan="2">
+                 新的工程产值为
+             </th>
+             <td>
+                 <input id="ProjBanlanceFee" name="ProjBanlanceFee" style="width:98%;" class="easyui-numberspinner" data-options="min:0" validType="length[0,10]" value="@Model.ProjBanlanceFee" />
+             </td>
+         </tr>
+    </table>
+
+}
+<table id="PayBalanceEngineeringGrids">
+
+</table>
+
+

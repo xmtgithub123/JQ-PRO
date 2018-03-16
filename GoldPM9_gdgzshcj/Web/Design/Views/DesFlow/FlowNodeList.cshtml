@@ -1,0 +1,128 @@
+﻿@model DataModel.Models.DesFlow
+<style type="text/css">
+    #divFlows th {
+        border: solid 1px #D6D6D6;
+        padding: 5px;
+        white-space: nowrap;
+        list-style: none;
+        background-color: white;
+        cursor: pointer;
+        margin: 3px;
+    }
+</style>
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: "FlowNodeListForm",
+        buttonTypes: ["save", "close"],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        buttons: [
+            {
+                icon: "fa-chevron-left", text: "添加上级", onClick: function () {
+                    appendItem("previous");
+                }
+            },
+            {
+                icon: "fa-chevron-right", text: "添加下级", onClick: function () {
+                    appendItem("next");
+                }
+            },
+            {
+                icon: "fa-minus-circle", text: "删除", onClick: function () {
+                    deleteItem();
+                }
+            }
+        ]
+    });
+
+    function loadFlowHTML() {
+        $.ajax({
+            url: "@(Url.Action("GetNodesHtml","DesFlow", new { @area = "Design" }))",
+            data: { flowID: "@(Request.QueryString["flowID"])" },
+            type: "POST",
+            success: function (result) {
+                document.getElementById("divFlows").innerHTML = result;
+                registerEvents();
+            }
+        });
+    }
+    loadFlowHTML();
+
+    function registerEvents() {
+        var _last = null;
+        var nodes = $("#divFlows th[data]");
+        nodes.click(function () {
+            if (_last) {
+                _last.style.backgroundColor = "#FFFFFF";
+            }
+            this.style.backgroundColor = "#D6D6D6";
+            _last = this;
+            document.getElementById("choosedNodeID").value = this.getAttribute("data").split("_")[0];
+        }).dblclick(function () {
+            JQ.dialog.dialog({
+                title: $(this).text(),
+                url: "@(Url.Action("FlowNodeOption", "DesFlow",new { @area="Design" }))?ID=" + this.getAttribute("data").split("_")[0],
+                width: 800,
+                height: 600,
+                JQID: "",
+                JQLoadingType: "",
+                iconCls: 'fa fa-pencil'
+            });
+        });
+    }
+
+    function appendItem(mode) {
+        var nodeID = document.getElementById("choosedNodeID").value;
+        if (!nodeID) {
+            return;
+        }
+        $.ajax({
+            type: "POST",
+            url: "@(Url.Action("AppendNode","DesFlow",new { @area="Design"}))",
+            data: { nodeID: nodeID, mode: mode },
+            success: function (result) {
+                if (result.Result == false) {
+                    alert("操作失败！");
+                    return;
+                }
+                document.getElementById("divFlows").innerHTML = result.HTML;
+                registerEvents();
+            }
+        });
+    }
+
+    function deleteItem() {
+        //删除
+        var nodeID = document.getElementById("choosedNodeID").value;
+        if (!nodeID) {
+            return;
+        }
+        window.top.$.messager.confirm("提示", "确定要删除吗？", function (result) {
+            if (!result) {
+                return;
+            }
+            $.ajax({
+                url: "@(Url.Action("DeleteNode", "DesFlow",new { @area="Design" }))",
+                data: { nodeID: nodeID },
+                type: "POST",
+                success: function (result) {
+                    if (result.Result == false) {
+                        window.top.$.messager.alert("提示",result.Message,"info");
+                        return;
+                    }
+                    document.getElementById("divFlows").innerHTML = result.HTML;
+                    registerEvents();
+                }
+            });
+        });
+    }
+    var onAfterSave = function () {
+        loadFlowHTML();
+    }
+</script>
+@using (Html.BeginForm("GetModelNodesHtml", "DesFlow", FormMethod.Post, new { @area = "Core", @id = "FlowNodeListForm", @name = "FlowNodeListForm" }))
+{
+    <div id="divFlows"></div>
+    <input type="hidden" name="choosedNodeID" id="choosedNodeID" />
+}

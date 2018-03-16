@@ -1,0 +1,94 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("AddSubFeeInvoice", "IsoContract", new { @area = "ISO" })?CompanyType=GC',//添加的路径
+                JQEditUrl: '@Url.Action("EditSubFeeInvoice", "IsoContract", new { @area = "ISO" })?CompanyType=GC',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'BussSubFeeInvoiceGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQExcludeCol: [1, 4, 14, 15],//导出execl排除的列
+                JQMergeCells: { fields: ['ck', 'FormDate', 'FormCreator', "JQFiles", "opt"], Only: 'FormTableID' },//当字段值相同时会自动的跨行(只对相邻有效)
+                //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+                //JQFields: ["", ""],//追加的字段名
+                url: '@Url.Action("JsonSubInvoice", "BussSubFeeInvoice",new { @area="Bussiness"})?CompanyType=GC',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussSubFeeInvoicePanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true },
+                  { title: "登记日期", field: "FormDate", halign: "center", align: "center", width: 80, formatter: JQ.tools.DateTimeFormatterByT },
+                  { title: "登记人", field: "FormCreator", halign: "center", align: "center", width: 80 },
+                  { title: 'FormTableID', field: 'FormTableID', halign: 'center', align: 'left', hidden: true },
+                  { title: '外委合同编号', field: 'ConSubNumber', width: "10%", halign: 'center', align: 'left', },
+                  { title: '外委合同名称', field: 'ConSubName', width: "10%", halign: 'center', align: 'left', },
+                  { title: '外委项目编号', field: 'SubNumber', width: "10%", halign: 'center', align: 'left', },
+                  { title: '外委项目名称', field: 'SubName', width: "10%", halign: 'center', align: 'left', },
+                  { title: '外委合同金额', field: 'ConSubFee', width: "80", halign: 'center', align: 'right', },
+                  { title: '累计已收票金额', field: 'AlreadySumInvoiceMoney', width: "100", halign: 'center', align: 'right', sortable: true },
+		          { title: '本次收票金额', field: 'SubFeeInvoiceMoney', width: "80", halign: 'center', align: 'left', sortable: true },
+		          { title: '本次收票日期', field: 'SubFeeInvoiceDate', width: "80", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+
+                  { title: '收票类型', field: 'SubFeeInvoiceTypeName', width: "80", halign: 'center', align: 'center', sortable: true },
+                  {
+                       field: 'JQFiles', title: '附件', align: 'center', width: "40px", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'IsoForm', formatter: function (value, row) {
+                           return "<span id=\"grid_files_" + row.FormID + "\"></span>"
+                       }
+                   },
+                  {
+                      field: "opt", title: "操作", align: "center", halign: "center", width: "60px", formatter: function (value, row, index) {
+                          return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"ShowBussSubFeeInvoiceInfoDialogue('" + row.FormID + "')\">修改</>";
+                      }
+                  }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '外委合同编号/外委合同名称',
+                queryOptions: { 'Key': 'subFeeInvoiceNote', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BussSubFeeInvoiceGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+
+        function ShowBussSubFeeInvoiceInfoDialogue(Id) {
+            debugger;
+            JQ.dialog.dialog({
+                title: "付款合同付款明细",
+                url: '@Url.Action("EditSubFeeInvoice", "IsoContract", new { @area = "ISO" })?CompanyType=GC&Id=' + Id,
+                width: '1024',
+                height: '100%'
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="BussSubFeeInvoiceGrid"></table>
+    <div id="BussSubFeeInvoicePanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+            单位:(元)
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'txtLike', 'Contract': 'like' }" />
+
+    </div>
+}
+

@@ -1,0 +1,205 @@
+﻿@model DataModel.Models.IsoForm
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoFormform',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.treegrid.autoReftreegrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+
+    //combogrid  选外委项目
+    var requestUrl = '@Url.Action("GetJson", "ProjSub", new { @area = "Project" })';
+    $('#cg').combogrid({
+        panelWidth: 650,
+        panelHeight: 400,
+        idField: 'Id',        //ID字段
+        textField: 'SubjName',    //显示的字段
+        url: requestUrl,
+        fitColumns: true,
+        striped: true,
+        editable: true,
+        pagination: true,           //是否分页
+        rownumbers: true,           //序号
+        collapsible: false,         //是否可折叠的
+        fit: true,                  //自动大小
+        method: 'post',
+        columns: [[
+                    { field: 'SubNumber', title: '外委项目编号', width: 150 },
+                    { field: 'SubName', title: '外委项目名称', width: 150 }
+        ]],
+        onLoadSuccess: function () {
+            
+
+        },
+        keyHandler: {
+            up: function () {               //【向上键】押下处理
+                //取得选中行
+                var selected = $('#cg').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    //取得选中行的rowIndex
+                    var index = $('#cg').combogrid('grid').datagrid('getRowIndex', selected);
+                    //向上移动到第一行为止
+                    if (index > 0) {
+                        $('#cg').combogrid('grid').datagrid('selectRow', index - 1);
+                    }
+                } else {
+                    var rows = $('#cg').combogrid('grid').datagrid('getRows');
+                    $('#cg').combogrid('grid').datagrid('selectRow', rows.length - 1);
+                }
+            },
+            down: function () {             //【向下键】押下处理
+                //取得选中行
+                var selected = $('#cg').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    //取得选中行的rowIndex
+                    var index = $('#cg').combogrid('grid').datagrid('getRowIndex', selected);
+                    //向下移动到当页最后一行为止
+                    if (index < $('#cg').combogrid('grid').datagrid('getData').rows.length - 1) {
+                        $('#cg').combogrid('grid').datagrid('selectRow', index + 1);
+                    }
+                } else {
+                    $('#cg').combogrid('grid').datagrid('selectRow', 0);
+                }
+            },
+            enter: function () {             //【回车键】押下处理
+                //设置【性别】文本框的内容为选中行的的性别字段内容
+                var row = $('#cg').combogrid('grid').datagrid('getSelected');
+                $("input[name='RefID']").val(row.Id)
+                //选中后让下拉表格消失
+                $('#cg').combogrid('hidePanel');
+            },
+            query: function (keyword) {     //【动态搜索】处理
+                //设置查询参数
+                var queryParams = $('#cg').combogrid("grid").datagrid('options').queryParams;
+                queryParams.keyword = keyword;
+                $('#cg').combogrid("grid").datagrid('options').queryParams = queryParams;
+                //重新加载
+                var pager = $('#cg').combogrid('grid').datagrid('getPager');
+                pager.pagination('refresh');
+                pager.pagination('select', 1);
+                $('#cg').combogrid("grid").datagrid("reload");
+                $('#cg').combogrid("setValue", keyword);                    //将查询条件存入隐藏域
+                $('#hdKeyword').val(keyword);
+            }
+        },
+        onSelect: function () {
+            var row = $('#cg').combogrid('grid').datagrid('getSelected');
+            $("input[name='RefID']").val(row.Id);
+            $("input[name='SubNumber']").val(row.SubNumber);//外委项目编号
+            $("input[name='CustName']").val(row.CustName);//外委单位名称
+            $("input[name='ConSubName']").val(row.ConSubName);//外委合同名称
+            $("input[name='ConSubNumber']").val(row.ConSubNumber);//外委合同编号
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "IsoForm", FormMethod.Post, new { @area = "Iso", @id = "IsoFormForm" }))
+{
+    @Html.HiddenFor(m => m.FormID)
+    <table class="table table-bordered">
+        <tr>
+            <td colspan="4" style="padding: 15px; font-size: 20px; text-align: center; font-weight: bold; border: none;">外委项目验收</td>
+        </tr>
+        <tr>
+            <th width="10%">外委项目名称</th>
+            <td width="40%">
+                <input id="cg" style="width:98%" />
+                <input type="hidden" id="hdKeyword" />
+                <input type="hidden" name="RefID" value="@Model.RefID" />
+            </td>
+            <th width="10%">外委项目编号</th>
+            <td width="40%">
+                <input name="SubNumber" style="width:98%;" readonly="readonly" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">外委合同名称</th>
+            <td width="40%">
+                <input name="ConSubName" style="width:98%;" readonly="readonly" />
+            </td>
+            <th width="10%">外委合同编号</th>
+            <td width="40%">
+                <input name="ConSubNumber" style="width:98%;" readonly="readonly" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">外委单位名称</th>
+            <td width="40%">
+                <input name="CustName" style="width:98%;" readonly="readonly" />
+            </td>
+            <th width="10%">登记时间</th>
+            <td width="40%">
+                <input name="ColAttDate1" style="width:98%;" class="easyui-datebox" validtype="length[0,16]" value="@Model.ColAttDate1" />
+            </td>
+        </tr>
+        <tr>
+            <th width="20%">验收情况记录</th>
+            <td colspan="3">
+                <textarea rows="3" cols="80" name="YSQKJL"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="20%">评价意见</th>
+            <td colspan="3">
+                <textarea rows="3" cols="80" name="PJJY"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="20%">参加验收部门</th>
+            <td colspan="3">
+                <textarea rows="3" cols="80" name="CJYSBM"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="20%">参加验收人员</th>
+            <td colspan="3">
+                <textarea rows="3" cols="80" name="CJYSRY"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="20%">验收人员签字</th>
+            <td colspan="3">
+                <textarea rows="3" cols="80" name="YSRMQZ"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="20%">分管生产<br/>
+            院领导意见
+            </th>
+            <td colspan="3">
+                <textarea rows="3" cols="80" name="YLDYJ"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">验收日期</th>
+            <td width="40%">
+                <input name="ColAttDate2" style="width:98%;" class="easyui-datebox" validtype="length[0,16]" value="@Model.ColAttDate2" />
+            </td>
+            <th width="10%">验收组长</th>
+            <td width="40%">
+                <input name="YSZZ" style="width:98%;"  />
+            </td>
+        </tr>
+             
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.FormID;
+                    uploader.RefTable = "IsoForm";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+	
+}
+
+
+

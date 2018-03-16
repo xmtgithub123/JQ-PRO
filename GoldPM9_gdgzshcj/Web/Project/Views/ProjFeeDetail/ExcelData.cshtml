@@ -1,0 +1,125 @@
+﻿@using JQ.Web;
+
+@using (Html.BeginForm("save", "ProjFeeDetail", FormMethod.Post, new { @area = "Project", @id = "ExcelDataForm" }))
+{
+    <table class="table table-bordered">
+        <tr>
+            <td colspan="3">插入日志</td>
+        </tr>
+        <tbody id="HtmlLog"></tbody>
+    </table>
+
+    <div style="display:none;">
+        <a id="downFileTemp" href="@ViewBag.ModelUrl"></a>
+        @{
+            var uploader = new DataModel.FileUploader();
+            uploader.RefID = 0;
+            uploader.RefTable = "TempExcelData";
+            uploader.Name = "ExcelData_File1";
+            @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+        }
+    </div>
+
+    <script type="text/javascript">
+        JQ.form.submitInit({
+            formid: 'ProjFeeDetailForm',//formid提交需要用到
+            //buttonTypes: ['submit', 'close'],//默认按钮
+            buttons: [{
+                icon: 'fa fa-upload',
+                text: '选择文件',
+                onClick: getFiles,
+            }, {
+                icon: 'fa fa-download',
+                text: '下载模版',
+                onClick: downFile
+            }],
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                var tab = $('#mainTab').tabs('getSelected');
+                var index = $('#mainTab').tabs('getTabIndex', tab);
+
+                $("#mainTab").find("iframe")[index].contentWindow.refreshGrid();
+                //JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            },
+        });
+
+        function downFile() {
+            $("#downFileTemp")[0].click();
+        }
+
+        //获取文件
+        function getFiles() {
+            var UpdateBtn = $("a[id^='upload_']", $("#ExcelDataForm"));
+            if (UpdateBtn.length == 1) {
+                if (typeof (JQ.Upload.init.prototype.fileUploaded) == "function") {
+                    var JQuploader = uploader_@(Html.ViewContext.Controller.ViewData["UploadFileUnqiueID"]);
+                    if ($("#downFileTemp").attr("IsUploaded") != "1") {
+                        $("#downFileTemp").attr("IsUploaded", "1");
+                        JQuploader.uploader.setOption("filters", {
+                            max_file_size: "20gb",
+                            prevent_duplicates: false,
+                            mime_types: [
+                                { title: "", extensions: "xls,xlsx" }
+                            ]
+                        });
+                        JQuploader.uploader.bind("UploadComplete", function (uploader, files) {
+                            if (files.length > 0) {
+                                InsertLog((new Date()).format("yyyy-MM-dd hh:mm:ss"), "", "文件上传成功！");
+                               
+                                getAjaxTable();
+                            }
+                        });
+                        JQuploader.uploader.bind("Error", function (uploader, errObject) {
+                            InsertLog((new Date()).format("yyyy-MM-dd hh:mm:ss"), errObject.file.name, "上传文件类型错误！");
+                            //$("<tr><td>" + (new Date()).format("yyyy-MM-dd hh:mm:ss") + "</td><td>" + errObject.file.name + "</td><td>上传文件类型错误！</td></tr>").prependTo($("#HtmlLog"));
+
+                        });
+                    }
+
+                    UpdateBtn.click();
+                }
+
+            } else {
+                JQ.dialog.warning("未找到上传事件！");
+            }
+        }
+
+        function getAjaxTable() {
+            var rows = $("table[id^='files_']", $("#ExcelDataForm")).datagrid("getRows");
+            var FileArray = Enumerable.From(rows).Select("x=>x.RemoteName").ToArray();
+
+            //InsertLog((new Date()).format("yyyy-MM-dd hh:mm:ss"), errObject.file.name, "上传文件类型错误！");
+            JQ.tools.ajax({
+                url: "@Url.Action("GetExcelData")",
+                data: { 'files': JSON.stringify(FileArray) },
+                succesCollBack: function (data) {
+                    if (data.stateValue > 0) {
+                        //JQ.dialog.show("插入成功！");
+                        var ArrayData = data.stateMsg;
+                        if (ArrayData.length > 0) {
+                            $.each(ArrayData, function (i, e) {
+                                InsertLog((new Date()).format("yyyy-MM-dd hh:mm:ss"), "", e.Msg);
+                            })
+                        }
+                        var tab = $('#mainTab').tabs('getSelected');
+                        var index = $('#mainTab').tabs('getTabIndex', tab);
+                        $("#mainTab").find("iframe")[index].contentWindow.refreshGrid();
+                    }
+                    else {
+                        InsertLog((new Date()).format("yyyy-MM-dd hh:mm:ss"), "", data.stateMsg);
+                    }
+                }
+            });
+            //删除文件
+            if (FileArray && FileArray.length > 0) {
+                $.each(FileArray, function (i, e) {
+                    $("table[id^='files_']", $("#ExcelDataForm")).datagrid("deleteRow", i);
+                });
+            }        
+        }
+
+        function InsertLog(dateStr, fileName, ErrorName) {
+            $("<tr><td style='width:30%'>" + dateStr + "</td><td style='width:30%'>" + fileName + "</td><td>" + ErrorName + "</td></tr>").prependTo($("#HtmlLog"));
+        }
+    </script>
+            }

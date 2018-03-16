@@ -1,0 +1,126 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("GetJsonList", "IsoFormProjSubPF", new { @area="Iso"})?CompanyType=SJ',
+               addUrl = '@Url.Action("add","IsoFormProjSubPF",new {@area="Iso" })?CompanyType=SJ',
+               editUrl = '@Url.Action("edit", "IsoFormProjSubPF",new {@area="Iso" })?CompanyType=SJ',
+               delUrl = '@Url.Action("del", "IsoFormProjSubPF", new { @area = "Iso" })';
+
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'IsoFormProjSubPFGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["FormID"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                JQExcludeCol: [1, 10, 11, 12],//导出execl排除的列
+                toolbar: '#IsoFormProjSubPFPanel',//工具栏的容器ID
+                singleSelect: true,
+                columns: [[
+                      { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                      { title: '外委项目编号', field: 'SubNumber', width: "10%", align: 'left', sortable: true },
+                      { title: '外委项目名称', field: 'SubName', width: "15%", align: 'left', sortable: true },
+                      { title: '外委合同编号', field: 'ConSubNumber2', width: "10%", align: 'left', sortable: true },
+                      { title: '外委合同名称', field: 'ConSubName2', width: "15%", align: 'left', sortable: true },
+                      { title: '外委单位', field: 'custName', width: "15%", align: 'left', sortable: true },
+                      { title: '评审意见', field: 'PSYJ', width: "10%", align: 'left', sortable: true },
+                      { title: '登记时间', field: 'ColAttDate1', width: "80px", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                      { title: '评分时间', field: 'ColAttDate2', width: "80px", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                      {
+                          field: 'JQFiles', title: '附件', align: 'center', width: "40px", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'IsoForm', formatter: function (value, row) {
+                              return "<span id=\"grid_files_" + row.FormID + "\"></span>"
+                          }
+                      },
+                     {
+                         field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrentEmpID)")
+                     },
+                      {
+                          field: "opt", title: "操作", align: "center", halign: "center", width: "40",
+                          formatter: function (value, row, index) {
+                              var title = "查看";
+                              if (row._EditStatus == 1) {
+                                  title = "修改";
+                              }
+                              else if (row._EditStatus == 2) {
+                                  title = "处理";
+                              }
+                              return '<a class="easyui-linkbutton" onclick="ShowInfoPFDialogue(' + row.FormID + ')">' + title + '</a>';
+                          }
+                      }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (row) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#IsoFormProjSubPFGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < row.rows.length; i++) {
+                        if (!row.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '外委项目名称、外委项目编号、外委合同名称、外委合同编号、外委单位',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'IsoFormProjSubPFGrid',
+                            loadingType: 'datagrid'
+                        });
+                }
+            });
+        });
+
+        function ShowInfoPFDialogue(Id) {
+            JQ.dialog.dialog({
+                title: "项目外委评分",
+                url: '@Url.Action("edit", "IsoFormProjSubPF", new {@area="Iso" })?CompanyType=FGS&Id=' + Id,
+                width: '1024',
+                height: '100%'
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoFormProjSubPFGrid"></table>
+    <div id="IsoFormProjSubPFPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjSubType", queryOptions = "{ Key:'ProjSubTypeState', Contract:'in',filedType:'Int'}" })
+        </span>
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'txtLike', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            登记时间
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'ColAttDate1S', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'ColAttDate1E', Contract:'<=',filedType:'Date' }">&nbsp;
+            评分时间
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'ColAttDate2S', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'ColAttDate2E', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>
+    </div>
+}
+

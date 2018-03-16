@@ -1,0 +1,343 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{068290B4-77E2-4650-931E-C1E7205AD648}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DBSql</RootNamespace>
+    <AssemblyName>DBSql</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.Extended">
+      <HintPath>..\..\..\Lib\EntityFramework.Extended.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.RTXSAPILib">
+      <HintPath>..\..\..\Lib\Interop.RTXSAPILib.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Interop.RTXServerApi">
+      <HintPath>..\..\..\Lib\Interop.RTXServerApi.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="itextsharp, Version=5.5.9.0, Culture=neutral, PublicKeyToken=8354ae6d2174ddca, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\itextsharp.dll</HintPath>
+    </Reference>
+    <Reference Include="JQ.BPM.Core">
+      <HintPath>..\..\..\Lib\JQ.BPM.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.2.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Lib\Microsoft.AspNet.SignalR.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Archive\ArchBorrow.cs" />
+    <Compile Include="Archive\ArchElecDocuments.cs" />
+    <Compile Include="Archive\ArchElecFile.cs" />
+    <Compile Include="Archive\ArchElecProject.cs" />
+    <Compile Include="Archive\ArchPaper.cs" />
+    <Compile Include="Archive\ArchPaperFile.cs" />
+    <Compile Include="Archive\ArchPaperFolder.cs" />
+    <Compile Include="Archive\ArchPaperFolderType.cs" />
+    <Compile Include="Archive\ArchPaperRelationElec.cs" />
+    <Compile Include="Archive\ArchProjectFolder.cs" />
+    <Compile Include="Archive\ArchProjectFolderFile.cs" />
+    <Compile Include="Archive\ArchShareFolderML.cs" />
+    <Compile Include="Archive\ArchTemplateFolder.cs" />
+    <Compile Include="Archive\ArchShareFolder.cs" />
+    <Compile Include="Archive\ArchShareFolderFile.cs" />
+    <Compile Include="Archive\FileCatalog.cs" />
+    <Compile Include="Archive\FileDetail.cs" />
+    <Compile Include="BPMExtend\BaseData.cs" />
+    <Compile Include="BPMExtend\DepartmentProvider.cs" />
+    <Compile Include="BPMExtend\RoleProvider.cs" />
+    <Compile Include="BPMExtend\UserProvider.cs" />
+    <Compile Include="Bussiness\BusProjContractRelation.cs" />
+    <Compile Include="Bussiness\BussBiddingCost.cs" />
+    <Compile Include="Bussiness\BussBiddingInfo.cs" />
+    <Compile Include="Bussiness\BussBiddingInfoPackage.cs" />
+    <Compile Include="Bussiness\BussContract.cs" />
+    <Compile Include="Bussiness\BussContractModel.cs" />
+    <Compile Include="Bussiness\BussContractOther.cs" />
+    <Compile Include="Bussiness\BussContractOtherFeeFact.cs" />
+    <Compile Include="Bussiness\BussContractOtherFeeFactJson.cs" />
+    <Compile Include="Bussiness\BussContractOtherInvoice.cs" />
+    <Compile Include="Bussiness\BussContractOtherInvoiceJson.cs" />
+    <Compile Include="Bussiness\BussContractSub.cs" />
+    <Compile Include="Bussiness\BussCustomer.cs" />
+    <Compile Include="Bussiness\BussCustomerEvaluate.cs" />
+    <Compile Include="Bussiness\BussCustomerEvaluateDetail.cs" />
+    <Compile Include="Bussiness\BussCustomerLinkMan.cs" />
+    <Compile Include="Bussiness\BussCustomerRemember.cs" />
+    <Compile Include="Bussiness\BussFeeFact.cs" />
+    <Compile Include="Bussiness\BussFeeInvoice.cs" />
+    <Compile Include="Bussiness\BussFeePlan.cs" />
+    <Compile Include="Bussiness\BussProjInfoRecords.cs" />
+    <Compile Include="Bussiness\BussSubFeeFact.cs" />
+    <Compile Include="Bussiness\BussSubFeeInvoice.cs" />
+    <Compile Include="Bussiness\BussTendersCost.cs" />
+    <Compile Include="Bussiness\BussTendersInfo.cs" />
+    <Compile Include="Bussiness\BussTendersInfoDetail.cs" />
+    <Compile Include="Bussiness\BussProjNoteData.cs" />
+    <Compile Include="Bussiness\EvaluteDetailJson.cs" />
+    <Compile Include="Bussiness\HZShow.cs" />
+    <Compile Include="Core\ModelExchange.cs" />
+    <Compile Include="Core\ModelExchangeReceive.cs" />
+    <Compile Include="Core\ModelIsoCheck.cs" />
+    <Compile Include="Core\ModelReceive.cs" />
+    <Compile Include="Core\ModelTree.cs" />
+    <Compile Include="Core\ModelVolCatalog.cs" />
+    <Compile Include="Design\DesDelivery.cs" />
+    <Compile Include="Design\DesDiscuss.cs" />
+    <Compile Include="Design\DesDiscussGroup.cs" />
+    <Compile Include="Design\DesDiscussReply.cs" />
+    <Compile Include="Design\DesPlanTable.cs" />
+    <Compile Include="Design\DesSign.cs" />
+    <Compile Include="Design\DesSignDWG.cs" />
+    <Compile Include="Design\DesTaskFeeDetails.cs" />
+    <Compile Include="Design\DesTaskGantt.cs" />
+    <Compile Include="Design\DesTaskPub.cs" />
+    <Compile Include="Design\DesTaskSplitFile.cs" />
+    <Compile Include="Design\Dto\DesItemPathOutput.cs" />
+    <Compile Include="Design\Dto\DesTaskAttachFlowNodeItem.cs" />
+    <Compile Include="Design\Dto\DesTaskAttachFlowNodeJson.cs" />
+    <Compile Include="Design\Dto\DesTaskAttachFlowNodeRoot.cs" />
+    <Compile Include="Design\Dto\DesTaskAttachSignInfo.cs" />
+    <Compile Include="Design\Dto\DesTaskAttachSigns.cs" />
+    <Compile Include="Design\Dto\DesTaskGroupInput.cs" />
+    <Compile Include="Design\Dto\DesTaskOldNewId.cs" />
+    <Compile Include="Design\Dto\DesTaskRemindInput.cs" />
+    <Compile Include="Design\Dto\DesTaskRemindPermission.cs" />
+    <Compile Include="Design\Dto\DesTaskSpecPlanTransferInput.cs" />
+    <Compile Include="Design\Dto\TaskGroupPathOutput.cs" />
+    <Compile Include="Design\FlowNodeHtml.cs" />
+    <Compile Include="Design\DesSignPDF.cs" />
+    <Compile Include="Design\_Public.cs" />
+    <Compile Include="Design\_Enum.cs" />
+    <Compile Include="Design\DesEvent.cs" />
+    <Compile Include="Design\DesEventAlert.cs" />
+    <Compile Include="Design\DesEventGroup.cs" />
+    <Compile Include="Design\DesExch.cs" />
+    <Compile Include="Design\DesExchAttach.cs" />
+    <Compile Include="Design\DesExchRec.cs" />
+    <Compile Include="Design\DesFlow.cs" />
+    <Compile Include="Design\DesFlowNode.cs" />
+    <Compile Include="Design\DesMutiSign.cs" />
+    <Compile Include="Design\DesMutiSignAttach.cs" />
+    <Compile Include="Design\DesMutiSignRec.cs" />
+    <Compile Include="Design\DesTask.cs" />
+    <Compile Include="Design\DesTaskAttachEx.cs" />
+    <Compile Include="Design\DesTaskCheck.cs" />
+    <Compile Include="Design\DesTaskGroup.cs" />
+    <Compile Include="Design\Dto\DesFlowNodeBaseInput.cs" />
+    <Compile Include="Design\Dto\DesTaskInput.cs" />
+    <Compile Include="EFRepository.cs" />
+    <Compile Include="Engineering\CGManage.cs" />
+    <Compile Include="Engineering\CGManageData.cs" />
+    <Compile Include="Engineering\EmpManage.cs" />
+    <Compile Include="Engineering\EmpManageData.cs" />
+    <Compile Include="Engineering\ProjManage.cs" />
+    <Compile Include="Engineering\ProjManageData.cs" />
+    <Compile Include="Engineering\SafeManage.cs" />
+    <Compile Include="Engineering\SafeManageData.cs" />
+    <Compile Include="Engineering\SSManage.cs" />
+    <Compile Include="Engineering\SSManageData.cs" />
+    <Compile Include="Helper\SqlPage.cs" />
+    <Compile Include="HR\HRAchievement.cs" />
+    <Compile Include="HR\HRAptitudeManager.cs" />
+    <Compile Include="HR\HREmployee.cs" />
+    <Compile Include="HR\HREmpWinManager.cs" />
+    <Compile Include="HR\HREquipmentLedger.cs" />
+    <Compile Include="HR\HRLabourContract.cs" />
+    <Compile Include="HR\HRSalary.cs" />
+    <Compile Include="HR\HRVitae.cs" />
+    <Compile Include="HR\Trip.cs" />
+    <Compile Include="HR\Vacation.cs" />
+    <Compile Include="IRepository.cs" />
+    <Compile Include="Iso\IsoBCD.cs" />
+    <Compile Include="Iso\IsoRWPSTZD.cs" />
+    <Compile Include="Iso\IsoBCRWTZD.cs" />
+    <Compile Include="Iso\IsoCheck.cs" />
+    <Compile Include="Iso\IsoConstructionCoordination.cs" />
+    <Compile Include="Iso\IsoConstructionSet.cs" />
+    <Compile Include="Iso\IsoConsultRecord.cs" />
+    <Compile Include="Iso\IsoDesignReturn.cs" />
+    <Compile Include="Iso\IsoBGSJRWTZD.cs" />
+    <Compile Include="Iso\IsoDWGZLXD.cs" />
+    <Compile Include="Iso\IsoFBSJCH.cs" />
+    <Compile Include="Iso\IsoFile.cs" />
+    <Compile Include="Iso\IsoForm.cs" />
+    <Compile Include="Iso\IsoFormNode.cs" />
+    <Compile Include="Iso\IsoGCCLTJD.cs" />
+    <Compile Include="Iso\IsoGCDZKCTJDJZ.cs" />
+    <Compile Include="Iso\IsoRemark.cs" />
+    <Compile Include="Iso\IsoSJBGD.cs" />
+    <Compile Include="Iso\IsoSJCH.cs" />
+    <Compile Include="Iso\IsoSJJSD.cs" />
+    <Compile Include="Iso\IsoSJPSJYB.cs" />
+    <Compile Include="Iso\IsoSJTJTGD.cs" />
+    <Compile Include="Iso\IsoTechnologyChange.cs" />
+    <Compile Include="Iso\IsoXMCB.cs" />
+    <Compile Include="Iso\IsoZYZDJYB.cs" />
+    <Compile Include="IUnitOfWork.cs" />
+    <Compile Include="OA\OaBBS.cs" />
+    <Compile Include="OA\OaBook.cs" />
+    <Compile Include="OA\OaBookStock.cs" />
+    <Compile Include="OA\OaBookUse.cs" />
+    <Compile Include="OA\OaCarUse.cs" />
+    <Compile Include="OA\OaCar.cs" />
+    <Compile Include="OA\OaDiary.cs" />
+    <Compile Include="OA\OaEquipDeal.cs" />
+    <Compile Include="OA\OaEquipGet.cs" />
+    <Compile Include="OA\OaEquipKeep.cs" />
+    <Compile Include="OA\OaEquipment.cs" />
+    <Compile Include="OA\OaEquipRepair.cs" />
+    <Compile Include="OA\OaEquipReturn.cs" />
+    <Compile Include="OA\OaEquipStock.cs" />
+    <Compile Include="OA\OaEquipUse.cs" />
+    <Compile Include="OA\OaFileReceive.cs" />
+    <Compile Include="OA\OaFileSend.cs" />
+    <Compile Include="OA\OaMail.cs" />
+    <Compile Include="OA\OaMailRead.cs" />
+    <Compile Include="OA\OaMeetingRoom.cs" />
+    <Compile Include="OA\OaMeetingUse.cs" />
+    <Compile Include="OA\OaMess.cs" />
+    <Compile Include="OA\OaMessRead.cs" />
+    <Compile Include="Oa\OaNew.cs" />
+    <Compile Include="OA\OaNewsRead.cs" />
+    <Compile Include="Oa\OaNotice.cs" />
+    <Compile Include="OA\OaRemind.cs" />
+    <Compile Include="OA\OaStampInfo.cs" />
+    <Compile Include="OA\OaStampLend.cs" />
+    <Compile Include="OA\OaStampUse.cs" />
+    <Compile Include="OA\Scheduler.cs" />
+    <Compile Include="OA\SchedulerRemind.cs" />
+    <Compile Include="Pay\PayBalanceUserAccount.cs" />
+    <Compile Include="Pay\PayBalanceLot.cs" />
+    <Compile Include="Pay\PayBalanceEngineering.cs" />
+    <Compile Include="Pay\PayBalanceChangeHist.cs" />
+    <Compile Include="Pay\PayModel.cs" />
+    <Compile Include="Project\ProjCost.cs" />
+    <Compile Include="Project\ProjCostItem.cs" />
+    <Compile Include="Project\ProjCostModel.cs" />
+    <Compile Include="Project\ProjectAuxiliary.cs" />
+    <Compile Include="Project\Project.cs" />
+    <Compile Include="Project\ProjectDynamic.cs" />
+    <Compile Include="Project\ProjectFavourite.cs" />
+    <Compile Include="Project\ProjectFenBu.cs" />
+    <Compile Include="Project\ProjSub.cs" />
+    <Compile Include="ProjTotalFile\TotalContract.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PubFlow\DataTableExterns.cs" />
+    <Compile Include="PubFlow\FlowNodeExe.cs" />
+    <Compile Include="PubFlow\FlowNode.cs" />
+    <Compile Include="PubFlow\Flow.cs" />
+    <Compile Include="PubFlow\FlowModel.cs" />
+    <Compile Include="PubFlow\FlowModelNode.cs" />
+    <Compile Include="PubFlow\FlowModelNodeHtml.cs" />
+    <Compile Include="PubFlow\FlowTask.cs" />
+    <Compile Include="PubFlow\FlowTestProcessor.cs" />
+    <Compile Include="PubFlow\FlowWare.cs" />
+    <Compile Include="PubFlow\FlowWareOptions.cs" />
+    <Compile Include="PubFlow\FlowWareResult.cs" />
+    <Compile Include="PubFlow\FlowWareStep.cs" />
+    <Compile Include="PubFlow\IFlowProcessor.cs" />
+    <Compile Include="PubFunction\View_Form.cs" />
+    <Compile Include="PubFunction\V_SystemTableFKey.cs" />
+    <Compile Include="PubFunction\V_SystemTableXtype.cs" />
+    <Compile Include="PubFunction\V_SystemTableStructure.cs" />
+    <Compile Include="SqlHelper.cs" />
+    <Compile Include="Sys\BaseAttach.cs" />
+    <Compile Include="Sys\BaseAttachGroup.cs" />
+    <Compile Include="Sys\BaseAttachVer.cs" />
+    <Compile Include="Sys\BaseConfig.cs" />
+    <Compile Include="Sys\BaseData.cs" />
+    <Compile Include="Sys\BaseDataSystem.cs" />
+    <Compile Include="Sys\BaseEmpAgen.cs" />
+    <Compile Include="Sys\BaseEmployee.cs" />
+    <Compile Include="Sys\BaseEmployeeData.cs" />
+    <Compile Include="Sys\BaseEmpPermission.cs" />
+    <Compile Include="Sys\BaseEmpTeam.cs" />
+    <Compile Include="Sys\BaseFeedBack.cs" />
+    <Compile Include="Sys\BaseHandover.cs" />
+    <Compile Include="Sys\BaseLog.cs" />
+    <Compile Include="Sys\BaseMenu.cs" />
+    <Compile Include="Sys\BaseMenuPermissionByEmp.cs" />
+    <Compile Include="Sys\BaseMenuPermissionByRole.cs" />
+    <Compile Include="Sys\BaseNameSpace.cs" />
+    <Compile Include="Sys\BasePageConfig.cs" />
+    <Compile Include="Sys\BaseQualification.cs" />
+    <Compile Include="Sys\BaseRestDay.cs" />
+    <Compile Include="Sys\LinkRTX.cs" />
+    <Compile Include="Sys\UserControl.cs" />
+    <Compile Include="UnitOfWork.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\DALLayer\DAL\DAL.csproj">
+      <Project>{df3c0094-2e12-4d77-8219-a37e3c85711c}</Project>
+      <Name>DAL</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\RWP.Util\JQ.Util.csproj">
+      <Project>{90AB0830-F6DA-426C-A3B0-7516535985BF}</Project>
+      <Name>JQ.Util</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\JQ.Common.csproj">
+      <Project>{1d40b4ed-3210-4daa-a3d9-baa70da99f98}</Project>
+      <Name>JQ.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\DataModel\DataModel.csproj">
+      <Project>{99ef246d-a5e3-4411-af05-3b9578f12284}</Project>
+      <Name>DataModel</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

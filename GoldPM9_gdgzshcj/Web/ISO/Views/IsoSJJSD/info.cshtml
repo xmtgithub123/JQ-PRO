@@ -1,0 +1,318 @@
+﻿@model DataModel.Models.IsoSJJSD
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoSJJSDForm',//formid提交需要用到
+        buttonTypes: ['close', 'exportForm'],//默认按钮
+        docName: 'IsoSJJSD',
+        ExportName: '设计校审单',
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }, flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "ISO,ISO.FlowProcessor.IsoSJJSDFlow",
+            refID: "@(Model.Id)",
+            refTable: "IsoSJJSD",
+            dataCreator: "@(ViewBag.EmpID)",
+            getStepUsers: function (step, action) {
+                if ($("#CheckFlow").val() != "") {
+                    var FlowJson = JSON.parse($("#CheckFlow").val());
+                    var flowNode = Enumerable.From(FlowJson).Where("p=>p.rownum==" + step.Order + "").FirstOrDefault();
+                    var empId = flowNode.FlowNodeEmpID;
+                    var empName = flowNode.FlowNodeEmpName;
+                    if (empId != undefined) {
+                        return { defaultChoosedUser: empId, users: [{ id: empId, name: empName }] };
+                    }
+                }
+            }
+        },
+        onBefore: function (resultArr) {
+            var MLevel = $("#ManageLevel").val();
+            switch (MLevel) {
+                case "1":
+                    resultArr.push({ Key: "MLevel_EX", Value: "☑院  □所" });
+                    break;
+                case "2":
+                    resultArr.push({ Key: "MLevel_EX", Value: "☑院  □所" });
+                    break;
+                default:
+                    resultArr.push({ Key: "MLevel_EX", Value: "□院  □所" });
+                    break;
+
+            }
+
+            var JSWJ = $("#JSWJ").val();
+
+            switch (JSWJ) {
+                case "1":
+                    resultArr.push({ Key: "JSWJ_EX", Value: "☑图纸  □说明书  □计算书  □概算" });
+                    break;
+                case "2":
+                    resultArr.push({ Key: "JSWJ_EX", Value: "□图纸  ☑说明书  □计算书  □概算" });
+                    break;
+                case "3":
+                    resultArr.push({ Key: "JSWJ_EX", Value: "□图纸  □说明书  ☑计算书  □概算" });
+                    break;
+                case "4":
+                    resultArr.push({ Key: "JSWJ_EX", Value: "□图纸  □说明书  □计算书  ☑概算" });
+                    break;
+                default:
+                    resultArr.push({ Key: "JSWJ_EX", Value: "□图纸  □说明书  □计算书  □概算" });
+                    break;
+            }
+
+            resultArr.push({ Key: "Permission", Value: '@ViewBag.Permission' });
+        }
+    });
+
+    $(function () {
+        debugger;
+        SetCheck("MLevel", '@Model.ManageLevel');
+        SetCheck("CJSWJ", '@Model.JSWJ');
+        var jsYJ = decodeURIComponent('@Model.JSNote');
+        $("#JSNote").textbox();
+        $("#JSNote").textbox("setValue", jsYJ);
+        var hfYJ = decodeURIComponent('@Model.ModifyNote');
+        $("#ModifyNote").textbox();
+        $("#ModifyNote").textbox("setValue", hfYJ);
+    });
+
+    function SelectMainProject() {
+        JQ.dialog.dialog({
+            title: "选择项目",
+            url: '@Url.Action("ChooseProjectList1", "EmpManage", new { @area = "Engineering" })?CompanyType=FGS&TaskGroupId=0',
+            width: '1024',
+            height: '100%',
+            iconCls: 'fa fa-list',
+        });
+    }
+
+    //返回回调刷新
+    var _ProjCallBack = function (row) {
+        $("#ProjID").val(row[0].TaskGroupId);
+        $("#ProjName").textbox("setValue", row[0].ProjName);
+        $("#ProjNumber").textbox("setValue", row[0].ProjNumber);
+        $("#ProjPhaseName").textbox("setValue", row[0].ProjPhaseName);
+        $("#ProjPhaseId").val(row[0].ProjPhaseId);
+    }
+
+    function SelectCheckFile() {
+
+        var ProjID = $("#ProjID").val();
+        if (ProjID == "" || ProjID == "0") {
+            JQ.dialog.warning("请先选择项目！");
+            return;
+        }
+
+        var ProjPhaseId = $("#ProjPhaseId").val();
+        var EmpId = $("#SJEmpId").val();
+
+        var url = '@Url.Action("ChooseCheckFile", "DesTask", new { @area = "Design" })?ProjId=' + ProjID + '&ProjPhaseId=' + ProjPhaseId + '&EmpId=' + EmpId + '';
+        JQ.dialog.dialog({
+            title: "选择设计文件",
+            url: url,
+            width: '1024',
+            height: '100%',
+            iconCls: 'fa fa-list',
+        });
+    }
+
+    var _CheckFileCallBack = function (row) {
+        var TaskName = "";
+        var TaskSpecId = "";
+        var TaskSpecName = "";
+        var CheckFileID = "";
+        var CheckFlow = "";
+
+
+        $.each(row, function (index, data) {
+            TaskName += data.TaskName + ",";
+            TaskSpecId += data.TaskSpecId + ",";
+            TaskSpecName += data.TaskSpecName + ",";
+            CheckFileID += data.AttachID + ",";
+            if (index == 0) {
+                CheckFlow = JSON.parse(data.AttachFlowNode);
+                CheckFlow = CheckFlow.root.item;
+            }
+        });
+
+        $("#JSNR").textbox("setValue", TaskName.substr(0, TaskName.length - 1));
+        $("#SpecId").val(TaskSpecId.substr(0, TaskSpecId.length - 1));
+        $("#SpecName").textbox("setValue", TaskSpecName.substr(0, TaskSpecName.length - 1));
+        $("#CheckFileID").val(CheckFileID.substr(0, CheckFileID.length - 1));
+        $("#CheckFlow").val(JSON.stringify(CheckFlow));
+
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("GetCheckDetail", "DesTask", new { @area = "Design" })?ids=' + encodeURI(CheckFileID.substr(0, CheckFileID.length - 1)) + '',
+            success: function (result) {
+                debugger;
+                result = JSON.parse(result);
+                var jsYJ = "";
+                var hfYJ = "";
+                $.each(result.rows, function (index, data) {
+                    jsYJ += (index + 1) + "：" + data.CheckNote + "\r\n";
+                    var hfNote = data.HFNote == '' ? data.CheckIsCorrectiveShow : data.HFNote;
+                    hfYJ += (index + 1) + "：" + hfNote + "\r\n";
+                });
+
+                debugger;
+                $("#JSNote").textbox("setValue", jsYJ);
+                $("#ModifyNote").textbox("setValue", hfYJ);
+            }
+        });
+    }
+
+    //选中控件，隐藏控件，id，name，是否单选
+    function Checked(ckControl, hidCon, value, valName, isOnlyName) {
+        if ($("#" + ckControl).attr("checked")) {
+            if (isOnlyName != undefined) {
+                $(':checkbox[name=' + isOnlyName + ']').removeAttr('checked');
+                $("#" + ckControl).attr('checked', 'checked');
+            }
+            $("#" + hidCon).val(value);
+        } else {
+            $("#" + hidCon).val("");
+        }
+    }
+
+    //复选框选中
+    function SetCheck(contId, paras) {
+        $(':checkbox[name=' + contId + ']').removeAttr('checked');
+        var paraArr = Enumerable.From(paras.split(',')).Where("x=>x!=''").Select("x=>x").ToArray();
+        $.each(paraArr, function (index, data) {
+            $("#" + contId + paraArr[index]).attr("checked", "checked");
+        });
+    }
+</script>
+@using (Html.BeginForm("save", "IsoSJJSD", FormMethod.Post, new { @area = "Iso", @id = "IsoSJJSDForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <div style="width:99%;text-align:center;font-size:20px;font-weight:bold;margin-top:10px;">
+            <a>设计校审单</a>
+        </div>
+        <div style="float:left;margin-left:20px;margin-top:10px;">
+            表<label>@Model.TableNumber</label><input type="hidden" name="TableNumber" value="@Model.TableNumber" />
+        </div>
+        <div style="float:right;margin-right:20px;margin-top:10px;margin-bottom:10px;">
+            编号<input id="Number" name="Number" style="width:140px;" class="easyui-textbox" validtype="length[0,50]" value="@Model.Number" />
+        </div>
+
+        <tr>
+            <th>项目名称</th>
+            <td colspan="3">
+                <input type="hidden" id="ProjID" name="ProjID" value="@Model.ProjID" />
+                <input id="ProjName" name="ProjName" style="width:98%;" class="easyui-textbox" data-options="required:true,editable:false" validType="length[0,50]" value="@Model.ProjName" />
+                <a class="easyui-linkbutton" name="btnChoice" id="btnChoice" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="SelectMainProject()">选择项目</a>
+            </td>
+            <th>管理等级</th>
+            <td>
+                <span style="display:block;width:50px;float:left;">
+                    <input type="checkbox" id="MLevel1" style="vertical-align:middle;" name="MLevel" onclick="Checked(this.id, 'ManageLevel', '1', '', 'MLevel')" />
+                    <label for="MLevel1" style="vertical-align:middle;">院</label>
+                </span>
+                <span style="display:block;width:50px;float:left;">
+                    <input type="checkbox" id="MLevel2" style="vertical-align:middle;" name="MLevel" onclick="Checked(this.id, 'ManageLevel', '2', '', 'MLevel')" />
+                    <label for="MLevel2" style="vertical-align:middle;">所</label>
+                </span>
+                <input type="hidden" id="ManageLevel" name="ManageLevel" value="@Model.ManageLevel" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">工程编号</th>
+            <td width="20%">
+                <input id="ProjNumber" name="ProjNumber" style="width:98%;" class="easyui-textbox" data-options="required:true,editable:false" validType="length[0,50]" value="@Model.ProjNumber" />
+            </td>
+            <th width="10%">专业</th>
+            <td width="20%">
+                <input id="SpecId" name="SpecId" type="hidden" value="@Model.SpecId" />
+                <input id="SpecName" name="SpecName" style="width:98%;" class="easyui-textbox" data-options="editable:false" validType="length[0,100]" value="@Model.SpecName" />
+            </td>
+            <th width="10%">设计阶段</th>
+            <td width="20%">
+                <input id="ProjPhaseId" name="ProjPhaseId" type="hidden" value="@Model.ProjPhaseId" />
+                <input id="ProjPhaseName" name="ProjPhaseName" style="width:98%;" class="easyui-textbox" data-options="required:true,editable:false" validType="length[0,50]" value="@Model.ProjPhaseName" />
+            </td>
+        </tr>
+        <tr>
+
+            <th>校审内容</th>
+            <td colspan="3">
+                <input id="JSNR" name="JSNR" style="width:98%;" class="easyui-textbox" TextWrapping="Wrap" AcceptsReturn="true" validType="length[0,50]" value="@Model.JSNR" />
+                <input type="hidden" id="CheckFileID" name="CheckFileID" value="@Model.CheckFileID" />
+                <input type="hidden" id="CheckFlow" name="CheckFlow" value="@Model.CheckFlow" />
+                <a class="easyui-linkbutton" name="btnChoice" id="btnChoice" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="SelectCheckFile()">选择校审文件</a>
+            </td>
+            <th>送审日期</th>
+            <td>
+                <input name="SSTime" style="width:98%;" class="easyui-datebox" data-options="required:true,editable:false" validType="length[0,23]" value="@Model.SSTime" />
+            </td>
+        </tr>
+
+        <tr>
+            <th>校审文件</th>
+            <td colspan="3">
+                <span style="display:block;width:80px;float:left;">
+                    <input type="checkbox" id="CJSWJ1" style="vertical-align:middle;" name="CJSWJ" onclick="Checked(this.id, 'JSWJ', '1', '', 'CJSWJ')" />
+                    <label for="CJSWJ1" style="vertical-align:middle;">图纸</label>
+                </span>
+                <span style="display:block;width:80px;float:left;">
+                    <input type="checkbox" id="CJSWJ2" style="vertical-align:middle;" name="CJSWJ" onclick="Checked(this.id, 'JSWJ', '2', '', 'CJSWJ')" />
+                    <label for="CJSWJ2" style="vertical-align:middle;">说明书</label>
+                </span>
+                <span style="display:block;width:80px;float:left;">
+                    <input type="checkbox" id="CJSWJ3" style="vertical-align:middle;" name="CJSWJ" onclick="Checked(this.id, 'JSWJ', '3', '', 'CJSWJ')" />
+                    <label for="CJSWJ3" style="vertical-align:middle;">计算书</label>
+                </span>
+                <span style="display:block;width:80px;float:left;">
+                    <input type="checkbox" id="CJSWJ4" style="vertical-align:middle;" name="CJSWJ" onclick="Checked(this.id, 'JSWJ', '4', '', 'CJSWJ')" />
+                    <label for="CJSWJ4" style="vertical-align:middle;">概算</label>
+                </span>
+                <input type="hidden" id="JSWJ" name="JSWJ" value="@Model.JSWJ" />
+            </td>
+            <th>设计人</th>
+            <td>
+                <input id="SJEmpId" name="SJEmpId" type="hidden" value="@Model.SJEmpId" />
+                <input name="SJEmpName" style="width:98%;" class="easyui-textbox" data-options="required:true,editable:false" validType="length[0,50]" value="@Model.SJEmpName" />
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="4">
+                校审意见(注明文件名或编号)：
+                <br />
+                <input id="JSNote" name="JSNote" style="width:98%;height:260px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]" />
+            </td>
+            <td colspan="2">
+                修改情况：
+                <input id="ModifyNote" name="ModifyNote" style="width:98%;height:260px;" data-options="multiline:true" class="easyui-textbox" validType="length[0,500]" value="@Model.ModifyNote" />
+            </td>
+        </tr>
+        <tr id="SignTD">
+            <th></th>
+            <td colspan="5"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="5">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "IsoSJJSD";
+                    uploader.Name = "UploadFile1";
+
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+
+                    }

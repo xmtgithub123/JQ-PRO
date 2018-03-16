@@ -1,0 +1,510 @@
+﻿@model DataModel.Models.OaEquipReturn
+@using JQ.Web;
+<script type="text/javascript">
+
+    var selectId = 0;
+    var oldId = -1;
+
+    JQ.form.submitInit({
+        formid: 'OaEquipReturnForm',//formid提交需要用到
+        buttonTypes: ['close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"] == null ? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] == null ? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow", new { @area = "Core" }))",
+            instance: "_flowInstance",
+            processor: "OA,OA.FlowProcessor.OaEquipReturnFlow",
+            refID: "@(Model.Id)",
+            refTable: "OaEquipReturn",
+            beforeFormSubmit: function () {
+                var rows = $("#dgGrid").datagrid("getRows");
+                if (rows.length < 1) {
+                    alert("请选择要领用的设备！");
+                    return false;
+                }
+                for (var i = 0; i < rows.length; i++) {
+                    $("#dgGrid").datagrid("endEdit", i);
+                    $("#dgGrid").datagrid("beginEdit", i);
+                    var number = rows[i].EquipCount;
+                    debugger;
+                    if (number == undefined || number == "") {
+                        alert("请输入设备数量！");
+                        return false;
+                    }
+                    if (rows[i].EquipCount == undefined || rows[i].EquipCount == '')
+                    {
+                        alert('请输入归还数量');
+                        return false;
+                    }
+                    else if (Number(rows[i].EquipCount) > Number(rows[i].Count)) {
+                        alert('归还数量大于应还数量');
+                        return false;
+                    }
+                    else {
+                        debugger;
+                        var num = selectId;
+                        var les = 0;
+                        if (num == 0) {
+                            num = Number('@Model.UseId');
+                        }
+                        var numUrl = '@Url.Action("QueryNumber")';
+                        $.ajax({
+                            type: "GET",
+                            url: numUrl,
+                            async: false,
+                            data: { Id: num, Rid: rows[i].EquipId },
+                            dataType: "json",
+                            success: function (data) {
+                                les = Number(data.result);
+                            }
+                        });
+                        if (Number(rows[i].EquipCount) > (Number(les) + Number(rows[i].EquipCount1))) {
+                            alert('归还数量大于剩余应还数量');
+                            return false;
+                        }
+                    }
+                }
+                $("#EquipId").val(JSON.stringify($("#dgGrid").datagrid("getData").rows) + "&" + num);
+                console.log($("#EquipId").val());
+            },
+            getStepUsers: function (step, action) {
+                if (action = "back") {
+                    return;
+                }
+                if (step.Order == 0) {
+                    step = true;
+                }
+            },
+            onLoaded: function (val) {
+                //alert(this.stepOrder);
+                if (this.stepOrder != 1) {
+                    step = true;
+                }
+            }
+        },
+        onBefore: function () {
+            $("#dgGrid").datagrid('hideColumn', "Id");
+
+        },
+        onAfter: function () {
+            $("#dgGrid").datagrid('showColumn', "Id");
+
+        }
+    });
+
+    var step = false;
+    //var EquipArray = new Array();
+
+    var chooseUrl = '@Url.Action("EquipmentChoose1", "OaEquipReturn", new { @area = "Oa" })';
+    function EquipmentChoose() {
+
+            JQ.dialog.dialog({
+                title: "设备选择",
+                url: chooseUrl + "?id=" + selectId,
+                //url: chooseUrl + "?EquIds=" + EquipArray.join(',') + "",
+                width: '800',
+                height: '600',
+                JQID: 'OaEquipmentGrid02',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-search'
+            });
+    }
+
+    var chooseUrl1 = '@Url.Action("EquipmentChoose", "OaEquipReturn", new { @area = "Oa" })' + '?EquipOrOffice=@Request.QueryString["EquipOrOffice"]';
+    function EquipmentChoose1() {
+        JQ.dialog.dialog({
+            title: "领用单选择",
+            url: chooseUrl1 ,
+            width: '800',
+            height: '600',
+            JQID: 'OaEquipmentGrid01',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-search'
+        });
+    }
+
+    $.extend($.fn.datagrid.methods, {
+        editCell: function (jq, param) {
+            return jq.each(function () {
+                var opts = $(this).datagrid('options');
+                var fields = $(this).datagrid('getColumnFields', true).concat($(this).datagrid('getColumnFields'));
+                for (var i = 0; i < fields.length; i++) {
+                    var col = $(this).datagrid('getColumnOption', fields[i]);
+                    col.editor1 = col.editor;
+                    if (fields[i] != param.field) {
+                        col.editor = null;
+                    }
+                }
+                $(this).datagrid('beginEdit', param.index);
+                for (var i = 0; i < fields.length; i++) {
+                    var col = $(this).datagrid('getColumnOption', fields[i]);
+                    col.editor = col.editor1;
+                }
+            });
+        }
+    });
+
+    var editIndex = undefined;
+    function endEditing() {
+        if (editIndex == undefined) { return true }
+        if ($('#dgGrid').datagrid('validateRow', editIndex)) {
+            $('#dgGrid').datagrid('endEdit', editIndex);
+            editIndex = undefined;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function onClickCell(index, field) {
+        if (endEditing()) {
+            $('#dgGrid').datagrid('selectRow', index)
+                    .datagrid('editCell', { index: index, field: field });
+            editIndex = index;
+        }
+    }
+
+    @*$(function () {
+        $('#dgGrid').datagrid({
+            width: 'auto',
+            JQPrimaryID: 'Id',//主键的字段
+            striped: false,
+            singleSelect: true,
+            //url: '@Url.Action("json", "OaEquipStock", new { @area="Oa"})' + "?EquipFormID=@Model.Id&EquipFormType=OaEquipUse",//请求的地址
+            url: '',//请求的地址
+            //queryParams:{},
+            loadMsg: '数据加载中请稍后……',
+            pagination: false,
+            rownumbers: false,
+            onLoadSuccess: function (data) {
+                var rows = $("#dgGrid").datagrid("getRows");
+                for (var i = 0; i < rows.length; i++) {
+                    EquipArray.push(rows[i].Id);
+                }
+            }
+        });
+    });*@
+
+    $(function () {
+        var chooseUrl2 = '';
+        if ('@Model.UseId' != "0") {
+            chooseUrl2 = '@Url.Action("choosejsonId", "OaEquipReturn", new { @area = "Oa" })?id=@Model.UseId&EquipOrOffice=@Request.QueryString["EquipOrOffice"]';
+        }
+            $('#dgGrid1').datagrid({
+                width: 'auto',
+                striped: false,
+                singleSelect: true,
+                url: chooseUrl2,
+                //queryParams:{},
+                loadMsg: '数据加载中请稍后……',
+                pagination: false,
+                rownumbers: true
+            });
+
+
+        $('#dgGrid').datagrid({
+            width: 'auto',
+            striped: false,
+            singleSelect: true,
+            url: '@Url.Action("choosejson2", "OaEquipReturn", new { @area="Oa"})?id=@Model.UseId&rid=@Model.Id&time=@Model.CreationTime',//请求的地址
+            //queryParams:{},
+            loadMsg: '数据加载中请稍后……',
+            pagination: false,
+            rownumbers: true
+
+        });
+    });
+
+    var insert = function (row) {
+        var rows = $('#dgGrid').datagrid('getRows');
+        var isInsert = true;
+        for (var i = 0; i < rows.length; i++) {
+            if (row.Id == rows[i].Id) {
+                isInsert = false;
+                console.log(row.Id);
+            }
+        }
+        if (isInsert) {
+            $('#dgGrid').datagrid('appendRow', {
+                Id: row.Id,
+                EquipId: row.EquipId,
+                EquipNumber: row.EquipNumber,
+                EquipName: row.EquipName,
+                EquipModel: row.EquipModel == "" ? ' ' : row.EquipModel,
+                Count: row.Count == "" ? '0' : row.Count
+            });
+            //EquipArray.push(row.Id);
+        }
+    }
+
+    var insert1 = function (row) {
+        $('#dgGrid1').datagrid('reload');
+        $('#dgGrid1').datagrid('loadData', { total: 0, rows: [] });
+        $('#dgGrid1').datagrid('appendRow', {
+
+            Id: row.Id,
+            EquipLendDate: row.EquipLendDate,
+            EquipLendNote: row.EquipLendNote,
+            EquipBackDate: row.EquipBackDate == "1900/1/1 0:00:00" ? "" : row.EquipBackDate
+        });
+        selectId = row.Id;
+        $('#dgGrid').datagrid({
+            width: 'auto',
+            striped: false,
+            singleSelect: true,
+            url: '@Url.Action("choosejson1", "OaEquipReturn", new { @area="Oa"})?id=' + selectId,//请求的地址
+            //queryParams:{},
+            loadMsg: '数据加载中请稍后……',
+            pagination: false,
+            rownumbers: true
+
+        });
+    }
+
+    function formatOper(val, row, index) {
+        if (!step) {
+            return '<a href="javascript:void(0)" class="easyui-linkbutton" onclick="DeleteRow()">删除</a>';
+        }
+        else {
+            $('#btn').hide();
+            $('#btn1').hide();
+            $('#dgGrid').datagrid("hideColumn", 'Id');
+        }
+    }
+
+    function formatOper1(val, row, index) {
+        if (!step)
+            return '<a href="javascript:void(0)" class="easyui-linkbutton" onclick="DeleteRow1()">删除</a>';
+        else {
+            $('#btn').attr("hidden", true);
+            $('#btn1').attr("hidden", true);
+            return '';
+        }
+    }
+
+    function DeleteRow() {
+        var row = $('#dgGrid').datagrid('getSelected');
+        console.log(row.Id);
+        if (row != undefined) {
+            var rowIndex = $('#dgGrid').datagrid('getRowIndex', row);
+
+            $('#dgGrid').datagrid('deleteRow', rowIndex);
+
+            //EquipArray.splice($.inArray(row.Id, EquipArray), 1);
+        }
+    }
+
+    function DeleteRow1() {
+        $('#dgGrid1').datagrid('reload');
+        $('#dgGrid1').datagrid('loadData', { total: 0, rows: [] });
+        //var row = $('#dgGrid1').datagrid('getSelected');
+        //if (row != undefined) {
+        //    var rowIndex = $('#dgGrid1').datagrid('getRowIndex', row);
+
+        //    $('#dgGrid1').datagrid('deleteRow', rowIndex);
+
+        //    EquipArray.splice($.inArray(row.EquipId, EquipArray), 1);
+        //}
+    }
+</script>
+@using (Html.BeginForm("save", "OaEquipReturn", FormMethod.Post, new { @area = "Oa", @id = "OaEquipReturnForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+
+        <tr>
+            <th>领用单</th>
+            <td colspan="3">
+                <a id="btn" href="javascript:void(0);" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'" onclick="EquipmentChoose1()">选择领用单</a>
+                <input type="hidden" id="EquipId1" name="EquipId1" />
+                <input type="hidden" name="EquipOrOffice" id="EquipOrOffice" value="@Request.QueryString["EquipOrOffice"]" />
+                <table id="dgGrid1" bookmark="dgGrid1"  data-options="singleSelect: true,onClickCell: onClickCell">
+                    <thead>
+                        <tr>
+                            @*<th data-options="field:'Id'" style="width:200px; display:none;">ID</th>*@
+                            <th data-options="field:'EquipLendDate',formatter: JQ.tools.DateTimeFormatterByT" style="width:200px;">领用时间</th>
+                            <th data-options="field:'EquipLendNote'" style="width:250px;">领用备注</th>
+                            <th data-options="field:'EquipBackDate',formatter: JQ.tools.DateTimeFormatterByT" style="width:200px;">预计归还时间</th>
+                            @*<th data-options="field:'Id',formatter:formatOper1,align:'center'" style="width:70px;">操作</th>*@
+                        </tr>
+                    </thead>
+                </table>
+
+            </td>
+        </tr>
+        <tr>
+            <th>设备</th>
+            <td colspan="3">
+                <a id="btn1" href="javascript:void(0);" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'" onclick="EquipmentChoose()">选择设备</a>
+                <input type="hidden" id="EquipId" name="EquipId" />
+                <table id="dgGrid" bookmark="dgGrid" data-options="singleSelect: true,onClickCell: onClickCell">
+                    <thead>
+                        <tr>
+                            <th data-options="field:'EquipNumber'" style="width:200px;">设备编号</th>
+                            <th data-options="field:'EquipName'" style="width:250px;">设备名称</th>
+                            <th data-options="field:'EquipModel'" style="width:200px;">设备规格</th>
+                            <th data-options="field:'Count'" style="width:150px;">应归还数量</th>
+                            <th data-options="field:'EquipCount',editor:'numberbox'" style="width:150px;">归还数量</th>
+                            <th data-options="field:'Id',formatter:formatOper,align:'center'" style="width:70px;">操作</th>
+                        </tr>
+                    </thead>
+                </table>
+
+            </td>
+        </tr>
+        <tr>
+            @*<th width="10%">设备领用日期</th>
+                <td width="40%">
+                <input name="EquipLendDate" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.EquipLendDate" />
+                </td>*@
+            <th width="10%">设备领用备注</th>
+            <td width="40%">
+                <input name="EquipLendNote" style="width:98%;" class="easyui-textbox" data-options="required:true" validtype="length[0,500]" value="@Model.EquipLendNote" />
+            </td>
+            <th width="10%">设备归还日期</th>
+            <td width="40%">
+                <input name="EquipBackDate" style="width:98%;" class="easyui-textbox" readonly validtype="length[0,23]" value="@ViewBag.EquipBackDate" />
+            </td>
+        </tr>
+
+        @*<tr>
+            <th width="10%">设备0还是办公1</th>
+            <td width="40%">
+            <input name="EquipOrOffice" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.EquipOrOffice" />
+            </td>
+
+        </tr>
+
+                        <tr>
+                        <th width="10%">设备归还人ID</th>
+                        <td width="40%">
+						<input name="EquipBackEmpId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.EquipBackEmpId" />
+                        </td>
+                        <th width="10%">设备归还人姓名</th>
+                        <td width="40%">
+						<input name="EquipBackEmpName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.EquipBackEmpName" />
+                        </td>
+                        </tr>
+
+                        <tr>
+                        <th width="10%">设备归还人部门ID</th>
+                        <td width="40%">
+						<input name="EquipBackEmpDeptId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.EquipBackEmpDeptId" />
+                        </td>
+                        <th width="10%">设备归还人部门名称</th>
+                        <td width="40%">
+						<input name="EquipBackEmpDeptName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.EquipBackEmpDeptName" />
+                        </td>
+                        </tr>
+
+                        <tr>
+                        <th width="10%">最后修改时间</th>
+                        <td width="40%">
+						<input name="LastModificationTime" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.LastModificationTime" />
+                        </td>
+                        <th width="10%">最后修改人ID</th>
+                        <td width="40%">
+						<input name="LastModifierEmpId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.LastModifierEmpId" />
+                        </td>
+                        </tr>
+
+                        <tr>
+                        <th width="10%">最后修改人姓名</th>
+                        <td width="40%">
+						<input name="LastModifierEmpName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.LastModifierEmpName" />
+                        </td>
+                        <th width="10%">创建时间</th>
+                        <td width="40%">
+						<input name="CreationTime" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.CreationTime" />
+                        </td>
+                        </tr>
+
+                        <tr>
+                        <th width="10%">创建人ID</th>
+                        <td width="40%">
+						<input name="CreatorEmpId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.CreatorEmpId" />
+                        </td>
+                        <th width="10%">创建人姓名</th>
+                        <td width="40%">
+						<input name="CreatorEmpName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.CreatorEmpName" />
+                        </td>
+                        </tr>
+
+                        <tr>
+                        <th width="10%">流程ID</th>
+                        <td width="40%">
+						<input name="FlowID" style="width:98%;" class="easyui-numberspinner"   validType="length[0,19]" value="@Model.FlowID" />
+                        </td>
+                        <th width="10%">审批结束时间</th>
+                        <td width="40%">
+						<input name="FlowTime" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.FlowTime" />
+                        </td>
+                        </tr>
+
+                        <tr>
+                        <th width="10%">代理人ID</th>
+                        <td width="40%">
+						<input name="AgenEmpId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.AgenEmpId" />
+                        </td>
+                        <th width="10%">代理人姓名</th>
+                        <td width="40%">
+						<input name="AgenEmpName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.AgenEmpName" />
+                        </td>
+                        </tr>
+
+                        <tr>
+                        <th width="10%">创建部门</th>
+                        <td width="40%">
+						<input name="CreatorDepId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.CreatorDepId" />
+                        </td>
+                        <th width="10%">创建部门姓名</th>
+                        <td width="40%">
+						<input name="CreatorDepName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.CreatorDepName" />
+                        </td>
+                        </tr>
+
+                        <tr>
+                        <th width="10%">删除人员</th>
+                        <td width="40%">
+						<input name="DeleterEmpId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.DeleterEmpId" />
+                        </td>
+                        <th width="10%">删除人员姓名</th>
+                        <td width="40%">
+						<input name="DeleterEmpName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.DeleterEmpName" />
+                        </td>
+                        </tr>
+
+                        <tr>
+                        <th width="10%">删除日期</th>
+                        <td width="40%">
+						<input name="DeletionTime" style="width:98%;" class="easyui-datebox"   validType="length[0,16]" value="@Model.DeletionTime" />
+                        </td>
+                        <th width="10%">领用表的ID</th>
+                        <td width="40%">
+						<input name="UseId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.UseId" />
+                        </td>
+                        </tr>*@
+                        <tr>
+                            <th>
+                                上传附件
+                            </th>
+                            <td colspan="3">
+                                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "OaEquipReturn";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                                }
+                            </td>
+                        </tr>
+                    </table>
+
+}
+
+
+

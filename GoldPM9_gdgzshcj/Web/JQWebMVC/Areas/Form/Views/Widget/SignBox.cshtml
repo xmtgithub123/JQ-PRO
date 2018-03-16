@@ -1,0 +1,164 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div id="div1" style="display:none;padding:5px;">
+        <table class="documenttable" style="width:100%">
+            <tr>
+                <th style="width:15%">名称</th>
+                <td style="width:35%">
+                    <input type="text" id="txtName" name="" class="yc_textbox" style="width:80%">
+                </td>
+                <th style="width:15%"></th>
+                <td style="width:35%"></td>
+            </tr>
+            <tr>
+                <th>显示步骤</th>
+                <td colspan="3" id="tdActivities"></td>
+            </tr>
+            <tr>
+                <th>单元格1<br />显示</th>
+                <td>
+                    <div>
+                        <input type="checkbox" id="cbIsShowStepName" /><label for="cbIsShowStepName">显示步骤名称</label>
+                    </div>
+                </td>
+                <th>单元格2<br />显示</th>
+                <td>
+                    <div>
+                        <input type="checkbox" id="cbIsShowProcessNote" /><label for="cbIsShowProcessNote">显示处理意见</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="cbIsShowProcessUser" /><label for="cbIsShowProcessUser">显示处理人</label>
+                    </div>
+                    <div>
+                        <input type="checkbox" id="cbIsShowProcessTime" /><label for="cbIsShowProcessTime">显示处理时间</label>
+                    </div>
+                </td>
+            </tr>
+            <tr id="trTimeFormat">
+                <th>
+                    时间显示格式
+                </th>
+                <td colspan="3">
+                    <select id="listTimeFormat" class="yc_select">
+                        <option value="yyyy-MM-dd">2017-01-01</option>
+                        <option value="yyyy-MM-dd HH:mm">2017-01-01 01:01</option>
+                        <option value="yyyy-MM-dd HH:mm:ss">2017-01-01 01:01:01</option>
+                        <option value="yyyy年MM月dd日">2017年01月01日</option>
+                        <option value="yyyy年MM月dd日 HH时mm分">2017年01月01日 01时01分</option>
+                        <option value="yyyy年MM月dd日 HH时mm分ss秒">2017年01月01日 01时01分01秒</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript">
+
+    window.onDialogLoaded = function () {
+        var yTab = new YChart.Tab({
+            container: "divcontent",
+            offsetHeight: 0,
+            tabs: [
+                {
+                    name: "controlproperty",
+                    title: "控件属性",
+                    element: "div1",
+                    closable: false
+                }
+            ]
+        });
+        var data = window.frameElement.api.getSource();
+        var source = data.source;
+        document.getElementById("txtName").value = source.element.getAttribute("id") || "";
+        if (data.processTemplateID || data.processTemplateVersionID) {
+            YChart.ajax({
+                url: "@(Url.Action("GetAllActivities", "Template",new { @area="Process" }))",
+                type: "POST",
+                data: { id: data.processTemplateID, versionID: data.processTemplateVersionID },
+                success: function (result) {
+                    var _tdActivities = document.getElementById("tdActivities");
+                    for (var i = 0; i < result.length; i++) {
+                        var checkbox = YChart.createElement("input", { type: "checkbox", id: "cb_a_" + i, value: result[i].Value }, { marginLeft: "5px" });
+                        _tdActivities.appendChild(checkbox);
+                        var lbl = YChart.createElement("label", { "for": "cb_a_" + i });
+                        lbl.appendChild(document.createTextNode(result[i].Text));
+                        _tdActivities.appendChild(lbl);
+                        if (source.steps) {
+                            for (var j = 0; j < source.steps.length; j++) {
+                                if (source.steps[j] == result[i].Value) {
+                                    checkbox.checked = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        document.getElementById("cbIsShowStepName").checked = source.isShowStepName == "1";
+        document.getElementById("cbIsShowProcessNote").checked = source.isShowProcessNote == "1";
+        document.getElementById("cbIsShowProcessUser").checked = source.isShowProcessUser == "1";
+        document.getElementById("cbIsShowProcessTime").checked = source.isShowProcessTime == "1";
+        if (source.isShowProcessTime == "1") {
+            YChart.setSelectedByValue(document.getElementById("listTimeFormat"), source.ProcessTimeFormat);
+        }
+        document.getElementById("cbIsShowProcessTime").onchange = function () {
+            if (this.checked) {
+                document.getElementById("trTimeFormat").style.display = "";
+            }
+            else {
+                document.getElementById("trTimeFormat").style.display = "none";
+            }
+        }
+        document.getElementById("cbIsShowProcessTime").onchange();
+    }
+
+    function sure() {
+        var name = document.getElementById("txtName").value;
+        if (name && window.frameElement.api.isExists(name)) {
+            alert("控件名称已经存在，无法保存！");
+            return;
+        }
+        var property = {
+            steps: [],
+            isShowStepName: document.getElementById("cbIsShowStepName").checked ? "1" : "0",
+            isShowProcessNote: document.getElementById("cbIsShowProcessNote").checked ? "1" : "0",
+            isShowProcessUser: document.getElementById("cbIsShowProcessUser").checked ? "1" : "0",
+            isShowProcessTime: document.getElementById("cbIsShowProcessTime").checked ? "1" : "0",
+        };
+        if (property.isShowProcessTime == "1") {
+            property.ProcessTimeFormat = YChart.getSelectedValue(document.getElementById("listTimeFormat"));
+        }
+        var _tdActivities = document.getElementById("tdActivities");
+        for (var i = 0; i < _tdActivities.childNodes.length; i++) {
+            if (_tdActivities.childNodes[i].nodeType != 1 || _tdActivities.childNodes[i].tagName != "INPUT" || _tdActivities.childNodes[i].getAttribute("type") != "checkbox") {
+                continue;
+            }
+            if (_tdActivities.childNodes[i].checked) {
+                property.steps.push(_tdActivities.childNodes[i].getAttribute("value"));
+            }
+        }
+        window.frameElement.api.saveData({
+            name: name,
+            property: property
+        });
+        frameElement.closeDialog();
+    }
+
+
+</script>

@@ -1,0 +1,185 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        //alert(window)
+        $(function () {
+            $("#statuslist").combobox({
+                panelHeight: "auto",
+                editable: false,
+                onSelect: function () {
+                    refreshGrid();
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: "筛选",
+                buttonIcon: "fa fa-search",
+                height: 25,
+                prompt: "标题、流程名称、节点名称",
+                onClickButton: function () {
+                    refreshGrid()
+                }
+            });
+
+            JQ.datagrid.datagrid({
+                JQButtonTypes: [""],
+                JQPrimaryID: "FlowNodeID",
+                JQID: "tbList",
+                JQDialogTitle: "流程模版",
+                JQWidth: "768",//弹出窗体宽
+                JQHeight: '700',//弹出窗体高
+                JQLoadingType: "datagrid",
+                url: "@(Url.Action("GetToDoList", "PubFlow", new { @area = "Core" }))",
+                checkOnSelect: true,
+                toolbar: "#list_toolbar",
+                columns: [[
+                    { field: "ck", align: "center", checkbox: true, JQIsExclude: true },
+                    { title: "标题", field: "FlowTitle", width: 380, align: "left", halign: "center" },
+                    { title: "流程名称", field: "FlowName", width: 120, align: "center", halign: "center" },
+                    { title: "节点名称", field: "FlowNodeName", width: 100, align: "center", halign: "center" },
+                    {
+                        title: "节点轮到日期", field: "FlowNodeFromDateTime", width: 90, align: "center", halign: "center", formatter: function (value) {
+                            return JQ.Flow.parseDateText(value);
+                        }
+                    },
+                    {
+                        title: "节点完成日期", field: "FlowNodeDate", width: 90, align: "center", halign: "center", formatter: function (value) {
+                            return JQ.Flow.parseDateText(value);
+                        }
+                    },
+                     { title: "节点状态", field: "FlowNodeStatusName", width: 60, align: "center", halign: "center" },
+                    //{ title: "处理人", field: "FlowNodeEmpName", width: 60, align: "center", halign: "center" },
+                    {
+                        title: "流程发起日期", field: "FlowStartDate", width: 90, align: "center", halign: "center", formatter: function (value) {
+                            return JQ.Flow.parseDateText(value);
+                        }
+                    },
+                    {
+                        title: "流程完成日期", field: "FlowFinishDate", width: 90, align: "center", halign: "center", formatter: function (value) {
+                            return JQ.Flow.parseDateText(value);
+                        }
+                    },
+                     {
+                         title: "流程状态", field: "FlowStatusName", width: 140, align: "center", halign: "center", formatter: function (value, rowData) {
+                             var span = document.createElement("span");
+                             span.appendChild(document.createTextNode(value));
+                             span.style.color = "#165778";
+                             span.style.cursor = "pointer";
+                             span.setAttribute("onclick", "showProgress(" + rowData.FlowNodeID + ")");
+                             return span.outerHTML;
+                         }
+                     }, {
+                         title: "操作", field: "oao", width: 60, align: "center", halign: "center", formatter: function (value, rowData) {
+                             if ($("#statuslist").combobox("getValue") == 2) {
+                                 return "<a href=\"javascript:void(0)\" onclick=\"showProcess(" + rowData.FlowNodeID + ")\">查看</a>";
+                             } else {
+                                 return "<a href=\"javascript:void(0)\" onclick=\"showProcess(" + rowData.FlowNodeID + ")\">处理</a>";
+                             }
+                         }
+                     }
+                    //,{ title: "处理路径", field: "FlowNodeUrl", width: 120, align: "left", halign: "center" },
+                    //{ title: "流程ID", field: "FlowID", width: 45, align: "right", halign: "center" },
+                    //{ title: "节点ID", field: "FlowNodeID", width: 45, align: "right", halign: "center" },
+                    //{ title: "会签节点ID", field: "FlowMultiSignID", width: 45, align: "right", halign: "center" }
+                ]],
+                queryParams: getQueryParameters()
+            });
+        });
+
+        window.refreshGrid = function () {
+            $("#tbList").datagrid("load", getQueryParameters());
+        }
+
+        function getQueryParameters() {
+            return { text: $("#JQSearch").textbox("getText"), statusID: $("#statuslist").combobox("getValue"), modular: "@(Request.QueryString["modular"]??"")" };
+        }
+
+        function showProcess(flowNodeID) {
+            var datas = $("#tbList").datagrid("getData").rows;
+            for (var i in datas) {
+                if (datas[i].FlowNodeID == flowNodeID) {
+                    if (datas[i].FlowType == 0) {
+                        JQ.dialog.dialog({
+                            title: decodeURIComponent(datas[i].FlowName + " " + datas[i].FlowNodeName),
+                            url: "@(ViewBag.sitePath)" + datas[i].FlowNodeUrl,
+                            width: datas[i].DialogWidth,
+                            height: datas[i].DialogHeight,
+                            JQID: "",
+                            JQLoadingType: "",
+                            iconCls: "fa fa-table",
+                            onClose: function () {
+                                $("#tbList").datagrid("load", getQueryParameters());
+                            }
+                        });
+                    }
+                    else {
+                        new YChart.Dialog({
+                            height: datas[i].DialogHeight,
+                            width: datas[i].DialogWidth,
+                            icon: "fa-table",
+                            title: decodeURIComponent(datas[i].FlowName + " " + datas[i].FlowNodeName),
+                            url: "@(Url.Action("Edit","Manage",new { @area="Form" }))?activityID=" + datas[i].FlowNodeID + "&processID=" + datas[i].FlowID + "&formTemplateID=" + datas[i].FormTemplateID,
+                            api: {
+                                refreshGrid: function () {
+                                    window.refreshGrid();
+                                }
+                            }
+                        });
+                    }
+                    break;
+                }
+            }
+            JQ.Flow.stopBubble();
+        }
+
+        function showProgress(flowNodeID) {
+            var datas = $("#tbList").datagrid("getData").rows;
+            var title = "";
+            var flowID = 0;
+            var flowType = 0;
+            for (var i in datas) {
+                if (datas[i].FlowNodeID == flowNodeID) {
+                    title = datas[i].FlowName;
+                    flowID = datas[i].FlowID;
+                    flowType = datas[i].FlowType;
+                    break;
+                }
+            }
+            if (flowType == 0) {
+                JQ.dialog.dialog({
+                    title: decodeURIComponent(title),
+                    url: "@(Url.Action("Progress", "PubFlow", new { @area="Core"}))?flowID=" + flowID,
+                    width: 800,
+                    height: 600,
+                    iconCls: "fa fa-list"
+                });
+            }
+            else {
+                new YChart.Dialog({
+                    height: 600,
+                    width: 800,
+                    icon: "fa-th-list",
+                    title: decodeURIComponent(title),
+                    url: "@(Url.Action("Progress", "Widget", new { @area="Process" }))?id=" + flowID
+                });
+            }
+            JQ.Flow.stopBubble();
+        }
+    </script>
+}
+@section Body_Content{
+    <table id="tbList"></table>
+    <div id="list_toolbar" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+        </span>
+        <select id="statuslist">
+            <option value="1">未审批</option>
+            <option value="2">已审批</option>
+        </select>
+        <input id="JQSearch" style="width:250px;" />
+    </div>
+    <script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+    <script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+}

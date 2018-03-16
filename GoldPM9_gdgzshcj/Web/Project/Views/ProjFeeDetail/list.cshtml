@@ -1,0 +1,126 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")',//添加的路径
+                JQEditUrl: '@Url.Action("edit")',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                pagination: true,
+                JQID: 'ProjFeeDetailGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQExcludeCol: [1],//导出execl排除的列
+                //singleSelect: true,
+                url: '@Url.Action("json", "ProjFeeDetail", new { @area="Project"})',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#ProjFeeDetailPanel',//工具栏的容器ID
+                //JQMergeCells: { fields: ['ck', 'FlowProgress'], Only: 'ColAttType5' },
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                  { title: '项目编号', field: 'ProjNumber', width: "12%", halign: 'center', align: 'left', },
+	              { title: '项目名称', field: 'ProjName', width: "20%", halign: 'center', align: 'left', },
+                  { title: '设总', field: 'TaskGroupEmpName', width: "7%", halign: 'center', align: 'center', },
+                  { title: '项目阶段', field: 'PhaseName', width: "7%", halign: 'center', align: 'center', },
+                  { title: '招标费', field: 'FeeZBF', width: "6%", halign: 'center', align: 'right', },
+                  { title: '项目前期费', field: 'FeeXMQQF', width: "6%", halign: 'center', align: 'right', },
+		          { title: '设计费', field: 'FeeSJF', width: "6%", halign: 'center', align: 'right', },
+                  { title: '预算编制费', field: 'FeeYSBZF', width: "6%", halign: 'center', align: 'right', },
+                  { title: '竣工图编制费', field: 'FeeJGTBZF', width: "8%", halign: 'center', align: 'right', },
+                  { title: '工程勘察费', field: 'FeeKCF', width: "6%", halign: 'center', align: 'right', },
+                  //{ title: '招标费', field: 'FeeKCF', width: "6%", halign: 'center', align: 'right', },
+                  { title: '总投资额', field: 'FeeZTZ', width: "6%", halign: 'center', align: 'right', },
+		          //{ title: '立项时间', field: 'DateCreate', width: "80", halign: 'center', align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                  //{
+                  //    field: "opt", title: "查看", align: "center", halign: "center", width: "6%", formatter: function (value, row, index) {
+                  //        return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"ShowProjectInfoDialogue('" + row.Id + "')\">查看</>";
+                  //    }
+                  //}
+                ]],
+
+                onLoadSuccess: function (rowIndex, rowData) {
+
+                },
+
+
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号,项目名称',
+                //queryOptions: { 'Key': 'ProjNumber', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ProjFeeDetailGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+
+
+        });
+
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+
+        function ShowProjectInfoDialogue(Id) {
+            JQ.dialog.dialog({
+                title: "项目信息明细",
+                url: '@Url.Action("edit")?Id=' + Id,
+                width: '1024',
+                height: '100%'
+            });
+        }
+
+        function ExcelDataFunc() {
+            JQ.dialog.dialog({
+                title: "导入数据",
+                url: '@Url.Action("ExcelData")',
+                width: '1024',
+                height: '100%',
+                onClose: function () {
+
+                }
+            });
+        }
+    </script>
+    @*@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")*@
+}
+
+@section Body_Content{
+    <table id="ProjFeeDetailGrid"></table>
+    <div id="ProjFeeDetailPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'dtg.ProjNumber,dtg.ProjName', 'Contract': 'like' }" />
+
+        <a id="ExcelData" class="easyui-linkbutton" data-options="iconCls:'fa fa-file-excel-o'" onclick="return ExcelDataFunc();">导入数据</a>
+
+        <div class="moreSearchPanel">
+
+            @BaseData.getBases(new Params() { isMult = true, controlName = "ProjectPhase1", engName = "ProjectPhase", queryOptions = "{ Key:'dtg.TaskGroupPhaseId', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params() { isMult = true, controlName = "ProjectVolt1", engName = "ProjectVolt", queryOptions = "{ Key:'p.ProjVoltID', Contract:'in',filedType:'Int'}" })
+
+            @*<input id="startTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '下达时间开始'" JQWhereOptions="{ Key:'DateCreate', Contract:'>=',filedType:'Date' }">
+                至
+                <input id="endTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '下达时间结束'" JQWhereOptions="{ Key:'DateCreate', Contract:'<=',filedType:'Date' }">&nbsp;
+                <input id="startTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '完成时间开始'" JQWhereOptions="{ Key:'DatePlanFinish', Contract:'>=',filedType:'Date' }">
+                至
+                <input id="endTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '完成时间结束'" JQWhereOptions="{ Key:'DatePlanFinish', Contract:'<=',filedType:'Date' }">&nbsp;*@
+        </div>
+    </div>
+}
+

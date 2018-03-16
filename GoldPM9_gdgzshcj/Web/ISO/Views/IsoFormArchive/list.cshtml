@@ -1,0 +1,113 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoFormArchive", new { @area="Iso"})',
+               editUrl = '@Url.Action("edit", "IsoFormArchive", new {@area="Iso" })',
+               delUrl = '@Url.Action("del", "IsoFormArchive", new { @area = "Iso" })';
+        var EmpId = '@ViewBag.EmpId';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['del', 'export'],//需要显示的按钮
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'IsoFormGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["FormID"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: true,
+                nowrap: false,
+                JQExcludeCol: [1,7,8],
+                toolbar: '#IsoFormPanel',//工具栏的容器ID
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '原因',
+                },
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '表单名称', field: 'FormName', width: 100, align: 'center', sortable: true },
+		            { title: '原因', field: 'FormReason', width: 100, align: 'center', sortable: true },
+		            {
+		                title: '审批结束时间', field: 'FlowTime', width: 100, align: 'center', sortable: true,
+		                formatter: function (value, row, index) {
+		                    row.FlowTime = JQ.tools.DateTimeFormatterByT(value, row, index);
+		                    return row.FlowTime;
+		                }
+		            },
+		            { title: '创建时间', field: 'CreationTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '创建人姓名', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true },
+                    //{
+                    //    field: "FlowProgress", JQIsExclude: true, title: "流程进度", align: "center", halign: "center", width: 130, formatter: JQ.Flow.showFlowProgress("IsoFormGrid", "IsoFormArchive", "FormID")
+                    //},
+                    {
+                        field: "FlowProgress", JQIsExclude: true, title: "流程进度", align: "center", halign: "center", width: 130,
+                        formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.EmpId)")
+                    },
+                    {
+                        field: 'Opt', title: '操作', align: 'center', width: '5%', JQIsExclude: true,
+                        formatter: function (val, row) {
+                            var title = "查看";
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                            }
+                            return '<a class="easyui-linkbutton" onclick="Info(' + row.FormID + ')">' + title + '</a>';
+                        }
+                    }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    if ($(".datagrid-row[datagrid-row-index=" + rowIndex + "] input[type='checkbox']").attr("disabled") == "disabled") {
+                        return false;
+                    }
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (rowData.FlowTime == "")
+                    {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (row) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                }
+            });
+        });
+
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+
+        function Info(id) {
+            JQ.dialog.dialog({
+                title: '查看',
+                height: '100%',
+                width: '768',
+                url: editUrl + '?id=' + id,
+                onClose: function () {
+                    $("#IsoFormGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoFormGrid"></table>
+    <div id="IsoFormPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'FormReason', 'Contract': 'like' }"/>
+
+    </div>
+}
+

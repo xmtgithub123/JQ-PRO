@@ -1,0 +1,55 @@
+﻿@model DataModel.Models.BaseAttachVer
+<script>
+    $(function () {
+        $("#AttachSize").html(JQ.tools.getFileSizeText(@(Model.AttachSize)));
+    });
+</script>
+
+<table class="table table-hover table-bordered">
+    <tr>
+        <th class="info">
+            文件名称：
+        </th>
+        <td>
+            @ViewBag.BaseAttach.AttachName
+        </td>
+    </tr>
+    <tr>
+        <th class="info" style="width: 100px;">
+            文件版本：
+        </th>
+        <td>
+            @Model.AttachVer
+        </td>
+    </tr>
+    <tr>
+        <th class="info">
+            文件大小：
+        </th>
+        <td id="AttachSize"></td>
+    </tr>
+    <tr>
+        <th class="info">
+            修改时间：
+        </th>
+        <td>
+            @Model.AttachDateChange.ToString("yyyy-MM-dd HH:mm:ss")
+        </td>
+    </tr>
+    <tr>
+        <th class="info">
+            上传时间：
+        </th>
+        <td>
+            @Model.AttachDateUpload.ToString("yyyy-MM-dd HH:mm:ss")
+        </td>
+    </tr>
+    <tr>
+        <th class="info" style="width: 100px;">
+            上传人员：
+        </th>
+        <td>
+            @Model.AttachEmpName
+        </td>
+    </tr>
+</table>

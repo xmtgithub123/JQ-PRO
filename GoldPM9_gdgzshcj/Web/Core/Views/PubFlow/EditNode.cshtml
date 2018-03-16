@@ -1,0 +1,245 @@
+﻿@model DataModel.Models.FlowModelNode
+@using JQ.Web;
+<script type="text/javascript">
+    $("#FlowModelNodeForm select[value]").each(function () {
+        $(this).val(this.getAttribute("value"));
+    });
+    JQ.form.submitInit({
+        formid: 'FlowModelNodeForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            onAfterSave();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+    JQ.textbox.selEmp({
+        id: "choosetosendEmp",
+        setID: "NodeEmpIDs",
+        width: 270
+    });
+</script>
+@using (Html.BeginForm("SaveModelNode", "PubFlow", FormMethod.Post, new { @area = "Core", @id = "FlowModelNodeForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">节点名称</th>
+            <td width="40%">
+                <input name="NodeName" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,400]" value="@Model.NodeName" />
+            </td>
+            <th width="10%">节点类别</th>
+            <td width="40%">
+                <select id="NodeTypeID" name="NodeTypeID" class="easyui-combobox" value="@(Model.NodeTypeID)" data-options="panelHeight:58,editable:false">
+                    <option value="0">普通</option>
+                    <option value="-1">会签</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">允许直接结束</th>
+            <td width="40%">
+                <select id="NodeIsToFinish" name="NodeIsToFinish" class="easyui-combobox" value="@(Model.NodeIsToFinish?1:0)" data-options="panelHeight:58,editable:false">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+            <th width="10%">允许直接否决</th>
+            <td width="40%">
+                <select id="NodeIsToPass" name="NodeIsToPass" class="easyui-combobox" value="@(Model.NodeIsToPass?1:0)" data-options="panelHeight:58,editable:false">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">选择回退</th>
+            <td width="40%">
+                <select id="NodeSelectToBack" name="NodeSelectToBack" class="easyui-combobox" value="@(Model.NodeSelectToBack?1:0)" data-options="panelHeight:58,editable:false">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+            <th width="10%">回退节点</th>
+            <td width="40%">
+                <select id="NodeBackID" name="NodeBackID" class="easyui-combobox" value="@(Model.NodeBackID)" data-options="panelHeight:'auto',editable:false">
+                    <option value="0">无</option>
+                    @if (ViewBag.PreviousNodes != null)
+                    {
+                        foreach (KeyValuePair<int, string> item in ViewBag.PreviousNodes)
+                        {
+                            <option value="@(item.Key)">@(item.Value)</option>
+                        }
+                    }
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">选择跳步</th>
+            <td width="40%">
+                <select id="NodeSelectToSkip" name="NodeSelectToSkip" class="easyui-combobox" value="@(Model.NodeSelectToSkip?1:0)" data-options="panelHeight:'auto',editable:false">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+            <th width="10%">跳步节点</th>
+            <td width="40%">
+                <select id="NodeNodeSkipID" name="NodeNodeSkipID" class="easyui-combobox" value="@(Model.NodeNodeSkipID)" data-options="panelHeight:'auto',editable:false">
+                    <option value="0">无</option>
+                    @if (ViewBag.NextNodes != null)
+                    {
+                        foreach (KeyValuePair<int, string> item in ViewBag.NextNodes)
+                        {
+                            <option value="@(item.Key)">@(item.Value)</option>
+                        }
+                    }
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">列出本部门人员</th>
+            <td width="40%">
+                <select id="NodeThisDep" name="NodeThisDep" class="easyui-combobox" value="@(Model.NodeThisDep?1:0)" data-options="panelHeight:58,editable:false">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+            <th width="10%">资格角色</th>
+            <td width="40%">
+                @(BaseData.getBase(new Params() { controlName = "NodeRoleS", engName = "role", width = "285px", isMult = true, ids = Model.NodeRoleS }))
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">资格人员</th>
+            <td width="40%">
+                <input name="NodeEmpIDs" id="NodeEmpIDs" type="hidden" value="@Model.NodeEmpIDs" />
+                <input id="choosetosendEmp" style="width:98%;" class="easyui-textbox" validType="length[0,1000]" value="@(ViewBag.NodeEmpNames)" />
+            </td>
+            <th width="10%">相同节点人员</th>
+            <td width="40%">
+                <select id="NodeSameId" name="NodeSameId" class="easyui-combobox" value="@(Model.NodeSameId)" data-options="panelHeight:'auto',editable:false">
+                    <option value="0">无</option>
+                    @if (ViewBag.PreviousNodes != null)
+                    {
+                        foreach (KeyValuePair<int, string> item in ViewBag.PreviousNodes)
+                        {
+                            <option value="@(item.Key)">@(item.Value)</option>
+                        }
+                    }
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                本部门主管
+            </th>
+            <td>
+                <select id="IsDepDirector" name="IsDepDirector" class="easyui-combobox" value="@(ViewBag.IsDepDirector)" data-options="panelHeight:58,editable:false">
+                    <option value="0">否</option>
+                    <option value="1">是</option>
+                </select>
+            </td>
+            <th>
+            </th>
+            <td>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">审批结束后发送消息提醒</th>
+            <td width="40%">
+                <select id="NodeIsToMessage" name="NodeIsToMessage" class="easyui-combobox" value="@(Model.NodeIsToMessage?1:0)" data-options="panelHeight:58,editable:false">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+            <th width="10%">签名列表中显示</th>
+            <td width="40%">
+                <select id="NodeValidateGroup" name="NodeValidateGroup" class="easyui-combobox" value="@(Model.NodeValidateGroup)" data-options="panelHeight:58,editable:false">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                可编辑控件
+            </th>
+            <td colspan="3">
+                <input name="NodeWriteControlsName" spellcheck="false" style="width:99%;height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]" value="@Model.NodeWriteControlsName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">签名控件</th>
+            <td width="90%" colspan="3">
+                <input name="NodeSignControlName" spellcheck="false" style="width:99%;height:40px" class="easyui-textbox" data-options="multiline:true" validType="length[0,200]" value="@Model.NodeSignControlName" />
+            </td>
+        </tr>
+        <tr>
+            <th>流转路径</th>
+            <td colspan="3"><input name="NodeUrl" style="width:99%;" spellcheck="false" class="easyui-textbox" validType="length[0,100]" value="@Model.NodeUrl" /></td>
+        </tr>
+        <tr>
+            <th>处理页面宽度</th>
+            <td><input id="DialogWidth" name="DialogWidth" style="width:60%;" class="easyui-numberbox" value="@(ViewBag.DialogWidth)" /> px</td>
+            <th>处理页面高度</th>
+            <td><input id="DialogHeight" name="DialogHeight" style="width:60%;" class="easyui-numberbox" value="@(ViewBag.DialogHeight)" /> px</td>
+        </tr>
+        <tr>
+            <th width="10%">默认提交审批意见</th>
+            <td colspan="3">
+                <input name="NodeAppDefaultValue" style="width:99%;height:40px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,20]" value="@Model.NodeAppDefaultValue" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">默认退回审批意见</th>
+            <td colspan="3">
+                <input name="NodeAppDefaultBackValue" style="width:99%;height:40px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,20]" value="@(ViewBag.NodeAppDefaultBackValue)" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">审批意见是否必填</th>
+            <td width="40%">
+                <select id="NodeAppIsRequired" name="NodeAppIsRequired" class="easyui-combobox" value="@(Model.NodeAppIsRequired?1:0)" data-options="panelHeight:58,editable:false">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+            <th width="10%">上次意见是否显示</th>
+            <td width="40%">
+                <select id="NodeAppIsLastTime" name="NodeAppIsLastTime" class="easyui-combobox" value="@(Model.NodeAppIsLastTime?1:0)" data-options="panelHeight:58,editable:false">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">审批工日</th>
+            <td width="40%">
+                <input name="NodeDays" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" value="@Model.NodeDays" />
+            </td>
+            <th width="10%">自动审批</th>
+            <td width="40%">
+                <select id="NodeAutoFinished" name="NodeAutoFinished" class="easyui-combobox" value="@(Model.NodeAutoFinished?1:0)" data-options="panelHeight:58,editable:false">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">审批结束重新提交</th>
+            <td width="40%">
+                <select id="NodeFinishToNext" name="NodeFinishToNext" class="easyui-combobox" value="@(Model.NodeFinishToNext?1:0)" data-options="panelHeight:58,editable:false">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+            <th>运行时自动选人提交</th>
+            <td>
+                <select id="NodeIsFactNext" name="NodeIsFactNext" class="easyui-combobox" value="@(Model.NodeIsFactNext?1:0)" data-options="panelHeight:58,editable:false">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+
+}

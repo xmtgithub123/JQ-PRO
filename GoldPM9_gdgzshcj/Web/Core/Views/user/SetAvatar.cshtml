@@ -1,0 +1,242 @@
+﻿<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: "useravatar",
+            buttonTypes: ["close"],
+            succesCollBack: function (data) {
+
+
+            },
+            beforeButtons: [
+                {
+                    icon: "fa-check", text: "确定", onClick: function () {
+                        if (!filename || !_imgAreaSelect) {
+                            JQ.dialog.info("请选择一张图片做为头像！");
+                            return;
+                        }
+                        window.top.$.messager.progress();
+                        $.ajax({
+                            url: "@(Url.Action("ChangeAvatar", "user",new { @area="Core" }))",
+                            type: "post",
+                            data: { x1: x1, y1: y1, x2: x2, y2: y2, imgHeight: imgHeight, imgWidth: imgWidth, fileName: filename },
+                            success: function (result) {
+                                window.top.$.messager.progress("close");
+                                if (result.Result == false) {
+                                    alert(result.Message);
+                                    return;
+                                }
+                                window.top.document.getElementById("@(Request.QueryString["parentID"])").contentWindow.reloadAvatar();
+                                JQ.dialog.dialogClose();
+                            }
+                        });
+                    }
+                }
+            ],
+            buttons: [
+                {
+                    icon: "fa-upload", text: "上传图片", onClick: function () {
+                        uploadimg();
+                    }
+                }
+            ]
+        });
+    });
+</script>
+<form id="useravatar" name="useravatar">
+    <input type="button" id="btnUploadImage" style="display:none" />
+    <div id="divContainer" style="width:500px;height:400px;float:left;background-color:#DFDFDF;color:#FFFFFF;line-height:400px;text-align:center;font-size:20px;position:relative;overflow:hidden"></div>
+    <div style="float:left;padding:0px 10px 0px 10px;color:#444444">
+        <div style="margin-top:5px;cursor:default;-webkit-user-select:none">头像预览</div>
+        <div id="div1" style="position:relative;height:128px;width:128px;border:1px solid #666666;margin-top:10px;background-color:#DFDFDF;overflow:hidden"></div>
+        <div>128*128</div>
+        <div id="div2" style="position:relative;height:64px;width:64px;border:1px solid #666666;margin-top:20px;background-color:#DFDFDF;overflow:hidden"></div>
+        <div>64*64</div>
+    </div>
+</form>
+<script type="text/javascript" src="@(Url.Content("~/Scripts/uploader/upload.js"))"></script>
+<link href="@(Url.Content("~/Scripts/imgareaselect/css/imgareaselect-default.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Scripts/imgareaselect/jquery.imgareaselect.pack.js"))"></script>
+<script type="text/javascript">
+    var _divContainer = document.getElementById("divContainer");
+    var _imgAreaSelect = null, image1 = null, image2 = null, imgHeight = 0, imgWidth = 0, filename;
+    var x1 = 0, y1 = 0, x2 = 0, y2 = 0;
+    var uploader = new plupload.Uploader({
+        runtimes: "html5,flash,html4,silverlight",
+        browse_button: "btnUploadImage",
+        chunk_size: "1mb",
+        url: "@(Url.Action("Upload", "ProcessFile", new { @area = "Core" }))",
+        flash_swf_url: "@(Url.Content("~/Scripts/uploader/upload.swf"))",
+        silverlight_xap_url: "@(Url.Content("~/Scripts/uploader/upload.xap"))",
+        multi_selection: false,
+        filters: {
+            max_file_size: "1gb",
+            mime_types: [
+                    { title: "Image files", extensions: "jpg,png,bmp,jpeg" },
+            ]
+        },
+        init: {
+            BeforeUpload: function (up, file) {
+                $("#" + file.uploaderName + "_toggle").linkbutton("disable");
+                up.settings.multipart_params = {
+                    refID: 0,
+                    refTable: "UserAvatar",
+                    fileID: file.id
+                }
+            },
+            FilesAdded: function (up, files) {
+                up.start();
+            },
+            UploadProgress: function (up, file) {
+                _divContainer.innerHTML = "";
+                _divContainer.appendChild(document.createTextNode(file.percent + "%"));
+            },
+            FileUploaded: function (up, file, info) {
+                info = JQ.Flow.parseJson(info.response);
+                if (_imgAreaSelect) {
+                    _imgAreaSelect.remove();
+                }
+                filename = info.Name;
+                var url = "@(Url.Action("Download", "ProcessFile", new { @area = "Core" }))?id=0&name=" + info.Name + "&realName=" + new Date().valueOf();
+                image1 = setImage("div1", url);
+                image2 = setImage("div2", url);
+                var image = document.createElement("img");
+                image.setAttribute("src", url);
+                _divContainer.innerHTML = "";
+                image.style.position = "absolute";
+                image.onload = function () {
+                    var maxHeight = 400, maxWidth = 500;
+                    imgHeight = image.clientHeight;
+                    imgWidth = image.clientWidth;
+                    var scale = maxHeight / maxWidth;
+                    if (imgHeight > maxHeight || imgWidth > maxWidth) {
+                        if (imgWidth * scale > imgHeight) {
+                            //以宽度为准
+                            imgHeight = imgHeight * (500 / imgWidth);
+                            image.style.top = (400 - imgHeight) / 2 + "px";
+                            image.style.left = "0px";
+                            image.style.width = "500px";
+                            imgWidth = 500;
+                        }
+                        else {
+                            //以高度为准
+                            imgWidth = imgWidth * (400 / imgHeight);
+                            image.style.height = "400px";
+                            image.style.width = imgWidth + "px";
+                            image.style.top = "0px";
+                            image.style.left = (500 - imgWidth) / 2 + "px";
+                            imgHeight = 400;
+                        }
+                    }
+                    else {
+                        image.style.top = (400 - imgHeight) / 2 + "px";
+                        image.style.left = (500 - imgWidth) / 2 + "px";
+                    }
+                    image1.style.width = imgWidth + "px";
+                    image1.style.height = imgHeight + "px";
+                    image2.style.width = imgWidth + "px";
+                    image2.style.height = imgHeight + "px";
+                    debugger;
+                    x1 = 0; y1 = 0; x2 = 0; y2 = 0;
+                    if (imgHeight > imgWidth) {
+                        if (imgWidth >= 256) {
+                            x1 = (imgWidth - 256) / 2;
+                            x2 = x1 + 256;
+                            y1 = (imgHeight - 256) / 2;
+                            y2 = y1 + 256;
+                        }
+                        else {
+                            x1 = 0;
+                            x2 = imgWidth;
+                            if (imgHeight >= 256) {
+                                y1 = (imgHeight - 256) / 2;
+                                y2 = y1 + imgWidth;
+                            }
+                            else {
+                                y1 = 0;
+                                y2 = imgWidth;
+                            }
+                        }
+                    }
+                    else {
+                        if (imgHeight >= 256) {
+                            x1 = (imgWidth - 256) / 2;
+                            x2 = x1 + 256;
+                            y1 = (imgHeight - 256) / 2;
+                            y2 = y1 + 256;
+                        }
+                        else {
+                            y1 = 0;
+                            y2 = imgHeight;
+                            if (imgWidth >= 256) {
+                                x1 = (imgWidth - 256) / 2;
+                                x2 = x1 + y2;
+                            }
+                            else {
+                                x1 = 0;
+                                x2 = imgWidth;
+                            }
+                        }
+                    }
+                    _imgAreaSelect = $(this).imgAreaSelect({
+                        handles: true,
+                        aspectRatio: "1:1",
+                        maxHeight: 256,
+                        maxWidth: 256,
+                        onSelectChange: preview,
+                        x1: x1,
+                        y1: y1,
+                        x2: x2,
+                        y2: y2,
+                        keys: true,
+                        instance: true,
+                        persistent: true,
+                        onSelectEnd: function (img, selection) {
+                            x1 = selection.x1;
+                            x2 = selection.x2;
+                            y1 = selection.y1;
+                            y2 = selection.y2;
+                        }
+                    });
+                    preview(null, { x1: x1, y1: y1, width: x2 - x1, height: y2 - y1 });
+                }
+                _divContainer.appendChild(image);
+            }
+        },
+    });
+    uploader.init();
+    function uploadimg() {
+        document.getElementById("btnUploadImage").click();
+    }
+
+    function preview(img, selection) {
+        if (image1) {
+            var scaleX = 128 / (selection.width || 1);
+            var scaleY = 128 / (selection.height || 1);
+            image1.style.width = Math.round(scaleX * imgWidth) + "px";
+            image1.style.height = Math.round(scaleY * imgHeight) + "px";
+            image1.style.marginLeft = "-" + Math.round(scaleX * selection.x1) + "px";
+            image1.style.marginTop = "-" + Math.round(scaleY * selection.y1) + "px";
+        }
+        if (image2) {
+            var scaleX = 64 / (selection.width || 1);
+            var scaleY = 64 / (selection.height || 1);
+            image2.style.width = Math.round(scaleX * imgWidth) + "px";
+            image2.style.height = Math.round(scaleX * imgHeight) + "px";
+            image2.style.marginLeft = "-" + Math.round(scaleX * selection.x1) + "px";
+            image2.style.marginTop = "-" + Math.round(scaleY * selection.y1) + "px";
+        }
+    }
+
+    function setImage(divID, src) {
+        var _c = document.getElementById(divID);
+        _c.innerHTML = "";
+        var image = document.createElement("img");
+        image.setAttribute("src", src);
+        image.style.position = "absolute";
+        image.style.margin = "0px";
+        image.style.left = "0px";
+        image.style.top = "0px";
+        _c.appendChild(image);
+        return image;
+    }
+</script>

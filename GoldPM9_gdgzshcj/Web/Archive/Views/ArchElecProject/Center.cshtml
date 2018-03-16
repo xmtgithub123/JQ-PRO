@@ -1,0 +1,93 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@section head {
+    <script type="text/javascript">
+
+        $(function () {
+            initGrid();
+            //默认选中第一个
+            $("#lefttree").treegrid({
+                idField: "id",
+                treeField: "text",
+                border: 0,
+                fit: true,
+                url: "@(Url.Action("GetTreeList", "ArchElecProject", new { @area= "Archive"}))",
+                singleSelect: true,
+                columns: [[
+                    {
+                        title: "档案节点", field: "text", width: 240, align: "left", halign: "center", formatter: function (value) {
+                            return decodeURIComponent(value.replace(/\+/g, " "));
+                        }
+                    }
+                ]],
+                queryParams: { projectID: "@(Request.QueryString["projectID"])", taskGroupID: "@(Request.QueryString["taskGroupID"])" },
+                onSelect: function (node) {
+                    loadGrid(node.id);
+                }
+            });
+        });
+
+        function loadGrid(archiveID) {
+            var $archivegrid = $("#archivegrid");
+            var options = $archivegrid.datagrid("options");
+            options.url = "@(Url.Action("dirjson", "ArchElecFile", new { @area = "Archive" }))?refid=" + archiveID;
+            $archivegrid.datagrid("load", { "fields[]": "ElecFileName,ElecSize,ElecFileVersionId,CreationTime,CreatorEmpName" });
+        }
+
+        function initGrid() {
+            var $archivegrid = $("#archivegrid");
+            $archivegrid.datagrid({
+                fit: true,
+                columns: [[
+                    { field: "ck", align: "center", checkbox: true, JQIsExclude: true },
+                    { title: "名称", field: "ElecFileName", width: 200, align: "left", halign: "center" },
+                    {
+                        title: "大小", field: "ElecSize", width: 100, align: "right", halign: "center", formatter: function (value) {
+                            return getFileSizeText(value);
+                        }
+                    },
+                    { title: "版本", field: "ElecFileVersionId", width: 100, align: "center" },
+                    { title: '上传时间', field: "CreationTime", width: 100, align: "center", formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '上传人', field: "CreatorEmpName", width: 100, align: "center" },
+                ]],
+                pagination: true,
+                rownumbers: true,
+                singleSelect: true,
+                pageSize: 20,
+                loadMsg: "正在努力加载档案中...",
+                border: false,
+            }).datagrid("getPager").pagination({
+                pageList: [10, 15, 20, 25, 30, 50],
+                beforePageText: '第',
+                afterPageText: '页    共 {pages} 页',
+                displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录',
+                total: 0
+            });
+        }
+        function getFileSizeText(size) {
+            if (!size && size != 0) {
+                return "";
+            }
+            var st = "";
+            if (size >= 1024 * 1024 * 1024) {
+                st = (size / 1024 / 1024 / 1024).toFixed(2) + "GB";
+            } else if (size >= 1024 * 1024) {
+                st = (size / 1024 / 1024).toFixed(2) + "MB";
+            } else if (size >= 1024) {
+                st = (size / 1024).toFixed(2) + "KB";
+            } else {
+                st = size + "B";
+            }
+            return st;
+        }
+    </script>
+}
+@section Body_Content{
+    <div data-options="region:'west',split:false,border:false" style="width:250px;border-right:1px solid #D2D2D2">
+        <table id="lefttree"></table>
+    </div>
+    <div data-options="region:'center',border:false">
+        <table id="archivegrid"></table>
+    </div>
+}

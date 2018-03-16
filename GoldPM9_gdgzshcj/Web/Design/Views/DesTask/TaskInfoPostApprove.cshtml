@@ -1,0 +1,405 @@
+﻿
+<style type="text/css">
+    #TaskInfoPerson td {
+        font-size: 16px;
+        height: 30px;
+    }
+
+    .FlowNodeClass td {
+        font-size: 12px !important;
+        height: 20px !important;
+        border: 1px solid #D3D3D3;
+    }
+
+    .btn-medium {
+        padding: 5px 15px;
+        color: white !important;
+        width: 100px;
+    }
+
+    .NextSpan {
+        padding: 5px 5px;
+        font-size: 18px;
+    }
+
+    .pagefoot {
+        text-align: center;
+        padding: 5px;
+        height: auto;
+    }
+
+        .pagefoot .l-btn-text {
+            vertical-align: middle !important;
+            font-size: 14px;
+        }
+
+        .pagefoot .btn-blue {
+            background: -webkit-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+            background: -moz-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+            background: -o-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+            background: linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+            border: none;
+        }
+
+        .pagefoot .btn-green {
+            background: -webkit-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+            background: -moz-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+            background: -o-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+            background: linear-gradient(top,#6cd2b7 0,#69a898 100%);
+            border: none;
+        }
+
+        .pagefoot .btn-gray {
+            background: -webkit-linear-gradient(top,#bebebe 0,#808080 100%);
+            background: -moz-linear-gradient(top,#bebebe 0,#808080 100%);
+            background: -o-linear-gradient(top,#bebebe 0,#808080 100%);
+            background: linear-gradient(top,#bebebe 0,#808080 100%);
+            border: none;
+        }
+
+        .pagefoot .btn-blue:hover {
+            background: #3d93cf;
+        }
+
+        .pagefoot .btn-green:hover {
+            background: #69a898;
+        }
+
+        .pagefoot .btn-gray:hover {
+            background: #808080;
+        }
+</style>
+
+
+<script type="text/javascript" src="@Url.Content("~/Scripts/JQ/DesFlow.js")"></script>
+
+<div id="TaskInfoPostApprove" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'center',border:false">
+        <div class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'north',border:false" style="border-bottom-width:1px;overflow:hidden;display:none;">
+                <div style="height:30px;padding:5px 0px;">
+                    <div style="float:left;margin-left:5px;">
+                        校审流程：
+                        <div id="FlowNodeView" class="approve-progress"></div>
+                    </div>
+                    @*<div style="float:right;margin-right:5px;margin-top:7px;">
+                        节点状态：
+                        <span class="node-example node-status-0-bg">未启动</span>
+                        <span class="node-example node-status-1-bg">已安排</span>
+                        <span class="node-example node-status-2-bg">进行中</span>
+                        <span class="node-example node-status-3-bg">已完成</span>
+                        <span class="node-example node-status-4-bg">已回退</span>
+                    </div>*@
+                </div>
+            </div>
+            <div data-options="region:'center',border:false" style="border-right-width:1px;">
+                <table id="TaskInfoPostApprove_files"></table>
+                <script type="text/javascript">
+                    var _Qualification=@Html.Raw(ViewBag.Qualification); // 普通生产流程人员资格列表
+
+                    $(function () {
+                        $('#TaskInfoPostApprove_files').treegrid({
+                            url: '@Url.Action("TaskInfoGetDesTaskAttachSelDataJson")?TaskId='+@ViewBag.TaskModel.Id,
+                            idField: 'AttachID',
+                            treeField: 'AttachName',
+                            border: 0,
+                            fit: true,
+                            lines: true,
+                            animate: true,
+                            rownumbers:true,
+                            queryParams:{AttachIds:'@Html.Raw(ViewBag.AttachIds)'},
+                            //checkOnSelect:false,
+                            selectOnCheck:true,
+                            checkOnSelect:true,
+                            singleSelect:true,
+                            columns: [[
+                                { title: '附件信息', field: 'AttachName', width: 550, align: 'left',halign:'center',formatter:function (value,row,index) {
+                                    var FileName="<div style=\"float:left\">"+row.AttachName+"</div>";
+                                    return FileName;
+                                } },  { title: "版本", field: "AttachVer", width: 50, align: "center", halign: "center",formatter:function (value,row,index) {
+                                    if(row.AttachExt=="."){
+                                        return "";
+                                    }else {
+                                        return value;
+                                    }
+                                } },
+                                {
+                                    title: "大小", field: "AttachSize", width: 76, align: "center", halign: "center", formatter: function (value, row,index) {
+                                        if(row.AttachExt=="."){
+                                            return "";
+                                        }else {
+                                            return JQ.tools.getFileSizeText(value);
+                                        }
+                                    }
+                                },
+                                {
+                                    title: "修改时间", field: "AttachDateChange", width: 90, align: "center", halign: "center", formatter: function (value, rowData,index) {
+                                        return JQ.tools.DateTimeFormatterByT(rowData.AttachDateChange);
+                                    }
+                                },
+                                {
+                                    title: "上传日期", field: "AttachDateUpload", width: 90, align: "center", halign: "center", formatter: function (value, rowData,index) {
+                                        return JQ.tools.DateTimeFormatterByT(rowData.AttachDateUpload);
+                                    }
+                                },
+                                {
+                                    title: "操作", field: "AttachID", width: 80, align: "center", halign: "center", formatter: function (value, rowData,index) {
+                                        return "<a id=\"btnDel\" href=\"#\" rootID="+rowData.AttachID+" >排除</a>  ";
+                                    }
+                                }
+                            ]],
+                            onLoadSuccess:function (row,data) {
+                                if (data.total>0) {
+                                    $.each(data.rows,function (i,e) {
+                                        if (e.AttachExt==".") {
+                                            if ( $("#TaskInfoPostApprove_files").treegrid("getChildren",e.AttachID).length==0) {
+                                                $("#TaskInfoPostApprove_files").treegrid("update",{id:e.AttachID,row:{iconCls:"fa-folder"}});
+                                                $("span[class='tree-icon tree-file fa-folder']").removeClass("tree-file");
+                                                //$("#TaskInfoDiv > .tree-icon,#TaskInfoDiv > .tree-file,#TaskInfoDiv > .fa-folder").removeClass("tree-file");
+                                            }
+                                        }
+                                        //删除样式
+                                        $("a[rootID='"+e.AttachID+"']").linkbutton({
+                                            iconCls: 'fa fa-ban',
+                                            onClick:function () {
+                                                deleteFunc(e.AttachID);
+                                            }
+                                        })
+
+                                    })
+
+                                    //显示节点信息
+                                    showNodeInfo();
+                                }
+                            },
+                            onClickRow: function (rowIndex, rowData) {
+                                $("#TaskInfoPostApprove_files").datagrid('unselectRow', rowIndex);
+                            }
+                        })
+                    });
+
+                    function deleteFunc(AttachID) {
+                        //return JQ.dialog.confirm("你确定要删除吗?",function (){
+                            var parentNode=$("#TaskInfoPostApprove_files").treegrid("getParent",AttachID);
+                            $("#TaskInfoPostApprove_files").treegrid("remove",AttachID);
+                            //判断父节点
+                            if (parentNode!=null) {
+                                if ($("#TaskInfoPostApprove_files").treegrid("getChildren",parentNode.AttachID).length==0) {
+                                    $("#TaskInfoPostApprove_files").treegrid("update", { id: parentNode.AttachID, row: { iconCls: "fa-folder" } });
+
+                                    var panel= $("#TaskInfoPostApprove_files").treegrid("getPanel");
+                                    var delHtml=panel.find("tr[node-id='"+parentNode.AttachID+"'] a[id='btnDel']");
+                                    delHtml.linkbutton({
+                                        iconCls: 'fa fa-trash',
+                                        onClick:function () {
+                                            deleteFunc(parentNode.AttachID);
+                                        }
+                                    });
+
+
+                                    $("span[class='tree-icon tree-file fa-folder']").removeClass("tree-file");
+                                }
+                            }
+                        //});
+                    }
+                </script>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'south',border:true" style="overflow:hidden;">
+        <div class="pagefoot">
+            <a href="javascript:void(0);" class="easyui-linkbutton btn-medium btn-gray" id="btnClose">取消</a>&nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="javascript:void(0);" class="easyui-linkbutton btn-medium btn-blue" id="btnNext">确定</a>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+    function  showNodeInfo() {
+
+        var NodeInfo=JSON.parse('@Html.Raw(ViewBag.TaskModel.TaskFlowModelJson)').root.item;
+
+        var FlowNodeData=Enumerable.From(NodeInfo).OrderBy("x=>x.rownum").ToArray();
+
+        var SpecID=@ViewBag.TaskModel.TaskSpecId;//当前专业
+
+        $('#FlowNodeView').empty();
+        $.each(FlowNodeData,function (ic,ec) {
+            getEmpDrop(SpecID,ec,$('#FlowNodeView'));
+        });
+
+        //JQ.DesFlow.show({
+        //    Ctl:$('#FlowNodeView'),
+        //    FlowData:NodeInfo,
+        //});
+
+    }
+
+    //设置drop
+    function getEmpDrop(SpecID,e,$item,rootId) {
+        //获取资格人员
+        var EmpData=null;
+        if (SpecID == 0) {
+            // 汇总的设计人员 = 项目负责人 + 各专业负可选责人 + 各专业设计人员
+            if (e.FlowNodeTypeID == '@((int)DataModel.NodeType.设计)') {
+                // 获取项目负责人
+                var _pdata = [];
+                _pdata.push({
+                    EmpID : @ViewBag.projEmpId,
+                    EmpName : '@(@Html.Raw(ViewBag.projEmpName))'
+                });
+
+                // 获取专业负责人 + 各专业设计人员，
+                var _sdata = Enumerable.From(_Qualification).Where("x=>x.QualificationSpecID!=-1&&(x.QualificationValue==@((int)DataModel.NodeType.专业) || x.QualificationValue==@((int)DataModel.NodeType.设计))").Select("x=>{EmpID:x.EmpID,EmpName:x.EmpName}").ToArray();
+
+                // 合并上述人员
+                EmpData = Enumerable.From(_sdata).Union(_pdata).Distinct("x=>x.EmpID").ToArray();
+            } else {
+                // 汇总的校审人员 = 所有专业可选校审人员
+                EmpData = Enumerable.From(_Qualification).Where("x=>x.QualificationSpecID!=-1&&x.QualificationValue==" +e.FlowNodeTypeID +"").Select("x=>{EmpID:x.EmpID,EmpName:x.EmpName}").Distinct("x=>x.EmpID").ToArray();
+            }
+        } else {
+            // 非汇总的设校审批人员默认从资格配置获取
+            EmpData = Enumerable.From(_Qualification).Where("x=>x.QualificationSpecID==" + SpecID + "&&x.QualificationValue==" +e.FlowNodeTypeID +"").Select("x=>{EmpID:x.EmpID,EmpName:x.EmpName}").ToArray();
+        }
+        var $select= $("<select id=\"empDrop_"+SpecID+"_"+e.ID+"\" style=\"width:70px; margin-right:4px;\"></select>");
+        $select.appendTo($item);
+        $select.combobox({
+            valueField: 'EmpID',
+            textField: 'EmpName',
+            data: EmpData,
+            width: '95px',
+            panelMaxHeight: '360px',
+            required: true,
+            editable:false,
+        });
+        var $combo = $select.next();
+        // $combo.addClass("combo-node node-status-" + e.FlowNodeStatus);
+        $combo.addClass("combo-node");
+        $("<span style=\"line-height: 27px; padding-left:4px;\">"+e.FlowNodeName+":</span>").prependTo($combo);
+
+        if (e.hasOwnProperty("FlowNodeEmpID")&&e.FlowNodeEmpID!=0) {
+            $select.combobox("setValue",e.FlowNodeEmpID);
+        }
+
+        if (e.FlowNodeTypeID == '@((int)DataModel.NodeType.设计)') {
+            $select.combobox("readonly", true);
+            $combo.find(".textbox-addon-right").remove();
+        }
+        else {
+            $select.combobox("readonly", false);
+        }
+        @*if (e.FlowNodeStatus == "@((int)DBSql.Design.FlowNodeStatus.未安排)" || e.FlowNodeStatus == "@((int)DBSql.Design.FlowNodeStatus.已安排)") {
+            $select.combobox("readonly", false);
+        } else {
+            $select.combobox("readonly", true);
+        }*@
+    }
+
+    $("#btnClose", $("#TaskInfoPostApprove")).click(function() {
+        window.top.$("#@ViewBag._DialogId").dialog("close");
+    });
+
+    $("#btnNext", $("#TaskInfoPostApprove")).click(function () {
+
+        //判断是否有文件
+        var result=false;
+        var rootNode=$("#TaskInfoPostApprove_files").treegrid("getRoots");
+        if (rootNode==null||rootNode.length==0) {
+            JQ.dialog.show("没有可提交的文件！！！");
+            return false;
+        }
+        //仅判断是否有文件
+        $.each(rootNode,function (i,e) {
+            if (result) {
+                return false;
+            }
+            if (e.AttachExt!=".") {
+                result=true;
+                return false;
+            }
+            var childNodes=$("#TaskInfoPostApprove_files").treegrid("getChildren",e.AttachID);
+            if (childNodes!=null&&childNodes.length>0) {
+                $.each(childNodes,function(ic,ec){
+                    if (ec.AttachExt!=".") {
+                        result=true;
+                        return false;
+                    }
+                })
+            }
+        })
+
+        if (!result) {
+            JQ.dialog.show("没有可提交的文件！！！");
+            return false;
+        }
+
+        var addRow=[];
+        $.each(rootNode,function (i,e) {
+            addRow.push(e.AttachID);
+            var childNodes=$("#TaskInfoPostApprove_files").treegrid("getChildren",e.AttachID);
+            if (childNodes!=null&&childNodes.length>0) {
+                $.each(childNodes,function(ic,ec){
+                    addRow.push(ec.AttachID);
+                })
+            }
+        });
+
+        //JQ.dialog.confirm('你确定要提交下一步吗?',function () {
+        //post 备注数据
+        var info = JQ.tools.findDialogInfo();
+        if (typeof(window["DesignInfoSave_"+info.parentid])=="function") {
+            var PostResult=window["DesignInfoSave_"+info.parentid]();
+            if(!PostResult)  return false;
+        }
+
+        //post 更新校审意见数据
+        if (typeof(window["NextDesignPost_" + info.parentid])=="function") {
+            var PostResult=window["NextDesignPost_" + info.parentid](addRow.join(','));
+            //更新校审 状态
+            if (typeof(window["FormCheckRefresh_" + info.parentid])=="function") {
+                window["FormCheckRefresh_" + info.parentid]();
+            }
+            if(!PostResult)  return false;
+        }
+
+        // 获取选人的值
+        JQ.tools.ajax({
+            url: '@Url.Action("TaskInfoSavePostApprove")?TaskId=' + @ViewBag.TaskModel.Id,
+            data: {
+                AttachIds:addRow.join(','),
+                SpecPlanData:JSON.stringify(GetEmpValue($("#FlowNodeView"))),
+            },
+            succesCollBack: function () {
+                if (typeof(window.top["_DialogCallback_@ViewBag._DialogId"]) == "function") {
+                    //console.log("_DialogCallback_@ViewBag._DialogId");
+                    window.top["_DialogCallback_@ViewBag._DialogId"]();
+                    window.top.$("#@ViewBag._DialogId").dialog("close");
+                }
+            }
+        });
+        //});
+    });
+
+    function GetEmpValue($div) {
+        var jsonData=JSON.parse('@Html.Raw(ViewBag.TaskModel.TaskFlowModelJson)').root.item;
+        //var NodeJson = Node.TaskFlowModelJson;
+        //var jsonData=JSON.parse(NodeJson).hasOwnProperty("root")?(JSON.parse(NodeJson).root.item):JSON.parse(NodeJson);
+        if ($div&&jsonData.length>0) {
+            $.each(jsonData,function(i,e){
+                $thisselect=$div.find("select[id$='_"+e.ID+"']");
+                e.FlowNodeEmpID=$thisselect.combobox("getValue")==null?0:$thisselect.combobox("getValue");
+                e.FlowNodeEmpName=$thisselect.combobox("getText")==null?0:$thisselect.combobox("getText");
+                if (e.FlowNodeStatus == 0) {
+                    // 节点状态: 0 未安排（灰） 1 已安排（黄） 2 进行中（绿色） 3 完成（蓝色） 4 停止（红色） 5 回退（橙色）
+                    if (Node.TaskSpecId != 0 && Node.TaskLevelType != @((int)DBSql.Design.TaskLevelType.层级父) && e.FlowNodeTypeID == "@((int)DataModel.NodeType.设计)") {
+                        e.FlowNodeStatus = 2;
+                    } else {
+                        e.FlowNodeStatus = 1;
+                    }
+                }
+            })
+        }
+        return jsonData;
+    }
+</script>

@@ -1,0 +1,90 @@
+﻿@using JQ.Web;
+@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@section Body_Content {
+    <script type="text/javascript">
+    var requestUrl = '@Url.Action("GetCheckFile", "DesTask",new { @area="Design"})';
+    var params = {};
+    $(function () {
+
+        var ProjId = '@Request.Params["ProjId"]';
+        var ProjPhaseId = '@Request.Params["ProjPhaseId"]';
+        var EmpId = '@Request.Params["EmpId"]';
+        var where = "";
+        if (ProjId != null) {
+            params.ProjId = ProjId;
+        }
+
+        if (ProjPhaseId != null) {
+            params.ProjPhaseId = ProjPhaseId;
+        }
+
+        if (EmpId != null) {
+            params.EmpId = EmpId;
+        }
+
+
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'AttachID',//主键的字段
+            JQID: 'CheckFileGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '768',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+            JQFields: ["Id"],//追加的字段名
+            url: requestUrl,//请求的地址
+            checkOnSelect: true,
+            singleSelect: false,
+            queryParams: params,
+            toolbar: '#CheckFilePanel',//工具栏的容器ID
+            JQExcludeCol: [1, 9],
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '任务名称', field: 'TaskName', width: '10%', align: 'center', sortable: true },
+                { title: '文件名', field: 'AttachName', width: '30%', align: 'center', sortable: true },
+                { title: '专业', field: 'TaskSpecName', width: '10%', align: 'left', sortable: true },
+                { title: '阶段', field: 'TaskGroupName', width: '10%', align: 'center', sortable: true },
+
+            ]]
+        });
+
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '项目名称、编号',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+                    {
+                        dgID: 'CheckFileGrid',
+                        loadingType: 'datagrid',
+                        queryParams: params
+                    });
+            }
+        });
+    });
+
+
+    function Sure() {
+        var ids = [];
+        var rows = $('#CheckFileGrid').datagrid('getChecked');
+        if (rows.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+
+        _CheckFileCallBack(rows);
+        JQ.dialog.dialogClose();
+    }
+    </script>
+
+    <table id="CheckFileGrid"></table>
+    <div id="CheckFilePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a href="javascript:void(0);" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-check-circle'" onclick="Sure()">确定</a>
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'p.ProjNumber,p.ProjName', Contract:'like'}" />
+    </div>
+}

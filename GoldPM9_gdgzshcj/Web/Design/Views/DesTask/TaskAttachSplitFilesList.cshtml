@@ -1,0 +1,156 @@
+﻿<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: "splitattachform",
+        buttonTypes: ["close"],
+        succesCollBack: function (data) {
+            JQ.dialog.dialogClose();
+        },
+        buttons: [{
+            icon: "fa-download", text: "批量下载", onClick: function () {
+                if (!window.JinQu) {
+                    JQ.dialog.info("请在金曲客户端中使用批量下载功能！");
+                    return;
+                }
+                var rows = $("#tbFiles").datagrid("getChecked");
+                if (rows.length == 0) {
+                    JQ.dialog.info("请至少选择一个文件！");
+                    return;
+                }
+                var downopt = $("#downloadoptions").combobox("getValue");
+                var urls = [];
+                var dirs = [];
+                switch (downopt) {
+                    case "1":
+                        //下载DWG文件
+                        for (var i = 0; i < rows.length; i++) {
+                            urls.push(window.location.protocol + "//" + window.location.host + "@(Url.Action("Download","ProcessFile",new { @area="Core"}))?id=" + rows[i].ID + "&type=DesignSplitFile");
+                            dirs.push(rows[i].Name);
+                        }
+                        break;
+                    case "2":
+                        //下载DWG签名文件
+                        for (var i = 0; i < rows.length; i++) {
+                            if (!rows[i].Extensions) {
+                                continue;
+                            }
+                            for (var j = 0; j < rows[i].Extensions.length; j++) {
+                                if (rows[i].Extensions[j].Extension == "DWG") {
+                                    urls.push(window.location.protocol + "//" + window.location.host + "@(Url.Action("Download","ProcessFile",new { @area="Core"}))?id=" + rows[i].Extensions[j].ID + "&type=DesignSplitFile");
+                                    dirs.push(getName(rows[i].Name) + ".dwg");
+                                }
+                            }
+                        }
+                        break;
+                    case "3":
+                        //下载PDF签名文件
+                        for (var i = 0; i < rows.length; i++) {
+                            if (!rows[i].Extensions) {
+                                continue;
+                            }
+                            for (var j = 0; j < rows[i].Extensions.length; j++) {
+                                if (rows[i].Extensions[j].Extension == "PDF" && rows[i].Extensions[j].IsSigned) {
+                                    urls.push(window.location.protocol + "//" + window.location.host + "@(Url.Action("Download","ProcessFile",new { @area="Core"}))?id=" + rows[i].Extensions[j].ID + "&type=DesignSplitFileSign");
+                                    dirs.push(getName(rows[i].Name) + "（签名）.pdf");
+                                }
+                            }
+                        }
+                        break;
+                }
+                if (urls.length > 0) {
+                    var $btn = $(this)
+                    $btn.linkbutton("disable");
+                    window.JinQu.query("httpDownloadMulti", {
+                        url: urls,
+                        local: dirs
+                    }, function (file, uploadSize, totalSize) {
+
+                    }, function (response, request) {
+                        $btn.linkbutton("enable");
+                    }, function (error_code, error_message) {
+                        $btn.linkbutton("enable");
+                    });
+                }
+            }
+        }],
+        onInit: function ($panel) {
+            $("<select id=\"downloadoptions\"><option value=\"1\">DWG图纸文件</option><option value=\"2\">DWG带签名文件</option></select>").appendTo($panel);
+            $("#downloadoptions").combobox({
+                editable: false,
+                panelHeight: "auto",
+                onSelect: function (row) {
+                    debugger;
+                    type = row.value;
+                    $("#tbFiles").datagrid("load",{ attachID: "@(Request.QueryString["AttachID"])", attachVer: "@(Request.QueryString["AttachVer"])", type:type });
+                }
+            });
+        }
+    });
+    var type = 1;
+    var divFrame = document.getElementById("splitattachform").parentNode;
+    $("#tbFiles").datagrid({
+        url: "@(Url.Action("GetSplitFiles", "DesTask",new { @area= "Design" }))",
+        queryParams: { attachID: "@(Request.QueryString["AttachID"])", attachVer: "@(Request.QueryString["AttachVer"])", type:type },
+        rownumbers: true,
+        idField: "ID",
+        height: divFrame.clientHeight - 2,
+        width: divFrame.clientWidth - 2,
+        columns: [[
+              { field: "aaa", checkbox: true },
+              {
+                  title: "文件名称", field: "Name", width: "40%", align: "left", halign: "center", formatter: function (value, rowData) {
+                      var a = document.createElement("a");
+                      a.setAttribute("href", "@(Url.Action("Download","ProcessFile",new { @area="Core"}))?id=" + rowData.ID + "&type=DesignSplitFile");
+                      a.setAttribute("onclick", "JQ.Flow.stopBubble();");
+                      a.appendChild(document.createTextNode(value));
+                      return a.outerHTML;
+                  }
+              },
+              {
+                  title: "文件大小", field: "Size", width: "10%", align: "right", halign: "center", formatter: function (value) {
+                      return getFileSizeText(value);
+                  }
+              },
+              {
+                  title: "其他格式", field: "ID", width: "40%", align: "left", halign: "center", formatter: function (value, row) {
+                      if (!row.Extensions) {
+                          return;
+                      }
+                      var text = "";
+                      for (var i = 0; i < row.Extensions.length; i++) {
+                          if (row.Extensions[i].IsSigned) {
+                              text += "<a href=\"@(Url.Action("Download","ProcessFile",new { @area="Core"}))?id=" + row.Extensions[i].ID + "&type=DesignSplitFileSign\" style=\"margin-left:5px\" onclick=\"JQ.Flow.stopBubble();\">" + row.Extensions[i].Extension + "(" + getFileSizeText(row.Extensions[i].Size) + ")带签名" + "</a>";
+                          }
+                          else {
+                              text += "<a href=\"@(Url.Action("Download","ProcessFile",new { @area="Core"}))?id=" + row.Extensions[i].ID + "&type=DesignSplitFile\" style=\"margin-left:5px\" onclick=\"JQ.Flow.stopBubble();\">" + row.Extensions[i].Extension + "(" + getFileSizeText(row.Extensions[i].Size) + ")" + "</a>";
+                          }
+                      }
+                      return text;
+                  }
+              }
+        ]],
+    });
+
+    function getFileSizeText(size) {
+        if (!size && size != 0) {
+            return "";
+        }
+        var st = "";
+        if (size >= 1024 * 1024 * 1024) {
+            st = (size / 1024 / 1024 / 1024).toFixed(2) + "GB";
+        } else if (size >= 1024 * 1024) {
+            st = (size / 1024 / 1024).toFixed(2) + "MB";
+        } else if (size >= 1024) {
+            st = (size / 1024).toFixed(2) + "KB";
+        } else {
+            st = size + "B";
+        }
+        return st;
+    }
+
+    function getName(name) {
+        return name.substring(0, name.indexOf("."));
+    }
+</script>
+<form id="splitattachform" name="splitattachform">
+    <table id="tbFiles"></table>
+</form>

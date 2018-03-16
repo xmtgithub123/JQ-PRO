@@ -1,0 +1,122 @@
+﻿.swipe {
+    overflow:auto;
+}
+
+    .approve-progress {
+        /*background: #675c5c;
+        padding: 20px;*/
+        display: inline-block;
+        padding: 2px;
+    }
+
+        .approve-progress span {
+            font-size: 12px;
+        }
+
+        .approve-progress .bold {
+            font-weight: bold;
+        }
+    /*.datagrid-cell.datagrid-cell-c1-12 {
+   
+        padding:3px;
+    }*/
+    .approve-progress:hover{
+      /*cursor: ew-resize;*/
+    }
+    .approve-node {
+       display:inline-block;
+        position: relative;
+        margin-right: 10px;
+        line-height: 15px;
+        border: 1px solid #bbb;
+        background: -webkit-linear-gradient(top,#ffffff 0,#eeeeee 100%);
+        background: -moz-linear-gradient(top,#ffffff 0,#eeeeee 100%);
+        background: -o-linear-gradient(top,#ffffff 0,#eeeeee 100%);
+        background: linear-gradient(to bottom,#ffffff 0,#eeeeee 100%);
+        border-radius: 5px;
+        padding: 5px;
+        -moz-box-shadow: 0px 0px 1px #808080;
+        -webkit-box-shadow: 0px 0px 1px #808080;
+        box-shadow: 0px 0px 1px #808080;
+    }
+
+        .approve-node:not(:last-child):after {
+            content: "";
+            position: absolute;
+            width: 10px;
+            height: 1px;
+            background: #bbb;
+            top: 13px;
+            right: -10px;
+        }
+
+    .combo-node {
+       display:inline-block;
+       position: relative;
+       margin-right: 10px;
+       -moz-box-shadow: 0px 0px 1px #808080;
+       -webkit-box-shadow: 0px 0px 1px #808080;
+       box-shadow: 0px 0px 1px #808080;
+    }
+
+        .combo-node:not(:last-child):after {
+            content: "" !important;
+            position: absolute;
+            width: 10px;
+            height: 1px;
+            background: #bbb;
+            top: 13px;
+            right: -10px;
+        }
+
+/*设 校 审 状态颜色*/
+.node-status-0 {
+    border-left: 5px solid #d8d8d8 !important;
+}
+
+.node-status-1 {
+    border-left: 5px solid #f3d963 !important;
+}
+
+.node-status-2 {
+    border-left: 5px solid #5adcbb !important;
+}
+
+.node-status-3 {
+    border-left: 5px solid #6fc0e8 !important;
+}
+
+.node-status-5 {
+    border-left: 5px solid #ea8a8a !important;
+}
+
+
+/*设 校 审 状态颜色*/
+.node-example {
+    padding: 6px;
+}
+
+.node-status-0-bg {
+    background-color: #d8d8d8 !important;
+}
+
+.node-status-1-bg {
+    background-color: #f3d963 !important;
+}
+
+.node-status-2-bg {
+    background-color: #5adcbb !important;
+}
+
+.node-status-3-bg {
+    background-color: #6fc0e8 !important;
+}
+
+.node-status-4-bg {
+    background-color: #ea8a8a !important;
+}
+.approve-node{
+    float:none !important;
+    display:normal !important;
+    min-width: 64px;
+}

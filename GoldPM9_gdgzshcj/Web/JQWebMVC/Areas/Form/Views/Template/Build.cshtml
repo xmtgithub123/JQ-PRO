@@ -1,0 +1,651 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="window.parent.hideBuildPanel()">
+        <span class="fa fa-reply"></span>
+        <span>返回</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="save()">
+        <span class="fa fa-save"></span>
+        <span>保存</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="importLayoutWord()">
+        <span class="fa fa-table"></span>
+        <span>导入布局模版</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="resetTD()">
+        <span class="fa fa-repeat"></span>
+        <span>清空单元格</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="removeChoosed()">
+        <span class="fa fa-minus-circle"></span>
+        <span>删除</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="refreshpage()">
+        <span class="fa fa-refresh"></span>
+        <span>刷新</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="preview()">
+        <span class="fa fa-search"></span>
+        <span>预览</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="publish()">
+        <span class="fa fa-flag"></span>
+        <span>发布</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="setting();">
+        <span class="fa fa-cog"></span>
+        <span>表单设置</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="setHidden();">
+        <span class="fa fa-h-square"></span>
+        <span>隐藏域设置</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="setList();">
+        <span class="fa fa-table"></span>
+        <span>列表设置</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div id="divLeft" style="width:100px;height:100%;border-right:1px solid #E5E5E5;" class="layout_content">
+        <div class="form_widget" control="label" title="文字框">
+            <span class="fa fa-text-height"></span>
+            文字框
+        </div>
+        <div class="form_widget" control="textbox" title="文本输入框">
+            <span class="fa fa-pencil-square-o"></span>
+            文本框
+        </div>
+        <div class="form_widget" control="textarea" title="多行文本输入框">
+            <span class="fa fa-text-width"></span>
+            文本域
+        </div>
+        <div class="form_widget" control="radio" title="单选框">
+            <span class="fa fa-dot-circle-o"></span>
+            单选框
+        </div>
+        <div class="form_widget" control="checkbox" title="复选框">
+            <span class="fa fa-check-square-o"></span>
+            复选框
+        </div>
+        <div class="form_widget" control="select" title="下拉框">
+            <span class="fa fa-caret-square-o-down"></span>
+            下拉框
+        </div>
+        <div class="form_widget" control="datebox" title="日期框">
+            <span class="fa fa-calendar"></span>
+            日期框
+        </div>
+        <div class="form_widget" control="numberbox" title="数字框">
+            <span class="fa fa-list-ol"></span>
+            数字框
+        </div>
+        <div class="form_widget" control="table" title="内嵌表格">
+            <span class="fa fa-table"></span>
+            内嵌表
+        </div>
+        <div class="form_widget" control="panel" title="容器框">
+            <span class="fa fa-th"></span>
+            容器框
+        </div>
+        <div class="form_widget" control="map" title="地图框">
+            <span class="fa fa-map"></span>
+            地图框
+        </div>
+        <div class="form_widget" control="uploader" title="上传控件">
+            <span class="fa fa-upload"></span>
+            上传框
+        </div>
+        <div class="form_widget" control="signbox" title="签名框、关联流程后可使用">
+            <span class="fa fa-calendar-o"></span>
+            签名框
+        </div>
+    </div>
+    <div id="divRightToolbar" class="yc_headtoolbar2">
+        <table>
+            <tr>
+                <td>
+                    <ul id="ul_halign" class="yc_toolbargroup" style="margin-left:5px;"><li stylename="textAlign" position="left" title="靠左对齐"><span class="fa fa-align-left"></span></li><li stylename="textAlign" position="center" title="居中对齐"><span class="fa fa-align-center"></span></li><li stylename="textAlign" position="right" title="靠右对齐"><span class="fa fa-align-right"></span></li><li stylename="textAlign" position="start"><span class="fa fa-align-justify" title="默认"></span></li></ul>
+                </td>
+                <td>
+                    <ul id="ul_valign" class="yc_toolbargroup" style="margin-left:5px;"><li stylename="verticalAlign" position="top" title="靠上对齐"><span class="fa fa-arrow-circle-o-up"></span></li><li stylename="verticalAlign" position="middle" title="居中对齐"><span class="fa fa-minus"></span></li><li stylename="verticalAlign" position="bottom" title="靠下对齐"><span class="fa fa-arrow-circle-o-down"></span></li><li stylename="verticalAlign" position="start"><span class="fa fa-align-justify" title="默认"></span></li></ul>
+                </td>
+                <td>
+                    <ul class="yc_toolbargroup" style="margin-left:5px;"><li id="li_fontweight" position="bolder" title="加粗"><span class="fa fa-bold"></span></li><li position="italic" title="倾斜" id="li_fontStyle"><span class="fa fa-italic"></span></li><li id="li_underline" position="underline" title="下划线"><span class="fa fa-underline"></span></li><li id="li_lineThrough" position="strikethrough" title="下划线"><span class="fa fa-strikethrough"></span></li></ul>
+                </td>
+                <td>
+                    <select id="list_fontSize" class="yc_toolbarselect" style="margin-top:1px">
+                        <option value="10">10px</option>
+                        <option value="12">12px</option>
+                        <option value="14">14px</option>
+                        <option value="16">16px</option>
+                        <option value="18">18px</option>
+                        <option value="20">20px</option>
+                        <option value="22">22px</option>
+                        <option value="24">24px</option>
+                        <option value="26">26px</option>
+                        <option value="28">28px</option>
+                        <option value="30">30px</option>
+                    </select>
+                </td>
+                <td>
+                    <select id="list_fontFamily" class="yc_toolbarselect" style="margin-top:1px">
+                        <option value="宋体">宋体</option>
+                        <option value="楷体">楷体</option>
+                        <option value="黑体">黑体</option>
+                        <option value="仿宋">仿宋</option>
+                        <option value="隶书">隶书</option>
+                        <option value="仿宋">仿宋</option>
+                        <option value="微软雅黑">微软雅黑</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="divRight" class="layout_content" style="overflow:hidden;">
+        <iframe id="iframe_content" name="iframe_content" frameborder="0" style="height:100%;width:100%"></iframe>
+    </div>
+</div>
+<script src="@(Url.Content("~/Content/chart/chart.js"))" type="text/javascript"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<link href="@(Url.Content("~/Content/chart/chart.formbuilder.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.formbuilder.js"))"></script>
+<link href="@(Url.Content("~/Content/chart/chart.menu.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.menu.js"))"></script>
+<script type="text/javascript">
+    window.params = {
+
+    };
+    var formBuilder = new YChart.FormBuilder({
+        contentIFrame: document.getElementById("iframe_content"),
+        contentIFrameUrl: "@(Url.Action("Layout","Widget",new { @area = "Form" }))",
+        onSelectionChange: function (styleData) {
+            checkToggleButton("ul_halign", styleData.textAlign);
+            switch (styleData.verticalAlign) {
+                case "text-top":
+                    styleData.verticalAlign = "top";
+                    break;
+                case "baseline":
+                    styleData.verticalAlign = "middle";
+                    break;
+                case "text-bottom":
+                    styleData.verticalAlign = "bottom";
+                    break;
+            }
+            checkToggleButton("ul_valign", styleData.verticalAlign);
+            if (styleData.fontWeight == "normal") {
+                YChart.removeClass(document.getElementById("li_fontweight"), "selected");
+            }
+            else {
+                YChart.addClass(document.getElementById("li_fontweight"), "selected");
+            }
+            if (styleData.fontStyle == "italic") {
+                YChart.addClass(document.getElementById("li_fontStyle"), "selected");
+            }
+            else {
+                YChart.removeClass(document.getElementById("li_fontStyle"), "selected");
+            }
+            styleData.textDecoration = " " + styleData.textDecoration + " "
+            if (styleData.textDecoration.indexOf(" underline ") > -1) {
+                YChart.addClass(document.getElementById("li_underline"), "selected");
+            }
+            else {
+                YChart.removeClass(document.getElementById("li_underline"), "selected");
+            }
+            if (styleData.textDecoration.indexOf(" line-through ") > -1) {
+                YChart.addClass(document.getElementById("li_lineThrough"), "selected");
+            }
+            else {
+                YChart.removeClass(document.getElementById("li_lineThrough"), "selected");
+            }
+            YChart.setSelectedByValue(document.getElementById("list_fontSize"), (styleData.fontSize || "").replace("px", ""));
+            YChart.setSelectedByValue(document.getElementById("list_fontFamily"), styleData.fontFamily || "");
+        },
+        api: {
+            getColumns: function (storageMode, tableName) {
+                if (!tableName) {
+                    return [];
+                }
+                var columns = [];
+                switch (storageMode) {
+                    case "1":
+                    case "2":
+                        YChart.ajax({
+                            url: "@(Url.Action("GetColumns","Widget",new { @area = "Form" }))",
+                            type: "POST",
+                            async: false,
+                            data: { storageMode: storageMode, tableName: tableName },
+                            success: function (result) {
+                                for (var i = 0; i < result.length; i++) {
+                                    columns.push({ value: result[i].Value, name: result[i].Text, type: result[i].Attributes.Type });
+                                }
+                            }
+                        });
+                        break;
+                }
+                return columns;
+            },
+            getTables: function (storageMode) {
+                var tables = [];
+                switch (storageMode)
+                {
+                    case "1":
+                    case "2":
+                        YChart.ajax({
+                            url: "@(Url.Action("GetTables", "Widget",new{ @area= "Form" }))",
+                            type: "POST",
+                            async: false,
+                            data: { storageMode: storageMode },
+                            success: function (result) {
+                                for (var i = 0; i < result.length; i++) {
+                                    tables.push({ value: result[i].Value, name: result[i].Text });
+                                }
+                            }
+                        });
+                        break;
+                }
+                return tables;
+            }
+        },
+        dialogs: {
+            label: {
+                height: 380,
+                width: 600,
+                icon: "fa fa-text-height",
+                title: "文字框属性",
+                url: "@(Url.Action("Label","Widget",new { @area = "Form" }))"
+            },
+            textbox: {
+                height: 380,
+                width: 600,
+                icon: "fa fa-pencil-square-o",
+                title: "文本框属性",
+                url: "@(Url.Action("TextBox","Widget",new { @area = "Form" }))"
+            },
+            textarea: {
+                height: 380,
+                width: 600,
+                icon: "fa fa-text-width",
+                title: "文本域属性",
+                url: "@(Url.Action("TextArea","Widget",new { @area = "Form" }))"
+            },
+            radio: {
+                height: 380,
+                width: 600,
+                icon: "fa fa-dot-circle-o",
+                title: "单选框属性",
+                url: "@(Url.Action("Radio","Widget",new { @area="Form" }))"
+            },
+            checkbox: {
+                height: 380,
+                width: 600,
+                icon: "fa fa-check-square-o",
+                title: "复选框属性",
+                url: "@(Url.Action("CheckBox","Widget",new { @area="Form" }))"
+            },
+            select: {
+                height: 380,
+                width: 600,
+                icon: "fa-caret-square-o-down",
+                title: "下拉框属性",
+                url: "@(Url.Action("Select", "Widget", new { @area = "Form" }))"
+            },
+            datebox: {
+                height: 380,
+                width: 600,
+                icon: "fa-calendar",
+                title: "日期框属性",
+                url: "@(Url.Action("DateBox", "Widget", new { @area = "Form" }))"
+            },
+            numberbox: {
+                height: 380,
+                width: 600,
+                icon: "fa-list-ol",
+                title: "数字框属性",
+                url: "@(Url.Action("NumberBox", "Widget", new { @area = "Form" }))"
+            },
+            panel: {
+                height: 380,
+                width: 600,
+                icon: "fa-th",
+                title: "容器框属性",
+                url: "@(Url.Action("Panel", "Widget", new { @area = "Form" }))"
+            },
+            table: {
+                height: 380,
+                width: 600,
+                icon: "fa-table",
+                title: "内嵌表属性",
+                url: "@(Url.Action("Table", "Widget", new { @area = "Form" }))"
+            },
+            map: {
+                height: 580,
+                width: 600,
+                icon: "fa-table",
+                title: "地图属性",
+                url: "@(Url.Action("Map", "Widget", new { @area = "Form" }))"
+            },
+            signbox: {
+                height: 380,
+                width: 600,
+                icon: "fa-calendar-o",
+                title: "签名框属性",
+                url: "@(Url.Action("SignBox", "Widget", new { @area= "Form" }))"
+            }
+        }
+    });
+
+    function loadData() {
+        YChart.ajax({
+            url: "@(Url.Action("Get", "Template",new { @area="Form" }))",
+            data: { formTemplateID: "@(Request.QueryString["formTemplateID"])" },
+            type: "POST",
+            success: function (result) {
+                if (result.Result == false) {
+                    YChart.Dialog.alert("加载失败", result.Message);
+                    return;
+                }
+                formBuilder.name = result.Name;
+                formBuilder.setFormData(result.Html, result.Content);
+            }
+        });
+    }
+
+    loadData();
+
+    function refreshpage() {
+        window.location.reload();
+    }
+
+    window.onLoaded = function () {
+        var _divRight = document.getElementById("divRight");
+        _divRight.style.width = (document.getElementById("divcontent").clientWidth - document.getElementById("divLeft").offsetWidth) + "px";
+        _divRight.style.height = (document.getElementById("divcontent").clientHeight - document.getElementById("divRightToolbar").offsetHeight) + "px";
+    }
+
+    function importLayoutWord() {
+        var dialog = new YChart.Dialog({
+            height: 180,
+            width: 350,
+            icon: "fa-table",
+            title: "导入word布局模版",
+            mask: true,
+            url: "@(Url.Action("ImportLayoutWord", "Widget",new { @area="Form" }))",
+            api: {
+                afterReadWord: function (tableXml) {
+                    setTimeout(function () {
+                        formBuilder.readTableXml(tableXml);
+                    }, 10);
+                }
+            }
+        });
+    }
+
+    function setToggleButton(elementID) {
+        var _ul = document.getElementById(elementID);
+        for (var i = 0; i < _ul.childNodes.length; i++) {
+            if (!_ul.childNodes[i].tagName) {
+                continue;
+            }
+            _ul.childNodes[i].onclick = function () {
+                if (window.params["last" + elementID]) {
+                    YChart.removeClass(window.params["last" + elementID], "selected");
+                }
+                formBuilder.setSelecctionStyle(this.getAttribute("stylename"), this.getAttribute("position"));
+                YChart.addClass(this, "selected");
+                window.params["last" + elementID] = this;
+            }
+        }
+    }
+
+    function checkToggleButton(elementID, position) {
+        if (window.params["last" + elementID] && window.params["last" + elementID].getAttribute("position") == position) {
+            return;
+        }
+        var _ul = document.getElementById(elementID);
+        for (var i = 0; i < _ul.childNodes.length; i++) {
+            if (!_ul.childNodes[i].tagName) {
+                continue;
+            }
+            if (_ul.childNodes[i].getAttribute("position") == position) {
+                if (window.params["last" + elementID]) {
+                    YChart.removeClass(window.params["last" + elementID], "selected");
+                }
+                YChart.addClass(_ul.childNodes[i], "selected");
+                window.params["last" + elementID] = _ul.childNodes[i];
+                break;
+            }
+        }
+    }
+
+    setToggleButton("ul_halign");
+    setToggleButton("ul_valign");
+
+    document.getElementById("li_fontweight").onclick = function () {
+        if (this.className == "selected") {
+            formBuilder.setSelecctionStyle("fontWeight", "normal");
+            this.className = "";
+        }
+        else {
+            formBuilder.setSelecctionStyle("fontWeight", "bolder");
+            this.className = "selected";
+        }
+    }
+
+    document.getElementById("li_underline").onclick = function () {
+        if (this.className == "selected") {
+            formBuilder.setSelecctionStyle("textDecoration", "underline", "remove");
+            this.className = "";
+        }
+        else {
+            formBuilder.setSelecctionStyle("textDecoration", "underline", "add");
+            this.className = "selected";
+        }
+    }
+
+    document.getElementById("li_lineThrough").onclick = function () {
+        if (this.className == "selected") {
+            formBuilder.setSelecctionStyle("textDecoration", "line-through", "remove");
+            this.className = "";
+        }
+        else {
+            formBuilder.setSelecctionStyle("textDecoration", "line-through", "add");
+            this.className = "selected";
+        }
+    }
+
+    document.getElementById("li_fontStyle").onclick = function () {
+        if (this.className == "selected") {
+            formBuilder.setSelecctionStyle("fontStyle", "normal");
+            this.className = "";
+        }
+        else {
+            formBuilder.setSelecctionStyle("fontStyle", "italic");
+            this.className = "selected";
+        }
+    }
+
+    document.getElementById("list_fontSize").onchange = function () {
+        formBuilder.setSelecctionStyle("fontSize", YChart.getSelectedValue(this) + "px");
+    }
+
+    document.getElementById("list_fontFamily").onchange = function () {
+        formBuilder.setSelecctionStyle("fontFamily", YChart.getSelectedValue(this));
+    }
+
+    function initDragElements() {
+        var elements = [];
+        var _divLeft = document.getElementById("divLeft");
+        for (var i = 0; i < _divLeft.childNodes.length; i++) {
+            if (_divLeft.childNodes[i].tagName && _divLeft.childNodes[i].getAttribute("control")) {
+                elements.push(_divLeft.childNodes[i]);
+            }
+        }
+        formBuilder.initDragElements(elements);
+    }
+
+    initDragElements();
+
+    function save() {
+        //保存数据
+        var data = formBuilder.getSaveData(true);
+        if (!data.html) {
+            YChart.Dialog.alert("保存失败", "无法获取到需要保存的数据！");
+            return;
+        }
+        YChart.ajax({
+            url: "@(Url.Action("SaveContent", "Template",new { @area="Form" }))",
+            data: { formTemplateID: "@(Request.QueryString["formTemplateID"])", html: data.html, properties: data.properties, hiddens: data.hiddens, options: data.options, width: data.width },
+            type: "POST",
+            success: function (result) {
+                if (result.Result == false) {
+                    YChart.Dialog.alert("保存失败", result.Message);
+                    return;
+                }
+                YChart.Dialog.alert("提示", "保存成功");
+            }
+        });
+    }
+
+    function setting() {
+        new YChart.Dialog({
+            height: 420,
+            width: 600,
+            icon: "fa-cog",
+            title: "表单设置",
+            mask: true,
+            url: "@(Url.Action("Setting", "Widget",new { @area="Form" }))",
+            api: {
+                setData: function (options) {
+                    formBuilder.options = options;
+                },
+                getData: function () {
+                    return formBuilder.options;
+                },
+                getDataTables: function (storageMode) {
+                    return formBuilder.api.getTables(storageMode);
+                },
+                getColumns: function (storageMode, tableName) {
+                    return formBuilder.api.getColumns(storageMode, tableName);
+                }
+            }
+        });
+    }
+
+    function setList() {
+        new YChart.Dialog({
+            height: 420,
+            width: 600,
+            icon: "fa-table",
+            title: "列表设置",
+            url: "@(Url.Action("List", "Widget",new { @area="Form" }))?formTemplateID=@(Request.QueryString["formTemplateID"])&tableName=" + (formBuilder.primaryTable || ""),
+            api: {
+                getColumns: function () {
+                    return formBuilder.api.getColumns(formBuilder.options.storageMode, formBuilder.options.table);
+                }
+            }
+        });
+    }
+
+    function preview() {
+        //获取出需要显示的内容
+        if (!formBuilder.contentIFrame.contentWindow) {
+            YChart.Dialog.alert("提示", "无法找到需要预览的数据");
+            return;
+        }
+        var _body = formBuilder.contentIFrame.contentWindow.document.body;
+        var _div;
+        for (var i = 0; i < _body.childNodes.length; i++) {
+            if (_body.childNodes[i].tagName && _body.childNodes[i].tagName == "DIV") {
+                _div = _body.childNodes[i];
+                break;
+            }
+        }
+        if (!_div) {
+            YChart.Dialog.alert("提示", "无法找到需要预览的数据");
+            return;
+        }
+        var _width = _div.offsetWidth + 40;
+        if (_width < 600) {
+            _width = 600;
+        }
+        else if (_width > 1200) {
+            _width = 1200;
+        }
+        var dialog = new YChart.Dialog({
+            height: 800,
+            width: _width,
+            icon: "fa-search",
+            title: formBuilder.name + " 预览",
+            mask: true,
+            url: "@(Url.Action("Preview", "Template", new { @area="Form" }))",
+            api: {
+                getSaveData: function () {
+                    return formBuilder.getSaveData(false);
+                }
+            }
+        });
+    }
+
+    function removeChoosed() {
+        formBuilder.removeChoosed();
+    }
+
+    function resetTD() {
+        if (formBuilder.selectNodes.length == 0) {
+            return;
+        }
+        var td = YChart.FormBuilder.findTDElement(formBuilder.selectNodes[0]);
+        if (td) {
+            YChart.clear(td);
+        }
+    }
+
+    function publish() {
+        new YChart.Dialog({
+            height: 400,
+            width: 500,
+            icon: "fa-flag",
+            title: formBuilder.name + " 发布",
+            mask: true,
+            url: "@(Url.Action("Publish", "Template", new { @area="Form" }))?formTemplateID=@(Request.QueryString["formTemplateID"])",
+            api: {
+                getSaveData: function () {
+                    return formBuilder.getSaveData(true);
+                },
+                afterSave: function () {
+                    window.parent.hideBuildPanel();
+                    window.parent.refreshGrid();
+                }
+            }
+        });
+    }
+    function setHidden() {
+        new YChart.Dialog({
+            height: 380,
+            width: 600,
+            icon: "fa-h-square",
+            url: "@(Url.Action("Hidden", "Widget", new { @area= "Form" }))",
+            title: "隐藏域设置",
+            api: {
+                isExists: function (name) {
+                    if (!formBuilder.contentIFrame.contentWindow || !formBuilder.contentIFrame.contentWindow.document) {
+                        return false;
+                    }
+                    return formBuilder.isExistsDefault(formBuilder.contentIFrame.contentWindow.document.body, name, true);
+                },
+                getData: function () {
+                    return formBuilder.hiddens;
+                },
+                getColumns: function () {
+                    return formBuilder.api.getColumns(formBuilder.options.storageMode,formBuilder.options.table);
+                },
+                saveData: function (datas) {
+                    formBuilder.hiddens = datas;
+                }
+            }
+        });
+    }
+</script>

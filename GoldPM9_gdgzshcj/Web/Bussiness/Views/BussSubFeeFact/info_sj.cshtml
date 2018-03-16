@@ -1,0 +1,268 @@
+﻿
+@model DataModel.Models.BussSubFeeFact
+@using JQ.Web;
+<script type="text/javascript">
+    alert(1);
+    var x = 0;
+    var requestconsuburl = '@Url.Action("json", "BussContractSub", new { @area= "Bussiness" })';
+    var requestprojsuburl = '@Url.Action("json", "ProjSub", new { @area= "Project" })';
+
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'BussSubFeeFactForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JJQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            },
+            beforeFormSubmit: function () {
+                var xml = GoldPM.loadXml("<Root></Root>");
+                alert(111);
+                try {
+                    var datas = $("#SubFeeFactGrid").datagrid("getData");
+                    if (datas.total == 0) {
+                        alert("请先输外委合同信息!");
+                        return false;
+                    }
+                    recuriseData(datas.rows, xml.documentElement);
+                    $("#strxml").val(xml.documentElement.outerHTML);
+
+                }
+                catch (e) {
+                    alert("请先输入正确的信息!");
+                    return false;
+                }
+            }
+        });
+
+        $("#SubFeeFactGrid").datagrid({
+            idField: 'Id',//主键的字段
+            singleSelect: false,
+            pagination: false,
+            url: '@Url.Action("jsonFact", "BussFeeFact", new { @area = "Bussiness" })',//请求的地址
+            queryParams: { FormTableID: 0 },
+            rownumbers: true,
+            toolbar: '#SubFeeFactPanel',//工具栏的容器ID
+            columns: [[
+               { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                {
+                    title: '外委合同信息', field: 'ConSubId', width: 160, align: 'center', formatter: function (value, rowData) {
+                        return "<input type=\"text\" id=\"c_ConSubId" + rowData.Id + "\"     name=\"c_ConSubId" + rowData.Id + "\"  style=\"width:98%;text-align:left; \"  />";
+                    }
+                },
+                {
+                    title: '外委项目信息', field: 'ProjSubId', width: 160, align: 'center', formatter: function (value, rowData) {
+                        return "<input type=\"text\" id=\"c_ProjSubId" + rowData.Id + "\"   name=\"c_ProjSubId" + rowData.Id + "\"   style=\"width:98%;text-align:left; \"    />";
+                    }
+                },
+                {
+                    title: '外委合同金额', field: 'ConSubFee', width: 80, align: 'right', formatter: function (value, rowData) {
+                        return "<input type=\"text\" id=\"c_ConSubFee" + rowData.Id + "\"    name=\"c_ConSubFee" + rowData.Id + "\" style=\"width:90%;text-align:right;\"  disabled=\"disabled\"  />";
+                    }
+                },
+                {
+                    title: '已付款金额', field: 'AlreadySumFeeMoney', width: 80, align: 'right', formatter: function (value, rowData) {
+                        return "<input type=\"text\" id=\"c_AlreadySumFeeMoney" + rowData.Id + "\"  name=\"c_AlreadySumFeeMoney" + rowData.Id + "\" style=\"width:90%;text-align:right;\"  disabled=\"disabled\" />";
+                    }
+                },
+                {
+                    title: '本次付款金额', field: 'SubFeeFactMoney', width: 80, align: 'center', formatter: function (value, rowData) {
+                        return "<input type=\"text\" id=\"c_SubFeeFactMoney" + rowData.Id + "\"   name=\"c_SubFeeFactMoney" + rowData.Id + "\"  validType=\"intOrFloat\" style=\"width:90%;text-align:right;\"    />";
+                    }
+                },
+                {
+                    title: '本次付款日期', field: 'SubFeeFactDate', width: 120, align: 'center', formatter: function (value, rowData) {
+                        return "<input type=\"text\" id=\"c_SubFeeFactDate" + rowData.Id + "\" name=\"c_SubFeeFactDate" + rowData.Id + "\" validType=\"dateISO\" style=\"width:98%;text-align:left; \"  />";
+                    }
+                },
+               {
+                   title: '累计比例', field: 'TotalRatio', width: 80, align: 'center', formatter: function (value, rowData) {
+                       return "<input type=\"text\" id=\"c_TotalRatio" + rowData.Id + "\"   name=\"c_TotalRatio" + rowData.Id + "\" style=\"width:90%;text-align:right;\"   disabled=\"disabled\" />";
+                   }
+               },
+               {
+                   title: '是否结清', field: 'IsSettle', width: 100, align: 'center', formatter: function (value, rowData) {
+                       var strHtml = "<select id=\"c_IsSettle" + rowData.Id + "\" class=\"InputSelect\" refID=\"c_IsSettle" + rowData.Id + "\" style=\"width:90px\">";
+                       strHtml += "<option selected=\"selected\" value=\"0\">未结清</option>";
+                       strHtml += "<option  value=\"1\">已结清</option>";
+                       strHtml += "</select>";
+                       return strHtml;
+                   }
+               }
+            ]]
+        });
+    });
+
+    function AddRow() {
+        x--;
+        @*var _mainTable=@Model.Id;*@
+        var _data = { "Id": x, "ConSubId": "0", "ProjSubId": "0", "ConSubFee": "0", "AlreadySumFeeMoney": "0", "SubFeeFactMoney": "0", "SubFeeFactDate": "", "TotalRatio": "0", "IsSettle": 0 }
+        $('#SubFeeFactGrid').datagrid('appendRow', _data);
+
+        var _consubid = "c_ConSubId" + x;
+        (function ($_consubid) {
+            JQ.combobox.common({
+                id: $_consubid,
+                toolbar: '#tbConSub',//工具栏的容器ID
+                url: requestconsuburl,
+                panelWidth: 550,
+                panelHeight: 320,
+                valueField: 'Id',
+                textField: 'ConSubName',
+                multiple: false,
+                pagination: true,//是否分页
+                JQSearch: {
+                    id: 'fullNameSearchConSub',
+                    prompt: '外委合同名称',
+                    $panel: $("#tbConSub")//搜索的容器，可以不传
+                },
+                columns: [[
+                             { field: 'Id', hidden: true },
+                             { title: '外委合同编号', field: 'ConSubNumber', width: 120, align: 'left', sortable: true },
+                             { title: '外委合同名称', field: 'ConSubName', width: 120, align: 'left', sortable: true },
+                             { title: '外包合同类型', field: 'ConSubTypeName', width: 120, align: 'left', sortable: true },
+                             { title: '外包合同类别', field: 'ConSubCategoryName', width: 120, align: 'left', sortable: true },
+                ]],
+                onSelect: function (rowIndex, rowData) {
+                    var array = _consubid.split('c_ConSubId');
+                    var y = array[1];
+                    $("#c_ConSubFee" + y).val(rowData.ConSubFee);
+                    $("#c_AlreadySumFeeMoney" + y).val(rowData.AlreadySumFeeMoney);
+                }
+            });
+        }(_consubid));
+
+        var _projsubid = "c_ProjSubId" + x;
+
+        (function ($_projsubid) {
+            JQ.combobox.common({
+                id: $_projsubid,
+                toolbar: '#tbProjSub',//工具栏的容器ID
+                url: requestprojsuburl,
+                panelWidth: 550,
+                panelHeight: 320,
+                valueField: 'Id',
+                textField: 'SubName',
+                multiple: false,
+                pagination: true,//是否分页
+                JQSearch: {
+                    id: 'fullNameSearchProjSub',
+                    prompt: '外委项目名称',
+                    $panel: $("#tbProjSub")//搜索的容器，可以不传
+                },
+                columns: [[
+                             { field: 'Id', hidden: true },
+                             { title: '外委项目名称', field: 'SubName', width: 120, align: 'left', sortable: true },
+                             { title: '项目编号', field: 'ProjNumber', width: 120, align: 'left', sortable: true },
+                             { title: '项目名称', field: 'ProjName', width: 120, align: 'left', sortable: true },
+                             { title: '外委性质', field: 'SubTypeName', width: 120, align: 'left', sortable: true },
+                ]]
+            });
+        }(_projsubid))
+
+
+
+        var _subFeeFactMoney = "c_SubFeeFactMoney" + x;
+
+        (function ($_subFeeFactMoney) {
+            $('#' + $_subFeeFactMoney).textbox({
+                inputEvents: $.extend({}, $.fn.textbox.defaults.inputEvents, {
+                    keyup: function (e) {
+                        var array = _subFeeFactMoney.split('c_SubFeeFactMoney');
+                        var y = array[1];
+                        var t1 = $("#c_ConSubFee" + y).val();
+                        var t2 = $("#c_AlreadySumFeeMoney" + y).val();
+                        var t3 = $(this).val();
+                        var s1 = (isNaN(parseFloat(t1)) == false ? parseFloat(t1) : 0) + (isNaN(parseFloat(t1)) == false ? parseFloat(t1) : 0);
+                        var s2 = (isNaN(parseFloat(t2)) == false ? parseFloat(t2) : 0) + (isNaN(parseFloat(t2)) == false ? parseFloat(t2) : 0);
+                        var s3 = (isNaN(parseFloat(t3)) == false ? parseFloat(t3) : 0) + (isNaN(parseFloat(t3)) == false ? parseFloat(t3) : 0);
+                        var s4 = 0;
+                        if (s1 != 0) {
+                            s4 = Math.round(((s2 + s3) / s1) * 100);
+                            s4 = isNaN(parseFloat(s4)) == false ? parseFloat(s4) : 0
+                        }
+
+                        $("#c_TotalRatio" + y).val(s4);
+                    }
+                })
+            })
+        }(_subFeeFactMoney))
+
+        $("#c_SubFeeFactDate" + x).datebox();
+    }
+
+    function DeleteRow() {
+        var rows = $('#SubFeeFactGrid').datagrid("getSelections");
+        var copyRows = [];
+        for (var j = 0; j < rows.length; j++) {
+            copyRows.push(rows[j]);
+        }
+        for (var i = 0; i < copyRows.length; i++) {
+            var index = $('#SubFeeFactGrid').datagrid('getRowIndex', copyRows[i]);
+            $('#SubFeeFactGrid').datagrid('deleteRow', index);
+        }
+    }
+
+    function recuriseData(data, parentNode) {
+        for (var i = 0; i < data.length; i++) {
+            alert(111);
+            var node = parentNode.ownerDocument.createElement("Item");
+            node.setAttribute("Id", data[i].Id);
+            node.setAttribute("ConSubId", $("#c_ConSubId" + data[i].Id).combogrid('grid').datagrid('getSelected').Id);
+            node.setAttribute("ProjSubId", $("#c_ProjSubId" + data[i].Id).combogrid('grid').datagrid('getSelected') == null ? 0 : $("#c_ProjSubId" + data[i].Id).combogrid('grid').datagrid('getSelected').Id);
+            node.setAttribute("ConSubFee", $("#c_ConSubFee" + data[i].Id).val());
+            node.setAttribute("AlreadySumFeeMoney", $("#c_AlreadySumFeeMoney" + data[i].Id).val());
+            node.setAttribute("SubFeeFactMoney", $("#c_SubFeeFactMoney" + data[i].Id).val());
+            node.setAttribute("SubFeeFactDate", $("#c_SubFeeFactDate" + data[i].Id).datebox('getValue'));
+            node.setAttribute("TotalRatio", $("#c_TotalRatio" + data[i].Id).val());
+            node.setAttribute("IsSettle", $("#c_IsSettle" + data[i].Id).val());
+            parentNode.appendChild(node);
+            if (data[i].children && data[i].children.length > 0) {
+                recuriseData(data[i].children, node);
+            }
+        }
+    }
+</script>
+@using (Html.BeginForm("save", "BussSubFeeFact", FormMethod.Post, new { @area = "Bussiness", @id = "BussSubFeeFactForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <input type="hidden" id="CompanyType" name="CompanyType" value="SJ" />
+    <table class="table table-bordered">
+        <tr>
+            <td colspan="4" align="center" style="border:none;">付款合同登记</td>
+        </tr>
+        <tr>
+            <td colspan="4">
+                <table id="SubFeeFactGrid"></table>
+                <div id="SubFeeFactPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+                    <span JQPanel="toolbarPanel">
+                        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="AddRow()">新增</a>
+                        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="DeleteRow()">删除</a>
+                    </span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "BussSubFeeFact";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <div id="tbConSub" style="padding:5px;height:auto;">
+        <input id="fullNameSearchConSub" style="width:250px;" JQWhereOptions="{ Key: 'ConSubName', 'Contract': 'like' }" />
+    </div>
+    <div id="tbProjSub" style="padding:5px;height:auto;">
+        <input id="fullNameSearchProjSub" style="width:250px;" JQWhereOptions="{ Key: 'ConSubName', 'Contract': 'like' }" />
+    </div>
+
+    <input type="hidden" id="strxml" name="strxml" />
+                    }

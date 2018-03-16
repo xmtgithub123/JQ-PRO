@@ -1,0 +1,488 @@
+﻿@model DataModel.Models.DesMutiSign
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'DesMutiSignForm',//formid提交需要用到
+        //$form:$("#DesTaskCheckform"),
+        buttonTypes: ['close','exportForm'],//默认按钮
+        ExportName: '设计会签单',
+        docName: 'IsoSJHQ',
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            if (typeof (window.window.showDesMutiSignGrid) == "function") {
+                window.showDesMutiSignGrid();
+            }
+            if (typeof (window.TaskTabSelect) == "function") {
+                window.TaskTabSelect("会签记录");
+            }
+            window.SpecEmps = null;
+            JQ.datagrid.autoRefdatagrid();
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        onBefore: function (resultArr) {
+            resultArr.push({ Key: "Permission", Value: '@ViewBag.Permission' });
+            resultArr.push({ Key: "HQD_DC", Value: "@(Model.Id)" });
+        },
+        flow: {
+            isShowSave: false,
+            flowNodeID: "@(Request.QueryString["flowNodeID"] == null ? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] == null ? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow", new { @area = "Core" }))",
+            instance: "_flowInstance",
+            processor: "Design,Design.FlowProcessor.FlowDesMutiSign",
+            refID: "@(Model.Id)",
+            refTable: "DesMutiSign",
+            beforeFormSubmit: function () {
+                //判断是否有会签人
+                var selectEmp = $("#DesMutiSign_EmpDiv").find(".EmpSpecDiv");
+                if (selectEmp.length == 0) {
+                    JQ.dialog.warning("请选择会签人！！！");
+                    return false;
+                } else {
+                    var RecEmp = [];
+                    $.each(selectEmp, function (i, e) {
+                        var empData = JSON.parse($(e).attr("data-emp"));
+                        RecEmp.push({ 'RecSpecId': empData.SpecID, 'RecSpecName': empData.SpecName, 'RecEmpId': empData.EmpID, 'RecEmpName': empData.EmpName });
+                    })
+
+                    $("#RecEmpData").val(JSON.stringify(RecEmp));
+                }
+
+                var roots = $("#designFile").treegrid("getRoots");
+                var addData = [];
+                if (roots != null && roots.length > 0) {
+                    $.each(roots, function (i, e) {
+                        if (e.AttachExt != ".") {
+                            addData.push({
+                                AttachID: e.AttachID,
+                                AttachName: e.AttachName,
+                                AttachVer: e.AttachVer,
+                                SplitFileIds: getCheckValue(e.AttachID)
+                            });
+                        }
+
+                        var childroot = $("#designFile").treegrid("getChildren", e.AttachID);
+                        if (childroot != null && childroot.length > 0) {
+                            $.each(childroot, function (ic, ec) {
+                                if (ec.AttachExt == ".") {
+                                    return true;
+                                }
+                                addData.push({
+                                    AttachID: ec.AttachID,
+                                    AttachName: ec.AttachName,
+                                    AttachVer: ec.AttachVer,
+                                    SplitFileIds: getCheckValue(e.AttachID)
+                                });
+                            })
+                        }
+                    })
+                }
+
+
+                if (addData.length == 0) {
+                    var otherFile = $("table[id^='DesMutiSign']").datagrid("getRows");
+                    if (otherFile.length == 0) {
+                        JQ.dialog.warning("没有文件可以进行会签！！！");
+                        return false;
+                    }
+                }
+                $("#AttachIDDate").val(JSON.stringify(addData));
+            },
+            onInit: function () {
+                window.SpecEmps = "";
+                @{if (ViewData["showAgree"] != null) {
+                        <text>
+                //初始话
+                var toolbar = window.top.$(".rwpdialogdiv:last").dialog('panel').find(".dialog-toolbar");
+                toolbar.prepend($("<a id=\"CheckAgree\" class=\"easyui-linkbutton\" data-options=\"iconCls:'fa fa-remove'\" style='margin-right: 5px;' onclick='DesMuliDisAgree()'  >不同意</a>"));
+                toolbar.prepend($("<a id=\"CheckAgree\" class=\"easyui-linkbutton\" data-options=\"iconCls:'fa fa-check'\" style='margin-right: 5px;' onclick='DesMuliAgree()' >同意</a>"));
+                $("<div style='display:block;padding: 5px 5px;'>会签意见：<input id='muliAdmice' class=\"easyui-textbox\" data-options=\"multiline:'true'\" style=\"width:300px\" /> </div>").appendTo(toolbar);
+
+                RecID = '@ViewData["RecID"]';
+
+                </text>
+
+                    }
+                }
+                try {
+                    window.SpecEmps = JSON.parse('@Html.Raw(ViewBag.SpecEmps)');
+                } catch (e) {
+
+                }
+
+                showMuliEmp();
+                setTimeout(function () {
+                    if ($("#selectEmp").css("display") == "none") {
+                        $(".EmpSpecDiv i").hide();
+                    }
+                }, 1500);
+            }
+        }
+    });
+
+    var RecID;
+
+    function DesMuliAgree() {
+        return JQ.dialog.confirm("你确定同意此会签内容！！！", function () {
+            postSave(2);
+        })
+    }
+
+    function DesMuliDisAgree() {
+        return JQ.dialog.confirm("你确定不同意此会签内容！！！", function () {
+            if (window.top.$("#muliAdmice").textbox("getValue") == "") {
+                JQ.dialog.warning("请在下方，填写不同意原因！！！");
+                return false;
+            }
+            postSave(1);
+        })
+    }
+
+    function postSave(typeID) {
+
+        JQ.tools.ajax({
+            method:'POST',
+            data: { Id: $("#DesMutiSignForm").find("input[id='Id']").val(), RecStatus: typeID, RecContent: window.top.$("#muliAdmice").textbox("getValue"), RecID: RecID },
+            url: '@Url.Action("UpdateRec")',
+            succesCollBack: function (param) {
+                if (param.stateValue > 0) {
+                    JQ.dialog.dialogClose();
+                }
+            }
+        });
+    }
+
+    function showMuliEmp() {
+        if (typeof (window.SpecEmps) != "undefined") {
+            if (window.SpecEmps.length > 0) {
+                var $contain = $("#DesMutiSign_EmpDiv");
+                $contain.empty();
+                debugger;
+                var emplist = Enumerable.From(window.SpecEmps).Distinct("p=>p.SpecID,p.EmpID").OrderBy("x=>x.SpecID").ToArray();
+                var hqzy = "";
+                $.each(emplist, function (i, e) {
+                    hqzy += e.SpecName + ",";
+                    $("<div class='EmpSpecDiv' data-Emp='" + JSON.stringify({ 'SpecID': e.SpecID, 'SpecName': e.SpecName, 'EmpName': e.EmpName, 'EmpID': e.EmpID }) + "'><span><" + e.SpecName + ">" + e.EmpName + "</span><i class='fa fa-times-circle' onclick=\"removeEmp(this)\"></i></div>").appendTo($contain);
+                })
+                $("#HQZY").val(hqzy.substr(0, hqzy.length - 1));
+            }
+        }
+    }
+
+    function getCheckValue(nodeID) {
+        var splitTable = $("#splitDwg_" + nodeID, "#DesMutiSignForm");
+        var splitDwgId = "";
+        if (splitTable.length > 0) {
+            var checkCtl = splitTable.find("input[type='checkbox']");
+            var checkArrayID = [];
+            var NoCheckArrayID = [];
+            checkCtl.each(function (i, e) {
+                if ($(e).attr("checked") == "checked") {
+                    checkArrayID.push($(e).attr("itemId"));
+                } else {
+                    NoCheckArrayID.push($(e).attr("itemId"));
+                }
+            });
+            if (checkArrayID.length > 0) {
+                splitDwgId = checkArrayID.join(",");
+            } else {
+                splitDwgId = NoCheckArrayID.join(",");
+            }
+        }
+        return splitDwgId;
+    }
+</script>
+<style type="text/css">
+    #DesTaskCheckForm .panel-body {
+        border-width: 1px;
+        border-style: solid;
+    }
+
+    .EmpSpecDiv {
+        float: left;
+        line-height: 16px;
+        height: 16px;
+        font-size: 16px;
+        border: 1px solid #bbb;
+        position: relative;
+        padding: 5px 5px;
+        margin: 0px 5px;
+    }
+
+        .EmpSpecDiv i {
+            line-height: 16px;
+            float: right;
+            padding-left: 8px;
+        }
+
+    .remindCss {
+        float: right;
+        padding-left: 8px;
+        line-height: 18px;
+        font-size: 14px;
+        width: 12px;
+        color: #ec696b;
+        /*cursor: pointer;*/
+    }
+
+    #DesMutiSignForm .panel-body-noheader {
+        border-width: 1px;
+    }
+</style>
+@using (Html.BeginForm("save", "DesMutiSign", FormMethod.Post, new { @area = "Design", @id = "DesMutiSignForm" }))
+{
+    <input type="hidden" id="TaskId" name="TaskId" value="@ViewBag.TaskModel.Id" />
+    <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+    <input type="hidden" id="AttachIDDate" name="AttachIDDate" />
+    <input type="hidden" id="RecEmpData" name="RecEmpData" />
+    <table class="table table-bordered">
+        <tr>
+            <th>工程名称</th>
+            <td colspan="3" bookmark="ProjName">
+                @Html.Raw(ViewBag.ProjModel.ProjName)
+            </td>
+            <th>工程编号</th>
+            <td bookmark="ProjNumber">
+                @Html.Raw(ViewBag.ProjModel.ProjNumber)
+            </td>
+        </tr>
+
+        <tr>
+            <th>子项名称</th>
+            <td colspan="3">
+                @Html.Raw(ViewBag.TaskGroupName)
+            </td>
+            <th>阶段</th>
+            <td bookmark="JD">
+                @Html.Raw(ViewBag.TaskGroupPhaseName)
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">任务名称</th>
+            <td width="23%">@Html.Raw(ViewBag.TaskModel.TaskName)</td>
+            <th width="10%">提出人</th>
+            <td width="23%">@Model.CreatorEmpName</td>
+            <th width="10%">提出日期</th>
+            <td width="24%">@Model.CreationTime.ToString("yyyy-MM-dd")</td>
+        </tr>
+        <tr>
+            <th>
+                会签人
+            </th>
+            <td colspan="5">
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-search'" id="selectEmp" name="selectEmp">选择人员</a>
+                <div id="DesMutiSign_EmpDiv" style="display:block;padding: 5px 0px;" data-Emp="">
+
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th>标题</th>
+            <td colspan="5">
+                <input name="MutiSignTitle" style="width:98%;" value="@Model.MutiSignTitle" class="easyui-textbox" data-options="required:true" validType="length[0,500]" />
+            </td>
+        </tr>
+        <tr>
+            <th>会签说明</th>
+            <td colspan="5">
+                <input name="MutiSignContent" style="width:98%;height:80px" value="@Model.MutiSignContent" class="easyui-textbox" data-options="multiline:true,required:true" validType="length[0,2000]" />
+            </td>
+        </tr>
+        <tr>
+            <th>设计文件</th>
+            <td colspan="5">
+                <script type="text/javascript">
+                    $(function () {
+                        JQ.treegrid.treegrid({
+                            JQID: 'designFile',//数据表格ID
+                            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                            idField: 'AttachID',
+                            treeField: 'AttachName',
+                            @{
+                                if (Model.Id == 0)
+                                {
+                                    <text>
+                            url: '@Url.Action("TaskInfoGetDesTaskAttachSelDataJson", "DesTask")',//请求的地址
+                            queryParams: { taskId: '@ViewBag.TaskModel.Id', AttachIds: '@Html.Raw(ViewBag.fileIds)' },
+                            </text>
+                                }
+                                else
+                                {
+                                    <text>
+                            url: '@Url.Action("DesMutiSignAttach", "DesMutiSign")',//请求的地址
+                            queryParams: { MuliSignID: '@Model.Id', AttachIds: '@Html.Raw(ViewBag.fileIds)' },
+                            </text>
+                                }
+                            }
+                            pagination: false,
+                            rownumbers: true,
+                            fit: false,
+                            lines: true,
+                            columns: [[
+                                {
+                                    title: '文件名称', field: 'AttachName', width: '30%', align: 'left', halign: 'center', sortable: false, formatter: function (value, row, index) {
+                                        if (row.AttachExt == '.') {
+                                            return row.AttachName;
+                                        } else {
+                                            //.fa-info
+                                            if (typeof (row.NewAttachVer) != "undefined") {
+                                                if (row.NewAttachVer == row.AttachVer) {
+                                                    return "<a  target=\"_blank\" href='@Url.Action("Download", "ProcessFile", new { @area = "Core" })?id=" + row.AttachID + "&type=attach&version=" + row.AttachVer + " '>" + row.AttachName + "</a> ";
+                                                } else {
+                                                    return "<a  target=\"_blank\" href='@Url.Action("Download", "ProcessFile", new { @area = "Core" })?id=" + row.AttachID + "&type=attach&version=" + row.AttachVer + " '>" + row.AttachName + "</a><i class='fa fa-info-circle remindCss' title='此文件设计已上传新版本！最新版本(v" + row.NewAttachVer + ")'></i>  ";
+                                                }
+                                            }
+                                            else {
+                                                return "<a  target=\"_blank\" href='@Url.Action("Download", "ProcessFile", new { @area = "Core" })?id=" + row.AttachID + "&type=attach&version=" + row.AttachVer + " '>" + row.AttachName + "</a> ";
+                                            }
+                                        }
+                                    }
+                                },
+                                {
+                                    title: '拆图文件', field: 'SplitDwg', width: '33%', align: 'left', halign: 'center', sortable: false, formatter: function (value, row, index) {
+                                        if (row.AttachExt == '.') {
+                                            return "";
+                                        } else {
+                                            @{
+                                                if (Model.Id == 0)
+                                                {
+                                                    <text>
+                                            var resultHtml = "";
+                                            $.ajax({
+                                                async: false,
+                                                type: "GET",
+                                                data: { attachID: row.AttachID, attachVer: row.AttachVer },
+                                                url: "@(Url.Action("GetSplitFiles", "DesTask", new { @area = "Design" }))",
+                                                dataType: "json",
+                                                success: function (data, status) {
+                                                    if (data.length > 0) {
+                                                        resultHtml += "<table id='splitDwg_" + row.AttachID + "' class='table-bordered' style='margin: 5px 5px;width:95%'>";
+                                                        $.each(data, function (i, e) {
+                                                            resultHtml += "<tr>";
+                                                            resultHtml += "<td style='padding: 3px 3px;text-align:center;'><input type='checkbox' itemId='" + e.ID + "' /></td>";
+                                                            resultHtml += "<td style='padding: 3px 3px;'><a  target=\"_blank\" href='@Url.Action("Download", "ProcessFile", new { @area = "Core" })?id=" + e.ID + "&type=DesignSplitFile'>" + e.Name + "</a></td>";
+                                                            resultHtml += "</tr>";
+                                                        })
+                                                        resultHtml += "</table>";
+                                                    }
+                                                },
+                                                error: function () {
+                                                    resultHtml = "";
+                                                }
+                                            })
+                                            return resultHtml;
+                                            </text>
+                                                }
+                                                else
+                                                {
+                                                    <text>
+                                            var resultHtml = "";
+                                            $.ajax({
+                                                async: false,
+                                                type: "GET",
+                                                data: { attachID: row.AttachID, attachVer: row.AttachVer, splitIds: row.SplitFileIds },
+                                                url: "@(Url.Action("GetSplitFilesByMuli", "DesTask", new { @area = "Design" }))",
+                                                dataType: "json",
+                                                success: function (data, status) {
+                                                    if (data.length > 0) {
+                                                        resultHtml += "<table id='splitDwg_" + row.AttachID + "' class='table-bordered' style='margin: 5px 5px;width:95%'>";
+                                                        $.each(data, function (i, e) {
+                                                            resultHtml += "<tr>";
+                                                            resultHtml += "<td style='padding: 3px 3px;text-align:center;'>" + (parseInt(i) + 1) + "</td>";
+                                                            resultHtml += "<td style='padding: 3px 3px;'><a  target=\"_blank\" href='@Url.Action("Download", "ProcessFile", new { @area = "Core" })?id=" + e.ID + "&type=DesignSplitFile'>" + e.Name + "</a></td>";
+                                                            resultHtml += "</tr>";
+                                                        })
+                                                        resultHtml += "</table>";
+                                                    }
+                                                },
+                                                error: function () {
+                                                    resultHtml = "";
+                                                }
+                                            })
+                                            return resultHtml;
+                                            </text>
+                                                }
+                                              }
+                                        }
+                                    }
+                                },
+                                {
+                                    title: '当前版本', field: 'AttachVer', width: '10%', align: 'center', sortable: false, formatter: function (value, row, index) {
+                                        if (row.AttachExt == ".") {
+                                            return "";
+                                        } else {
+                                            return value;
+                                        }
+                                    }
+                                },
+                                { title: '上传日期', field: 'AttachDateUpload', width: '12%', align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT },
+                                { title: '上传人', field: 'AttachEmpName', width: '10%', align: 'center', sortable: false },
+                            ]],
+                            onLoadSuccess: function (data) {
+                                //$("#designFile").treegrid("resize");
+
+                            }
+                        })
+                    })
+
+                    $("#selectEmp").click(function () {
+                        var selectEmp = $("#DesMutiSign_EmpDiv").find(".EmpSpecDiv");
+                        var empids = [];
+                        if (selectEmp.length > 0) {
+
+                            $.each(selectEmp, function (i, e) {
+                                var empData = JSON.parse($(e).attr("data-emp"));
+                                empids.push({ 'SpecID': empData.SpecID, 'EmpID': empData.EmpID });
+                            })
+                        }
+                        JQ.dialog.dialog({
+                            url: '@Url.Action("SpecEmployee", "usercontrol", new { @area = "Core" })?empids=' + JSON.stringify(empids),
+                            width: 450,
+                            height: 600,
+                            title: '请选择人员',
+                            onClose: function () {
+                                showMuliEmp();
+                            }
+                        });
+                    })
+
+
+
+                    function removeEmp(thisDiv) {
+                        $(thisDiv).parent().remove();
+                    }
+
+                </script>
+                <table id="designFile"></table>
+            </td>
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="5"></td>
+        </tr>
+        <tr>
+            <th>
+                其他会签文件
+            </th>
+            <td colspan="5">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "DesMutiSign";
+                    uploader.Name = "DesMutiSign";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+
+
+            </td>
+        </tr>
+    </table>
+    <table style='display: none' title='会签记录'>
+        <tbody bookmark='PlanTableInfo_Person'>
+            @Html.Raw(ViewBag.HTML)
+        </tbody>
+    </table>
+    <input type="hidden" id="SQZY" name="SQZY" value="@ViewBag.SQZY" />
+    <input type="hidden" id="SQZYFZR" name="SQZYFZR" value="@ViewBag.SQZYFZR" />
+    <input type="hidden" id="HQZY" name="HQZY" />
+
+                    }

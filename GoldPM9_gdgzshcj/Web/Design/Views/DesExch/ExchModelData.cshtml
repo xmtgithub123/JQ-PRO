@@ -1,0 +1,84 @@
+﻿
+@using JQ.Web;
+<style type="text/css">
+    .rwpdialogdiv {
+        padding: 0px;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        $(".dialog-toolbar :last").hide();
+        JQ.datagrid.datagrid({
+            JQButtonTypes: [],//需要显示的按钮
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'ExchDataGrid',//数据表格ID
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            singleSelect: false,
+            JQFields: ["Id"],//追加的字段名
+            url: '@Url.Action("ExchModelJson", "DesExch", new { @area="Design"})?SpecId=@Request.Params["SpecId"]',//请求的地址
+            checkOnSelect: true,//是否包含check
+            JQMergeCells: { fields: ['PhaseName', 'ModelExchangeName', 'ModelExchangeContent'] },
+            toolbar: '#ExchDataPanel',//工具栏的容器ID
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '阶段', field: 'PhaseName', width: 150, align: 'center', sortable: true },
+                { title: '专业', field: 'ExchSpecName', width: 200, align: 'center', sortable: true },
+                { title: '资料名称', field: 'ExchTitle', width: 200, align: 'center', sortable: true },
+                { title: '资料内容', field: 'ExchContent', width: 200, align: 'center', sortable: true },
+                { title: '接收专业', field: 'RecSpecName', width: 200, align: 'center', sortable: true }
+            ]],
+
+        });
+        $("#KeyJQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '资料名称',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+            {
+                dgID: 'ExchDataGrid',
+                loadingType: 'datagrid',
+                queryParams: { KeyJQSearch: $("#KeyJQSearch").textbox('getValue') }
+            });
+            }
+        });
+    });
+
+    function selectExchData() {
+        var rows = $('#ExchDataGrid').datagrid('getSelections');
+        if (rows.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        var data = JSON.stringify(rows);
+        JQ.tools.ajax({
+            url: '@Url.Action("SaveInsertExchModelData", "DesExch")?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId',
+            data: 'JsonRows='+data,
+            succesCollBack: function (data) {
+                closeDialog();
+            }
+        });
+
+
+    }
+    //关闭当前弹出对话框
+    function closeDialog()
+    {
+        JQ.dialog.dialogClose();
+    }
+</script>
+
+<table id="ExchDataGrid"></table>
+<div id="ExchDataPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectExchData()">确定选择</a>
+    </span>
+    @*分割号*@
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+
+    <input id="KeyJQSearch" style="width:250px;" JQWhereOptions="{ Key:'ModelExchangeName', Contract:'like'}" />
+</div>
+
+
+

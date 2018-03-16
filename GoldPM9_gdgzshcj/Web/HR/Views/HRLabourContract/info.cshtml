@@ -1,0 +1,70 @@
+﻿@model DataModel.Models.HRLabourContract
+@using JQ.Web;
+
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'HRLabourContractForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            if (data.stateValue<0) {
+                return false;
+            }
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }       
+    });
+</script>
+
+@using (Html.BeginForm("save", "HRLabourContract", FormMethod.Post, new { @area = "Hr", @id = "HRLabourContractForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+	 
+                        
+ 
+        <tr>
+            <th width="10%">
+                员工
+            </th>
+            <td width="40%">
+		        @ViewBag.EmpName
+                <input name="EmpID" type="hidden" value="@(ViewBag.EmpID)" />                
+            </td>
+            <th width="10%">薪资</th>
+            <td width="40%">
+                <input name="Salary" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" value="@Model.Salary" precision="2" min="0"/>		    
+            </td>
+        </tr>
+ 
+            <tr>
+            <th width="10%">合同开始</th>
+            <td width="40%">
+                <input name="StarDate" style="width:98%;" class="easyui-datebox" validType="length[0,23]" value="@Model.StarDate" />
+            </td>
+            <th width="10%">合同结束</th>
+            <td width="40%">
+                <input name="EndDate" style="width:98%;" class="easyui-datebox" validType="length[0,23]" value="@Model.EndDate" />
+            </td>
+            </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "HRLabourContract";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <script type="text/javascript">
+        console.log(1111111)
+    </script>
+}
+
+
+

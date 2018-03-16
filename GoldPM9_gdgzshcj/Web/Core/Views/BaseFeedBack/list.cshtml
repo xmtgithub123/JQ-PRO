@@ -1,0 +1,77 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "BaseFeedBack",new { @area="Core"})',
+               addUrl = '@Url.Action("add","BaseFeedBack",new {@area="Core" })',
+               editUrl = '@Url.Action("edit", "BaseFeedBack",new {@area="Core" })',
+               delUrl = '@Url.Action("del", "BaseFeedBack", new { @area = "Core" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: @Html.Raw(ViewBag.permission),//['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BaseFeedBackGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '600',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                JQExcludeCol: [0, 1, 7],//导出execl排除的列
+                toolbar: '#BaseFeedBackPanel',//工具栏的容器ID
+                columns: [[
+                        { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		                { title: '创建时间', field: 'CreationTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		                { title: '创建人姓名', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true },
+                        {
+                            title: '反馈状态', field: 'ShowSenStatus', width: "100", align: 'center', formatter: function (val, row) {
+                                if(row.SendStatus>0){
+                                    row.ShowSenStatus="已处理";
+                                }else{
+                                    row.ShowSenStatus="新反馈";
+                                }
+                                return row.SendStatus > 0 ? "<span style='color:gray'>已处理</span>" : "<span style='color:green'>新反馈</span>";
+                            }
+                        },
+		                { title: '反馈原因', field: 'SendReason', width: 300, align: 'center', sortable: true },
+		                { title: '反馈备注', field: 'SendNote', width: 300, align: 'center', sortable: true },
+                        { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'BaseFeedBack' }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '创建人姓名、反馈原因',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BaseFeedBackGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="BaseFeedBackGrid"></table>
+    <div id="BaseFeedBackPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="self.location.href='@Url.Action("baklist", "BaseFeedBack",new { @area="Core"})'" JQPermissionName="alledit">数据库备份</a>
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'CreatorEmpName,SendReason', 'Contract': 'like' }" />
+
+    </div>
+}
+

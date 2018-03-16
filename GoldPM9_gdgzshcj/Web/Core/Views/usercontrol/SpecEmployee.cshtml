@@ -1,0 +1,222 @@
+﻿
+
+<div JQPanel="dialogButtonPanel">
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-search'" id="btnSure">确定</a>
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" id="EmptyLnk">清除所有</a>
+</div>
+<div id="cc" class="easyui-layout" style="overflow: hidden" fit="true">
+    <div data-options="region:'west',split:false" style="width:220px;">
+        <ul id="employeeLeftTree"></ul>
+    </div>
+    <div data-options="region:'center'" style="background:#eee;">
+        <ul id="employeeRightTree"></ul>
+    </div>
+</div>
+
+<script type="text/javascript">
+    //清空
+    $("#EmptyLnk").click(function () {
+        debugger;
+        var rootNodes = $("#employeeRightTree").tree("getRoots");
+        var ids = [];
+        for (var i = 0; i < rootNodes.length; i++) {
+            ids.push(rootNodes[i].id);
+        }
+        $.each(ids, function (i, ne) {
+            clickFun(ne, "employeeRightTree");
+        })
+    })
+
+    $("#btnSure").click(function () {
+        //获取本层dialog
+        window.SpecEmps = [];
+        var data = $("#employeeRightTree").tree("getRoots");
+        
+        $.each(data, function (i, e) {
+            if (e.children == undefined) return true;
+            if (e.children.length > 0) {
+                $.each(e.children, function (ic, ec) {
+                    window.SpecEmps.push({ SpecID: ec.SpecID, SpecName: ec.SpecName, EmpName: ec.text, EmpID: ec.EmpID });
+                })
+            }
+        })
+        if (window.SpecEmps.length > 0) {
+            JQ.dialog.dialogClose();
+        } else {
+            JQ.dialog.show("请至少选择一位！！！");
+        }
+
+    })
+
+    $(function () {
+        showleftTree();
+        showrightTree();
+    })
+
+    function showleftTree() {
+        $('#employeeLeftTree').tree({
+            url: '@Url.Action("getSpecEmpList")',//open
+            animate: true,
+            onClick: function (node) {
+
+                var parent = $(this).tree("getParent", node.target),
+                  childs = $(this).tree("getChildren", node.target);
+                if (childs.length == 0) {
+
+                    clickFun(node.id, 'employeeLeftTree');
+                }
+                else {
+                    if (node.state == "open") {
+                        $(this).tree("collapse", node.target);
+                    } else {
+                        $(this).tree("expand", node.target);
+                    }
+                }
+            },
+            onLoadSuccess: function (node, data) {
+                regditEvent(data, "employeeLeftTree");
+            }
+        });
+    }
+
+    function showrightTree() {
+        $('#employeeRightTree').tree({
+            url: '@Url.Action("getSpecEmpList")?empids=@(Html.Raw(ViewBag.empids))',//open
+            animate: true,
+            onClick: function (node) {
+                var parent = $(this).tree("getParent", node.target),
+                  childs = $(this).tree("getChildren", node.target);
+                if (childs.length == 0) {
+                    clickFun(node.id, 'employeeRightTree');
+                }
+                else {
+                    if (node.state == "open") {
+                        $(this).tree("collapse", node.target);
+                    } else {
+                        $(this).tree("expand", node.target);
+                    }
+                }
+            },
+            onLoadSuccess: function (node, data) {
+                regditEvent(data, "employeeRightTree");
+                //全部展开
+                $('#employeeRightTree').tree("expandAll");
+            }
+        });
+    }
+    //注册 鼠标浮动事件
+    function regditEvent(data, treeId) {
+        if (JQ.tools.isNotEmpty(data)) {
+            var $grid = $("#" + treeId);
+            var text, icon;
+            $.each(data, function (i, e) {
+                var $NodedivID = $("#" + e.domId);//行节点
+
+                //$NodedivID.attr('jq-employeetree', "{id:" + e.id + ",text:'" + e.text + "',treeid:'" + treeId + "'}");
+                $NodedivID.attr('jq-employeetree', JSON.stringify({ 'id': e.id, 'text': e.text, 'treeid': treeId }));
+                if (treeId == 'employeeLeftTree') {
+                    text = '全选';
+                    icon = 'fa fa-check-circle';
+                }
+                else {
+                    text = '移除';
+                    icon = 'fa fa-trash';
+                }
+
+                if (e.id.indexOf('T') == 0) {
+                    $("<a>", {
+                        'class': icon,
+                        'func': 'all',
+                        style: 'float:right;margin-right:10px;display:none;height: 18px;padding: 0 2px;',
+                        text: text,
+                        click: function (e) {
+                            var j = eval("(" + $(this).parent().attr("jq-employeetree") + ")");
+                            clickFun(j.id, treeId);
+                            e.stopPropagation();
+                        }
+                    }).appendTo($NodedivID);
+                }
+            })
+
+            $("div[jq-employeetree]").hover(
+                 function (e) {
+                     var j = eval("(" + $(this).attr('jq-employeetree') + ")");
+                     var isok = j.id.indexOf('T') == 0;
+                     if (isok) {
+                         $(this).find("a[func='all']").show(100);
+                     }
+
+                 },
+                 function (e) {
+                     var j = eval("(" + $(this).attr('jq-employeetree') + ")");
+                     var isok = j.id.indexOf('T') == 0;
+                     if (isok) {
+                         $(this).find("a[func='all']").hide(100);
+                     }
+                 }
+           );
+        }
+    }
+    //移除节点
+    function clickFun(nodeId, treeid) {
+
+        var $grid = $("#" + treeid);
+        var otherTreeid = treeid == 'employeeLeftTree' ? "employeeRightTree" : 'employeeLeftTree';
+        appendNodes(nodeId, treeid, otherTreeid);
+
+
+        var CurrentNode = $grid.tree("find", nodeId);
+        var Childs = $grid.tree("getChildren", CurrentNode.target);
+        if (Childs.length > 0) {
+            //父节点、子节点
+            $grid.tree("remove", CurrentNode.target);
+        } else {
+            var parentNode = $grid.tree("getParent", CurrentNode.target);
+            $grid.tree("remove", CurrentNode.target);
+            //判断是否还有子节点
+            if (parentNode == null) return;
+            var CChilds = $grid.tree("getChildren", parentNode.target);
+            if (CChilds.length == 0) {
+                $grid.tree("remove", parentNode.target);
+            }
+        }
+    }
+    //新增节点
+    function appendNodes(nodeId, treeid, addtreeid) {
+        $addgrid = $("#" + addtreeid);
+        $removegrid = $("#" + treeid);
+
+        var CurrentNode = $removegrid.tree("find", nodeId);
+        //是否还有父节点
+        var parentNode = $removegrid.tree("getParent", CurrentNode.target);
+        if (parentNode == null) {
+            //判断新增边 是否有父节点
+            var otherparentNode = $addgrid.tree("find", CurrentNode.id);
+            if (otherparentNode == null) {
+                $addgrid.tree("append", { data: [{ id: CurrentNode.id, text: CurrentNode.text, SpecID: CurrentNode.SpecID, SpecName: CurrentNode.SpecName, EmpID: CurrentNode.EmpID }] });
+                otherparentNode = $addgrid.tree("find", CurrentNode.id);
+            }
+
+            var childs = $removegrid.tree("getChildren", CurrentNode.target);
+            if (childs.length > 0) {
+                $.each(childs, function (i, e) {
+                    var otherChild = $addgrid.tree("find", e.id);
+                    if (otherChild == null) {
+                        $addgrid.tree("append", { parent: otherparentNode.target, data: [{ id: e.id, text: e.text, iconCls: e.iconCls, SpecID: e.SpecID, SpecName: e.SpecName, EmpID: e.EmpID }] });
+                    }
+                })
+            }
+
+        } else {
+            var otherparentNode = $addgrid.tree("find", parentNode.id);
+            if (otherparentNode == null) {
+                $addgrid.tree("append", { data: [{ id: parentNode.id, text: parentNode.text, SpecID: parentNode.SpecID, SpecName: parentNode.SpecName, EmpID: parentNode.EmpID }] });
+                otherparentNode = $addgrid.tree("find", parentNode.id);
+            }
+            $addgrid.tree("append", { parent: otherparentNode.target, data: [{ id: CurrentNode.id, text: CurrentNode.text, iconCls: CurrentNode.iconCls, SpecID: CurrentNode.SpecID, SpecName: CurrentNode.SpecName, EmpID: CurrentNode.EmpID }] });
+        }
+    }
+
+
+
+</script>

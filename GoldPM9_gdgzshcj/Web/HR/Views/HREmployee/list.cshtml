@@ -1,0 +1,160 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "HREmployee",new { @area="Hr"})',
+            addUrl = '@Url.Action("add","HREmployee",new {@area="Hr" })',
+            editUrl = '@Url.Action("edit", "HREmployee",new {@area="Hr" })',
+            delUrl = '@Url.Action("del", "HREmployee", new { @area = "Hr" })';
+        $(function () {
+            debugger;
+            var btnPer=@Html.Raw(ViewBag.strPer);
+            if($.inArray("btnChoice",btnPer)==-1){
+                $("#btnChoice").hide();
+            }
+
+            JQ.datagrid.datagrid({
+                JQButtonTypes: @Html.Raw(ViewBag.strPer),//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'HREmployeeGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+				JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '筛选字段',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+				fitColumns: false,
+                nowrap: false,
+                toolbar: '#HREmployeePanel',//工具栏的容器ID
+                JQExcludeCol:[1,11],
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '部门', field: 'DepName', width: 100, align: 'center', sortable: true },
+                    { title: '姓名', field: 'EmpName', width: 100, align: 'center', sortable: true },
+                    { title: '入职日期', field: 'EmpJoinDate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '性别', field: 'EmpSexName', width: 100, align: 'center', sortable: true },
+                    { title: '手机', field: 'EmpPhoneNumber', width: 100, align: 'center', sortable: true },
+                    { title: '最高学历', field: 'LastEducationName', width: 100, align: 'center', sortable: true },
+                    { title: '个人资质', field: 'ZZCount', width: 100, align: 'center', sortable: true,formatter:function(value,row,index){
+                        return "<a href=\"javascript:void(0)\" onclick=\"ZZDetail('" + row.Id + "');\">"+row.ZZCount+"</a>"
+                    }},
+                    { title: '个人获奖信息', field: 'HJCount', width: 100, align: 'center', sortable: true,formatter:function(value,row,index){
+                        return "<a href=\"javascript:void(0)\" onclick=\"HJDetail('" + row.Id + "');\">"+row.HJCount+"</a>"
+                    }},
+                    { title: '年休天数', field: 'VacationDays1', width: 100, align: 'center', sortable: true },
+                    {
+                        field: 'opt', title: '操作', width: 100, align: 'center', JQIsExclude: true,
+                        formatter: function (value, row, index) {
+                            var html="";
+                            if($.inArray("edit", btnPer)!=-1){
+                                html+="<a href=\"javascript:void(0)\" onclick=\"openDetailDialog('" + row.Id + "');\">修改</a>&nbsp;&nbsp;";
+                            }
+                            if($.inArray("del", btnPer)!=-1){
+                                html+="<a href=\"javascript:void(0)\" onclick=\"delRow('" + row.Id + "');\" style='margin-left:2px;'>删除</a>";
+                            }
+                            return html;
+                        }
+                    }
+                ]],
+                onLoadSuccess: function (data) {
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '姓名',
+                queryOptions: { 'Key': 'EmpName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'HREmployeeGrid',
+                            loadingType: 'datagrid',
+                            queryParams: { endDate: $("#endDate").datebox("getValue") }
+                        });
+                }
+            });
+        });
+
+        function ZZDetail(empId){
+            JQ.dialog.dialog({
+                title: "个人资质明细",
+                url: '@Url.Action("EmpAptiudeDetail", "HRAptitudeManager", new { @area = "Hr" })?EmpId='+empId+'',
+                width: '1024',
+                height: '100%',
+                JQID: 'HREmployeeGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+
+        function HJDetail(empId){
+            JQ.dialog.dialog({
+                title: "个人获奖明细",
+                url: '@Url.Action("HREmpWinDetail", "HREmpWinManager", new { @area = "Hr" })?EmpId='+empId+'',
+                width: '1024',
+                height: '100%',
+                JQID: 'HREmployeeGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+
+        function openDetailDialog(rowID) {
+            jQuery("#HREmployeeGrid").datagrid('reload');
+            JQ.dialog.dialog({
+                title: "修改",
+                url: '@Url.Action("edit")' + '?Id=' + rowID,
+                width: '1024',
+                height: '100%',
+                JQID: 'HREmployeeGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+        function delRow(rowID)
+        {
+            window.top.JQ.dialog.confirm("确定要删除吗？",function(){
+                jQuery.post("@Url.Action("del", "HREmployee", new {area="Hr"})","id="+rowID,function(data){
+                    jQuery("#HREmployeeGrid").datagrid('reload');
+                },"json");
+            });
+        }
+
+        function SyncEmployee(){
+            jQuery.post("@Url.Action("SyncEmployee", "HREmployee", new {area="Hr"})",'',function(data){
+                jQuery("#HREmployeeGrid").datagrid('reload');
+            },"json");
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="HREmployeeGrid"></table>
+    <div id="HREmployeePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a class="easyui-linkbutton" name="btnChoice" id="btnChoice" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="SyncEmployee()">同步人员</a>
+        </span>
+
+        <input id="JQSearch" style="width:250px;"  JQWhereOptions="{ 'Key': 'EmpName', 'Contract': 'like' }"/>
+        <div class="moreSearchPanel">
+            @BaseData.getBases(new Params() { isMult = false, engName = "department", isAll = "1", allVal = "0", allText = "全部", queryOptions = "{ Key:'DepID', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params() { isMult = false, engName = "EmpStatus", isAll="1", allVal="0", allText="全部", queryOptions = "{ Key:'EmpStatusID', Contract:'in',filedType:'Int'}" })
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '入职日期'" JQWhereOptions="{ Key:'CreationTime', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endDate" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '入职日期'">&nbsp;
+        </div>
+    </div>
+}
+

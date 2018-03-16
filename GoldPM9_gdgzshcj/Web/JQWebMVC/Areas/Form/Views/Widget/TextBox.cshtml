@@ -1,0 +1,477 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <form id="form1">
+        <div id="div1" style="padding:5px;display:none">
+            <table class="documenttable" style="width:100%">
+                <tr>
+                    <th style="width:15%">名称</th>
+                    <td style="width:35%">
+                        <input type="text" id="txtName" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                    <th style="width:15%">
+                        字段
+                    </th>
+                    <td>
+                        <select id="listdatafield" class="yc_select">
+                            <option value="">无</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th style="width:15%">宽度</th>
+                    <td style="width:35%"><input type="text" id="txtWidth" name="" class="yc_textbox" style="width:80%"> px</td>
+                    <th style="width:15%">只读</th>
+                    <td style="width:35%">
+                        <input type="checkbox" id="cbIsReadonly" />
+                    </td>
+                </tr>
+                <tr>
+                    <th>内边距</th>
+                    <td colspan="3">
+                        上 <input type="text" id="txtPaddingTop" class="yc_textbox" style="width:32px" /> px
+                        右 <input type="text" id="txtPaddingRight" class="yc_textbox" style="width:32px" /> px
+                        下 <input type="text" id="txtPaddingBottom" class="yc_textbox" style="width:32px" /> px
+                        左 <input type="text" id="txtPaddingLeft" class="yc_textbox" style="width:32px" /> px
+                    </td>
+                </tr>
+                <tr>
+                    <th>外边距</th>
+                    <td colspan="3">
+                        上 <input type="text" id="txtMarginTop" class="yc_textbox" style="width:32px" /> px
+                        右 <input type="text" id="txtMarginRight" class="yc_textbox" style="width:32px" /> px
+                        下 <input type="text" id="txtMarginBottom" class="yc_textbox" style="width:32px" /> px
+                        左 <input type="text" id="txtMarginLeft" class="yc_textbox" style="width:32px" /> px
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        默认值
+                    </th>
+                    <td colspan="3">
+                        <input type="text" id="txtDefaultValue" name="" class="yc_textbox" style="width:90%">
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        提示文本
+                    </th>
+                    <td colspan="3">
+                        <input type="text" id="txtPlaceHolder" name="" class="yc_textbox" style="width:90%">
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="div2" style="display:none;padding:5px">
+            <div style="margin-top:3px">
+                <table>
+                    <tr>
+                        <td>
+                            <input type="checkbox" id="cbIsRequire" /><label for="cbIsRequire">必填</label>
+                        </td>
+                        <td style="padding-left:10px">
+                            字符串长度：<input type="text" id="txtMinLength" class="yc_textbox" style="width:80px" /> - <input type="text" class="yc_textbox" style="width:80px" id="txtMaxLength" />
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div style="margin-top:5px">
+                自定义规则：
+                <div class="headtoolbar" style="border:1px solid #EFEFEF;float:none">
+                    <div style="float:left;width:5px">
+                    </div>
+                    <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="appendGridData()">
+                        <span class="fa fa-plus"></span>
+                        <span>添加</span>
+                    </div>
+                </div>
+                <div id="div_rulegrid" style="margin-top:-1px"></div>
+            </div>
+        </div>
+        <div id="div3" style="display:none;padding:5px;">
+            <table class="documenttable" style="width:100%">
+                <tr>
+                    <th style="width:15%">变量名称</th>
+                    <td style="width:35%">
+                        <input type="text" id="txtVariableName" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                    <th style="width:15%">
+                    </th>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th>
+                        可编辑步骤
+                    </th>
+                    <td colspan="3" id="tdActivities"></td>
+                </tr>
+                <tr>
+                    <th>显示设置</th>
+                    <td colspan="3">
+                        <div id="divdisplay">
+                            <div>
+                                步骤：
+                                <select id="listActivities" class="yc_select">
+                                    <option value="">无</option>
+                                </select>
+                            </div>
+                            <div style="margin-top:5px;">
+                                <input type="checkbox" id="cbIsShowProcessUser" /><label for="cbIsShowProcessUser">显示处理人</label>
+                                <input type="checkbox" id="cbIsShowProcessTime" /><label for="cbIsShowProcessTime">显示处理时间</label>
+                                <input type="checkbox" id="cbIsShowProcessNote" /><label for="cbIsShowProcessNote">显示处理意见</label>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        审批完成后
+                    </th>
+                    <td colspan="3">
+                        <input type="checkbox" id="cbIsEditableWhenPassed" /><label for="cbIsEditableWhenPassed">通过后可以编辑</label>
+                        <input type="checkbox" id="cbIsEditableWhenUnPassed" /><label for="cbIsEditableWhenUnPassed">不通过后可以编辑</label>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="div4" style="display:none;padding:5px;">
+            <table class="documenttable" style="width:100%">
+                <tr>
+                    <th style="width:15%">标题</th>
+                    <td style="width:35%">
+                        <input type="text" id="txtDialogTitle" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                    <th style="width:15%">打开模式</th>
+                    <td style="width:35%">
+                        <input type="radio" id="rdOnClick" name="openmode" /><label for="rdOnClick">单击</label>
+                        <input type="radio" id="rdOnDblClick" name="openmode" /><label for="rdOnDblClick">双击</label>
+                    </td>
+                </tr>
+                <tr>
+                    <th>地址</th>
+                    <td colspan="3">
+                        <input type="text" id="txtDialogUrl" name="" class="yc_textbox" style="width:92%" spellcheck="false">
+                    </td>
+                </tr>
+                <tr>
+                    <th>宽度</th>
+                    <td>
+                        <input type="text" id="txtDialogWidth" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                    <th>高度</th>
+                    <td>
+                        <input type="text" id="txtDialogHeight" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        回调函数
+                    </th>
+                    <td colspan="3">
+                        <div>
+                            名称：<input type="text" id="txtDialogMethodName" class="yc_textbox" style="width:340px" />
+                        </div>
+                        <div style="margin-top:3px">
+                            参数：<input type="text" id="txtDialogMethodArguments" class="yc_textbox" style="width:340px" />
+                        </div>
+                        <div style="margin-top:3px;">
+                            <div style="display:inline;vertical-align:top">主体：</div><textarea id="txtDialogMethodBody" class="yc_textbox" rows="12" style="width:400px" spellcheck="false"></textarea>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.grid.js"))"></script>
+<script type="text/javascript">
+
+    var temp = 0;
+    var yGrid = new YChart.Grid({
+        height: 200,
+        container: document.getElementById("div_rulegrid"),
+        idField: "id",
+        columns: [
+            {
+                title: "正则表达式", width: 200, field: "regular", align: "center", formatter: function (cell, rowData) {
+                    cell.appendChild(YChart.createElement("input", { id: "txtRegular" + rowData.id, type: "text", className: "yc_textbox", value: rowData.regular }, { width: "180px" }));
+                }
+            },
+            {
+                title: "提示信息", width: 280, field: "message", formatter: function (cell, rowData) {
+                    cell.appendChild(YChart.createElement("input", { id: "txtMessage" + rowData.id, type: "text", className: "yc_textbox", value: rowData.message }, { width: "260px" }));
+                }
+            }, {
+                title: "操作", width: 60, field: "OP", align: "center", formatter: function (cell, rowData) {
+                    var a = YChart.createElement("a", { href: "javascript:void(0)", className: "yc_a" }, null, "移除");
+                    a.setAttribute("dataid", rowData.id);
+                    a.onclick = function () {
+                        if (!confirm("确定要移除吗？")) {
+                            return;
+                        }
+                        yGrid.deleteData(this.getAttribute("dataid"));
+                    }
+                    cell.appendChild(a); 2
+                }
+            }
+        ]
+    });
+
+    function appendGridData() {
+        yGrid.appendData({
+            id: ++temp,
+            regular: "",
+            message: ""
+        })
+    }
+
+    window.onDialogLoaded = function () {
+        var yTab = new YChart.Tab({
+            container: "divcontent",
+            offsetHeight: 0,
+            headWidth: 120,
+            tabs: [
+                {
+                    name: "controlproperty",
+                    title: "控件属性",
+                    element: "div1",
+                    closable: false
+                },
+                {
+                    name: "formvaliedate",
+                    title: "表单验证",
+                    element: "div2",
+                    closable: false
+                },
+                {
+                    name: "processproperty",
+                    title: "流程属性",
+                    element: "div3",
+                    closable: false
+                },
+                {
+                    name: "dialog",
+                    title: "对话框属性",
+                    element: "div4",
+                    closable: false
+                }
+            ]
+        });
+        YChart.registerNumberBox({
+            element: [document.getElementById("txtWidth"), document.getElementById("txtPaddingTop"), document.getElementById("txtPaddingRight"), document.getElementById("txtPaddingBottom"), document.getElementById("txtPaddingLeft"), document.getElementById("txtMarginTop"), document.getElementById("txtMarginRight"), document.getElementById("txtMarginBottom"), document.getElementById("txtMarginLeft"), document.getElementById("txtDialogWidth"), document.getElementById("txtDialogHeight")],
+            precision: 0,
+            min: 0
+        });
+        YChart.registerNumberBox({
+            element: [document.getElementById("txtMinLength"), document.getElementById("txtMaxLength")],
+            precision: 0,
+            defaultValue: ""
+        });
+        var data = window.frameElement.api.getSource();
+        var source = data.source;
+        var style = source.element.ownerDocument.defaultView.getComputedStyle(source.element);
+        document.getElementById("txtName").value = source.element.getAttribute("id") || "";
+        document.getElementById("txtWidth").value = style.width.replace("px", "");
+        document.getElementById("txtPaddingTop").value = style.paddingTop.replace("px", "");
+        document.getElementById("txtPaddingRight").value = style.paddingRight.replace("px", "");
+        document.getElementById("txtPaddingBottom").value = style.paddingBottom.replace("px", "");
+        document.getElementById("txtPaddingLeft").value = style.paddingLeft.replace("px", "");
+        document.getElementById("txtMarginTop").value = style.marginTop.replace("px", "");
+        document.getElementById("txtMarginRight").value = style.marginRight.replace("px", "");
+        document.getElementById("txtMarginBottom").value = style.marginBottom.replace("px", "");
+        document.getElementById("txtMarginLeft").value = style.marginLeft.replace("px", "");
+        document.getElementById("cbIsReadonly").checked = source.isReadonly == "1";
+        if (source.defaultValue) {
+            document.getElementById("txtDefaultValue").value = source.defaultValue;
+        }
+        if (source.placeHolder) {
+            document.getElementById("txtPlaceHolder").value = source.placeHolder;
+        }
+        if ("isRequire" in source) {
+            document.getElementById("cbIsRequire").checked = source.isRequire == "1";
+        }
+        if ("minLength" in source) {
+            document.getElementById("txtMinLength").value = source.minLength;
+        }
+        if ("maxLength" in source) {
+            document.getElementById("txtMaxLength").value = source.maxLength;
+        }
+        if ("rules" in source) {
+            yGrid.setDatas(source.rules);
+            for (var i = 0; i < source.rules.length; i++) {
+                if (source.rules[i].id > temp) {
+                    temp = source.rules[i].id;
+                }
+            }
+        }
+        if (data.columns && data.columns.length > 0) {
+            var _listfield = document.getElementById("listdatafield");
+            for (var i = 0; i < data.columns.length; i++) {
+                var option = document.createElement("option");
+                option.setAttribute("value", data.columns[i].value);
+                option.appendChild(document.createTextNode(data.columns[i].name));
+                if (data.columns[i].value == source.dataField) {
+                    option.setAttribute("selected", "selected");
+                }
+                _listfield.appendChild(option);
+            }
+        }
+        if (source.inlineTableName) {
+            document.getElementById("txtVariableName").style.display = "none";
+            document.getElementById("divdisplay").style.display = "none";
+        }
+        if (source.flow) {
+            document.getElementById("txtVariableName").value = source.flow.variableName;
+            document.getElementById("cbIsShowProcessUser").checked = source.flow.isShowProcessUser == "1";
+            document.getElementById("cbIsShowProcessTime").checked = source.flow.isShowProcessTime == "1";
+            document.getElementById("cbIsShowProcessNote").checked = source.flow.isShowProcessNote == "1";
+            document.getElementById("cbIsEditableWhenPassed").checked = source.flow.isEditableWhenPassed == "1";
+            document.getElementById("cbIsEditableWhenUnPassed").checked = source.flow.isEditableWhenUnPassed == "1";
+        }
+        if (data.processTemplateID || data.processTemplateVersionID) {
+            YChart.ajax({
+                url: "@(Url.Action("GetAllActivities", "Template",new { @area="Process" }))",
+                type: "POST",
+                data: { id: data.processTemplateID, versionID: data.processTemplateVersionID },
+                success: function (result) {
+                    var _listActivities = document.getElementById("listActivities");
+                    var _tdActivities = document.getElementById("tdActivities");
+                    for (var i = 0; i < result.length; i++) {
+                        var option = document.createElement("option");
+                        option.setAttribute("value", result[i].Value);
+                        option.appendChild(document.createTextNode(result[i].Text));
+                        _listActivities.appendChild(option);
+                        var checkbox = YChart.createElement("input", { type: "checkbox", id: "cb_a_" + i, value: result[i].Value }, { marginLeft: "5px" });
+                        _tdActivities.appendChild(checkbox);
+                        var lbl = YChart.createElement("label", { "for": "cb_a_" + i });
+                        lbl.appendChild(document.createTextNode(result[i].Text));
+                        _tdActivities.appendChild(lbl);
+                        if (source.flow) {
+                            if (result[i].Value == source.flow.displayStep) {
+                                option.selected = true;
+                            }
+                            for (var j = 0; j < source.flow.editableSteps.length; j++) {
+                                if (source.flow.editableSteps[j] == result[i].Value) {
+                                    checkbox.checked = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        if (source.dialog) {
+            document.getElementById("txtDialogTitle").value = source.dialog.title;
+            if (source.dialog.openMode == "click") {
+                document.getElementById("rdOnClick").checked = true;
+            }
+            else {
+                document.getElementById("rdOnDblClick").checked = true;
+            }
+            document.getElementById("txtDialogUrl").value = source.dialog.url;
+            document.getElementById("txtDialogWidth").value = source.dialog.width;
+            document.getElementById("txtDialogHeight").value = source.dialog.height;
+            document.getElementById("txtDialogMethodName").value = source.dialog.methodName;
+            document.getElementById("txtDialogMethodArguments").value = source.dialog.methodArguments
+            document.getElementById("txtDialogMethodBody").value = source.dialog.methodBody;
+        }
+        else {
+            document.getElementById("rdOnDblClick").checked = true;
+        }
+    }
+
+    function sure() {
+        //验证名称是否存在
+        var name = document.getElementById("txtName").value;
+        if (name && window.frameElement.api.isExists(name)) {
+            alert("控件名称已经存在，无法保存！");
+            return;
+        }
+        //设置样式
+        var rules = [];
+        for (var i = 0; i < yGrid.datas.length; i++) {
+            var regular = document.getElementById("txtRegular" + yGrid.datas[i].id).value;
+            var message = document.getElementById("txtMessage" + yGrid.datas[i].id).value;
+            if (regular == "" || message == "") {
+                continue;
+            }
+            rules.push({
+                id: yGrid.datas[i].id,
+                regular: regular,
+                message: message
+            });
+        }
+        var flow = {
+            variableName: YChart.trim(document.getElementById("txtVariableName").value),
+            displayStep: YChart.getSelectedValue(document.getElementById("listActivities")),
+            isEditableWhenPassed: document.getElementById("cbIsEditableWhenPassed").checked ? "1" : "0",
+            isEditableWhenUnPassed: document.getElementById("cbIsEditableWhenUnPassed").checked ? "1" : "0",
+            editableSteps: []
+        };
+        if (flow.displayStep == "") {
+            flow.isShowProcessUser = "0";
+            flow.isShowProcessTime = "0";
+            flow.isShowProcessNote = "0";
+        }
+        else {
+            flow.isShowProcessUser = document.getElementById("cbIsShowProcessUser").checked ? "1" : "0";
+            flow.isShowProcessTime = document.getElementById("cbIsShowProcessTime").checked ? "1" : "0";
+            flow.isShowProcessNote = document.getElementById("cbIsShowProcessNote").checked ? "1" : "0";
+        }
+        //获取出选项
+        YChart.recuriseChildNodes(document.getElementById("tdActivities"), function (element) {
+            if (element.nodeType != 1 || element.tagName != "INPUT" || element.getAttribute("type") != "checkbox") {
+                return;
+            }
+            if (element.checked) {
+                flow.editableSteps.push(element.getAttribute("value"));
+            }
+        });
+        //获取出自定义规则
+        window.frameElement.api.saveData({
+            name: name,
+            style: {
+                width: document.getElementById("txtWidth").value,
+                padding: document.getElementById("txtPaddingTop").value + "px" + " " + document.getElementById("txtPaddingRight").value + "px" + " " + document.getElementById("txtPaddingBottom").value + "px" + " " + document.getElementById("txtPaddingLeft").value + "px",
+                margin: document.getElementById("txtMarginTop").value + "px" + " " + document.getElementById("txtMarginRight").value + "px" + " " + document.getElementById("txtMarginBottom").value + "px" + " " + document.getElementById("txtMarginLeft").value + "px"
+            },
+            property: {
+                dataField: YChart.getSelectedValue(document.getElementById("listdatafield")),
+                isRequire: document.getElementById("cbIsRequire").checked ? "1" : "0",
+                defaultValue: document.getElementById("txtDefaultValue").value,
+                placeHolder: document.getElementById("txtPlaceHolder").value,
+                minLength: document.getElementById("txtMinLength").value,
+                maxLength: document.getElementById("txtMaxLength").value,
+                isReadonly: document.getElementById("cbIsReadonly").checked ? "1" : "0",
+                rules: rules,
+                flow: flow,
+                dialog: {
+                    title: YChart.trim(document.getElementById("txtDialogTitle").value),
+                    openMode: document.getElementById("rdOnClick").checked ? "click" : "dblclick",
+                    url: YChart.trim(document.getElementById("txtDialogUrl").value),
+                    width: document.getElementById("txtDialogWidth").value,
+                    height: document.getElementById("txtDialogHeight").value,
+                    methodName: YChart.trim(document.getElementById("txtDialogMethodName").value),
+                    methodArguments: YChart.trim(document.getElementById("txtDialogMethodArguments").value),
+                    methodBody: YChart.trim(document.getElementById("txtDialogMethodBody").value)
+                }
+            }
+        });
+        frameElement.closeDialog();
+    }
+</script>

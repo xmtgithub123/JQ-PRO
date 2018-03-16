@@ -1,0 +1,101 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+    var requestUrl = '@Url.Action("jsonOaEquipment", "OaEquipment", new { @area = "Oa" })?EquipOrOffice=1',
+           addUrl = '@Url.Action("add","OaEquipment",new {@area="Oa" })?EquipOrOffice=1',
+           editUrl = '@Url.Action("edit", "OaEquipment",new {@area="Oa" })',
+           delUrl = '@Url.Action("del", "OaEquipment", new { @area = "Oa" })';
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+            JQAddUrl: addUrl, //添加的路径
+            JQEditUrl: editUrl,//编辑的路径
+            JQDelUrl: delUrl, //删除的路径
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'OaEquipmentGrid',//数据表格ID
+            JQDialogTitle: '办公用品信息',//弹出窗体标题
+            JQWidth: '1000',//弹出窗体宽
+            JQHeight: '800',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQFields: ["Id"],//追加的字段名
+            url: requestUrl,//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#OaEquipmentPanel',//工具栏的容器ID
+            JQExcludeCol: [1, 7, 8],//导出execl排除的列
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '办公用品编号', field: 'EquipNumber', width: "20%", align: 'center', sortable: true },
+                { title: '办公用品名称', field: 'EquipName', width: "20%", align: 'center', sortable: true },
+                { title: '规格', field: 'EquipModel', width: "10%", align: 'center', sortable: true },
+                { title: '总量', field: 'EquipTotalCount', width: "10%", align: 'center', sortable: true },
+                { title: '库存', field: 'SJKC', width: "10%", align: 'center', sortable: true },
+                { title: '登记员', field: 'CreatorEmpName', width: "10%", align: 'center', sortable: true },
+                {
+                    title: '使用情况', field: '使用情况', width: "10%", align: 'center', sortable: false, formatter: function (value, row) {
+                        return "<a href='javascript:UsageList(" + row.Id + ")' class='easyui-linkbutton'>使用情况</a>";
+                    }
+                },
+                {
+                    field: 'JQFiles', title: '附件', align: 'center', width: "5%", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'OaEquipment', formatter:
+                      function (value, row) {
+                          return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                      }
+                }
+            ]],
+            onBeforeCheck: function (rowIndex, rowData) {
+                if ($(".datagrid-row[datagrid-row-index=" + rowIndex + "] input[type='checkbox']").attr("disabled") == "disabled") {
+                    return false;
+                }
+            },
+            onCheckAll: function (rowData) {
+                for (var i = 0; i < rowData.length; i++) {
+                    if ($(".datagrid-row[datagrid-row-index=" + i + "] input[type='checkbox']").attr("disabled") == "disabled") {
+                        $(".datagrid-row[datagrid-row-index=" + i + "] input[type='checkbox']")[0].checked = false;
+                    }
+                }
+            }
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '办公用品名称',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+                    {
+                        dgID: 'OaEquipmentGrid',
+                        loadingType: 'datagrid',
+                        queryParams: null
+                    });
+            }
+        });
+    });
+
+    var chooseUrl = '@Url.Action("OaUsageList", "OaEquipment", new { @area = "Oa" })';
+    function UsageList(id) {
+        JQ.dialog.dialog({
+            title: "使用情况查看",
+            url: chooseUrl + "?EquId=" + id + "",
+            width: '800',
+            height: '600'
+        });
+    }
+    </script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="OaEquipmentGrid"></table>
+    <div id="OaEquipmentPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'EquipName', 'Contract': 'like' }" />
+
+    </div>
+}
+

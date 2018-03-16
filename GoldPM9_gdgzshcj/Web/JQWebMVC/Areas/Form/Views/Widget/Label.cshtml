@@ -1,0 +1,184 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <form id="form1">
+        <div id="div1" style="padding:5px;display:none;">
+            <table class="documenttable" style="width:100%">
+                <tr>
+                    <th style="width:15%">名称</th>
+                    <td style="width:35%">
+                        <input type="text" id="txtName" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                    <th style="width:15%">
+                        字段
+                    </th>
+                    <td style="width:35%">
+                        <select id="listdatafield" class="yc_select">
+                            <option value="">无</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        缩进
+                    </th>
+                    <td>
+                        <input type="text" id="txtTextIndent" class="yc_textbox" style="width:80%" /> px
+                    </td>
+                    <th></th>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th>外边距</th>
+                    <td colspan="3">
+                        上 <input type="text" id="txtMarginTop" class="yc_textbox" style="width:32px" /> px
+                        右 <input type="text" id="txtMarginRight" class="yc_textbox" style="width:32px" /> px
+                        下 <input type="text" id="txtMarginBottom" class="yc_textbox" style="width:32px" /> px
+                        左 <input type="text" id="txtMarginLeft" class="yc_textbox" style="width:32px" /> px
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        显示文本
+                    </th>
+                    <td colspan="3">
+                        <input type="checkbox" id="cbDepartmentName" /><label for="cbDepartmentName">显示当前登录部门名称</label>
+                        <input type="checkbox" id="cbUserName" /><label for="cbUserName">显示当前登录用户名称</label>
+                        <input type="checkbox" id="cbShowCurrentDate" /><label for="cbShowCurrentDate">显示当前日期</label>
+                        <input type="text" id="txtText" name="" class="yc_textbox" style="width:90%;margin-top:5px">
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="div2" style="display:none;padding:5px;">
+            <table class="documenttable" style="width:100%">
+                <tr>
+                    <th style="width:15%">变量名称</th>
+                    <td style="width:35%">
+                        <input type="text" id="txtVariableName" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                    <th style="width:15%">
+                    </th>
+                    <td></td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.grid.js"))"></script>
+<script type="text/javascript">
+    window.onDialogLoaded = function () {
+        var yTab = new YChart.Tab({
+            container: "divcontent",
+            offsetHeight: 0,
+            tabs: [
+                {
+                    name: "controlproperty",
+                    title: "控件属性",
+                    element: "div1",
+                    closable: false
+                },
+                {
+                    name: "processproperty",
+                    title: "流程属性",
+                    element: "div2",
+                    closable: false
+                }
+            ]
+        });
+        YChart.registerNumberBox({
+            element: [document.getElementById("txtTextIndent"), document.getElementById("txtMarginTop"), document.getElementById("txtMarginRight"), document.getElementById("txtMarginBottom"), document.getElementById("txtMarginLeft")],
+            precision: 0,
+            min: 0
+        });
+        var data = window.frameElement.api.getSource();
+        var source = data.source;
+        var style = source.element.ownerDocument.defaultView.getComputedStyle(source.element);
+        document.getElementById("txtName").value = source.element.getAttribute("id") || "";
+        document.getElementById("txtTextIndent").value = style.textIndent.replace("px", "");
+        document.getElementById("txtMarginTop").value = style.marginTop.replace("px", "");
+        document.getElementById("txtMarginRight").value = style.marginRight.replace("px", "");
+        document.getElementById("txtMarginBottom").value = style.marginBottom.replace("px", "");
+        document.getElementById("txtMarginLeft").value = style.marginLeft.replace("px", "");
+        document.getElementById("txtText").value = source.text || "";
+        if (data.columns && data.columns.length > 0) {
+            var _listfield = document.getElementById("listdatafield");
+            for (var i = 0; i < data.columns.length; i++) {
+                var option = document.createElement("option");
+                option.setAttribute("value", data.columns[i].value);
+                option.appendChild(document.createTextNode(data.columns[i].name));
+                if (data.columns[i].value == source.dataField) {
+                    option.setAttribute("selected", "selected");
+                }
+                _listfield.appendChild(option);
+            }
+        }
+        document.getElementById("cbDepartmentName").checked = source.isShowDepartmentName == "1";
+        document.getElementById("cbUserName").checked = source.isShowUserName == "1";
+        document.getElementById("cbShowCurrentDate").checked = source.isShowCurrentDate == "1";
+        var onCheckboxChange = function () {
+            if (document.getElementById("cbDepartmentName").checked || document.getElementById("cbUserName").checked || document.getElementById("cbShowCurrentDate").checked) {
+                document.getElementById("txtText").style.display = "none";
+            }
+            else {
+                document.getElementById("txtText").style.display = "";
+            }
+        }
+        YChart.attachEvent([document.getElementById("cbDepartmentName"), document.getElementById("cbUserName"), document.getElementById("cbShowCurrentDate")], "change", onCheckboxChange);
+        onCheckboxChange();
+        if (source.inlineTableName) {
+            document.getElementById("txtVariableName").style.display = "none";
+        }
+        if (source.flow) {
+            document.getElementById("txtVariableName").value = source.flow.variableName;
+        }
+    }
+
+    function sure() {
+        //验证名称是否存在
+        var name = document.getElementById("txtName").value;
+        if (name && window.frameElement.api.isExists(name)) {
+            alert("控件名称已经存在，无法保存！");
+            return;
+        }
+        var property = {
+            dataField: YChart.getSelectedValue(document.getElementById("listdatafield")),
+            isShowDepartmentName: document.getElementById("cbDepartmentName").checked ? "1" : "0",
+            isShowUserName: document.getElementById("cbUserName").checked ? "1" : "0",
+            isShowCurrentDate: document.getElementById("cbShowCurrentDate").checked ? "1" : "0"
+        };
+        if (property.isShowDepartmentName == "1" || property.isShowUserName == "1" || property.isShowCurrentDate == "1") {
+            property.text = "";
+        }
+        else {
+            property.text = document.getElementById("txtText").value;
+        }
+        property.flow = {
+            variableName: YChart.trim(document.getElementById("txtVariableName").value)
+        };
+        window.frameElement.api.saveData({
+            name: name,
+            style: {
+                textIndent: document.getElementById("txtTextIndent").value,
+                margin: document.getElementById("txtMarginTop").value + "px" + " " + document.getElementById("txtMarginRight").value + "px" + " " + document.getElementById("txtMarginBottom").value + "px" + " " + document.getElementById("txtMarginLeft").value + "px"
+            },
+            property: property
+        });
+        frameElement.closeDialog();
+    }
+</script>

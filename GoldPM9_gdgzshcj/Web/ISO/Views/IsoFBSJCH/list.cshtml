@@ -1,0 +1,123 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoFBSJCH",new { @area="Iso"})',
+               addUrl = '@Url.Action("add","IsoFBSJCH",new {@area="Iso" })',
+               editUrl = '@Url.Action("edit", "IsoFBSJCH",new {@area="Iso" })',
+               delUrl = '@Url.Action("del", "IsoFBSJCH", new { @area = "Iso" })';
+
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'IsoFBSJCHGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '项目编号、项目名称',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: false,
+                nowrap: false,
+                JQExcludeCol: [1,15,16,17],//导出execl排除的列
+                toolbar: '#IsoFBSJCHPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '外委项目编号', field: 'SubNumber', width: 100, align: 'left', halign: "center" },
+                    { title: '外委项目名称', field: 'SubName', width: 300, align: 'left', halign: "center"},
+                    { title: '项目编号', field: 'ProjNumber', width: 100, align: 'left', halign: "center" },
+                    { title: '项目名称', field: 'ProjName', width: 260, align: 'left', halign: "center" },
+                    { title: '分包单位名称', field: 'CustName', width: 120, align: 'left', halign: "center" },
+                    { title: '合作设计', field: 'HZSJName', width: 120, align: 'left', halign: "center" },
+                    { title: '设计部门', field: 'CreatorDepName', width: 100, align: 'left', halign: "center" },
+                    { title: '是否指导', field: 'IsGuideShow', width: 100, align: 'left', halign: "center" },
+                    { title: '指导时机', field: 'GuideTime', width: 100, align: 'left', halign: "center", formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '是否评审', field: 'IsReviewShow', width: 100, align: 'left', halign: "center" },
+                    { title: '评审时机', field: 'ReviewTime', width: 100, align: 'left', halign: "center", formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '是否会签', field: 'IsMulsignShow', width: 100, align: 'left', halign: "center"},
+                    { title: '会签时间', field: 'MulsignTime', width: 100, align: 'left', halign: "center", formatter: JQ.tools.DateTimeFormatterByT },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrEmpID)")
+                    },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'IsoFBSJCH' },
+                    {
+                        field: 'opt', title: '操作', width: "40", align: 'center', JQIsExclude: true,
+                        formatter: function (value, row, index) {
+                            var title = "查看";
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                            }
+                            return '<a class="easyui-linkbutton" onclick="Look(' + row.Id + ')">' + title + '</a>';
+                        }
+                    }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#IsoFBSJCHGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+        });
+
+        function Look(val) {
+            JQ.dialog.dialog({
+                title: "分包设计策划单",
+                url: editUrl + "?Id=" + val,
+                width: '1000',
+                height: '100%',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-search',
+                onClose: function () {
+                    $("#IsoFBSJCHGrid").datagrid("reload");
+                }
+
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoFBSJCHGrid"></table>
+    <div id="IsoFBSJCHPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+
+        <span jqpanel="toolbarPanel">
+        </span>
+        <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key: 'txtLike', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            发起时间
+            <input id="FQStartTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始日期'" validType="dateISO" JQWhereOptions="{ Key:'FQStartTime', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="FQEndTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束日期'" validType="dateISO" JQWhereOptions="{ Key:'FQEndTime', Contract:'<=',filedType:'Date' }">
+        </div>
+
+    </div>
+}
+

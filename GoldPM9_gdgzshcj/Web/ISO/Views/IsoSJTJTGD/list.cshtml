@@ -1,0 +1,93 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "IsoSJTJTGD",new { @area="Iso"})',
+            addUrl = '@Url.Action("add","IsoSJTJTGD",new {@area="Iso" })',
+            editUrl = '@Url.Action("edit", "IsoSJTJTGD",new {@area="Iso" })',
+            delUrl = '@Url.Action("del", "IsoSJTJTGD", new { @area = "Iso" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit','del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'IsoSJTJTGDGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+				JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '项目编号、项目名称',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: false,
+                JQExcludeCol: [1,10,11,12],//导出execl排除的列
+                nowrap: false,
+                toolbar: '#IsoSJTJTGDPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true  },
+                    { title: '项目名称', field: 'ProjName', width: 300, align: 'center', sortable: true  },
+                    { title: '提供专业', field: 'TGSpecName', width: 100, align: 'center', sortable: true  },
+                    { title: '提供专业负责人', field: 'TGSpecHeader', width: 100, align: 'center', sortable: true  },
+                    { title: '提供日期', field: 'TGTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '接受专业', field: 'JSSpecName', width: 100, align: 'center', sortable: true  },
+                    { title: '接受专业负责人', field: 'JSSpecHeader', width: 100, align: 'center', sortable: true  },
+                    { title: '接受日期', field: 'JSTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrEmpID)")
+                    },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'IsoSJTJTGD' },
+                    {
+                        field: 'opt', title: '操作', width: "40", align: 'center', JQIsExclude: true,
+                        formatter: function (value, row, index) {
+                            var title = "查看";
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                            }
+                            return "<a class='easyui-linkbutton' onclick='Look(" + row.Id + ")'>" + title + "</a>";
+                        }
+                    }
+                ]]
+            });
+        });
+
+        function Look(val) {
+            JQ.dialog.dialog({
+                title: "设计条件提供单",
+                url: editUrl + "?Id=" + val,
+                width: '1000',
+                height: '100%',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-search',
+                onClose: function () {
+                    $("#IsoSJTJTGDGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoSJTJTGDGrid"></table>
+    <div id="IsoSJTJTGDPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;"  JQWhereOptions="{ 'Key': 'ProjNumber,ProjName', 'Contract': 'like' }"/>
+
+    </div>
+}
+

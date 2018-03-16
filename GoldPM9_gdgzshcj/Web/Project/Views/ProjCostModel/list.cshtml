@@ -1,0 +1,109 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.treegrid.treegrid({
+                JQButtonTypes: ['add', 'edit', 'del'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")',//添加的路径
+                JQEditUrl: '@Url.Action("edit")',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'ID',//主键的字段
+                JQID: 'ProjCostModelGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'treegrid',//数据表格类型 [datagrid,treegrid]
+                idField: 'ID',
+                treeField: 'ModelName',
+                //pagination: true,//是否分页
+                //pageList: [5, 10, 15, 20, 30, 50, 100, 200],
+                //pageSize: 20,
+                //JQCustomSearch: [  //自定义搜索的字段
+                //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+                //],
+                //JQExcludeCol: [1, 4, 10],//导出execl排除的列
+                //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+                 //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+                //JQFields: ["", ""],//追加的字段名
+                url: '@Url.Action("json","ProjCostModel",new { @area="Project"})',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#ProjCostModelPanel',//工具栏的容器ID 列表头部工具栏的
+                columns: [[
+		           { title: '成本项', field: 'ModelName', width: "35%", align: 'left', sortable: true },
+                    {
+                        title: '是否是类别', field: 'ModelIsType', width: "25%", align: 'center', sortable: true, formatter: function (value) {
+                            switch (value) {
+                                case 0:
+                                    {
+                                        return "否";
+                                    }
+                                case 1:
+                                    {
+                                        return "是";
+                                    }
+                                default:
+                                    {
+                                        return value;
+                                    }
+
+                            }
+                        }
+                    },
+		           {
+		               title: '是否统计', field: 'ModelIsSum', width: "15%", align: 'center', sortable: true, formatter: function (value) {
+		                   switch (value) {
+		                       case 0:
+		                           {
+		                               return "否";
+		                           }
+		                       case 1:
+		                           {
+		                               return "是";
+		                           }
+		                       default:
+		                           {
+		                               return value;
+		                           }
+
+		                   }
+		               }
+		           }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '成本项名称',
+                //queryOptions: { 'Key': 'ModelName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ProjCostModelGrid',
+                            loadingType: 'treegrid',
+                            queryParams: {
+                                KeyJQSearch: $("#JQSearch").val(),
+                            }
+                        });
+                }
+            });
+        });
+    </script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="ProjCostModelGrid"></table>
+    <div id="ProjCostModelPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key:'ModelName', Contract:'like'}" />
+
+    </div>
+}
+

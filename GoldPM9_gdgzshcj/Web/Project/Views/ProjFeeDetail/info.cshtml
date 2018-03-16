@@ -1,0 +1,153 @@
+﻿
+
+@model DataModel.Models.DesTaskFeeDetails
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'ProjFeeDetailForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                var tab = $('#mainTab').tabs('getSelected');
+                var index = $('#mainTab').tabs('getTabIndex', tab);
+
+                $("#mainTab").find("iframe")[index].contentWindow.refreshGrid();
+                //JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            },
+            beforeFormSubmit: function () {
+                if ($("#ProjName").text() == "") {
+                    JQ.dialog.warning("请选择项目！");
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        });
+    });
+
+    //选择工程
+    function selectEng() {
+        window.TaskItem = undefined;
+        JQ.dialog.dialog({
+            title: "选择任务",
+            url: '@Url.Action("selectTask")',
+            width: '1024',
+            height: '100%',
+            iconCls: 'fa fa-list',
+            onClose: function () {
+                if (window.TaskItem != undefined) {
+                    if (window.TaskItem.length > 0) {
+                        var Item = window.TaskItem[0];
+                        $("#ProjNumber").text(Item.ProjNumber);
+                        $("#ProjName").text(Item.ProjName);
+                        $("#ProjPhase").text(Item.ProjPhaseName);
+                        $("#ProjEmpName").text(Item.ProjPhaseEmpName);
+                        $("#ProjId").val(Item.Id);
+                        $("#TaskGroupId").val(Item.TaskGroupId);
+                        $("#PhaseID").val(Item.ProjPhaseId);
+                        $("#TaskID").val(0);
+                        if (Item.TaskFeeDetails != "") {
+
+                            $("#FeeZBF").textbox("setValue", $(Item.TaskFeeDetails).attr("FeeZBF"));
+                            $("#FeeXMQQF").textbox("setValue", $(Item.TaskFeeDetails).attr("FeeXMQQF"));
+                            $("#FeeKCF").textbox("setValue", $(Item.TaskFeeDetails).attr("FeeKCF"));
+                            $("#FeeSJF").textbox("setValue", $(Item.TaskFeeDetails).attr("FeeSJF"));
+                            $("#FeeYSBZF").textbox("setValue", $(Item.TaskFeeDetails).attr("FeeYSBZF"));
+                            $("#FeeJGTBZF").textbox("setValue", $(Item.TaskFeeDetails).attr("FeeJGTBZF"));
+                            $("#FeeZTZ").textbox("setValue", $(Item.TaskFeeDetails).attr("FeeZTZ"));
+
+                        }
+                    }
+                }
+            }
+        });
+    }
+</script>
+@using (Html.BeginForm("save", "ProjFeeDetail", FormMethod.Post, new { @area = "Project", @id = "ProjFeeDetailForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    @*<input name="Id" id="Id" type="hidden" />*@
+    <table class="table table-bordered">
+        <tr>
+            <th width="15%">
+                项目编号
+                @{
+                    if (Model.Id == 0)
+                    {
+                        <text><br /><a name="selectEng" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="selectEng()">选择项目</a></text>
+                    }
+                }
+
+
+            </th>
+            <td width="35%">
+                <input id="ProjId" name="ProjId" type="hidden" value="@Model.ProjId" />
+                <input id="TaskGroupId" name="TaskGroupId" type="hidden" value="@Model.TaskGroupId" />
+                <input id="PhaseID" name="PhaseID" type="hidden" value="@Model.PhaseID" />
+                <span id="ProjNumber">@ViewBag.ProjNumber</span>
+            </td>
+            <th width="15%">项目名称</th>
+            <td width="35%">
+                <span id="ProjName">@ViewBag.ProjName</span>
+            </td>
+        </tr>
+
+        <tr>
+            <th width="15%">项目阶段</th>
+            <td width="35%">
+                <span id="ProjPhase">
+                    @ViewBag.ProjPhase
+                </span>
+            </td>
+            <th width="15%">设总</th>
+            <td width="35%">
+                <span id="ProjEmpName">
+                    @ViewBag.ProjEmpName
+                </span>
+            </td>
+        </tr>
+
+        <tr>
+            <th width="16%">招标费(元)</th>
+            <td width="34%">
+                <input class="easyui-textbox" id="FeeZBF" name="FeeZBF" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeZBF" />
+            </td>
+            <th width="16%">项目前期工作费(元)</th>
+            <td>
+                <input class="easyui-textbox" id="FeeXMQQF" name="FeeXMQQF" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeXMQQF" />
+            </td>
+        </tr>
+        <tr>
+            <th width="16%">设计费(元)</th>
+            <td>
+                <input class="easyui-textbox" id="FeeSJF" name="FeeSJF" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeSJF" />
+            </td>
+            <th width="16%">预算编制费(元)</th>
+            <td>
+                <input class="easyui-textbox" id="FeeYSBZF" name="FeeYSBZF" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeYSBZF" />
+            </td>
+        </tr>
+        <tr>
+            <th width="16%">竣工图编制费(元)</th>
+            <td>
+                <input class="easyui-textbox" id="FeeJGTBZF" name="FeeJGTBZF" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeJGTBZF" />
+            </td>
+            <th width="16%">工程勘察费(元)</th>
+            <td>
+                <input class="easyui-textbox" id="FeeKCF" name="FeeKCF" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeKCF" />
+            </td>
+        </tr>
+        <tr>
+
+            <th width="16%">总投资额(元)</th>
+            <td>
+                <input class="easyui-textbox" id="FeeZTZ" name="FeeZTZ" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeZTZ" />
+            </td>
+            <th width="16%"></th>
+            <td></td>
+        </tr>
+
+    </table>
+
+                    }

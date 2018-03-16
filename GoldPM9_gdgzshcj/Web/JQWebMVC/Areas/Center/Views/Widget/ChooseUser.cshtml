@@ -1,0 +1,209 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div id="divcontainer" style="float:left;padding:10px">
+        <div style="height:100%;width:100%;border:1px solid #888888;overflow-y:auto">
+            <ul id="tree"></ul>
+        </div>
+    </div>
+</div>
+<style type="text/css">
+    .tree-hit {
+        margin-top: 3px;
+    }
+
+    .tree-node {
+        height: 24px;
+        padding: 0px;
+    }
+
+    .tree-file {
+        background: none;
+    }
+
+        .tree-file:before {
+            content: "\F2C0";
+        }
+
+    .tree-folder {
+        background: none;
+    }
+
+        .tree-folder:before {
+            content: "\F2B9";
+        }
+
+    .tree-folder-open {
+        background: none;
+    }
+
+        .tree-folder-open:before {
+            content: "\F2BA";
+        }
+
+    .tree-icon {
+        height: 24px;
+        line-height: 24px;
+    }
+
+    .tree-title {
+        line-height: 24px;
+        height: 24px;
+    }
+
+    .tree-node-selected {
+        background: none;
+        color: initial;
+    }
+
+    .tree-node-hover {
+        background: #FBFBFB;
+        color: initial;
+    }
+
+    .node_choosed {
+        background-color: #008051;
+        color: #FFFFFF;
+    }
+</style>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript">
+    window.onLoaded = function () {
+        document.getElementById("divcontainer").style.height = (document.getElementById("divcontent").clientHeight - 20) + "px";
+        document.getElementById("divcontainer").style.width = (document.getElementById("divcontent").clientWidth - 20) + "px";
+        document.getElementById("divcontent").style.overflowY = "hidden";
+        var $tree = $("#tree");
+        var userIDs
+        if (frameElement.api.getUserIDs) {
+            userIDs = frameElement.api.getUserIDs();
+        }
+        $tree.tree({
+            url: "@(Url.Action("GetFullList", "User", new { @area="Center" }))",
+            method: "POST",
+            queryParams: { userIDs: userIDs },
+            formatter: function (node) {
+                return decodeValue(node.text);
+            },
+            onClick: function (node) {
+                //添加选中标记
+                if (node.type == "user") {
+                    if (node.selected == true) {
+                        node.selected = false;
+                        YChart.removeClass(node.target, "node_choosed");
+                        YChart.remove(node.target.childNodes[node.target.childNodes.length - 1]);
+                        var _ul = node.target.parentNode.parentNode;
+                        while (_ul.getAttribute("id") != "tree") {
+                            var _span = _ul.previousSibling.lastChild;
+                            _span.childNodes[0].textContent = parseInt(_span.childNodes[0].textContent) - 1;
+                            _ul = _ul.parentNode.parentNode;
+                        }
+                    }
+                    else {
+                        node.selected = true;
+                        YChart.addClass(node.target, "node_choosed");
+                        var _span = YChart.createElement("span", { className: "fa fa-check-circle" }, { height: "24px", lineHeight: "24px", float: "right", marginRight: "5px" });
+                        node.target.appendChild(_span);
+                        //从下往上每个+1
+                        var _ul = node.target.parentNode.parentNode;
+                        while (_ul.getAttribute("id") != "tree") {
+                            var _span = _ul.previousSibling.lastChild;
+                            _span.childNodes[0].textContent = parseInt(_span.childNodes[0].textContent) + 1;
+                            _ul = _ul.parentNode.parentNode;
+                        }
+                    }
+                }
+                else if (node.type == "department") {
+                    $tree.tree("toggle", node.target);
+                }
+            },
+            onLoadSuccess: function (node, datas) {
+                recuriseData(datas);
+                var ids = "@(Request.QueryString["ids"]??"")".split(',');
+                for (var i = 0; i < ids.length; i++) {
+                    var node = $tree.tree("find", "user_" + ids[i]);
+                    if (node) {
+                        node.target.click();
+                    }
+                }
+            }
+        });
+    }
+
+    function decodeValue(str) {
+        return decodeURIComponent(str.replace(/\+/g, " "));
+    }
+
+    function recuriseData(datas) {
+        if (!datas || datas.length == 0) {
+            return { amount: 0, isHide: true };
+        }
+        var result = 0;
+        var isHide = false;
+        for (var i = 0; i < datas.length; i++) {
+            if (datas[i].type == "department") {
+                var _result = recuriseData(datas[i].children);
+                var dom = document.getElementById(datas[i].domId);
+                if (dom) {
+                    //dom.style.backgroundColor = "#F5F5F5";
+                    var _span = YChart.createElement("span", {}, { marginLeft: "5px", lineHeight: "24px", fontSize: "14px", color: "#007248", fontWeight: "bolder" });
+                    dom.appendChild(_span);
+                    _span.appendChild(YChart.createElement("span", null, null, "0"));
+                    _span.appendChild(YChart.createElement("span", null, { margin: "0px 2px 0px 2px" }, "/"));
+                    _span.appendChild(YChart.createElement("span", null, null, _result.amount));
+                    if (_result.isHide) {
+                        dom.style.display = "none";
+                        //隐藏其上层
+                        isHide = true;
+                    }
+                }
+                result += _result.amount;
+            }
+            else if (datas[i].type == "user") {
+                result++;
+            }
+        }
+        if (isHide && result > 0) {
+            isHide = false;
+        }
+        return { amount: result, isHide: isHide };
+    }
+
+    function sure() {
+        var datas = $("#tree").data().tree.data;
+        var users = [];
+        recuriseGetSelected(datas, users);
+        if (users.length == 0) {
+            return;
+        }
+        frameElement.api.afterChoosed(users);
+        frameElement.closeDialog();
+    }
+
+    function recuriseGetSelected(datas, users) {
+        if (!datas || datas.length == 0) {
+            return 0;
+        }
+        for (var i = 0; i < datas.length; i++) {
+            if (datas[i].type == "user") {
+                if (datas[i].selected == true) {
+                    users.push({ ID: datas[i].realID, Name: decodeValue(datas[i].text) });
+                }
+            }
+            else if (datas[i].type == "department") {
+                recuriseGetSelected(datas[i].children, users);
+            }
+        }
+    }
+</script>

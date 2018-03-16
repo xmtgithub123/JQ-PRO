@@ -1,0 +1,124 @@
+﻿@model DataModel.Models.BaseEmpAgen
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'BaseEmpAgenForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+    JQ.combobox.selQtEmp({
+        id: 'ToEmpID'
+    });
+    //常用combobox
+    JQ.combobox.common({
+        id: 'AgenFlowRefTable',
+        toolbar: '#tbFlow',//工具栏的容器ID
+        url: '@(Url.Action("GetModelList", "PubFlow", new { @area="Core"}))',
+        panelWidth: 550,
+        panelHeight: 320,
+        valueField: 'ModelRefTable',
+        textField: 'ModelName',
+        //disabled: true,
+        multiple: true,
+        pagination: true,//是否分页
+        JQSearch: {
+            id: 'fullNameSearchFlow',
+            prompt: '流程名称',
+            $panel: $("#tbFlow")
+        },
+        columns: [[
+                     { field: 'Id', hidden: true },
+                     { title: '模版名称', field: 'ModelName', width: 120, align: 'center', sortable: true },
+                     { title: '关联表名', field: 'ModelRefTable', width: 160, align: 'center', sortable: true }]],
+    });
+
+    JQ.combobox.common({
+        id: 'AgenMenu',
+        //toolbar: '#tbMenu',//工具栏的容器ID
+        url: '@Url.Action("PermitTopjson", "menu",new {@area="Core", @OrderLen=2 })',
+        panelWidth: 550,
+        panelHeight: 320,
+        valueField: 'MenuNameEng',
+        textField: 'MenuName',
+        editable: false,
+        //disabled:true,
+        multiple: true,
+        pagination: false,//是否分页
+        //JQSearch: {
+        //    id: 'fullNameSearchMenu',
+        //    prompt: '菜单名称'
+        //},
+        columns: [[
+                   { field: 'MenuNameEng', hidden: true },
+                   { title: '菜单名称', field: 'MenuName', width: 250, align: 'left' },
+                 ]],
+    });
+
+    //默认combox 不能编写
+</script>
+@using (Html.BeginForm("save", "BaseEmpAgen", FormMethod.Post, new { @area = "Core", @id = "BaseEmpAgenForm" }))
+{
+    @Html.HiddenFor(m => m.BaseEmpAgenID)
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">委托人</th>
+            <td width="40%">
+                <input name="FromEmpName" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,50]" value="@Model.FromEmpName" />
+            </td>
+            <th width="10%">代理人</th>
+            <td width="40%">
+                <select id="ToEmpID" name="ToEmpID" JQvalue="@Model.ToEmpID" data-options="required:true,editable: false"></select>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">委托类别</th>
+            <td width="40%">
+                <input id="AgenType" name="AgenType" style="width:98%;" class="easyui-combobox" data-options="editable:false,valueField:'label',textField: 'value',data: [{label: '0',value: '全部权限'},{label: '1',value: '菜单权限'},{label: '2',value: '流程权限'}]" validType="length[0,10]" value="@Model.AgenType" />
+            </td>
+            <th width="10%"></th>
+            <td width="40%">
+                
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">委托流程</th>
+            <td width="40%" colspan="3">
+                <input id="AgenFlowRefTable" name="AgenFlowRefTable" data-options="multiple:true,multiline:true" style="width:98%; height:40px;" validType="length[0,1000]" value="@Model.AgenFlowRefTable" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">委托菜单</th>
+            <td width="40%" colspan="3">
+                <input id="AgenMenu" name="AgenMenu" data-options="multiple:true,multiline:true" style="width:98%; height:40px;" validType="length[0,1000]" value="@Model.AgenMenu" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">委托开始日期</th>
+            <td width="40%">
+                <input name="DateLower" style="width:98%;" class="easyui-datebox" data-options="required:true" validType="length[0,16]" value="@Model.DateLower" />
+            </td>
+            <th width="10%">委托结束日期</th>
+            <td width="40%">
+                <input name="DateUpper" style="width:98%;" class="easyui-datebox" data-options="required:true" validType="length[0,16]" value="@Model.DateUpper" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">委托备注</th>
+            <td width="40%" colspan="3">
+                <textarea name="AgenNote" style="width:98%; height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,200]" value="@Model.AgenNote" />
+            </td>
+        </tr>
+    </table>
+    <div id="tbMenu" style="padding:5px;height:auto; display:none;">
+        <input id="fullNameSearchMenu" style="width:250px;" JQWhereOptions="{ Key: 'MenuName', 'Contract': 'like' }" />
+    </div>
+    <div id="tbFlow" style="padding:5px;height:auto; display:none;">
+        <input id="fullNameSearchFlow" style="width:250px;" JQWhereOptions="{ Key: 'ModelName', 'Contract': 'like' }" />
+    </div>
+}
+
+
+

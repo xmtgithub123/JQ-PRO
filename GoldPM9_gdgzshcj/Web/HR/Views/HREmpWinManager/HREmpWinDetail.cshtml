@@ -1,0 +1,46 @@
+﻿
+
+<script type="text/javascript">
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'HREmpWinDetail',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '768',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQFields: ["Id"],//追加的字段名
+            JQSearch: {
+                id: 'JQSearch',
+                prompt: '获奖名称',
+                loadingType: 'datagrid',//默认值为datagrid可以不传
+            },
+            url: '@Url.Action("json", "HREmpWinManager", new { @area="Hr"})?EmpId=@Request.Params["EmpId"].ToString()',//请求的地址
+            fitColumns: false,
+            nowrap: false,
+            toolbar: '#HREmpWinPanel',//工具栏的容器ID
+            columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '奖项名称', field: 'AptitudeName', width: 100, align: 'center', sortable: true },
+                    { title: '获奖时间', field: 'RegisterTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '获奖人员', field: 'AptitudeEmpName', width: 100, align: 'center', sortable: true },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'HREmpWinManager' }
+            ]]
+        });
+    });
+
+    function closeDia() {
+        JQ.dialog.dialogClose();
+    }
+</script>
+<table id="HREmpWinDetail"></table>
+<div id="HREmpWinPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" name="btnCancel" id="btnCancel" data-options="plain:true,iconCls:'fa fa-close'" onclick="closeDia()">关闭</a>
+    </span>
+
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'AptitudeName', 'Contract': 'like' }" />
+    <div class="moreSearchPanel">
+    </div>
+</div>
+

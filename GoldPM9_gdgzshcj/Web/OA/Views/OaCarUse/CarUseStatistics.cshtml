@@ -1,0 +1,61 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("jsonCarUseStatistics", "OaCarUse",new { @area="Oa"})';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaCarUseGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#OaCarUsePanel',//工具栏的容器ID
+                nowrap: true,
+                columns: [[
+		                { title: '车牌号', field: 'CarNumber', width: '20%', align: 'left' },
+		                { title: '车辆名称', field: 'CarName', width: '20%', align: 'left' },
+		                { title: '驾驶员', field: 'CarDriver', width: '10%', align: 'left' },
+		                { title: '费用(元)', field: 'TotalCarFee', width: '20%', align: 'right' },
+		                { title: '单据数(张)', field: 'TotalInvoice', width: '20%', align: 'right' },
+                ]]
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '车牌号，车辆名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'OaCarUseGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaCarUseGrid"></table>
+    <div id="OaCarUsePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'CarNumber,CarName', 'Contract': 'like' }" />
+
+    </div>
+}
+

@@ -1,0 +1,99 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "ModelReceive",new { @area="Core"})',
+               addUrl = '@Url.Action("add","ModelReceive",new {@area="Core" })',
+               editUrl = '@Url.Action("edit", "ModelReceive",new {@area="Core" })',
+               delUrl = '@Url.Action("del", "ModelReceive", new { @area = "Core" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'ModelReceiveGrid',//数据表格ID
+                JQDialogTitle: '收资模板信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                //JQMergeCells: { fields: ['ProjectTypeID'] },//, 'PhaseID'当字段值相同时会自动的跨行(只对相邻有效)
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#ModelReceivePanel',//工具栏的容器ID
+                JQExcludeCol: [1, 7],//导出execl排除的列
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+        { title: '项目类型', field: 'ProjectTypeID', width: "15%", halign: 'center', align: 'left', sortable: true },
+		{ title: '阶段', field: 'PhaseID', width: "15%", halign: 'center', align: 'left', sortable: true },
+        { title: '模板名称', field: 'ModelReceiveName', width: "26%", halign: 'center', align: 'left', sortable: true },
+        { title: '收资内容', field: 'ExchReceiveItem', width: "25%", halign: 'center', align: 'left', sortable: true },
+        { title: '是否必要条件', field: 'ModelReceiveIsMust', width: "10%", halign: 'center', align: 'center', sortable: true },
+        {
+            title: '操作', field: 'Info', width: '40', align: 'center',
+            formatter: function (val, row) {
+                return '<a class="easyui-linkbutton" onclick="UpdateOrReadingInfo(' + row.Id + ')">修改</a>'
+            }
+        }
+        //{ title: '专业', field: 'SpecialID', width: 100, align: 'center', sortable: true },
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '模版名称、收资内容',
+                queryOptions: { 'Key': 'ModelReceiveName,ExchReceiveItem', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ModelReceiveGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+        // 查看或者更新   收资模板信息
+        function UpdateOrReadingInfo(Id) {
+            JQ.dialog.dialog({
+                title: '收资模板信息',
+                width: '800',
+                height: '600',
+                url: editUrl + "?id=" + Id,
+                onClose: function () {
+                    $("#ModelReceiveGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="ModelReceiveGrid"></table>
+    <div id="ModelReceivePanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+
+        </span>
+        @BaseData.getBases(
+            new Params() {
+                isMult = true,
+                engName = "ProjectType",
+                typeId = "1",
+                queryOptions = "{ Key:'ProjectTypeID', Contract:'in',filedType:'Int'}"
+            },
+            new Params() {
+                isMult = true,
+                engName = "ProjectPhase",
+                queryOptions = "{ Key:'PhaseID', Contract:'in',filedType:'Int'}"
+            })
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key: 'ModelReceiveName,ExchReceiveItem', 'Contract': 'like' }" />
+
+    </div>
+}
+

@@ -1,0 +1,691 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.IsoBCD
+
+@section head {
+    <style type="text/css">
+    .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+    .p-15{
+        padding:15px;
+    }
+
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+    .aui-input-check-disable {
+        font-size: 12px !important;
+        font-weight: normal !important;
+    }
+
+    .aui-input-check-disable label {
+        line-height: 45px;
+        margin-right: 15px;
+    }
+
+        .aui-input-check-disable input[type="checkbox"], .aui-input-check-disable input[type="radio"] {
+            width: auto;
+            margin: 0 5px 0 0;
+            line-height: 45px;
+        }
+</style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="IsoBCDForm" class="aui-form">
+            <div class="p-15">
+              册编号 <input id="JCNumber" name="JCNumber" type="text" class="aui-input form-control" style="display:inline;min-width: 60px;max-width: 60%;border: 1px solid #dbdbdb; border-radius: 6px;padding: 3px 6px;margin:0 3px;text-align:center;"  validType="length[0,200]" value="@Model.JCNumber" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;工程编号</label>
+                <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+                <input name="ProjNumber" id="ProjNumber" type="hidden" class="aui-input" value="@Model.ProjNumber" style="width:60%;margin-right:15px;text-overflow: ellipsis;" />
+                <div class="aui-input-block">@Model.ProjNumber</div>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;工程名称</label>
+                <input type="hidden" id="ProjId" name="ProjId" value="@Model.ProjId" />
+                <input name="ProjName" id="ProjName" type="hidden" class="aui-input" value="@Model.ProjName" />
+                <input type="hidden" name="ProjPhaseId" id="ProjPhaseId" value="@Model.ProjPhaseId" />
+                <input type="hidden" name="ProjPhaseName" id="ProjPhaseName" value="@Model.ProjPhaseName" />
+                <div class="aui-input-block">@Model.ProjName</div>
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp;工程类别名称</label>
+                <div id="GCLB"></div>
+                <input id="ProjTypeID" name="ProjTypeID" type="hidden" value="@Model.ProjTypeID" />
+                <input id="ProjTypeName" name="ProjTypeName" type="hidden" value="@Model.ProjTypeName" />
+                <input id="GCLB_Ex" name="GCLB_Ex" type="hidden" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;经办人</label>
+                <div class="aui-input-block">@Model.CreatorEmpName</div>
+                <input type="hidden" id="CreatorEmpName" name="CreatorEmpName" class="aui-input" value="@Model.CreatorEmpName" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;任务名称：</label>
+                <input type="hidden" id="JCName" name="JCName" class="aui-input" value="" />
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="ProjPhaseGrid" style="font-size:12px;">
+                    <thead>
+                        <tr>
+                            
+                            <th>任务册名</th>
+                            <th>项目名称</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody id="gridList" style="font-size:12px;"></tbody>
+                </table>
+            </div>
+
+            <script id="listTpl" type="text/x-dot-template">
+                {{~it:appendInfoData:index}}
+                <tr id="tr_{{=index}}">
+
+                    <td>
+                        {{=appendInfoData.TaskName}}
+                    </td>
+                    <td>
+                        {{=appendInfoData.ProjName}}
+                    </td>
+                </tr>
+                {{~}}
+            </script>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;装订份数</label>
+                <p style="color:#444;">报出(<input name="BCS" type="number" style="width: 50px;padding: 5px;text-align: center;border: 0;" validType="length[0,10]" value="@Model.BCS" />份)</p>
+                <p  style="color:#444;">存档数量(<input name="CDS" type="number" style="width: 50px;padding: 5px;text-align: center;border: 0;"  validType="length[0,10]" value="@Model.CDS" />份)</p>
+                <p  style="color:#444;">自留数量(<input name="ZL" type="number" style="width: 50px;padding: 5px;text-align: center;border: 0;"  validType="length[0,10]" value="@Model.ZL" />份)</p>
+            </div>
+            @*<div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;</label>
+                <a href="javascript:void(0);" id="CKBD" onclick="OpBD()">查询表单</a>
+                <input type="hidden" id="ZJNR" name="ZJNR" value="@ViewBag.TaskGroupId" />
+            </div>*@
+             <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;相关表单</label>
+             </div>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="ProjPhaseGrid" style="font-size:12px;">
+                    <thead>
+                        <tr>
+
+                            <th>流程名称</th>
+                            <th>发起日期</th>
+                            <th>发起人</th>
+                            <th>进度</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody id="gridList2" style="font-size:12px;"></tbody>
+                </table>
+            </div>
+
+            <script id="listTp2" type="text/x-dot-template">
+                {{~it:bdjsonData:index}}
+                <tr id="tr_{{=index}}">
+
+                    <td>
+                        {{=bdjsonData.FlowName}}
+                    </td>
+                    <td>
+                        {{=bdjsonData.CreationTime}}
+                    </td>
+                    <td>
+                        {{=bdjsonData.CreatorEmpName}}
+                    </td>
+                    <td>
+                        {{=bdjsonData.FlowStatusName}}
+                    </td>
+                   
+                </tr>
+                {{~}}
+            </script>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 设计依据和基础资料齐全</label>
+                <div id="JCZD">
+                    <label>
+                        <input type="radio" name="JCZD" id="JCZD1" style="vertical-align:middle;" />
+                        是
+                    </label>
+
+                    <label>
+                        <input type="radio" name="JCZD" id="JCZD2" style="vertical-align:middle;" />
+                        否
+                    </label>
+                </div>
+                
+                <input type="hidden" id="IsJCZD" name="IsJCZD" value="@Model.IsJCZD" />
+                <input type="hidden" id="JCZD_Ex" name="JCZD_Ex" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 文件签署齐全并符合规定要求</label>
+
+                <label>
+                    <input type="radio" name="FHYQ" id="FHYQ1" style="vertical-align:middle;" />
+                    是
+                </label>
+
+                <label>
+                    <input type="radio" name="FHYQ" id="FHYQ2" style="vertical-align:middle;" />
+                    否
+                </label>
+                <input type="hidden" id="IsFHYQ" name="IsFHYQ" value="@Model.IsFHYQ" />
+                <input type="hidden" id="FHYQ_Ex" name="FHYQ_Ex" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 当因特殊原因非岗位<br />&nbsp;&nbsp;本人签署时有授权单</label>
+
+                <label>
+                    <input type="radio" name="SQD" id="SQD1" style="vertical-align:middle;" />
+                    是
+                </label>
+
+                <label>
+                    <input type="radio" name="SQD" id="SQD2" style="vertical-align:middle;" />
+                    否
+                </label>
+                <input type="hidden" id="IsSQD" name="IsSQD" value="@Model.IsSQD" />
+                <input type="hidden" id="SQD_Ex" name="SQD_Ex" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 合同已签</label>
+
+                <label>
+                    <input type="radio" name="HT" id="HT1" style="vertical-align:middle;" />
+                    是
+                </label>
+
+                <label>
+                    <input type="radio" name="HT" id="HT2" style="vertical-align:middle;" />
+                    否
+                </label>
+                <input type="hidden" id="IsHT" name="IsHT" value="@Model.IsHT" />
+                <input type="hidden" id="HT_Ex" name="HT_Ex" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 合同已履约</label>
+
+                <label>
+                    <input type="radio" name="LY" id="LY1" style="vertical-align:middle;" />
+                    是
+                </label>
+
+                <label>
+                    <input type="radio" name="LY" id="LY2" style="vertical-align:middle;" />
+                    否
+                </label>
+                <input type="hidden" id="IsLY" name="IsLY" value="@Model.IsLY" />
+                <input type="hidden" id="LY_Ex" name="LY_Ex" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 文件签署人员符合要求</label>
+
+                <label>
+                    <input type="radio" name="QSR" id="QSR1" style="vertical-align:middle;" />
+                    是
+                </label>
+
+                <label>
+                    <input type="radio" name="QSR" id="QSR2" style="vertical-align:middle;" />
+                    否
+                </label>
+                <input type="hidden" id="IsQSR" name="IsQSR" value="@Model.IsQSR" />
+                <input type="hidden" id="QSR_Ex" name="QSR_Ex" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 文件封面和扉页内容正确</label>
+
+                <label>
+                    <input type="radio" name="SY" id="SY1" style="vertical-align:middle;" />
+                    是
+                </label>
+
+                <label>
+                    <input type="radio" name="SY" id="SY2" style="vertical-align:middle;" />
+                    否
+                </label>
+                <input type="hidden" id="IsSY" name="IsSY" value="@Model.IsSY" />
+                <input type="hidden" id="SY_Ex" name="SY_Ex" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 质量记录完整</label>
+
+                <label>
+                    <input type="radio" name="JL" id="JL1" style="vertical-align:middle;" />
+                    是
+                </label>
+
+                <label>
+                    <input type="radio" name="JL" id="JL2" style="vertical-align:middle;" />
+                    否
+                </label>
+                <input type="hidden" id="IsJL" name="IsJL" value="@Model.IsJL" />
+                <input type="hidden" id="JL_Ex" name="JL_Ex" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 规范有效</label>
+
+                <label>
+                    <input type="radio" name="GF" id="GF1" style="vertical-align:middle;" />
+                    是
+                </label>
+
+                <label>
+                    <input type="radio" name="GF" id="GF2" style="vertical-align:middle;" />
+                    否
+                </label>
+                <input type="hidden" id="IsGF" name="IsGF" value="@Model.IsGF" />
+                <input type="hidden" id="GF_Ex" name="GF_Ex" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 文件资料已存档</label>
+
+                <label>
+                    <input type="radio" name="CD" id="CD1" style="vertical-align:middle;" />
+                    是
+                </label>
+
+                <label>
+                    <input type="radio" name="CD" id="CD2" style="vertical-align:middle;" />
+                    否
+                </label>
+                <input type="hidden" id="IsCD" name="IsCD" value="@Model.IsCD" />
+                <input type="hidden" id="CD_Ex" name="CD_Ex" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 是否缺少资料</label>
+
+                <label>
+                    <input type="radio" name="ZL1" id="ZL1" style="vertical-align:middle;" />
+                    是
+                </label>
+
+                <label>
+                    <input type="radio" name="ZL1" id="ZL2" style="vertical-align:middle;" />
+                    否
+                </label>
+                <input type="hidden" id="IsZL" name="IsZL" value="@Model.IsZL" />
+                <input type="hidden" id="ZL_Ex" name="ZL_Ex" />
+
+
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 批准放行</label>
+
+                <label>
+                    <input type="radio" name="FX" id="FX1" style="vertical-align:middle;" />
+                    是
+                </label>
+
+                <label>
+                    <input type="radio" name="FX" id="FX2" style="vertical-align:middle;" />
+                    否
+                </label>
+                <input type="hidden" id="IsFX" name="IsFX" value="@Model.IsFX" />
+                <input type="hidden" id="FX_Ex" name="FX_Ex" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;备注：</label>
+                <textarea rows="6" name="Remrak" id="Remrak" style="width:98%;overflow:auto;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.Remrak</textarea>
+            </div>
+
+
+
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+    </div>
+    <script type="text/javascript">
+
+
+        var  url_getBaseData = '@Url.Action("GetBasdByBaseNameEng", "BaseData", new { @area = "Core" })';
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                initFormBegin(JSON.stringify({
+                    "Result": true,
+                    "Message": null,
+                    "NodeName": null,
+                    "SignControls": null,
+                    "AllowEditControls":"{}"
+
+                }));
+                //initFormBegin();
+            }
+
+        })
+        //页面初始化
+        function initFormBegin(params) {
+           // alert(params)
+            var bdjson = '@Model.BDJson';
+            if (bdjson != '') {
+                bdjson = JSON.parse(bdjson.replace(/&quot;/g, '"'));
+                if (typeof (bdjson) == "object") {
+                    console.log(bdjson)
+                    var bdjsonData = bdjson.rows
+                    if (bdjsonData.length > 0) {
+                        var interText = doT.template($("#listTp2").text())
+                        $("#gridList2").html(interText(bdjsonData));
+                    }
+                    else {
+                        console.log('暂无数据')
+                    }
+                }
+            }
+
+            var projId = '@Request["projId"]';
+            var phaseID = '@Request.Params["phaseID"]';
+            var taskGroupId = '@Request.Params["taskGroupId"]';
+            if (projId == '') {
+                projId = '@Model.ProjId';
+            }
+
+            if (phaseID == '') {
+                phaseID = '@Model.ProjPhaseId';
+            }
+
+            if (taskGroupId == '') {
+                taskGroupId = '@Model.ZJNR';
+            }
+
+
+            SetCheck("JCZD", '@Model.IsJCZD');
+            SetCheck("FHYQ", '@Model.IsFHYQ');
+            SetCheck("SQD", '@Model.IsSQD');
+            SetCheck("HT", '@Model.IsHT');
+            SetCheck("LY", '@Model.IsLY');
+            SetCheck("QSR", '@Model.IsQSR');
+            SetCheck("SY", '@Model.IsSY');
+            SetCheck("JL", '@Model.IsJL');
+            SetCheck("CD", '@Model.IsCD');
+            SetCheck("FX", '@Model.IsFX');
+            SetCheck("GF", '@Model.IsGF');
+            SetCheck("ZL", '@Model.IsZL');
+            GetBaseData("GCLB", "TaskType", '@Model.ProjTypeID');
+
+
+            $('#GCLB>span').css('width','90px')
+
+             //获取数据
+            $.post('@Url.Action("selectJC")?projId=@Request["projId"]&taskGroupId=@Request.Params["taskGroupId"]', function (_rData) {
+                console.log(JSON.parse(_rData))
+                //datas = JSON.parse(_rData)
+                var appendInfoData = JSON.parse(_rData).rows
+                if (appendInfoData.length > 0) {
+                    var interText = doT.template($("#listTpl").text())
+                    $("#gridList").html(interText(appendInfoData));
+                }
+                else {
+                    console.log('暂无数据')
+                }
+            })
+
+
+
+
+            //alert(window.location.href)
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+
+
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+
+
+             //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('IsoBCDForm'));
+
+            //项目概况及总体要求，替换换行符
+            var RemrakValue = $('#Remrak').val();
+            RemrakValue = RemrakValue.replace(/[\r\n]/g, "")
+            $('#Remrak').val(RemrakValue);
+
+
+            if (paramsObj.AllowEditControls == "{}") {
+                $('input[type="checkbox"]').removeAttr("disabled");
+                $('input[type="radio"]').removeAttr("disabled");
+            }
+            else {
+                $('input[type="checkbox"]').attr("disabled", "disabled");
+                $('input[type="radio"]').attr("disabled", "disabled");
+            }
+
+
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+
+        //复选框选中
+        function SetCheck(contId, paras) {
+            $(':checkbox[name=' + contId + ']').removeAttr('checked');
+            var paraArr = Enumerable.From(paras.split(',')).Where("x=>x!=''").Select("x=>x").ToArray();
+            $.each(paraArr, function (index, data) {
+                $("#" + contId + paraArr[index]).attr("checked", "checked");
+            });
+            switch (contId) {
+                default:
+                    if (paraArr.length == 0) {
+                        $("#" + contId + "_Ex").val("□是 □否");
+                    }
+                    else {
+                        switch (paraArr[0]) {
+                            case "1":
+                                $("#" + contId + "_Ex").val("☑是 □否");
+                                break;
+                            case "2":
+                                $("#" + contId + "_Ex").val("□是 ☑否");
+                                break;
+                            default:
+                                $("#" + contId + "_Ex").val("□是 □否");
+                                break;
+                        }
+                    }
+                    break;
+            }
+        }
+
+        //容器ID,BaseNameEng,每行显示个数
+        function GetBaseData(groupId, BaseNameEng, paras) {
+            $.ajax({
+                type: "POST",
+                async: false,
+                url: url_getBaseData + '?baseNameEng=' + BaseNameEng + '',
+                dataType: "json",
+                success: function (msg) {
+                    var html = "";
+                    var paraArr = Enumerable.From(paras.split(',')).Where("x=>x!=''").Select("x=>x").ToArray();
+                    var ex = "";
+                    $.each(msg, function (index, data) {
+                        html += '<span style="display:block;width:50px;float:left;margin-bottom:10px;"><input type="radio" name="' + groupId + '" id="' + groupId + data.BaseID + '" style="vertical-align:middle;" onclick="Checked(this.id,\'' + groupId + '\',\'' + data.BaseID + '\',\'' + data.BaseName + '\',\'' + groupId + '\')"';
+                        if (paraArr.indexOf(data.BaseID) > -1) {
+                            html += "checked='checked'";
+                            ex += "☑" + data.BaseName + " ";
+                        } else {
+                            ex += "□" + data.BaseName + " ";
+                        }
+                        html += ' /><label for="' + groupId + data.BaseID + '" style="vertical-align:middle;">' + data.BaseName + '</label></span>';
+                    });
+                    $("#" + groupId + "").html(html);
+
+                    $("#" + groupId + "_Ex").val(ex);
+                }
+            });
+        }
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#IsoBCDForm').validate({
+                //rules: {
+                //    Number:'required',//编号
+                //    ProjectName: 'required',//项目名称
+                //    ColAttVal2:'required',//变更原因
+                //    ModifyContent: { //修改内容
+                //        required: false,
+                //        maxlength: 500
+                //    },
+                //    FormNote: { // 监理单位意见
+                //        required: false,
+                //        maxlength: 500
+                //    }
+                //},
+                //messages: {
+                //    Number:'请输入编号',
+                //    ProjectName: '请输入项目名称 ',
+                //    ColAttVal2:'请输入变更原因',
+                //    ModifyContent: {
+                //        maxlength: '内容长度必须介于0-500之间'
+                //    },
+                //    FormNote: {
+                //        maxlength: '内容长度必须介于0-500之间'
+                //    }
+                //}
+            });
+            //if ($('#ProjName').val() == '') {
+            //    $.alert('请选择项目！')
+            //    return false;
+            //}
+            isValidate = formVali.form();
+            if (isValidate) {
+
+                //工程类别名称
+                var gclbIdArr = [], gclbArr = [];
+                $('#GCLB input[type="radio"]:checked').each(function (i, e) {
+                    gclbIdArr.push($(this).attr('id').split('GCLB')[1]);
+                    gclbArr.push($(this).next().text());
+                })
+                $('#ProjTypeID').val(gclbIdArr);
+                $('#ProjTypeName').val(gclbArr)
+
+
+               // var jczdIdArr = [];
+                $('input[type="radio"]:checked').each(function (i, e) {
+                    var NameValue = $(this).attr('name')
+                    console.log(NameValue)
+                    console.log($(this).attr('id').split(NameValue)[1])
+                    var IdValue = $(this).attr('id').split(NameValue)[1];
+                    if (IdValue == 1) {
+                        $("#" + NameValue + "_Ex").val("☑是 □否");
+                    }
+                    else if (IdValue) {
+                        $("#" + NameValue + "_Ex").val("□是 ☑否");
+                    }
+                    else {
+                        $("#" + NameValue + "_Ex").val("□是 □否");
+                    }
+
+                    $('#Is' + NameValue).val(IdValue);
+                })
+                
+               
+
+                var formData = DomUtil.serialize(document.getElementById('IsoBCDForm'));//json or =&
+                //console.log(formData)
+               // alert(JSON.stringify(formData))
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+            var formData = DomUtil.serialize(document.getElementById('IsoBCDForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+    </script>
+}

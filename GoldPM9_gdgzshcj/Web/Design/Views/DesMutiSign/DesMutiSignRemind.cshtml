@@ -1,0 +1,111 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("jsonRemind", "DesMutiSign", new { @area= "Design" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export', 'moreSearch'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'DesMutiSignRemind',//数据表格ID
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                JQExcludeCol: [11],
+                toolbar: '#DesMutiSignRemindPanel',//工具栏的容器ID
+                JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+                columns: [[
+                  //{ field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                  { title: '项目编号', field: 'ProjNumber', width: '9%', align: 'center', },
+                  { title: '项目名称', field: 'ProjName', width: '13%', align: 'center', },
+                  { title: '阶段', field: 'phaseName', width: '6%', align: 'center', },
+                  { title: '专业', field: 'MutiSignSpecName', width: '6%', align: 'center', },
+                  { title: '任务名称', field: 'TaskName', width: '12%', align: 'center', },
+                  { title: '标题', field: 'MutiSignTitle', width: '10%', align: 'center', },
+                  { title: '会签人', field: 'RecEmpName', width: '6%', align: 'center', },
+                  { title: '会签意见', field: 'RecContent', width: '10%', align: 'center', },
+                  { title: '会签日期', field: 'MutiFinishDate', width: '7%', align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                  { title: '提出人', field: 'CreatorEmpName', width: '6%', align: 'center', },
+                  {
+                      title: '提出日期', field: 'CreationTime', width: '7%', align: 'center', formatter: function (value, row, index) {
+                          row.CreationTime = JQ.tools.DateTimeFormatterByT(value, row, index);
+                          return row.CreationTime;
+                      }
+                  },
+                  {
+                      title: '操作', field: 'info', width: '7%', align: 'center', formatter: function (value, row, index) {
+                          return "<a id='desCheckltn_" + row.Id + "' rootId='" + row.Id + "' RecId=" + row.RecId + " class=\"easyui-linkbutton\" data-options=\"iconCls:'fa fa-edit'\">处理</a>";
+                      }
+                  }
+
+                ]],
+                onLoadSuccess: function () {
+                    $("a[id^='desCheckltn']").linkbutton({
+                        onClick: function () {
+                            var rootId = $(this).attr("rootId");
+                            var RecId = $(this).attr("RecId");
+                            ShowDetail(rootId, RecId);
+                        }
+                    });
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号、名称，任务名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'DesMutiSignRemind',
+                            loadingType: 'datagrid',
+                            queryParams: { textContent: $("#JQSearch").val() }
+                        });
+                }
+            });
+        });
+
+
+        function ShowDetail(id, RecId) {
+            JQ.dialog.dialog({
+                title: "会签任务",
+                url: '@Url.Action("Edit", "DesMutiSign", new { @area="Design"})?from=Remind&Id=' + id + "&RecID=" + RecId,
+                width: '1024',
+                height: '100%',
+                JQID: 'ISOCheckList',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-th-list',
+                onClose: function () {
+                    $("#DesMutiSignRemind").datagrid("reload");
+                }
+            });
+
+
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="DesMutiSignRemind"></table>
+    <div id="DesMutiSignRemindPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+        </span>
+        <input id="JQSearch" style="width:250px;" />
+
+        <div class="moreSearchPanel">
+            @BaseData.getBases(
+           new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{ Key:'MutiSignPhaseId', Contract:'in',filedType:'Int'}", })
+
+            @BaseData.getBases(
+           new Params() { isMult = true, engName = "Special", queryOptions = "{ Key:'MutiSignSpecId', Contract:'in',filedType:'Int'}", })
+
+        </div>
+    </div>
+}
+

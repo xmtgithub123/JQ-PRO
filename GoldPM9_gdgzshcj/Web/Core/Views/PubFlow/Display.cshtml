@@ -1,0 +1,405 @@
+﻿@{
+    var flag = Guid.NewGuid().ToString("N");
+}
+<div id="flow@(flag)">
+    <table class="table table-bordered">
+        <tr>
+            <th>意见：</th>
+            <td>
+                <textarea flowflag="_flow_note" name="_flow_note" style="width:99%;height:120px;" validType="length[0,200]" />
+            </td>
+        </tr>
+        <tr>
+            <th style="width:20%">下一步：</th>
+            <td flowflag="_td_step" style="width:85%">
+                <input flowflag="_flow_step" name="_flow_step" style="width:60%" />
+            </td>
+        </tr>
+        <tr>
+            <th>人员：</th>
+            <td flowflag="_td_user" style="height:45px">
+                <div flag="0">
+                    <input flowflag="_flow_user" name="_flow_user" style="width:60%;" />
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
+<script type="text/javascript">
+    var _params = {
+        refID: "@(Request.QueryString["refID"])",
+        refTable: JQ.Flow.htmlDecode("@(HttpUtility.UrlDecode((Request.QueryString["refTable"]??"")))"),
+        flowNodeID: "@(Request.QueryString["flowNodeID"])",
+        flowMultiSignID: "@(Request.QueryString["flowMultiSignID"])",
+        instance: JQ.Flow.htmlDecode("@(HttpUtility.UrlDecode((Request.QueryString["instance"] ??"")))"),
+        action: JQ.Flow.htmlDecode("@(HttpUtility.UrlDecode((Request.QueryString["action"] ??"")))"),
+        service: JQ.Flow.htmlDecode("@(HttpUtility.UrlDecode((Request.QueryString["service"] ??"")))"),
+        guid: "@(Request.QueryString["guid"])",
+        isquote: "@(Request.QueryString["isquote"])",
+        isLastStep: false
+    };
+    $(function () {
+        var $div = $("#flow@(flag)");
+        var $_flow_note = $div.find("[flowflag='_flow_note']");
+        var $_flow_step = $div.find("[flowflag='_flow_step']");
+        var $_td_step = $div.find("[flowflag='_td_step']");
+        var $_td_user = $div.find("[flowflag='_td_user']");
+        var $_flow_user = $div.find("[flowflag='_flow_user']");
+        var options = {
+            formid: "display",
+            buttonTypes: ['close'],
+            succesCollBack: function (data) {
+                JQ.dialog.dialogClose();
+            }
+        }
+        if (_params.action == "next") {
+            options.beforeButtons = [
+                { icon: "fa-toggle-right", id: "btnSubmit@(flag)", text: "审批提交", disabled: true }
+            ];
+        }
+        else if (_params.action == "back") {
+            options.beforeButtons = [
+                { icon: "fa-toggle-left", id: "btnBack@(flag)", text: "审批退回", disabled: true }
+            ];
+        }
+        else if (_params.action == "transfer") {
+            options.beforeButtons = [
+                { icon: "fa-street-view", id: "btnTransfter@(flag)", text: "工作移交", disabled: true }
+            ];
+        }
+        else if (_params.action == "finish") {
+            options.beforeButtons = [{
+                icon: "fa fa-check-circle", id: "btnFinish@(flag)", text: "直接完成", onClick: function () {
+                    if (!$_flow_note.textbox("isValid")) {
+                        $_flow_note.focus();
+                        return;
+                    }
+                    JQ.dialog.confirm("确定要直接完成吗？", function () {
+                        window[_params.instance].submit({
+                            action: _params.action,
+                            note: $_flow_note.textbox("getText")
+                        });
+                    });
+                }
+            }];
+            $_td_step.html("直接完成");
+            $_td_user.html("不需要选择");
+            initNoteBox(false);
+        }
+        else if (_params.action == "reject") {
+            options.beforeButtons = [{
+                icon: "fa fa-times-circle", id: "btnReject", text: "直接否决", onClick: function () {
+                    if (!$_flow_note.textbox("isValid")) {
+                        $_flow_note.textbox("textbox").focus();
+                        return;
+                    }
+                    JQ.dialog.confirm("确定要直接否决吗？", function () {
+                        window[_params.instance].submit({
+                            action: _params.action,
+                            note: $_flow_note.textbox("getText")
+                        });
+                    });
+                }
+            }];
+            $_td_step.html("直接否决");
+            $_td_user.html("不需要选择");
+            initNoteBox(false);
+        }
+        else if (_params.action == "undo") {
+            options.beforeButtons = [
+                { icon: "fa-undo", id: "btnUndo@(flag)", text: "撤销审批", disabled: true }
+            ];
+        }
+        JQ.form.submitInit(options);
+        if (_params.action == "next" || _params.action == "back" || _params.action == "transfer" || _params.action == "undo") {
+            // debugger;
+            getOptions();
+        }
+        //获取加载选项
+        function getOptions() {
+            var postOptions = { _refID: _params.refID, _refTable: _params.refTable, _flowNodeID: _params.flowNodeID, _action: "load_" + _params.action, _flowMultiSignID: _params.flowMultiSignID };
+            if (_params.guid) {
+                postOptions._guid = _params.guid;
+            }
+            debugger;
+            $.ajax({
+                url: _params.service,
+                type: "POST",
+                data: postOptions,
+                success: function (result) {
+                    if (window[_params.instance].filterSteps) {
+                        window[_params.instance].filterSteps(result.NextSteps, _params.action);
+                    }
+                    debugger
+                    loadResult(result);
+                    if (!$_flow_note.textbox("isValid")) {
+                        $_flow_note.textbox("textbox").focus();
+                        return;
+                    }
+                    if (_params.action == "next") {
+                        $("#btnSubmit@(flag)").linkbutton("enable").click(function () {
+                            var options = {
+                                action: _params.action
+                            };
+                            if (!_params.isLastStep) {
+                                options.nextNodeID = $_flow_step.combobox("getValue");
+                                if ($div.find("[flowflag='n" + options.nextNodeID + "']").length > 0) {
+                                    options.nextEmpIDs = $("#hidEmp" + options.nextNodeID).val();
+                                }
+                                else {
+                                    options.nextEmpIDs = $_flow_user.combobox("getValue");
+                                }
+                                if (options.nextEmpIDs == "") {
+                                    JQ.dialog.question("请选择需要提交的人员");
+                                    return;
+                                }
+                            }
+                            JQ.dialog.confirm("确定要审批提交" + (_params.isLastStep ? "（流程将结束）" : "") + "吗？", function () {
+                                options.note = $_flow_note.textbox("getText");
+                                window[_params.instance].submit(options);
+                            });
+                        });
+                    }
+                    else if (_params.action == "back") {
+                        $("#btnBack@(flag)").linkbutton("enable").click(function () {
+                            var options = {
+                                action: _params.action
+                            };
+                            if (!_params.isLastStep) {
+                                options.nextNodeID = $_flow_step.combobox("getValue");
+                                var signs = $_td_user.find("div[flowflag='n" + options.nextNodeID + "']");
+                                if (signs.length > 0) {
+                                    options.nextEmpIDs = signs.find("#hidEmp" + options.nextNodeID).val();
+                                }
+                                else {
+                                    options.nextEmpIDs = $_flow_user.combobox("getValue");
+                                }
+                                if (options.nextEmpIDs == "") {
+                                    JQ.dialog.question("请选择需要退回的人员");
+                                    return;
+                                }
+                            }
+                            JQ.dialog.confirm("确定要审批退回吗？", function () {
+                                options.note = $_flow_note.textbox("getText");
+                                window[_params.instance].submit(options);
+                            });
+                        });
+                    }
+                    else if (_params.action == "undo") {
+                        $("#btnUndo@(flag)").linkbutton("enable").click(function () {
+                            var options = {
+                                action: _params.action
+                            };
+                            options.nextNodeID = $_flow_step.combobox("getValue");
+                            var signs = $_td_user.find("div[flowflag='n" + options.nextNodeID + "']");
+                            if (signs.length > 0) {
+                                options.nextEmpIDs = signs.find("#hidEmp" + options.nextNodeID).val();
+                            }
+                            else {
+                                options.nextEmpIDs = $_flow_user.combobox("getValue");
+                            }
+                            if (options.nextEmpIDs == "") {
+                                JQ.dialog.question("请选择需要撤销的步骤或人员");
+                                return;
+                            }
+                            JQ.dialog.confirm("确定要撤销审批吗？", function () {
+                                options.note = $_flow_note.textbox("getText");
+                                window[_params.instance].submit(options);
+                            });
+                        });
+                    }
+                }
+            });
+        }
+
+        function initNoteBox(isRequired, defaultNote) {
+            $_flow_note.textbox({
+                multiline: true,
+                prompt: "请输入意见",
+                required: isRequired,
+                validType: ["length[0,500]"]
+            });
+            if (window[_params.instance].getNote) {
+                defaultNote = window[_params.instance].getNote() || defaultNote;
+            }
+            $_flow_note.textbox("setText", defaultNote || "");
+        }
+
+        function loadResult(result) {
+            if (window[_params.instance].getStepUsers) {
+                for (var i = 0; i < result.NextSteps.length; i++) {
+                    var stepResult = window[_params.instance].getStepUsers(result.NextSteps[i], _params.action);
+                    if (stepResult) {
+                        if ("choosedUserNames" in stepResult) {
+                            result.NextSteps[i].ChoosedUserNames = stepResult.choosedUserNames;
+                        }
+                        if ("choosedUsers" in stepResult) {
+                            result.NextSteps[i].ChoosedUsers = stepResult.choosedUsers;
+                        }
+                        if ("defaultChoosedUser" in stepResult) {
+                            result.NextSteps[i].DefaultChoosedUser = stepResult.defaultChoosedUser;
+                        }
+                        if ("users" in stepResult) {
+                            result.NextSteps[i].Users = [];
+                            for (var j = 0; j < stepResult.users.length; j++) {
+                                result.NextSteps[i].Users.push({ ID: stepResult.users[j].id, Name: stepResult.users[j].name });
+                            }
+                        }
+                    }
+                }
+            }
+            initNoteBox(result.IsNoteRequired, result.DefaultNote);
+            if (_params.action == "transfer") {
+                if (result.NextSteps.length > 0) {
+                    $_td_step.html(result.NextSteps[0].NodeName);
+                    if (result.NextSteps[0].Users.length == 0) {
+                        $_td_user.html("无可移交人员");
+                        return;
+                    }
+                    loadUsers(result.NextSteps[0]);
+                    $("#btnTransfter@(flag)").linkbutton("enable").click(function () {
+                        JQ.dialog.confirm("确定要工作移交吗？", function () {
+                            window[_params.instance].submit({
+                                action: _params.action,
+                                nextEmpIDs: $_flow_user.combobox("getValue"),
+                                note: $_flow_note.textbox("getText")
+                            });
+                        });
+                    });
+                }
+                else {
+                    $_td_step.html("");
+                    $_td_user.html("无可移交人员");
+                }
+                return;
+            }
+            if (result.IsLastStep === true) {
+                $_td_step.html("流程结束");
+                $_td_user.html("不需要选择");
+                _params.isLastStep = true;
+            }
+            else {
+                $_flow_step.combobox({
+                    editable: false,
+                    panelHeight: "auto",
+                    textField: "NodeName",
+                    valueField: "NodeID",
+                    data: result.NextSteps,
+                    onSelect: function (item) {
+                        loadUsers(item);
+                    }
+                });
+                var defaultStep = null;
+                debugger;
+                if (result.DefaultChoosedStep) {
+                    var isExists = false;
+                    for (var i = 0; i < result.NextSteps.length; i++) {
+                        if (result.NextSteps[i].NodeID == result.DefaultChoosedStep) {
+                            defaultStep = result.NextSteps[i];
+                            isExists = true;
+                            break;
+                        }
+                    }
+                    if (!isExists) {
+                        if (result.NextSteps.length > 0) {
+                            defaultStep = result.NextSteps[0];
+                        }
+                    }
+                }
+                else if (result.NextSteps.length > 0) {
+
+                    defaultStep = result.NextSteps[0];
+                }
+                if (defaultStep) {
+                    $_flow_step.combobox("setValue", defaultStep.NodeID.toString());
+                    loadUsers(defaultStep);
+                }
+            }
+        }
+
+        function loadUsers(item) {
+            if (!item) {
+                return;
+            }
+            if (item.NodeType == -1) {
+                //会签
+                loadMultiUsers(item);
+            }
+            else {
+                loadComboboxUsers(item);
+            }
+        }
+
+        function loadComboboxUsers(item) {
+            $_td_user.find("div[flag!='0']").hide();
+            if (!item.Users || item.Users.length == 0) {
+                return;
+            }
+            $_td_user.find("div[flag='0']").show();
+            $_flow_user.combobox({
+                editable: true,
+                panelHeight: (item.Users.length < 8 ? "auto" : 200),
+                textField: "Name",
+                valueField: "ID",
+                data: item.Users,
+                onSelect: function (userData) {
+                    item.DefaultChoosedUser = userData.ID;
+                },
+                onHidePanel: function () {
+                    comBoxHidePanel(this);
+                }
+            });
+            if (item.DefaultChoosedUser) {
+                //选中默认人员
+                $_flow_user.combobox("setValue", item.DefaultChoosedUser);
+            }
+            else if (item.Users.length > 0) {
+                //选中第一个人员
+                $_flow_user.combobox("setValue", item.Users[0].ID);
+            }
+        }
+
+        function loadMultiUsers(item) {
+            $_td_user.find("div[flag!='" + item.NodeID + "']").hide();
+            //$("#_td_user>div[flag!='" + item.NodeID + "']").hide();
+            var $div = $_td_user.find("div[flowflag='n" + item.NodeID + "']");
+            //document.getElementById("_$_divNode_" + item.NodeID);
+            if ($div.length == 0) {
+                var div = document.createElement("div");
+                div.setAttribute("flowflag", "n" + item.NodeID);
+                div.setAttribute("flag", item.NodeID);
+                $_td_user[0].appendChild(div);
+                var hidEmp = document.getElementById("hidEmp" + item.NodeID);
+                if (hidEmp) {
+                    hidEmp.parentNode.removeChild(hidEmp);
+                }
+                hidEmp = document.createElement("input");
+                hidEmp.setAttribute("id", "hidEmp" + item.NodeID);
+                hidEmp.setAttribute("type", "hidden");
+                hidEmp.setAttribute("value", item.ChoosedUsers || "");
+                div.appendChild(hidEmp);
+                if (_params.action == "undo" && item.ChoosedUsers) {
+                    div.appendChild(document.createTextNode(item.ChoosedUserNames));
+                }
+                else {
+                    var chooseEmp = document.getElementById("chooseEmp" + item.NodeID);
+                    if (chooseEmp) {
+                        chooseEmp.parentNode.removeChild(chooseEmp);
+                    }
+                    chooseEmp = document.createElement("input");
+                    chooseEmp.setAttribute("id", "chooseEmp" + item.NodeID);
+                    chooseEmp.setAttribute("value", item.ChoosedUserNames || "");
+                    div.appendChild(chooseEmp);
+                    JQ.textbox.selEmp({
+                        id: "chooseEmp" + item.NodeID,
+                        setID: "hidEmp" + item.NodeID,
+                        width: 300
+                    });
+                }
+            }
+            else {
+                $div[0].style.display = "";
+            }
+        }
+    });
+</script>

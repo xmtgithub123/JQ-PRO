@@ -1,0 +1,155 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+}
+
+@section Body_Content{
+
+    <table id="SpecPlanGrid"></table>
+    <div id="DesTaskPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel"></span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'p.ProjNumber,p.ProjName', Contract:'like'}" />
+
+        <div class="moreSearchPanel">
+
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{ Key:'g.TaskGroupPhaseId', Contract:'in',filedType:'Int'}" })
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '计划开始时间'" JQWhereOptions="{ Key:'s.DatePlanStart', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '计划结束时间'" JQWhereOptions="{ Key:'s.DatePlanStart', Contract:'<=',filedType:'Date' }">&nbsp;
+
+        </div>
+    </div>
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("SpecPlanListJson", "DesTask",new { @area="Design"})?FormMenu=SpecPlanList';
+
+        var params = {
+        };
+
+        $(function () {
+
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export', 'moreSearch'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'SpecPlanGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: false,
+                selectOnCheck: false,
+                singleSelect: true,
+                JQExcludeCol: [9],
+                queryParams: params,
+                //JQMergeCells: { fields: ['ProjNumber', 'ProjName'], Only: 'Id' },//当字段值相同时会自动的跨行(只对相邻有效)
+                toolbar: '#DesTaskPanel',//工具栏的容器ID
+                JQExcludeCol: [11],
+                columns: [[
+                    //{ field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '项目编号', field: 'ProjNumber', width: '8%', align: 'center', sortable: false },
+		            { title: '项目名称', field: 'ProjName', width: '26%', align: 'left', sortable: false },
+                    { title: '阶段', field: 'ProjPhaseName', width: '8%', align: 'center', sortable: false },
+                    {
+                        title: '阶段状态', field: 'ProjPhaseStatusName', width: 80, align: 'center', formatter: function (value, row, index) {
+                            var icon = "";
+                            var title = "";
+                            switch (row.ProjPhaseStatus) {
+                                case 0:
+                                    title = "未启动";
+                                    icon = "fa-circle-o text-muted";
+                                    break;
+                                case 1:
+                                    title = "已轮到";
+                                    icon = "fa-dot-circle-o text-warning";
+                                    break;
+                                case 2:
+                                    title = "进行中";
+                                    icon = "fa-play-circle text-success";
+                                    break;
+                                case 3:
+                                    title = "已完成";
+                                    icon = "fa-check-circle text-info";
+                                    break;
+                                case 4:
+                                    title = "已停止";
+                                    icon = "fa-minus-circle text-danger";
+                                    break;
+                            }
+                            row.ProjPhaseStatusName = title;
+                            return "<i class=\"fa " + icon + "\" style=\"font-size: 16px;\" title=\"" + title + "\"></i>&nbsp;" + title;
+                        }
+                    },
+                    { title: '阶段负责人', field: 'ProjPhaseEmpName', width: '8%', align: 'center', sortable: false },
+                    { title: '专业', field: 'ProjSpecName', width: '8%', align: 'center', sortable: false },
+                    { title: '专业负责人', field: 'ProjSpecEmpName', width: '8%', align: 'center', sortable: false },
+		            { title: '计划开始', field: 'DatePlanStart', width: 80, align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '计划结束', field: 'DatePlanFinish', width: 80, align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT },
+                    {
+                        title: '进度', field: 'ProgressVer', width: 80, align: 'center', formatter: function (value, row, index) {
+                            if (row.TaskTotalCount == 0) {
+                                row.ProgressVer = "0%";
+                            } else {
+                                row.ProgressVer = "{0}%".format(Math.ceil(row.TaskFinishCount / row.TaskTotalCount * 100));
+                            }
+                            var _titleName = "项目进度：[{0}]{1} &gt; {2}".format(row.ProjNumber.escapeHTML(), row.ProjName.escapeHTML(), row.ProjPhaseName);
+                            return '<div title="已完任务 {1} / 全部任务 {2}" onclick="openProjectProgressInfo(\'{3}\', {4}, {5})" class="easyui-progressbar progressbar easyui-fluid" style="width: 69px; height: 22px; cursor:pointer;"><div class="progressbar-text" style="width: 69px; height: 22px; line-height: 22px;">{0}</div><div class="progressbar-value" style="width: {0}; height: 22px; line-height: 22px;"><div class="progressbar-text" style="width: 69px; height: 22px; line-height: 22px;">{0}</div></div></div>'.format(row.ProgressVer, row.TaskFinishCount, row.TaskTotalCount, _titleName, row.Id, row.TaskGroupId);
+                        }
+                    },
+                    {
+                        title: '操作', field: 'Id', width: 80, align: 'center', formatter: function (value, row, index) {
+                            var _titleName = "专业策划：[{0}]{1} &gt; {2} &gt; {3}".format(row.ProjNumber.escapeHTML(), row.ProjName.escapeHTML(), row.ProjPhaseName, row.ProjSpecName);
+                            return "<a href=\"javascript:void(0);\" class=\"easyui-linkbutton\" data-options=\"plain:true,iconCls:'fa fa-trash'\" onclick=\"openProjPlanInfo('{0}',{1},{2},{3})\">专业策划</a>".format(_titleName, row.Id, row.TaskGroupId, row.ProjSpecId);
+                        }
+                    }
+                ]],
+                onClickRow: function (rowIndex, rowData) {
+                    $("#SpecPlanGrid").datagrid('unselectRow', rowIndex);
+                }
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目名称、编号',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'SpecPlanGrid',
+                            loadingType: 'datagrid',
+                            queryParams: params
+                        });
+                }
+            });
+
+        });
+
+        function openProjPlanInfo(title, projId, taskGroupId, taskSpecId) {
+            var url = '@Url.Action("SpecPlanInfo")?tabId=3&projID=' + projId + '&taskGroupId=' + taskGroupId + '&taskSpecId=' + taskSpecId;
+
+            //window.top.addTab("专业策划:" + title, url, "");
+
+            JQ.dialog.dialogIframe({
+                title: title,
+                url: url,
+                width: 1366,
+                height: 800
+            });
+        }
+
+        function openProjectProgressInfo(title, projId, taskGroupId) {
+            var url = '@Url.Action("ProjectProgressInfo", "DesTask", new { @area = "Design" })?projID=' + projId + '&taskGroupId=' + taskGroupId
+            JQ.dialog.dialogIframe({
+                title: title,
+                url: url,
+                width: 1200,
+                height: 800
+            });
+        }
+    </script>
+}
+

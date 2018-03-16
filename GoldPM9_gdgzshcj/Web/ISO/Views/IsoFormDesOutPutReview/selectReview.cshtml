@@ -1,0 +1,84 @@
+﻿
+@using JQ.Web;
+<style type="text/css">
+    .rwpdialogdiv {
+        padding: 0px;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        $(".dialog-toolbar :last").hide();
+        JQ.datagrid.datagrid({
+            JQButtonTypes: [],//需要显示的按钮
+            JQPrimaryID: 'FormID',//主键的字段
+            JQID: 'ReviewGrid',//数据表格ID
+            JQDialogTitle: '选择评审记录',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            singleSelect: false,
+            JQFields: ["Id"],//追加的字段名
+            url: '@Url.Action("ReviewJson", "IsoFormNode", new { @area="Iso"})',//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#ReviewPanel',//工具栏的容器ID
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '评审对象', field: 'ReviewTarget', width: "20%", halign: 'center', align: 'left' },
+                { title: '评审内容', field: 'ReviewContent', width: "20%", halign: 'center', align: 'left' },
+                { title: '评审结果', field: 'ReviewResult', width: "20%", halign: 'center', align: 'left' },
+                { title: '评审意见', field: 'ReviewSugg', width: "20%", halign: 'center', align: 'left' },
+                { title: '专业', field: 'SpecialName', width: "15%", halign: 'center', align: 'center' }
+            ]],
+
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '评审对象/评审内容',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+            {
+                dgID: 'ReviewGrid',
+                loadingType: 'datagrid',
+                queryParams: null
+            });
+            }
+        });
+    });
+
+    function selectReivew() {
+        var rows = $('#ReviewGrid').datagrid('getSelections');
+        if (rows.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        for (var rowindex=0;rowindex<rows.length;rowindex++)
+        {
+            insert(rows[rowindex]);
+        }
+        
+        JQ.dialog.dialogClose();
+    }
+
+</script>
+
+<table id="ReviewGrid"></table>
+<div id="ReviewPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectReivew()">确定选择</a>
+    </span>
+    @*分割号*@
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'ColAttVal1,ColAttVal2', Contract:'like'}" />
+
+    @*<div class="moreSearchPanel">
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期开始'" JQWhereOptions="{ Key:'ConDate', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期结束'" JQWhereOptions="{ Key:'ConDate', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>*@
+</div>
+
+
+

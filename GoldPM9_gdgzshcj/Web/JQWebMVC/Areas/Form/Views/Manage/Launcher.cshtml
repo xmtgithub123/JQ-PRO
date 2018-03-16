@@ -1,0 +1,78 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="window.location.reload()">
+        <span class="fa fa-refresh"></span>
+        <span>刷新</span>
+    </div>
+</div>
+<div id="divcontent">
+    <table id="grid"></table>
+</div>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<script type="text/javascript">
+    window.onLoaded = function () {
+        $("#grid").datagrid({
+            fit: true,
+            rownumbers: true,
+            border: false,
+            idField: "ID",
+            columns: [[
+                { field: "ck", checkbox: true, align: "left", halign: "center" },
+                { field: "Name", title: "名称", width: 380, align: "left", halign: "center" },
+                { field: "Version", title: "版本", width: 80, align: "center", halign: "center" },
+                {
+                    field: "CreateTime", title: "发布日期", width: 160, align: "center", halign: "center", formatter: function (value) {
+                        return YChart.getDateText(YChart.parseDate(value.replace("T", " ")), "yyyy-MM-dd");
+                    }
+                },
+                {
+                    field: "op", title: "操作", width: 120, align: "center", halign: "center", formatter: function (value, rowData) {
+                        return "<a href=\"javascript:void(0)\" class=\"yc_abutton\" onclick=\"showlist('" + encodeURIComponent(rowData.Name) + "'," + rowData.ID + "," + rowData.Version + ")\">列表</a> <a href=\"javascript:void(0)\" class=\"yc_abutton\" onclick=\"create('" + encodeURIComponent(rowData.Name) + "'," + rowData.ID + "," + rowData.Width + "," + rowData.Version + ")\">发起</a>";
+                    }
+                }
+            ]],
+            pagination: true,
+            url: "@(Url.Action("GetPublishedTemplateList","Manage",new { @area="Form" }))",
+            method: "POST"
+        }).datagrid("getPager").pagination({
+            pageSize: 20,
+            pageList: [10, 15, 20, 25, 30, 50],
+            beforePageText: '第',
+            afterPageText: '页    共 {pages} 页',
+            displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录'
+        });
+    }
+
+    function create(title, dataID, width, version) {
+        width = width + 40;
+        if (width < 600) {
+            width = 600;
+        }
+        else if (width > 1200) {
+            width = 1200;
+        }
+        new YChart.Dialog({
+            height: 680,
+            width: width,
+            icon: "fa-table",
+            title: decodeURIComponent(title) + "（第" + version + "版） 发起",
+            url: "@(Url.Action("Edit","Manage",new { @area="Form" }))?formTemplateID=" + dataID
+        });
+    }
+
+    function showlist(title, dataID, version) {
+        title = decodeURIComponent(title);
+        window.parent.parent.addTab(title, "@(Url.Action("List","Manage",new { @area="Form" }))?formTemplateID=" + dataID, title);
+        @*new YChart.Dialog({
+            height: 720,
+            width: 1000,
+            icon: "fa-list",
+            title: decodeURIComponent(title) + "（第" + version + "版） 列表",
+            url: "@(Url.Action("List","Manage",new { @area="Form" }))?formTemplateID=" + dataID
+        });*@
+    }
+</script>

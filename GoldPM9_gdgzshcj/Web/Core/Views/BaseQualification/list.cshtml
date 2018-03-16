@@ -1,0 +1,282 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "BaseQualification",new { @area="Core"})',
+               addUrl = '@Url.Action("add","BaseQualification",new {@area="Core" })',
+               editUrl = '@Url.Action("edit", "BaseQualification",new {@area="Core" })',
+               delUrl = '@Url.Action("del", "BaseQualification", new { @area = "Core" })';
+        $(function () {
+            $('#lefttreespec').treegrid({
+                url: '@Url.Action("treejson", "basedata",new { @area="Core", engName = "Special" })',
+                idField: 'id',
+                treeField: 'text',
+                border: 0,
+                fit: true,
+                animate: true,
+                singleSelect: true,
+                columns: [[
+                   { title: '<b>选择专业</b>', field: 'text', width: 240, align: 'left' }
+                ]],
+                onLoadSuccess: function (row, data) {
+
+                },
+                onSelect: function (node) {
+                    BindGridEmp(node.id, 0);
+                    //设置文本
+                    $('#QualTitle').html("<b>设置专业：</b>" + node.text);
+                    $('#QualTitle').attr({ "SpecID": node.id, "EmpID": 0 });
+                }
+            });
+
+            $('#lefttreeemp').treegrid({
+                url: '@Url.Action("employeeByDepJson", "usercontrol", new { @area = "Core", state = "closed" })',
+                idField: 'id',
+                treeField: 'text',
+                border: 0,
+                fit: true,
+                animate: true,
+                singleSelect: true,
+                columns: [[
+                   { title: '', field: 'text', width: 240, align: 'left' }
+                ]],
+                onLoadSuccess: function (row, data) {
+
+                },
+                onSelect: function (node) {
+                    if (node.isEmp) {
+                        BindGridSpec(0, node.empid);
+                        //设置文本
+                        $('#QualTitle').html("<b>设置人员</b>：" + node.text);
+                        $('#QualTitle').attr({ "SpecID": 0, "EmpID": node.empid });
+                    }
+                }
+            });
+        });
+
+        function BindGridEmp(specid, empid) {
+            JQ.datagrid.datagrid({
+                JQPrimaryID: 'id',
+                JQID: 'Quallist',
+                JQWidth: '100%',
+                JQHeight: '100%',
+                JQLoadingType: 'datagrid',
+                url: '@Url.Action("Qualjson", "BaseQualification", new { @area="Core"})',
+                toolbar: '#tbQual',
+                JQMergeCells: { fields: ['DepName'], Only: 'DepName' },
+                animate: true,
+                pagination: false,
+                columns: [
+                    [
+                        { title: '全选', colspan: 2 },
+                        { field: 'opt1', align: 'center', title: '<input id=\"Qual18\"  type=\"checkbox\" onclick=\"CheckAll(\'Qual18\')\" >' },
+                        { field: 'opt2', align: 'center', title: '<input id=\"Qual16\" type=\"checkbox\" onclick=\"CheckAll(\'Qual16\')\" >' },
+                        { field: 'opt3', align: 'center', title: '<input id=\"Qual19\" type=\"checkbox\"  onclick=\"CheckAll(\'Qual19\')\" >' },
+                        { field: 'opt7', align: 'center', title: '<input id=\"Qual134\" type=\"checkbox\" onclick=\"CheckAll(\'Qual134\')\" >' },
+                        { field: 'opt4', align: 'center', title: '<input id=\"Qual20\" type=\"checkbox\" onclick=\"CheckAll(\'Qual20\')\" >' },
+                        { field: 'opt5', align: 'center', title: '<input id=\"Qual21\" type=\"checkbox\"  onclick=\"CheckAll(\'Qual21\')\" >' },
+                        { field: 'opt6', align: 'center', title: '<input id=\"Qual22\" type=\"checkbox\" onclick=\"CheckAll(\'Qual22\')\" >' },
+                    ],
+                    [
+                   { title: '部门', field: 'DepName', width: 100, align: 'left' },
+                   { title: '姓名', field: 'text', width: 100, align: 'left' },
+                   {
+                       title: '项目负责人', field: 'Qual18', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return "<input type='checkbox' name='Qual18' value='18' " + row.Qual18 + " EmpID='" + row.id + "' SpecID='" + specid + "' />";
+                       }
+                   },
+                   {
+                       title: '专业负责人', field: 'Qual16', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+
+                           return "<input type='checkbox' name='Qual16' value='16' " + row.Qual16 + " EmpID='" + row.id + "' SpecID='" + specid + "'/>";
+                       }
+                   },
+                   {
+                       title: '设计', field: 'Qual19', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return "<input type='checkbox' name='Qual19' value='19' " + row.Qual19 + " EmpID='" + row.id + "' SpecID='" + specid + "'/>";
+                       }
+                   },
+                   {
+                       title: '主设', field: 'Qual134', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return "<input type='checkbox' name='Qual134' value='134' " + row.Qual134 + " EmpID='" + row.id + "' SpecID='" + specid + "'/>";
+                       }
+                   },
+                   {
+                       title: '校对', field: 'Qual20', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return "<input type='checkbox' name='Qual20' value='20' " + row.Qual20 + " EmpID='" + row.id + "' SpecID='" + specid + "'/>";
+                       }
+                   },
+                   {
+                       title: '审核', field: 'Qual21', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return "<input type='checkbox' name='Qual21'  value='21' " + row.Qual21 + " EmpID='" + row.id + "' SpecID='" + specid + "'/>";
+                       }
+                   },
+                   {
+                       title: '审定', field: 'Qual22', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return "<input type='checkbox' name='Qual22' value='22'  " + row.Qual22 + " EmpID='" + row.id + "' SpecID='" + specid + "'/>";
+                       }
+                   }
+                    ]
+                ],
+                onLoadSuccess: function () {
+                    $("#Qual18").unbind();
+                    $("#Qual16").unbind();
+                    $("#Qual19").unbind();
+                    $("#Qual134").unbind();
+                    $("#Qual20").unbind();
+                    $("#Qual21").unbind();
+                    $("#Qual22").unbind();
+                },
+                queryParams: {
+                    SpecID: specid,
+                    EmpID: empid,
+                    DepID: 0
+                }
+            });
+        }
+        function BindGridSpec(specid, empid) {
+            JQ.datagrid.datagrid({
+                JQPrimaryID: 'id',
+                JQID: 'Quallist',
+                JQWidth: '100%',
+                JQHeight: '100%',
+                JQLoadingType: 'datagrid',
+                url: '@Url.Action("Qualjson", "BaseQualification", new { @area="Core"})',
+                toolbar: '#tbQual',
+                animate: true,
+                pagination: false,
+                checkOnSelect: false, selectOnCheck: false,
+                columns: [
+                    [
+                        { title: '全选' },
+                        { field: 'opt1', align: 'center', title: '<input id=\"Qual18\"  type=\"checkbox\" onclick=\"CheckAll(\'Qual18\')\" >' },
+                        { field: 'opt2', align: 'center', title: '<input id=\"Qual16\" type=\"checkbox\" onclick=\"CheckAll(\'Qual16\')\" >' },
+                        { field: 'opt3', align: 'center', title: '<input id=\"Qual19\" type=\"checkbox\"  onclick=\"CheckAll(\'Qual19\')\" >' },
+                        { field: 'opt7', align: 'center', title: '<input id=\"Qual134\" type=\"checkbox\" onclick=\"CheckAll(\'Qual134\')\" >' },
+                        { field: 'opt4', align: 'center', title: '<input id=\"Qual20\" type=\"checkbox\" onclick=\"CheckAll(\'Qual20\')\" >' },
+                        { field: 'opt5', align: 'center', title: '<input id=\"Qual21\" type=\"checkbox\"  onclick=\"CheckAll(\'Qual21\')\" >' },
+                        { field: 'opt6', align: 'center', title: '<input id=\"Qual22\" type=\"checkbox\" onclick=\"CheckAll(\'Qual22\')\" >' },
+                    ],
+                    [
+                   { title: '专业', field: 'text', width: 100, align: 'left' },
+                   {
+                       title: '项目负责人', field: 'Q1', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return "<input type='checkbox' name='Qual18' value='18' " + row.Qual18 + " EmpID='" + empid + "' SpecID='" + row.id + "' />";
+                       }
+                   },
+                   {
+                       title: '专业负责人', field: 'Q2', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+
+                           return "<input type='checkbox' name='Qual16' value='16' " + row.Qual16 + " EmpID='" + empid + "' SpecID='" + row.id + "'/>";
+                       }
+                   },
+                    {
+                       title: '设计', field: 'Q3', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return "<input type='checkbox' name='Qual19' value='19' " + row.Qual19 + " EmpID='" + empid + "' SpecID='" + row.id + "'/>";
+                       }
+                   },
+                    {
+                       title: '主设', field: 'Q7', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return "<input type='checkbox' name='Qual134' value='134' " + row.Qual134 + " EmpID='" + empid + "' SpecID='" + row.id + "'/>";
+                       }
+                   },
+                   {
+                       title: '校对', field: 'Q4', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return "<input type='checkbox' name='Qual20' value='20' " + row.Qual20 + " EmpID='" + empid + "' SpecID='" + row.id + "'/>";
+                       }
+                   },
+                   {
+                       title: '审批', field: 'Q5', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return "<input type='checkbox' name='Qual21'  value='21' " + row.Qual21 + " EmpID='" + empid + "' SpecID='" + row.id + "'/>";
+                       }
+                   },
+                   {
+                       title: '批准', field: 'Q6', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                           return "<input type='checkbox' name='Qual22' value='22'  " + row.Qual22 + " EmpID='" + empid + "' SpecID='" + row.id + "'/>";
+                       }
+                   }
+                    ]],
+                onLoadSuccess: function () {
+                    $("#Qual18").unbind();
+                    $("#Qual16").unbind();
+                    $("#Qual19").unbind();
+                    $("#Qual134").unbind();
+                    $("#Qual20").unbind();
+                    $("#Qual21").unbind();
+                    $("#Qual22").unbind();
+                },
+                queryParams: {
+                    SpecID: specid,
+                    EmpID: empid,
+                    DepID: 0
+                }
+            });
+        }
+
+        function saveMenu() {
+            var checkedItems = $('#Quallist').treegrid('getChecked');
+            var list = [];
+            $.each(checkedItems, function (index, item) {
+                if (item.attr("EmpID") != undefined)
+                    list.push({ QualificationEmpID: item.attr("EmpID"), QualificationSpecID: item.attr("SpecID"), QualificationValue: item.attr("value"), ok: 1 });
+            });
+            //debugger;
+            var url = '@Url.Action("SaveQual", "BaseQualification", new { @area="Core"})?SpecID=' + $('#QualTitle').attr("SpecID") + "&EmpID=" + $('#QualTitle').attr("EmpID");
+
+            $.ajax({
+                url: url,
+                data: { jsonData: JSON.stringify(list) },
+                type: 'POST',
+                success: function (result) {
+                    JQ.dialog.info("保存成功！");
+                }
+            });
+        }
+
+
+        $.extend($.fn.datagrid.methods, {
+            getChecked: function (jq) {
+                var rr = [];
+                var rows = jq.datagrid('getRows');
+                jq.datagrid('getPanel').find('div.datagrid-cell input:checked').each(function () {
+                    rr.push($(this));
+                });
+                return rr;
+            }
+        });
+
+        function CheckAll(id) {
+            if ($('#' + id).attr('checked') == 'checked') {
+                $("input[name='" + id + "']").attr("checked", 'checked');
+            } else {
+                $("input[name='" + id + "']").removeAttr("checked");
+            }
+            return false;
+        }
+    </script>
+}
+
+@section Body_Content{
+    <div id="BaseQualificationlayout" class="easyui-layout" style="overflow: hidden" fit="true">
+        <div data-options="region:'west',split:false" style="width:250px;">
+            <div id="tt" class="easyui-tabs" data-options="fit:true" style="width:300px;height:100%;">
+                <div title="按专业" style="padding:2px;">
+                    <table id="lefttreespec"></table>
+                </div>
+                <div title="按人员" data-options="closable:false" style="padding:2px;">
+                    <table id="lefttreeemp"></table>
+                </div>
+            </div>
+        </div>
+        <div data-options="region:'center'" style="background:#eee;">
+            <table id="Quallist"> </table>
+        </div>
+        <div id="tbQual" style="padding:5px;height:auto;">
+            <span id="QualTitle">设置：</span>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="saveMenu()">保存资格</a>
+        </div>
+    </div>
+}
+

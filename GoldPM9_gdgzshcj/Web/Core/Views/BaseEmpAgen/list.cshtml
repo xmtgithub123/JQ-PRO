@@ -1,0 +1,96 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "BaseEmpAgen",new { @area="Core"})',
+               addUrl = '@Url.Action("add","BaseEmpAgen",new {@area="Core" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQPrimaryID: 'BaseEmpAgenID',//主键的字段
+                JQID: 'BaseEmpAgenGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '600',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["BaseEmpAgenID"],//追加的字段名
+                url: requestUrl,//请求的地址
+                fitColumns: true,
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BaseEmpAgenPanel',//工具栏的容器ID
+                columns: [[
+                        { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		                { title: '委托人姓名', field: 'FromEmpName', width: 100, align: 'center', sortable: true },
+		                { title: '代理人姓名', field: 'ToEmpName', width: 100, align: 'center', sortable: true },
+		                { title: '委托流程', field: 'AgenFlowName', width: 100, align: 'center', sortable: true },
+		                { title: '委托菜单', field: 'AgenMenuName', width: 100, align: 'center', sortable: true },
+		                { title: '创建日期', field: 'DateCreate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		                { title: '委托开始日期', field: 'DateLower', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		                { title: '委托结束日期', field: 'DateUpper', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		                { title: '委托备注', field: 'AgenNote', width: 100, align: 'center', sortable: true },
+                        {
+                            title: '委托类别', field: 'AgenType', width: 100, align: 'center', formatter: function (val, row) {
+                                return val == 0 ? "<span style='color:gray'>全部权限</span>" : (val == 1 ? "<span style='color:green'>菜单权限</span>" : "<span style='color:green'>流程权限</span>");
+                            }
+                        },
+                        {
+                            title: '委托状态', field: 'AgenStatus', width: 100, align: 'center', formatter: function (val, row) {
+                                var dateValue0 = new Date(JQ.tools.DateTimeFormatterByT(row.DateUpper));                             
+                                var dateValue1 = new Date("@ViewBag.NowDate");
+                                var s = dateValue0 < dateValue1;
+                                var result = val;
+                                if (s) result = 1;
+                                return result == 0 ? "<span style='color:green'>正常</span>" : "<span style='color:gray'>失效</span>";
+                             }
+                         },
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '姓名',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BaseEmpAgenGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+
+        function save() {
+            var data = $('#BaseEmpAgenGrid').datagrid('getSelected');
+
+            if (!JQ.tools.isNotEmpty(data)) {
+                var url = '@Url.Action("del", "BaseEmpAgen", new { @area="Core"})';
+                JQ.tools.ajax({
+                    doBackResult: true,
+                    url: url,
+                    data: 'BaseEmpAgenID=' + data.BaseEmpAgenID,
+                    succesCollBack: function () {
+                        $('#BaseEmpAgenGrid').datagrid('reload');
+                    }
+                });
+            }
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="BaseEmpAgenGrid"></table>
+    <div id="BaseEmpAgenPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="save()">权限回收</a>
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'FromEmpName,ToEmpName', 'Contract': 'like' }"/>
+
+    </div>
+}
+

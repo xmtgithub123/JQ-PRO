@@ -1,0 +1,111 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("jsonOaEquipUse", "OaEquipUse", new { @area = "Oa" })?EquipOrOffice=1',
+            addUrl = '@Url.Action("add","OaEquipUse",new {@area="Oa" })?EquipOrOffice=1',
+            editUrl = '@Url.Action("edit", "OaEquipUse", new { @area = "Oa" })',
+            delUrl = '@Url.Action("del", "OaEquipUse", new { @area = "Oa" })?EquipOrOffice=1';
+        var EmpId = '@ViewBag.EmpId';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaEquipUseGrid',//数据表格ID
+                JQDialogTitle: '办公用品领用信息',//弹出窗体标题
+                JQWidth: '1000',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#OaEquipUsePanel',//工具栏的容器ID
+                JQExcludeCol: [1, 5, 6, 7],//导出execl排除的列
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '领用时间', field: 'EquipLendDate', width: "10%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    //{ title: '是否拖欠', field: '是否拖欠', width: "10%", align: 'center', sortable: true },
+                    { title: '领用人', field: 'CreatorEmpName', width: "10%", align: 'center', sortable: true },
+                    { title: '备注', field: 'EquipLendNote', width: "30%", align: 'center', sortable: true },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: "10%", JQIsExclude: true, JQRefTable: 'OaEquipUse' },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.EmpId)")
+                    },
+                      { title: 'FlowStatus', field: 'FlowStatus', halign: 'center', align: 'left', hidden: true },
+                      {
+                          field: 'opt', title: '操作', width: "40", align: 'center', JQIsExclude: true,
+                          formatter: function (value, row, index) {
+                              var title = "查看";
+                              if (row._EditStatus == 1) {
+                                  title = "修改";
+                              }
+                              else if (row._EditStatus == 2) {
+                                  title = "处理";
+                              }
+                              return '<a class="easyui-linkbutton" onclick="Info(' + row.Id + ')">' + title + '</a>';
+                          }
+                      }
+                ]], onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#OaEquipUseGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '备注信息',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'OaEquipUseGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+
+        //查看
+        function Info(Id) {
+            JQ.dialog.dialog({
+                title: '查看信息',
+                width: '800',
+                height: '650',
+                url: '@Url.Action("edit", "OaEquipUse", new { @area = "Oa" })?id=' + Id
+            });
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="OaEquipUseGrid"></table>
+    <div id="OaEquipUsePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'EquipLendNote', 'Contract': 'like' }" />
+
+    </div>
+}
+

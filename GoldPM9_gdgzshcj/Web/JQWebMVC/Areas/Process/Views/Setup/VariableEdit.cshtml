@@ -1,0 +1,74 @@
+﻿@model JQ.BPM.Model.SystemVariable
+@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="save()">
+        <span class="fa fa-save"></span>
+        <span>保存</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <form id="form1">
+        <div style="margin:5px">
+            <table class="documenttable">
+                <tr>
+                    <th style="width:80px">名称</th>
+                    <td style="width:280px"><input type="text" id="txtName" name="" placeholder="请输入系统变量名称" class="yc_textbox" style="width:260px" value="@(Model.Name)"></td>
+                </tr>
+                <tr>
+                    <th>类型</th>
+                    <td>
+                        <select id="listType" class="yc_select">
+                            <option value="string">文本</option>
+                            <option value="number">数值</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        默认值
+                    </th>
+                    <td>
+                        <input type="text" id="txtDefaultValue" name="" class="yc_textbox" style="width:260px" value="@(Model.DefaultValue)" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript">
+    YChart.setSelectedByValue(document.getElementById("listType"), "@(Model.Type)");
+    function save() {
+        var name = YChart.trim(document.getElementById("txtName").value);
+        if (!name) {
+            YChart.showTip(document.getElementById("txtName"), "请输入变量名称");
+            return;
+        }
+        var type = YChart.getSelectedValue(document.getElementById("listType"));
+        var defaultValue = YChart.trim(document.getElementById("txtDefaultValue").value);
+        if (type == "number" && defaultValue && !YChart.isNumber(defaultValue)) {
+            YChart.showTip(document.getElementById("txtDefaultValue"), "请输入数字");
+            return;
+        }
+        YChart.ajax({
+            url: "@(Url.Action("VariableSave","Setup",new { @area="Process" }))?id=@(Model.ID)",
+            type: "POST",
+            data: { name: name, type: type, defaultValue: defaultValue },
+            success: function (result) {
+                if (result.Result == false) {
+                    alert(result.Message);
+                    return;
+                }
+                window.frameElement.api.refreshGrid();
+                frameElement.closeDialog();
+            }
+        });
+    }
+</script>

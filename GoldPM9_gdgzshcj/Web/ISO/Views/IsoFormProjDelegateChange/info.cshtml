@@ -1,0 +1,191 @@
+﻿@model DataModel.Models.IsoForm
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoFormProjDelegateChangeForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+    $("#FormDate").datebox({ readonly: true })
+    $("#MaterialName").textbox({ required: true })
+    $('#ProjID').combogrid({
+        panelWidth: 550,
+        panelHeight: 385,
+        value: '@ViewBag.ProjID',
+        idField: 'Id',
+        textField: 'ProjName',
+        url: '@Url.Action("combogridJson", "Project",new { @area="Project"})',//请求的地址
+        editable: true,
+        pagination: true,           //是否分页
+        rownumbers: true,           //序号
+        collapsible: false,         //是否可折叠的
+        fit: true,
+        method: 'post',
+        columns: [[
+            { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true },
+    { title: '项目名称', field: 'ProjName', width: 260, align: 'center', sortable: true },
+    { title: '项目阶段', field: 'PhaseName', width: 140, align: 'center', sortable: true }
+
+        ]],
+        keyHandler: {
+            up: function () {               //【向上键】押下处理
+                var selected = $('#ProjID').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    var index = $('#ProjID').combogrid('grid').datagrid('getRowIndex', selected);
+                    if (index > 0) {
+                        $('#ProjID').combogrid('grid').datagrid('selectRow', index - 1);
+                    }
+                }
+                else {
+                    var rows = $('#ProjID').combogrid('grid').datagrid('getRows');
+                    $('#ProjID').combogrid('grid').datagrid('selectRow', rows.length - 1);
+                }
+            },
+            down: function () {             //【向下键】押下处理
+                //取得选中行
+                var selected = $('#ProjID').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    var index = $('#ProjID').combogrid('grid').datagrid('getRowIndex', selected);
+                    if (index < $('#ProjID').combogrid('grid').datagrid('getData').rows.length - 1) {
+                        $('#ProjID').combogrid('grid').datagrid('selectRow', index + 1);
+                    }
+                } else {
+                    $('#ProjID').combogrid('grid').datagrid('selectRow', 0);
+                }
+            },
+            enter: function () {             //【回车键】押下处理
+                var row = $('#ProjID').combogrid('grid').datagrid('getSelected');
+                $('#ProjID').combogrid('hidePanel');
+            },
+            query: function (Words) {     //【动态搜索】处理
+                //设置查询参数
+                var queryPara = $('#ProjID').combogrid("grid").datagrid('options').queryParams;
+                queryPara.Words = Words;
+                $('#ProjID').combogrid("grid").datagrid('options').queryParams = queryPara;
+                //重新加载
+                var pager = $('#ProjID').combogrid('grid').datagrid('getPager');
+                pager.pagination('refresh');
+                pager.pagination('select', 1);
+                $('#ProjID').combogrid("grid").datagrid("reload");
+                $('#ProjID').combogrid("setValue", Words);                    //将查询条件存入隐藏域
+                $('#Words').val(Words);
+            }
+        },
+        onSelect: function (val, row) {
+            $("#ProjNumber").text(row.ProjNumber);
+            //$("#PhaseID").text(row.PhaseName);
+            //$("#ProjEmpId").text(row.ProjEmpName);
+        },
+        onLoadSuccess: function () {
+            $("#ProjNumber").text('@ViewBag.ProjNumber');
+        }
+
+    });
+</script>
+
+@using (Html.BeginForm("save", "IsoFormProjDelegateChange", FormMethod.Post, new { @area = "Iso", @id = "IsoFormProjDelegateChangeForm" }))
+{
+    @Html.HiddenFor(m => m.FormID)
+    <table class="table table-bordered">
+        <tr style="border:none;">
+            <td colspan="4" style="border:none;text-align:center;">
+                <span style="font-weight:bold;font-size:large;">工代变更申请</span>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                项目名称
+            </th>
+            <td width="40%">
+                <select id="ProjID" name="ProjID" class="easyui-combogrid" data-options="required:true" style="width:98%;"></select>
+                <input type="hidden" id="Words" name="Words" />
+            </td>
+            <th width="10%">
+                项目编号
+            </th>
+            <td width="40%">
+                <label id="ProjNumber"></label>
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">
+                单项工程
+            </th>
+            <td width="40%">
+                <input name="ColAttVal1" style="width:98%;" class="easyui-textbox" validtype="length[0,500]" value="@Model.ColAttVal1" />
+            </td>
+            <th width="10%">
+                建设单位
+            </th>
+            <td width="40%">
+                <input name="ColAttVal2" style="width:98%;" class="easyui-textbox" validtype="length[0,500]" value="@Model.ColAttVal2" />
+            </td>
+        </tr><tr>
+    <th width="10%">
+        单位工程
+    </th>
+    <td width="40%">
+        <input name="ColAttVal3" style="width:98%;" class="easyui-textbox" validtype="length[0,500]" value="@Model.ColAttVal3" />
+    </td>
+    <th width="10%">
+        提出单位
+    </th>
+    <td width="40%">
+        <input name="ColAttVal4" style="width:98%;" class="easyui-textbox" validtype="length[0,500]" value="@Model.ColAttVal4" />
+    </td>
+</tr>
+
+       <tr>
+            <th width="10%">
+              变更性质
+            </th>
+            <td width="40%" >
+                @*<input name="FormReason" style="width:98%;height:80px" class="easyui-textbox" validtype="length[0,500]" data-options="multiline:true" value="@Model.FormReason" />*@
+            </td>
+
+           <th width="10%">
+               时间
+           </th>
+           <td width="40%">
+           </td>
+        </tr>
+
+ 
+
+
+    @*<tr>
+            <th width="10%">
+                申请原因
+            </th>
+            <td width="40%" colspan="3">
+                <input name="FormReason" style="width:98%;height:80px" class="easyui-textbox" validtype="length[0,500]" data-options="multiline:true" value="@Model.FormReason" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                备注
+            </th>
+            <td colspan="3">
+                <input name="FormNote" style="width:98%;height:80px" class="easyui-textbox" validtype="length[0,500]" data-options="multiline:true" value="@Model.FormNote" />
+            </td>
+        </tr>*@
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @Html.Action("uploadFile", "usercontrol", new
+           {
+               @area = "Core",
+               AttachRefID = Model.FormID,
+               AttachRefTable = "IsoForm"
+           })
+            </td>
+        </tr>
+    </table>
+}
+

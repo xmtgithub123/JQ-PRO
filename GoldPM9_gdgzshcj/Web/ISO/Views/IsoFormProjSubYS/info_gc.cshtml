@@ -1,0 +1,214 @@
+﻿@model DataModel.Models.IsoForm
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'IsoFormProjSubYSForm',//formid提交需要用到
+            docName: 'isoformprojsubys',
+            ExportName: '外委项目验收单',
+            buttonTypes: [ 'exportForm','close'],//默认按钮
+            onBefore: function () {
+                $("#ProjSubTableGrid").datagrid('hideColumn', "ck");
+            } ,
+            onAfter: function () {
+                $("#ProjSubTableGrid").datagrid('showColumn', "ck");
+            },
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            },
+            beforeFormSubmit: function () {
+                var _Id = $("#ProjSubIDs").val();
+                if (_Id == "") {
+                    JQ.dialog.warning("请先选择项目外委信息!");
+                    return false;
+                }
+                $("#strYSQKJL").val(JQ.Flow.htmlEncode($("#YSQKJL").val()));
+                $("#strPJJY").val(JQ.Flow.htmlEncode($("#PJJY").val()));
+                $("#strCJYSBM").val(JQ.Flow.htmlEncode($("#CJYSBM").val()));
+                $("#strCJYSRY").val(JQ.Flow.htmlEncode($("#CJYSRY").val()));
+                $("#strYSRMQZ").val(JQ.Flow.htmlEncode($("#YSRMQZ").val()));
+                $("#strYLDYJ").val(JQ.Flow.htmlEncode($("#YLDYJ").val()));
+                $("#strYSZZ").val(JQ.Flow.htmlEncode($("#YSZZ").val()));
+            },
+            flow: {
+                flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+                flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+                url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+                instance: "_flowInstance",
+                processor: "ISO,ISO.FlowProcessor.IsoFormAccept",
+                onInit: function () {
+                    _flowInstance = this;
+                },
+                refID: "@(Model.FormID)",
+                refTable: "IsoFormAccept_GC",
+                dataCreator:"@(ViewBag.CreatorEmpId )"
+            }
+        });
+        if(@Model.FormID>0)
+        {
+            $("#ProjSubIDs").val(@Model.ProjID);
+        }
+        $('#ProjSubTableGrid').datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'ProjSubTable',//数据表格ID
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            url: '@Url.Action("GetProjSubList", "ProjSub", new { @area = "Project" })?CompanyType=GC',
+            queryParams: { ProjSubIDs: $("#ProjSubIDs").val() },
+            toolbar: '#ProjSubTablePanel',//工具栏的容器ID
+            pagination: false,
+            idField:"Id",
+            columns: [[
+                     { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                     { title: '外委项目编号', field: 'SubNumber', width: "15%", align: 'left', sortable: true },
+                     { title: '外委项目名称', field: 'SubName', width: "15%", align: 'left', sortable: true },
+                     { title: '项目编号', field: 'ProjNumber', width: "15%", align: 'left', sortable: true },
+                     { title: '项目名称', field: 'ProjName', width: "20%", align: 'left', sortable: true },
+                     { title: '外委时间', field: 'ColAttDate1', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                     { title: '登记时间', field: 'CreationTime', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+
+            ]],
+
+        });
+
+        var flag = decodeURIComponent($("#divXml").text().trim());
+        if (flag) {
+            var xml = GoldPM.loadXml(flag);
+            var items = GoldPM.selectNodes(xml, "Root/Item");
+            for (var i = 0; i < items.length; i++) {
+                var name = items[i].getAttribute("name");
+                var text = items[i].text || items[i].innerHTML;
+                $("#" + name).val(text);
+            }
+        }
+    });
+    function SelectProjSub() {
+        JQ.dialog.dialog({
+            title: "选择项目外委",
+            url: '@Url.Action("selectprojsub", "ProjSub", new { @area = "Project" })?CompanyType=GC&typeID=3&FilterConSubID=0',
+            width: '1024',
+            height: '100%',
+            JQID: 'ProjSubTable',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-plus',
+        });
+    }
+    var _ProjCallBackByYS = function (param) {
+        $("#ProjSubIDs").val(param);
+        $("#ProjSubTableGrid").datagrid({
+            url: '@Url.Action("GetProjSubList", "ProjSub", new { @area = "Project" })?CompanyType=GC',
+            queryParams: { ProjSubIDs: $("#ProjSubIDs").val() },
+        });
+    }
+</script>
+@using (Html.BeginForm("save", "IsoFormProjSubYS", FormMethod.Post, new { @area = "Iso", @id = "IsoFormProjSubYSForm" }))
+{
+    @Html.HiddenFor(m => m.FormID)
+    <input type="hidden" id="CompanyType" name="CompanyType" value="GC" />
+    <table class="table table-bordered">
+        <tr>
+            <td colspan="4" style="padding: 15px; font-size: 20px; text-align: center; font-weight: bold; border: none;">
+                项目外委验收
+                <div id="divXml" style="display:none">
+                    @(ViewBag.contentXml)
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                项目外委信息
+                <div id="ProjSubTablePanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+                    <span jqpanel="toolbarPanel">
+                        <a class="easyui-linkbutton" name="SelectProjSub" data-options="plain:true,iconCls:'fa fa-plus'" onclick="SelectProjSub()">选择外委项目</a>
+                    </span>
+                </div>
+            </th>
+            <td colspan="3">
+                <table id="ProjSubTableGrid" bookmark="ProjSubTableGrid"></table>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">验收情况记录</th>
+            <td colspan="3">
+                <textarea name="YSQKJL" id="YSQKJL" class="easyui-textbox" data-options="multiline:true" style="width:99%;height:80px;"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">评价意见</th>
+            <td colspan="3">
+                <textarea name="PJJY" id="PJJY" class="easyui-textbox" data-options="multiline:true" style="width:99%;height:80px;"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">参加验收部门</th>
+            <td colspan="3">
+                <textarea name="CJYSBM" id="CJYSBM" class="easyui-textbox" data-options="multiline:true" style="width:99%;height:80px;"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">参加验收人员</th>
+            <td colspan="3">
+                <textarea name="CJYSRY" id="CJYSRY" class="easyui-textbox" data-options="multiline:true" style="width:99%;height:80px;"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">验收人员签字</th>
+            <td colspan="3">
+                <textarea name="YSRMQZ" id="YSRMQZ" class="easyui-textbox" data-options="multiline:true" style="width:99%;height:80px;"></textarea>
+            </td>
+        </tr>
+        @*<tr>
+                <th width="10%">
+                    分管生产院领导意见
+                </th>
+                <td colspan="3">
+                    <textarea name="YLDYJ" id="YLDYJ" class="easyui-textbox" data-options="multiline:true" style="width:99%;height:80px;"></textarea>
+                </td>
+            </tr>*@
+
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th width="10%">验收组长</th>
+            <td colspan="3">
+                <textarea id="YSZZ" name="YSZZ" class="easyui-textbox" data-options="multiline:true" style="width:99%;height:80px;"></textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">登记时间</th>
+            <td width="40%">
+                <input name="ColAttDate1" class="easyui-datebox" data-options="required:true,validType:['dateISO','length[0,16]']" value="@Model.ColAttDate1" />
+            </td>
+            <th width="10%">验收日期</th>
+            <td width="40%">
+                <input name="ColAttDate2" class="easyui-datebox" data-options="required:true,validType:['dateISO','length[0,16]']" value="@Model.ColAttDate2" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.FormID;
+                    uploader.RefTable = "IsoForm";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <input type="hidden" id="ProjSubIDs" name="ProjSubIDs" />
+
+    <input type="hidden" id="strYSQKJL" name="strYSQKJL" />
+    <input type="hidden" id="strPJJY" name="strPJJY" />
+    <input type="hidden" id="strCJYSBM" name="strCJYSBM" />
+    <input type="hidden" id="strCJYSRY" name="strCJYSRY" />
+    <input type="hidden" id="strYSRMQZ" name="strYSRMQZ" />
+    <input type="hidden" id="strYLDYJ" name="strYLDYJ" />
+    <input type="hidden" id="strYSZZ" name="strYSZZ" />
+
+                    }

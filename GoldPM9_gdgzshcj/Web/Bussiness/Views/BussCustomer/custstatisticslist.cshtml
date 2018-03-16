@@ -1,0 +1,138 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            var startTime = $("#startTime").textbox('getValue');
+            var endTime = $("#endTime").textbox('getValue');
+            var ConStatus = $("#ConStatus").combotree('getValue');
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export', 'moreSearch'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussCustomerStatiGrid',//数据表格ID
+                JQWidth: '900',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: '@Url.Action("StatisticsListjson", "BussCustomer",new { @area="Bussiness"})',//请求的地址
+                checkOnSelect: true,//是否包含check
+                fit: true,
+                JQExcludeCol: [1],//导出execl排除的列
+                toolbar: '#BussCustomerStatiPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                 // { title: '编号', field: 'Id', width: 120, align: 'center', sortable: true },
+
+        { title: '客户名称', field: 'CustName', width: '60%', align: 'center', sortable: true },
+
+                 {
+                     field: 'Num', title: '合同个数', align: 'center', width: '18%',
+                     formatter: function (value, row) {
+                         return '<a class="easyui-linkbutton"  onclick="DialogN(' + row.Id + ')" href="#" style="line-height:22px;">' + row.Num + '</a>';
+                     }
+
+                 },
+                 {
+                     field: 'Fee', title: '合同价格汇总（元）', align: 'center', width: '18%',
+                     formatter: function (value, row) {
+                         return '<a class="easyui-linkbutton" onclick="DialogN(' + row.Id + ')" href="#" style="line-height:22px;">' + row.Fee + '</a>';
+                     }
+                 }
+
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '顾客名称',
+                queryOptions: { Key: 'CustName', Contract: 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BussCustomerStatiGrid',
+                            loadingType: 'datagrid',
+                            queryParams:
+                                {
+                                    startTime: $("#startTime").textbox('getValue'),
+                                    endTime: $("#endTime").textbox('getValue'),
+                                    ConStatus: $("#ConStatus").combotree('getValue')
+                                }
+                        });
+
+                }
+            });
+        });
+
+        function getMathNo() {
+            var d = new Date();
+            var sp = "";
+            var month = d.getMonth() + 1;
+            var strDate = d.getDate();
+            if (month >= 1 && month <= 9) {
+                month = "0" + month;
+            }
+            if (strDate >= 0 && strDate <= 9) {
+                strDate = "0" + strDate;
+            }
+            var math = Math.floor(Math.random() * (1000000 + 1));
+            var cd = d.getHours() + sp + d.getMinutes() + sp + d.getSeconds() + sp + d.getMilliseconds();
+            return math + sp + cd;
+        };
+        function DialogN(id) {
+            @*var divid = getMathNo();
+            if (window.top.$("#" + divid).size() <= 0) {
+                window.top.$("body").append("<div class='rwpdialogdiv' id='" + divid + "'></div>");
+            }
+            var paraJosn = {
+                title: "<b>合同信息</b>",
+                content: '<iframe id="linkMan" frameborder="0" scrolling="no" style="width:100%;height:99%" src="@Url.Action("list", "BussContract")?CustID=' + id + '"></iframe>',
+                width: '1100',
+                height: '100%',
+                resizable: false,
+                maximizable: false,
+                collapsible: false,
+                modal: true,
+                onClose: function () {
+                    $('#BussCustomerStatiGrid').datagrid('reload');
+                    window.top.$("#" + divid).parent().remove();
+                }
+            };
+            var dialog = window.top.$("#" + divid).dialog(paraJosn);*@
+            window.top.addTab('收款合同信息', '@Url.Action("list", "BussContract")?CustID=' + id);
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="BussCustomerStatiGrid"></table>
+    <div id="BussCustomerStatiPanel" JQPanel="searchPanel" style="padding:5px;height:auto;border:none;">
+        <div JQPanel="toolbarPanel">
+            <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'CustName', Contract:'like'}" />
+            <span style="color:red;">开口时：统计用合同金额；闭口时：统计用结算金额</span>
+        </div>
+       
+
+       
+
+
+        @*<div class="moreSearchPanel">*@
+        <div class="moreSearchPanel" style="float:left;  border:none;">
+            合同签订时间：&nbsp;
+            <input id="startTime" type="text" class="easyui-datebox" style="width:150px" data-options="prompt: '合同签订开始时间'" />
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:150px" data-options="prompt: '合同签订结束时间'" />&nbsp;</div>
+        <div class="moreSearchPanel" style="float:left;  border:none;">
+            合同状态：
+            @BaseData.getBases(new Params() { isMult = false, engName = "ConStatus" })</div>
+        <div class="moreSearchPanel" style="float:left;  border:none;">
+            客户类别：
+            @BaseData.getBases(new Params() { isMult = false, engName = "CustType", queryOptions = "{Key:'CustType', Contract:'in',filedType:'Int'}" })
+            </div>
+            @*</div>*@
+
+        </div>
+}
+

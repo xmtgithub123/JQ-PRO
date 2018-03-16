@@ -1,0 +1,586 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<style type="text/css">
+    .keywords_item {
+        font-size: 14px;
+        cursor: default;
+        text-indent: 5px;
+        height: 20px;
+        line-height: 20px;
+    }
+
+    .keywords_item_choosed {
+        background-color: #1371a1;
+        color: #FFFFFF;
+    }
+</style>
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div id="div1" style="display:none;padding:5px;">
+        <div class="yc_headtoolbar2" style="border:1px solid #EFEFEF;float:none">
+            <div style="float:left;width:5px">
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="appendGridData()">
+                <span class="fa fa-plus"></span>
+                <span>添加</span>
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="deleteRow()">
+                <span class="fa fa-minus"></span>
+                <span>删除</span>
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="moveUp()">
+                <span class="fa fa-arrow-up"></span>
+                <span>上移</span>
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="moveDown()">
+                <span class="fa fa-arrow-down"></span>
+                <span>下移</span>
+            </div>
+        </div>
+        <div id="div_columnsgrid" style="margin-top:-1px"></div>
+    </div>
+    <div id="div2" style="display:none;padding:5px;">
+        <div>
+            <input type="checkbox" id="cbShowKeywords" checked="checked" /><label for="cbShowKeywords">显示关键字查询条件</label>
+        </div>
+        <div style="margin-top:2px">
+            提示文本：<input type="text" id="txtKeywordsTip" class="yc_textbox" style="width:260px" />
+        </div>
+        <div>
+            <div style="cursor:default">请选择关键字需要过滤的列</div>
+            <div style="height:265px;background-color:#EFEFEF;margin-top:5px">
+                <div id="div_keywords_left" style="height:245px;background-color:#FFFFFF;width:235px;float:left;margin:10px 0px 0px 10px;overflow-y:auto;overflow-x:hidden"></div>
+                <div style="height:100px;width:90px;float:left;margin:80px 0px 0px 10px">
+                    <div id="btnToRight" class="headtoolbarbtn" style="height:28px;line-height:26px;">
+                        <span class="fa fa-arrow-right"></span>
+                        <span>添加</span>
+                    </div>
+                    <div id="btnToLeft" class="headtoolbarbtn" style="height:28px;line-height:26px;">
+                        <span class="fa fa-arrow-left"></span>
+                        <span>移除</span>
+                    </div>
+                </div>
+                <div id="div_keywords_right" style="height:245px;background-color:#FFFFFF;width:235px;float:left;margin:10px 0px 0px 0px;overflow-y:auto;overflow-x:hidden"></div>
+            </div>
+        </div>
+    </div>
+    <div id="div3" style="display:none;padding:5px;">
+        <div class="yc_headtoolbar2" style="border:1px solid #EFEFEF">
+            <div style="float:left;width:5px">
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="appendGridData2()">
+                <span class="fa fa-plus"></span>
+                <span>添加</span>
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="deleteRow2()">
+                <span class="fa fa-minus"></span>
+                <span>删除</span>
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="moveUp2()">
+                <span class="fa fa-arrow-up"></span>
+                <span>上移</span>
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="moveDown2()">
+                <span class="fa fa-arrow-down"></span>
+                <span>下移</span>
+            </div>
+        </div>
+        <div id="div_conditionsgrid" style="margin-top:-1px"></div>
+    </div>
+    <div id="_divXml" style="display:none;padding:5px;">@(ViewBag.Xml)</div>
+</div>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.grid.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<script type="text/javascript">
+    var yTab = new YChart.Tab({
+        container: "divcontent",
+        offsetHeight: 0,
+        tabs: [
+            {
+                name: "columns",
+                title: "列",
+                element: "div1",
+                closable: false
+            },
+            {
+                name: "keywords",
+                title: "关键字",
+                element: "div2",
+                closable: false
+            },
+            {
+                name: "querycondition",
+                title: "查询条件",
+                element: "div3",
+                closable: false
+            }
+        ]
+    });
+
+    var dataFields = frameElement.api.getColumns();
+    var isIn1 = false, isIn2 = false;
+    for (var i = 0; i < dataFields.length; i++) {
+        if (dataFields[i].value == "CreatorName") {
+            isIn1 = true;
+        }
+        else if (dataFields[i].value == "CreateTime") {
+            isIn2 = true;
+        }
+        if (isIn1 && isIn2) {
+            break;
+        }
+    }
+    if (!isIn1) {
+        dataFields.push({ value: "CreatorName", name: "创建人", type: "nvarchar" });
+    }
+    if (!isIn2) {
+        dataFields.push({ value: "CreateTime", name: "创建时间", type: "datetime" });
+    }
+    var temp = 0, temp2 = 0;
+    var yGrid = new YChart.Grid({
+        height: 300,
+        container: document.getElementById("div_columnsgrid"),
+        idField: "id",
+        checkbox: true,
+        columns: [
+            {
+                title: "列名", width: 100, field: "name", align: "center", formatter: function (cell, rowData) {
+                    cell.appendChild(YChart.createElement("input", { id: "txtColumnName" + rowData.id, type: "text", className: "yc_textbox", value: rowData.name }, { width: "80px" }));
+                }
+            }, {
+                title: "字段", width: 120, field: "dataField", align: "center", formatter: function (cell, rowData) {
+                    var select = YChart.createElement("select", { id: "listDataField" + rowData.id, className: "yc_select" }, { width: "100px" });
+                    for (var i = 0; i < dataFields.length; i++) {
+                        var option = YChart.createElement("option", { value: dataFields[i].value }, null, dataFields[i].name);
+                        if (dataFields[i].value == rowData.dataField) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    }
+                    cell.appendChild(select);
+                }
+            }, {
+                title: "宽度", width: 70, field: "width", align: "center", formatter: function (cell, rowData) {
+                    var txt = YChart.createElement("input", { id: "txtColumnWidth" + rowData.id, type: "text", className: "yc_textbox", value: rowData.width }, { width: "50px" });
+                    cell.appendChild(txt);
+                    YChart.registerNumberBox({
+                        element: txt,
+                        min: 0
+                    });
+                }
+            }, {
+                title: "对齐方式", width: 100, field: "textAlign", align: "center", formatter: function (cell, rowData) {
+                    var select = YChart.createElement("select", { id: "listAlign" + rowData.id, className: "yc_select" }, { width: "80px" });
+                    cell.appendChild(select);
+                    var option = document.createElement("option");
+                    option.setAttribute("value", "left");
+                    option.appendChild(document.createTextNode("靠左"));
+                    select.appendChild(option);
+                    if (rowData.textAlign == "left") {
+                        option.selected = true;
+                    }
+                    option = document.createElement("option");
+                    option.setAttribute("value", "center");
+                    option.appendChild(document.createTextNode("居中"));
+                    select.appendChild(option);
+                    if (rowData.textAlign == "center") {
+                        option.selected = true;
+                    }
+                    option = document.createElement("option");
+                    option.setAttribute("value", "right");
+                    option.appendChild(document.createTextNode("靠右"));
+                    select.appendChild(option);
+                    if (rowData.textAlign == "right") {
+                        option.selected = true;
+                    }
+                }
+            }, {
+                title: "格式化", width: 140, field: "formatter", align: "center", formatter: function (cell, rowData) {
+                    var txt = YChart.createElement("input", { id: "txtFormatter" + rowData.id, type: "text", className: "yc_textbox", value: (rowData.formatter || "") }, { width: "120px" });
+                    cell.appendChild(txt);
+                }
+            }]
+    });
+
+    var yGrid2 = new YChart.Grid({
+        height: 300,
+        container: document.getElementById("div_conditionsgrid"),
+        idField: "id",
+        checkbox: true,
+        columns: [
+            {
+                title: "名称", width: 100, field: "name", align: "center", formatter: function (cell, rowData) {
+                    cell.appendChild(YChart.createElement("input", { id: "txtConditionName" + rowData.id, type: "text", className: "yc_textbox", value: rowData.name }, { width: "80px" }));
+                }
+            },
+            {
+                title: "字段", width: 120, field: "dataField", align: "center", formatter: function (cell, rowData) {
+                    var select = YChart.createElement("select", { id: "list2DataField" + rowData.id, className: "yc_select" }, { width: "100px" });
+                    for (var i = 0; i < dataFields.length; i++) {
+                        var option = YChart.createElement("option", { value: dataFields[i].value }, null, dataFields[i].name);
+                        if (dataFields[i].value == rowData.dataField) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    }
+                    cell.appendChild(select);
+                }
+            },
+            {
+                title: "高级", width: 60, field: "isShowInSenior", align: "center", formatter: function (cell, rowData) {
+                    var checkbox = YChart.createElement("input", { id: "cbShowInSenior" + rowData.id, type: "checkbox" });
+                    cell.appendChild(checkbox);
+                    if (rowData.isShowInSenior == "1") {
+                        checkbox.checked = true;
+                    }
+                }
+            }
+        ],
+    });
+
+    function loadData() {
+        var xml = YChart.loadXml(document.getElementById("_divXml").textContent);
+        YChart.remove(document.getElementById("_divXml"));
+        var xColumns = YChart.selectNodes(xml, "Root/Columns/Column");
+        if (xColumns.length > 0) {
+            var datas = [];
+            for (var i = 0; i < xColumns.length; i++) {
+                datas.push({
+                    id: parseInt(xColumns[i].getAttribute("id")),
+                    name: xColumns[i].getAttribute("name"),
+                    dataField: xColumns[i].getAttribute("dataField"),
+                    width: xColumns[i].getAttribute("width"),
+                    textAlign: xColumns[i].getAttribute("textAlign"),
+                    formatter: xColumns[i].getAttribute("formatter")
+                });
+            }
+            yGrid.setDatas(datas);
+            for (var i = 0; i < datas.length; i++) {
+                if (datas[i].id > temp) {
+                    temp = datas[i].id;
+                }
+            }
+        }
+        var xConditions = YChart.selectNodes(xml, "Root/Conditions/Condition");
+        if (xConditions.length > 0) {
+            var datas = [];
+            for (var i = 0; i < xConditions.length; i++) {
+                datas.push({
+                    id: parseInt(xConditions[i].getAttribute("id")),
+                    name: xConditions[i].getAttribute("name"),
+                    dataField: xConditions[i].getAttribute("dataField"),
+                    isShowInSenior: xConditions[i].getAttribute("isShowInSenior")
+                });
+            }
+            yGrid2.setDatas(datas);
+            for (var i = 0; i < datas.length; i++) {
+                if (datas[i].id > temp2) {
+                    temp2 = datas[i].id;
+                }
+            }
+        }
+        var _left = document.getElementById("div_keywords_left");
+        var _lastLeftItem = null;
+        for (var i = 0; i < dataFields.length; i++) {
+            var item = YChart.createElement("div", { className: "keywords_item", order: i.toString(), value: dataFields[i].value }, null, dataFields[i].name);
+            _left.appendChild(item);
+            item.onclick = function () {
+                if (_lastLeftItem) {
+                    YChart.removeClass(_lastLeftItem, "keywords_item_choosed");
+                }
+                YChart.addClass(this, "keywords_item_choosed");
+                _lastLeftItem = this;
+            }
+        }
+        var _right = document.getElementById("div_keywords_right");
+        var _lastRightItem = null;
+        document.getElementById("btnToRight").onclick = function () {
+            if (!_lastLeftItem) {
+                return;
+            }
+            YChart.removeClass(_lastLeftItem, "keywords_item_choosed");
+            var _newItem = _lastLeftItem.cloneNode(true);
+            _lastLeftItem.style.display = "none";
+            _right.appendChild(_newItem);
+            var temp = _lastLeftItem.nextSibling;
+            while (temp && temp.style.display == "none") {
+                temp = temp.nextSibling;
+            }
+            if (!temp) {
+                temp = _lastLeftItem.previousSibling;
+                while (temp && temp.style.display == "none") {
+                    temp = temp.previousSibling;
+                }
+            }
+            if (temp) {
+                YChart.fireEvent(temp, "click");
+            }
+            else {
+                _lastLeftItem = null;
+            }
+            _newItem.onclick = function () {
+                if (_lastRightItem) {
+                    YChart.removeClass(_lastRightItem, "keywords_item_choosed");
+                }
+                YChart.addClass(this, "keywords_item_choosed");
+                _lastRightItem = this;
+            }
+            YChart.fireEvent(_newItem, "click");
+        }
+        document.getElementById("btnToLeft").onclick = function () {
+            if (!_lastRightItem) {
+                return;
+            }
+            for (var i = 0; i < _left.childNodes.length; i++) {
+                if (_left.childNodes[i].textContent == _lastRightItem.textContent) {
+                    _left.childNodes[i].style.display = "";
+                    YChart.fireEvent(_left.childNodes[i], "click");
+                    break;
+                }
+            }
+            var temp = _lastRightItem.nextSibling;
+            if (!temp) {
+                temp = _lastRightItem.previousSibling;
+            }
+            YChart.remove(_lastRightItem);
+            if (temp) {
+                YChart.fireEvent(temp, "click");
+            }
+            else {
+                _lastRightItem = null;
+            }
+        }
+        var xKeywords = YChart.selectSingleNode(xml, "Root/Keywords");
+        if (xKeywords != null) {
+            if (xKeywords.getAttribute("isShow") == "0") {
+                document.getElementById("cbShowKeywords").checked = false;
+            }
+            document.getElementById("txtKeywordsTip").value = xKeywords.getAttribute("placeHolder");
+            xColumns = YChart.selectNodes(xKeywords, "Column");
+            for (var i = 0; i < _left.childNodes.length; i++) {
+                for (var j = 0; j < xColumns.length; j++) {
+                    if (_left.childNodes[i].getAttribute("value") == xColumns[j].textContent) {
+                        var _new = _left.childNodes[i].cloneNode(true);
+                        _left.childNodes[i].style.display = "none";
+                        _right.appendChild(_new);
+                        _new.onclick = function () {
+                            if (_lastRightItem) {
+                                YChart.removeClass(_lastRightItem, "keywords_item_choosed");
+                            }
+                            YChart.addClass(this, "keywords_item_choosed");
+                            _lastRightItem = this;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    loadData();
+
+    function sure() {
+        var xmlDocument = YChart.loadXml("<Root></Root>");
+        var xColumns = xmlDocument.createElement("Columns");
+        xmlDocument.documentElement.appendChild(xColumns);
+        for (var i = 0; i < yGrid.datas.length; i++) {
+            var columnName = YChart.trim(document.getElementById("txtColumnName" + yGrid.datas[i].id).value);
+            if (columnName == "") {
+                continue;
+            }
+            var xColumn = xmlDocument.createElement("Column");
+            xColumns.appendChild(xColumn);
+            xColumn.setAttribute("id", yGrid.datas[i].id);
+            xColumn.setAttribute("name", columnName);
+            xColumn.setAttribute("dataField", YChart.getSelectedValue(document.getElementById("listDataField" + yGrid.datas[i].id)));
+            xColumn.setAttribute("width", document.getElementById("txtColumnWidth" + yGrid.datas[i].id).value);
+            xColumn.setAttribute("textAlign", YChart.getSelectedValue(document.getElementById("listAlign" + yGrid.datas[i].id)));
+            xColumn.setAttribute("formatter", document.getElementById("txtFormatter" + yGrid.datas[i].id).value);
+        }
+        var xKeywords = xmlDocument.createElement("Keywords");
+        xmlDocument.documentElement.appendChild(xKeywords);
+        if (document.getElementById("cbShowKeywords").checked) {
+            xKeywords.setAttribute("isShow", "1");
+        }
+        else {
+            xKeywords.setAttribute("isShow", "0");
+        }
+        //获取出设置信息
+        xKeywords.setAttribute("placeHolder", document.getElementById("txtKeywordsTip").value);
+        var xConditions = xmlDocument.createElement("Conditions");
+        xmlDocument.documentElement.appendChild(xConditions);
+        for (var i = 0; i < yGrid2.datas.length; i++) {
+            var xCondtion = xmlDocument.createElement("Condition");
+            xConditions.appendChild(xCondtion);
+            xCondtion.setAttribute("id", yGrid2.datas[i].id);
+            xCondtion.setAttribute("name", document.getElementById("txtConditionName" + yGrid2.datas[i].id).value);
+            xCondtion.setAttribute("dataField", YChart.getSelectedValue(document.getElementById("list2DataField" + yGrid2.datas[i].id)));
+            xCondtion.setAttribute("isShowInSenior", (document.getElementById("cbShowInSenior" + yGrid2.datas[i].id).checked ? "1" : "0"));
+        }
+        var _right = document.getElementById("div_keywords_right");
+        for (var i = 0; i < _right.childNodes.length; i++) {
+            var xColumn = xmlDocument.createElement("Column");
+            xKeywords.appendChild(xColumn);
+            xColumn.textContent = _right.childNodes[i].getAttribute("value");
+        }
+        YChart.ajax({
+            url: "@(Url.Action("SaveGridSetting","Widget",new { @area= "Form" }))?formTemplateID=@(Request.QueryString["formTemplateID"])",
+            type: "POST",
+            data: { data: xmlDocument.documentElement.outerHTML },
+            success: function (result) {
+                if (result.Result == false) {
+                    alert(result.Message);
+                }
+                else {
+                    frameElement.closeDialog();
+                }
+            }
+        });
+    }
+
+    function appendGridData() {
+        var data = {
+            id: ++temp,
+            name: "",
+            dataField: "",
+            width: "60",
+            textAlign: "left",
+            formatter: ""
+        };
+        yGrid.appendData(data);
+    }
+
+    function appendGridData2() {
+        var data = {
+            id: ++temp2,
+            name: "",
+            dataField: "",
+            isShowInSenior: "1"
+        };
+        yGrid2.appendData(data);
+    }
+
+    function deleteRow() {
+        if (yGrid.choosed.length == 0) {
+            return;
+        }
+        YChart.Dialog.confirm("提示", "确定要删除吗？", function (flag) {
+            if (!flag) {
+                return;
+            }
+            for (var i = 0; i < yGrid.choosed.length; i++) {
+                yGrid.removeRow(yGrid.getRowID(yGrid.choosed[i]));
+                i--;
+            }
+        });
+    }
+
+    function deleteRow2() {
+        if (yGrid2.choosed.length == 0) {
+            return;
+        }
+        YChart.Dialog.confirm("提示", "确定要删除吗？", function (flag) {
+            if (!flag) {
+                return;
+            }
+            for (var i = 0; i < yGrid2.choosed.length; i++) {
+                yGrid2.removeRow(yGrid2.getRowID(yGrid2.choosed[i]));
+                i--;
+            }
+        });
+    }
+
+    function moveUp() {
+        if (yGrid.choosed.length == 0 || !yGrid.choosed[0]) {
+            return;
+        }
+        var _row = yGrid.choosed[0];
+        if (_row.rowIndex == 0) {
+            return;
+        }
+        var data = { id: parseInt(yGrid.getRowID(_row)) };
+        data.name = document.getElementById("txtColumnName" + data.id).value;
+        data.dataField = YChart.getSelectedValue(document.getElementById("listDataField" + data.id));
+        data.width = document.getElementById("txtColumnWidth" + data.id).value;
+        data.textAlign = YChart.getSelectedValue(document.getElementById("listAlign" + data.id));
+        data.formatter = document.getElementById("txtFormatter" + data.id).value;
+        var rowIndex = _row.rowIndex;
+        yGrid.removeRow(data.id);
+        _row = yGrid.insertData(data, rowIndex - 1);
+        _row.cells[0].childNodes[0].checked = true;
+        YChart.fireEvent(_row.cells[0].childNodes[0], "change");
+    }
+
+    function moveUp2() {
+        if (yGrid2.choosed.length == 0 || !yGrid2.choosed[0]) {
+            return;
+        }
+        var _row = yGrid2.choosed[0];
+        if (_row.rowIndex == 0) {
+            return;
+        }
+        var data = { id: parseInt(yGrid2.getRowID(_row)) };
+        data.name = document.getElementById("txtConditionName" + data.id).value;
+        data.dataField = YChart.getSelectedValue(document.getElementById("list2DataField" + data.id));
+        data.isShowInSenior = document.getElementById("cbShowInSenior" + data.id).checked ? "1" : "0";
+        var rowIndex = _row.rowIndex;
+        yGrid2.removeRow(data.id);
+        _row = yGrid2.insertData(data, rowIndex - 1);
+        _row.cells[0].childNodes[0].checked = true;
+        YChart.fireEvent(_row.cells[0].childNodes[0], "change");
+    }
+
+    function moveDown() {
+        if (yGrid.choosed.length == 0 || !yGrid.choosed[0]) {
+            return;
+        }
+        var _row = yGrid.choosed[0];
+        if (_row.rowIndex == yGrid.body.rows.length - 1) {
+            return;
+        }
+        var data = { id: parseInt(yGrid.getRowID(_row)) };
+        data.name = document.getElementById("txtColumnName" + data.id).value;
+        data.dataField = YChart.getSelectedValue(document.getElementById("listDataField" + data.id));
+        data.width = document.getElementById("txtColumnWidth" + data.id).value;
+        data.textAlign = YChart.getSelectedValue(document.getElementById("listAlign" + data.id));
+        data.formatter = document.getElementById("txtFormatter" + data.id).value;
+        var rowIndex = _row.rowIndex;
+        yGrid.removeRow(data.id);
+        _row = yGrid.insertData(data, rowIndex + 1);
+        _row.cells[0].childNodes[0].checked = true;
+        YChart.fireEvent(_row.cells[0].childNodes[0], "change");
+    }
+
+    function moveDown2() {
+        if (yGrid2.choosed.length == 0 || !yGrid2.choosed[0]) {
+            return;
+        }
+        var _row = yGrid2.choosed[0];
+        if (_row.rowIndex == yGrid2.body.rows.length - 1) {
+            return;
+        }
+        var data = { id: parseInt(yGrid2.getRowID(_row)) };
+        data.name = document.getElementById("txtConditionName" + data.id).value;
+        data.dataField = YChart.getSelectedValue(document.getElementById("list2DataField" + data.id));
+        data.isShowInSenior = document.getElementById("cbShowInSenior" + data.id).checked ? "1" : "0";
+        var rowIndex = _row.rowIndex;
+        yGrid2.removeRow(data.id);
+        _row = yGrid2.insertData(data, rowIndex + 1);
+        _row.cells[0].childNodes[0].checked = true;
+        YChart.fireEvent(_row.cells[0].childNodes[0], "change");
+    }
+</script>

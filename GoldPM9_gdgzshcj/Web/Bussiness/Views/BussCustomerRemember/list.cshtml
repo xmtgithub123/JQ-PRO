@@ -1,0 +1,92 @@
+﻿@using JQ.Web;
+<script type="text/javascript">
+    JQ.datagrid.datagrid({
+        JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+        JQAddUrl: '@Url.Action("add")',//添加的路径
+        JQEditUrl: '@Url.Action("edit")',//编辑的路径
+        JQDelUrl: '@Url.Action("del")',//删除的路径
+        JQPrimaryID: 'Id',//主键的字段
+        JQID: 'BussCustomerRememberGrid',//数据表格ID
+        JQDialogTitle: '信息',//弹出窗体标题
+        JQWidth: '850',//弹出窗体宽
+        JQHeight: '100%',//弹出窗体高
+        JQExcludeCol: [1, 11],//导出execl排除的列
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+        url: '@Url.Action("json","BussCustomerRemember",new { @area="Bussiness"})?CustID=@Request.QueryString["CustID"]',//请求的地址
+        checkOnSelect: true,//是否包含check
+        toolbar: '#BussCustomerRememberPanel',//工具栏的容器ID
+        columns: [[
+          { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+{ title: '顾客名称', field: 'CustName', width: '10%', align: 'center', sortable: true },
+@if (ViewBag.State == 1)//外委信息
+{
+         <text>
+          { title: '顾客类别', field: 'SubTypeName', width: '10%', align: 'center', sortable: true },
+        </text>
+}
+else
+{
+         <text>
+          { title: '顾客类别', field: 'CustTypeName', width: '10%', align: 'center', sortable: true },
+        </text>
+
+}
+{ title: '记事时间', field: 'RememberTime', width: '10%', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+{ title: '记事类别', field: 'RecordType', width: '10%', align: 'center', sortable: true },
+{ title: '记事人员', field: 'RecordName', width: '10%', align: 'center', sortable: true },
+{ title: '记事部门', field: 'RecordDeptName', width: '10%', align: 'center', sortable: true },
+@if(ViewBag.State==1)//外委信息
+{
+    <text>
+    { title: '外委编号', field: 'SubNumber', width: '8%', align: 'center', sortable: true },
+    { title: '外委名称', field: 'SubName', width: '10%', align: 'center', sortable: true },
+    </text>
+
+}
+else
+{
+    <text>
+    { title: '项目编号', field: 'ProjNumber', width: '8%', align: 'center', sortable: true },
+    { title: '项目名称', field: 'ProjName', width: '10%', align: 'center', sortable: true },
+    </text>
+
+}
+{ title: '记事内容', field: 'RememberNote', width: '10%', align: 'center', sortable: true },
+                {
+                    field: 'JQFiles', title: '附件', align: 'center', width: "8%", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'BussCustRemember',
+                    formatter: function (value, row) {
+                        return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                    }
+                },
+        ]]
+    });
+    $("#JQSearch").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '记事内容',
+        queryOptions: { Key: 'RememberNote', Contract: 'like' },
+        onClickButton: function () {
+            JQ.datagrid.searchGrid(
+                {
+                    dgID: 'BussCustomerRememberGrid',
+                    loadingType: 'datagrid',
+                    queryParams: null
+                });
+        }
+    });
+</script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+
+<table id="BussCustomerRememberGrid"></table>
+<div id="BussCustomerRememberPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+
+    </span>
+
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'RememberNote', 'Contract': 'like' }" />
+
+</div>
+
+

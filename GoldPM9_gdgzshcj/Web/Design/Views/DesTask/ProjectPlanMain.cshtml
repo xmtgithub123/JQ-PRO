@@ -1,0 +1,70 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+
+@section head {
+    @*左侧*@
+    <script type="text/javascript">
+
+        var tabId = @ViewBag.tabId;
+        var tabs = [
+            '@Url.Action("PlanTableInfo")',
+            '@Url.Action("ProjectPlanInfo")',
+            '@Url.Action("SpecPlanInfo")',
+            '@Url.Action("ExchPlanInfo", "DesExch", new { @area = "Design" })',
+            '@Url.Action("ProjectGantt")'
+        ];
+
+        $(function () {
+
+            //    // 默认选中 类型为：阶段 状态为：轮到 或 进行 的项
+            //    var selx = Enumerable.From(data.rows).OrderBy("x=>x.TaskGroupPath").Where("x => x.TaskGroupType == 1 && [1,2].indexOf(x.TaskGroupStatus) > -1").FirstOrDefault();
+            var toSelect;
+            $("#lefttree").tree({
+                url: '@(Url.Action("GetProjectTree","Project",new { @area="Project" }))',
+                method: "POST",
+                queryParams: { projectID: "@ViewBag.projID" },
+                lines: true,
+                formatter: function (node) {
+                    if(node.projectid==@ViewBag.projID&&(node.taskgroupid==@ViewBag.taskGroupId)){
+                        toSelect=node.id;
+                    }
+                    return decodeURIComponent(node.text.replace(/\+/g, " "));
+                },
+                onBeforeSelect: function(node) {
+                    if (node.type == 0) return false;
+                },
+                onSelect: function (node) {
+                    $("#rightframe").attr("src", tabs[tabId] + '?projID=' + node.projectid + '&taskGroupId=' + node.taskgroupid + '&taskSpecId=@(ViewBag.taskSpecId)'+ '&from=@(ViewBag.from)');
+                },
+                onLoadSuccess : function(node, data) {
+                    // 默认选择
+                    var selnode = $('#lefttree').tree('find', toSelect);
+                    $('#lefttree').tree('select', selnode.target);
+                }
+            });
+
+            // 首次载入
+            //$("#rightframe").attr("src", tabs[@ViewBag.tabId] + '?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId');
+
+        });
+
+        // 供子页面调用，子页面变换后，在这里标记一下，这样点击tree节点时页面保持不变。
+        window.changeTabId = function(id) {
+            tabId = id;
+        }
+
+    </script>
+}
+
+@section Body_Content{
+    <div data-options="region:'west',title:'项目树',collapsible:true,split:true" style="width:205px">
+        <table id="lefttree"></table>
+    </div>
+    <div id="ProjMainTab" data-options="region:'center',border:false">
+        <div style="width:100%; height:100%; overflow:hidden">
+            <iframe id="rightframe" src="about:blank;" style="width:100%;height:100%" frameborder="0"></iframe>
+        </div>
+    </div>
+
+}

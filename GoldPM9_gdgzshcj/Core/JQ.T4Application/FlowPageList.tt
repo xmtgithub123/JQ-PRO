@@ -1,0 +1,117 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="manager.ttinclude"#>
+<# var manager = Manager.Create(Host, GenerationEnvironment); #>
+<#
+	var arr = DbHelper.GetV_SystemTableStructure(config.ConnectionString);
+	var FKey = DbHelper.GetV_SystemTableFKey(config.ConnectionString);
+	foreach(BaseNameSpace item in DbHelper.GetBaseNameSpaceTables(config.ConnectionString, config.TableNames))
+	{
+		string ClassName = "Flow" + item.TableNames + "List";
+		string WebNameSpace =  "PMWeb." + item.WebNameSpace.Replace("/",".").Trim(','); 
+		string DirPath = "tt/Web/" + item.DBSqlNameSpace +  "/View/Flow"+ item.TableNames ;
+
+		string First = DbHelper.GetFirstString(arr,item.TableNames);
+		string PKCol = DbHelper.GetPKColumn(arr,item.TableNames);
+		string FirstDate = DbHelper.GetFirstDateColNote(arr,item.TableNames);
+		List<V_SystemTableFKey> RefFkey = DbHelper.GetFKeyColumn(FKey,item.TableNames);
+
+		List<V_SystemTableStructure> TableStructure = arr.Where(p => p.TableName == item.TableNames).ToList();
+#>
+<# manager.StartNewFile(ClassName+".aspx",DirPath); #>
+<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="<#=ClassName#>.aspx.cs" Inherits="<#=WebNameSpace#><#=ClassName#>" %>
+<%@ Register Src="~/UserControl/PropertyListCollection.ascx" TagPrefix="uc1" TagName="PropertyListCollection" %>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server"> 
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+        <f:PageManager ID="XManager" AutoSizePanelID="PanelMain" runat="server" />
+        <f:Panel ID="PanelMain" runat="server" BodyPadding="1px" ShowBorder="false" ShowHeader="false" Layout="Fit">
+			<Toolbars>
+				<f:Toolbar ID="ToolbarTop" runat="server">
+					<Items>
+						<f:Button ID="btnAdd" Icon="ApplicationFormAdd" runat="server" Text="添加" OnClick="Arg_Click"></f:Button>
+						<f:ToolbarSeparator ID="Toolbar1" runat="server" />
+						<f:Button ID="btnEdit" Icon="ApplicationFormEdit" runat="server" Text="修改" OnClick="Arg_Click"></f:Button>
+						<f:ToolbarSeparator ID="Toolbar2" runat="server" />
+						<f:Button ID="btnDele" Icon="ApplicationFormDelete" runat="server" Text="删除" OnClick="Arg_Click"></f:Button>
+						<f:ToolbarSeparator ID="Toolbar3" runat="server" />
+						<f:Button ID="btnExcel" Icon="PageExcel" EnableAjax="false" DisableControlBeforePostBack="false" runat="server" Text="导出" OnClick="Arg_Click"></f:Button>
+						<f:Label ID="DateTitle" Text="<#=FirstDate#>" runat="server"></f:Label>
+						<f:ToolbarSeparator ID="Toolbar5" runat="server" />
+						<f:DatePicker ID="DateLower" runat="server"></f:DatePicker>
+						<f:ToolbarSeparator ID="Toolbar6" runat="server" />
+						<f:DatePicker ID="DateUpper" runat="server"></f:DatePicker>
+						<f:ToolbarSeparator ID="Toolbar7" runat="server" />
+						<f:TwinTriggerBox ID="txtCondtion" runat="server" EmptyText="搜索" Trigger1Icon="Clear" Trigger2Icon="Search" ShowTrigger1="false" OnTrigger2Click="txtCondtion_Click">
+						</f:TwinTriggerBox>
+						<f:ToolbarSeparator ID="ToolbarSeparator3" runat="server" />
+						<f:ToolbarFill ID="ToolFill1" runat="server" />
+						<f:Button ID="btnZoom" Icon="Zoom" Text="高级筛选" runat="server" OnClick="btnZoom_Click" >
+						</f:Button>
+					</Items>
+				</f:Toolbar>
+			</Toolbars>
+            <Items>
+                <f:Grid ID="GridList" runat="server" ShowBorder="true" ShowHeader="false"  EnableCheckBoxSelect="true" EnableTextSelection="true"
+                    DataKeyNames="<#=PKCol#>" IsDatabasePaging="true"
+                    AllowPaging="true" OnPageIndexChange="GridList_PageIndexChange" AllowSorting="true" OnSort="GridList_Sort" OnRowDataBound="GridList_RowDataBound">
+                    <Columns>
+						<f:RowNumberField EnablePagingNumber="true" HeaderText="序号"  MinWidth="30px" />
+<#
+foreach (var childCol in  TableStructure)
+{
+	string FK = DbHelper.GetSortField(arr,FKey,item.TableNames,childCol.ColName);
+	//判断时间类型 yyyy-MM-dd
+	string DataFormatString = "" ;
+	if(childCol.ColType == "datetime" || childCol.ColType == "smalldatetime") DataFormatString = "DataFormatString=\"{0:yyyy-MM-dd}\"";
+	if(FK == "")
+    {
+#>
+                        <f:BoundField SortField="<#=childCol.ColName#>" DataField="<#=childCol.ColName#>" <#=DataFormatString#> HeaderText="<#=childCol.ColNote#>" />
+<#
+    }
+	else
+    {
+#>
+                        <f:BoundField SortField="<#=FK#>" DataField="<#=childCol.ColName#>_Name" <#=DataFormatString#> HeaderText="<#=childCol.ColNote#>" Width="80px"/>
+<#
+    }
+}
+#>
+                        <x:TemplateField HeaderText="批准时间" Width="100px">
+                            <ItemTemplate>
+                                <asp:LinkButton ID="ActionDate"  Text =""   runat="server"></asp:LinkButton>
+                            </ItemTemplate>
+                        </x:TemplateField>
+						<x:TemplateField HeaderText="查看" Width="40px">
+                            <ItemTemplate>
+                                <asp:LinkButton ID="WinShow" Text ="查看"   runat="server"></asp:LinkButton>
+                            </ItemTemplate>
+                        </x:TemplateField>
+                    </Columns>
+                </f:Grid>
+            </Items>
+        </f:Panel>
+        <uc1:PropertyListCollection ID="PropertyListCollection" runat="server" />
+		<f:Window ID="Win" Icon="ApplicationViewIcons" runat="server" Hidden="true"
+            IsModal="true" Target="Parent" EnableResize="true"
+            Title="编辑信息" OnClose="Win_Close"
+            EnableIFrame="true" IFrameUrl="about:blank" Height="600px" Width="800px">
+        </f:Window>
+    </form>
+</body>
+</html>
+<# manager.EndBlock(); #>
+<#}#>
+<# manager.Process(true); #>
+<#+
+	public class config
+	{ 
+		public static readonly string ConnectionString="Data Source=192.168.0.8\\j9SQL2008R2;Initial Catalog=JQPM9_gdgzshcj;User ID=sa;Password=j9;";
+		public static readonly string TableNames="";
+	}
+#>

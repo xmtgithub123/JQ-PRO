@@ -1,0 +1,130 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+
+        var requestUrl = '@Url.Action("json", "IsoRWPSTZD", new { @area= "Iso" })',
+           addUrl = '@Url.Action("add", "IsoRWPSTZD", new {@area= "Iso" })',
+           editUrl = '@Url.Action("edit", "IsoRWPSTZD", new {@area= "Iso" })',
+           delUrl = '@Url.Action("del", "IsoRWPSTZD", new { @area = "Iso" })';
+
+        $(function () {
+
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: addUrl,//添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'IsoRWPSTZDGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQExcludeCol: [1, 9, 10, 11],//导出execl排除的列
+                JQIsSearch: true,
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,
+                toolbar: '#IsoRWPSTZDPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		          { title: '项目编号', field: 'ProjNumber', width: "8%", align: 'left', halign: "center", sortable: true },
+		          { title: '项目名称', field: 'ProjName', width: "20%", align: 'left', halign: "center", sortable: true },
+		          { title: '阶段名称', field: 'ProjPhaseName', width: "6%", align: 'left', halign: "center", sortable: true },
+		          { title: '任务创建依据', field: 'TaskPursuantName', width: "8%", align: 'left', halign: "center", sortable: true },
+                  { title: '工程等级', field: 'ProjectClassName', width: "8%", align: 'left', halign: "center", sortable: true },
+                  { title: '评审方式', field: 'AppraisalWayName', width: "8%", align: 'left', halign: "center", sortable: true },
+                  { title: '任务内容', field: 'TaskContents1', width: "8%", align: 'left', halign: "center", sortable: true },
+                  { field: 'JQFiles', title: '附件', align: 'center', width: "4%", JQIsExclude: true, JQRefTable: 'IsoBCRWTZD' },
+                   {
+                       field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrentEmpID)")
+                   },
+                   {
+                       field: 'opt', title: '操作', width: "4%", align: 'center', JQIsExclude: true,
+                       formatter: function (value, row, index) {
+                           var title = "查看";
+                           if (row._EditStatus == 1) {
+                               title = "修改";
+                           }
+                           else if (row._EditStatus == 2) {
+                               title = "处理";
+                           }
+                           return '<a class="easyui-linkbutton" onclick="Info(' + row.Id + ')">' + title + '</a>';
+                       }
+                   }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#IsoRWPSTZDGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号、项目名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'IsoRWPSTZDGrid',
+                            loadingType: 'datagrid'
+                        });
+                }
+            });
+            $("a[jqpermissionname='edit']").hide();
+        });
+
+
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+
+        function Info(Id) {
+            JQ.dialog.dialog({
+                title: '任务评审通知单',
+                width: '1000',
+                height: '100%',
+                url: '@Url.Action("edit")?Id=' + Id,
+                onClose: function () {
+                    $("#IsoRWPSTZDGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoRWPSTZDGrid"></table>
+    <div id="IsoRWPSTZDPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+        </span>
+        <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key: 'txtLike', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            @BaseData.getBases(new Params() { isMult = true, engName = "TaskPursuant", queryOptions = "{ Key:'TaskPursuantState', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params() { isMult = true, engName = "AppraisalWay", queryOptions = "{ Key:'AppraisalWayState', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjectClass", queryOptions = "{ Key:'ProjectClassState', Contract:'in',filedType:'Int'}" })
+            发起时间
+            <input id="CTStartTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始日期'" validType="dateISO" JQWhereOptions="{ Key:'CTStartTime', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="CTEndTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束日期'" validType="dateISO" JQWhereOptions="{ Key:'CTEndTime', Contract:'<=',filedType:'Date' }">
+        </div>
+
+    </div>
+}
+

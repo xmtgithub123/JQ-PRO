@@ -1,0 +1,148 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoFormDesOutPutReview", new { @area="Iso"})',
+               addUrl = '@Url.Action("add","IsoFormDesOutPutReview",new {@area="Iso" })',
+               editUrl = '@Url.Action("edit", "IsoFormDesOutPutReview",new {@area="Iso" })',
+               delUrl = '@Url.Action("del", "IsoFormDesOutPutReview", new { @area = "Iso" })';
+        var EmpId='@ViewBag.EmpId';
+        var xml = '';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'IsoFormDesOutPutReviewGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '950',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                JQExcludeCol: [1,8, 9],//导出execl排除的列
+                toolbar: '#IsoFormDesOutPutReviewPanel',//工具栏的容器ID
+                singleSelect: false,
+                columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                {
+                    title: '编号', field: 'Number', width: "8%", align: 'left', sortable: true
+                },
+
+                {
+                    title: '项目编号', field: 'ProjNumber', width: "14%", align: 'left', sortable: true
+                },
+                  {
+                      title: '项目名称', field: 'ProjName', width: "25%", align: 'left', sortable: true
+                  },
+                  {
+                      title: '评审主持人', field: 'ReviewName', width: "15%", align: 'center', sortable: true
+                  },
+                  {
+                      title: '登记人', field: 'CreatorEmpName', width: "10%", align: 'center', sortable: true
+                  },
+                {
+                    title: '登记时间', field: 'FormDate', width: "10%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT
+                },
+                {
+                    field: "FlowProgress", title: "流程进度", align: "center", halign: "center", width: "8%", formatter: JQ.Flow.showFlowProgress("IsoFormDesOutPutReviewGrid", "IsoFormDesOutPutReview", "FormID")
+                },
+                {
+                    field:'info',title:'操作',align:'center',width:'6%',
+                    formatter:function(val,row)
+                    {
+                        if (row.FlowStatus == "0")
+                        {
+                            return '<a class="easyui-linkbutton" onclick="Info('+row.FormID+')">修改</a>';
+                        }
+                        else
+                        {
+                            if (row.FlowStatus == "1")
+                            {
+                                return '<a class="easyui-linkbutton" onclick="Info(' + row.FormID + ')" ck="1">处理</a>';
+                            }
+                            else
+                            {
+                                return '<a class="easyui-linkbutton" onclick="Info(' + row.FormID + ')" ck="1">查看</a>';
+                            }
+                        }
+                    }
+                }
+
+                ]],
+                onClickRow: function (rowIndex, rowData) {
+
+                    if (rowData.FlowStatus != "0")//处于流程中的记录不允许选中（删除）
+                    {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (row) {
+
+                    //禁用全选（避免失误删除）
+                    $("div.datagrid-header-check input[type='checkbox']").attr("disabled", true);
+                    $('a[ck="1"]').parent().parent().parent().find('input[type="checkbox"]').attr("disabled", true);
+                }
+            });
+            function setTextAlign(filed, align) {
+                $("tr[class='datagrid-header-row']").find("td[field='" + filed + "']").children().removeAttr("style").attr("style", align);
+            }
+            setTextAlign("ProjName", "text-align:center");
+            setTextAlign("ProjNumber", "text-align:center");
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号、项目名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'IsoFormDesOutPutReviewGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                Keys: $("#JQSearch").val(),
+                                startDate: $("#startDate").datebox('getValue'),
+                                endDate:$("#endDate").datebox('getValue')
+                            }
+                        });
+                }
+            });
+        });
+
+        function Info(FormID)
+        {
+            JQ.dialog.dialog({
+                title: '设计输出编辑',
+                width: '950',
+                height: '700',
+                url: editUrl + '?id=' + FormID,
+                onClose:function()
+                {
+                    $("#IsoFormDesOutPutReviewGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="IsoFormDesOutPutReviewGrid"></table>
+    <div id="IsoFormDesOutPutReviewPanel" jqpanel="searchPanel" style="padding:5px;height:auto;border:none;">
+        <div JQPanel="toolbarPanel" style="display:inline-block;">
+            <input id="JQSearch" style="width:250px;" />
+        </div>
+
+        <div style="display:inline-block;">
+            <span style="margin-left:20px;">登记时间：</span>
+            <input class="easyui-datebox" id="startDate" name="startDate" style="width:120px;" prompt="开始时间" />
+            ---
+            <input class="easyui-datebox" id="endDate" name="endDate" style="width:120px;" prompt="结束时间" />
+        </div>
+    </div>
+}
+

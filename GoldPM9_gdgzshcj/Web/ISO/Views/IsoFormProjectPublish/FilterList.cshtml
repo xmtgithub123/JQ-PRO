@@ -1,0 +1,101 @@
+﻿@using JQ.Web;
+<style type="text/css">
+    .rwpdialogdiv {
+        padding: 0px;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        $(".dialog-toolbar :last").hide();
+        JQ.datagrid.datagrid({
+            JQButtonTypes: [],//需要显示的按钮
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'BussProjectGrid',//数据表格ID
+            JQDialogTitle: '选择项目',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            singleSelect: false,
+            //JQCustomSearch: [  //自定义搜索的字段
+            //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+            //],
+            //JQExcludeCol: [1, 4, 10],//导出execl排除的列
+            //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+            //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+            JQFields: ["Id"],//追加的字段名
+            url: '@Url.Action("JsonProject", "BussContract", new { @area = "Bussiness" })',//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#BussProjectPanel',//工具栏的容器ID
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '项目编号', field: 'ProjNumber', width: "15%", align: 'left', sortable: true },
+                { title: '项目名称', field: 'ProjName', width: "25%", align: 'left', sortable: true },
+                { title: '客户单位', field: 'CustName', width: "25%", align: 'center', sortable: true },
+                { title: '客户联系人', field: 'CustLinkMan', width: "20%", align: 'center', sortable: true },
+            ]],
+
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '项目编号、项目名称',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+            {
+                dgID: 'BussProjectGrid',
+                loadingType: 'datagrid',
+                queryParams: null
+            });
+            }
+        });
+    });
+
+    //function selectProj() {
+    //    var row = $('#BussProjectGrid').datagrid('getSelections');
+    //    if (row.length < 1) {
+    //        window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+    //        return;
+    //    }
+    //    var ids = [];
+    //    var _rows = [];
+    //    for (var i = 0; i < row.length; i++) {
+    //        ids.push(row[i]["Id"]);
+    //        _rows.push(row[i]);
+    //    }
+
+    //    _ProjCallBack(ids);
+    //    JQ.dialog.dialogClose();
+    //}
+
+
+    function selectProj() {
+        var row = $('#BussProjectGrid').datagrid('getSelections');
+        if (row.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        var ids = [];
+        var _rows = [];
+        for (var i = 0; i < 1; i++) {
+            ids.push(row[0]["ProjName"]);
+            _rows.push(row[0]);
+        }
+        _ProjCallBackSingLe(ids);
+        JQ.dialog.dialogClose();
+    }
+
+
+</script>
+
+<table id="BussProjectGrid"></table>
+<div id="BussProjectPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+    <span jqpanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProj()">确定选择</a>
+    </span>
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+    <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key:'ProjNumber,ProjName', Contract:'like'}" />
+</div>
+
+
+

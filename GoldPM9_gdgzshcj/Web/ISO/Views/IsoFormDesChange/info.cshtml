@@ -1,0 +1,476 @@
+﻿@model DataModel.Models.IsoForm
+@using JQ.Web;
+<script type="text/javascript">
+    var _flowInstance = null;
+    JQ.form.submitInit({
+        formid: 'IsoFormDesChangeForm',//formid提交需要用到
+        docName: 'IsoFormDesChange',
+        ExportName: '设计变更通知单',
+        buttonTypes: @Html.Raw(ViewBag.ExportPermission),//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            //window.top.document.getElementById("@(Request.QueryString["iframeID"])").contentWindow.refreshGrid();
+            JQ.datagrid.autoRefdatagrid();
+            //_flowInstance.$form.parent().dialog("close");
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }, flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "ISO,ISO.FlowProcessor.DesChangeFlow",
+            onInit: function () {
+                _flowInstance = this;
+            },
+            refID: "@(Model.FormID)",
+            refTable: "IsoFormDesChange"
+            @Html.Raw(ViewBag.editPermission)
+        }
+    });
+    @Html.Raw(ViewBag.submitPermission)
+    @Html.Raw(ViewBag.Upload)
+    //$("#FormDate").datebox({ readonly: true })
+    $("#MaterialName").textbox({ required: true })
+    var selectValue="";
+    var selectText="";
+
+    JQ.combobox.common({
+        id: 'ProjID',
+        toolbar: '#tbProj',//工具栏的容器ID
+        url: '@Url.Action("combogridJson", "Project",new { @area="Project"})',//请求的地址
+        panelWidth: 600,
+        panelHeight: 400,
+        height:26,
+        valueField: 'Id',
+        textField: 'ProjName',
+        editable: false,
+        multiple: false,
+        pagination: true,//是否分页
+        queryParams:
+            {
+                projId:'@Model.ProjID',
+                Words:$("#fullNameSearchProj").val()
+            },
+        columns: [[
+            { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true },
+            { title: '项目名称', field: 'ProjName', width: 260, align: 'center', sortable: true },
+            { title: '项目阶段', field: 'PhaseName', width: 140, align: 'center', sortable: true }
+        ]],
+        onSelect: function (val, row) {
+            $("#ProjNumber").text(row.ProjNumber);
+            selectValue=row.Id;
+            selectText=row.ProjName;
+        },
+        onLoadSuccess: function () {
+            $("#ProjNumber").text('@ViewBag.ProjNumber');
+            var selectRow=$(this).combogrid('grid').datagrid('getSelected');
+            if(selectRow!=undefined)
+            {
+                selectText=$(this).combogrid('getText');
+            }
+            if(selectRow==undefined)
+            {
+                $(this).combogrid('setText',selectText);
+            }
+        }
+
+    });
+    $("#fullNameSearchProj").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '项目名称、项目编号',
+        onClickButton: function () {
+            JQ.datagrid.searchGrid(
+                {
+                    $dg:$("#ProjID").combogrid('grid'),
+                    loadingType: 'datagrid',
+                    queryParams:
+                             {
+                                 projId:'@Model.ProjID',
+                                 Words:$("#fullNameSearchProj").val()
+                             }
+                });
+        }
+
+    });
+    $("#ChangeFee").numberspinner({ precision: 2 });
+    $("#Number").textbox({ required: true });
+</script>
+
+@using (Html.BeginForm("save", "IsoFormDesChange", FormMethod.Post, new { @area = "Iso", @id = "IsoFormDesChangeForm" }))
+{
+    @Html.HiddenFor(m => m.FormID)
+    <table class="table table-bordered">
+        <tr style="border:none;">
+            <td colspan="8" style="border:none;text-align:center;">
+                <span style="font-weight:bold;font-size:x-large;">设计变更通知单</span>
+            </td>
+        </tr>
+        <tr style="border:none;">
+            <td colspan="6" style="border:none;"></td>
+            <td style="border:none;">
+                编号
+            </td>
+            <td style="border:none;">
+                <input id="Number" name="Number" style="width:90%;" class="easyui-textbox" validType="length[0,200]" value="@ViewData["Number"]" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                项目名称
+            </th>
+            <td colspan="3">
+                @*<select id="ProjID" name="ProjID" class="easyui-combogrid" style="width:98%;"></select>*@
+                <input id="ProjID" name="ProjID" data-options="required:true,multiple:false" style="width:90%;" value="@(@Model.ProjID==0 ? "" :@Model.ProjID.ToString())" />
+                <input type="hidden" name="ProjectName" id="ProjectName" value="@ViewBag.ProjectName" />
+            </td>
+            <th>
+                项目编号
+            </th>
+            <td colspan="3">
+                <label id="ProjNumber"></label>
+                <input type="hidden" id="ProjNum" name="ProjNum" value="@ViewBag.ProjNumber" />
+            </td>
+        </tr>
+        @*<tr>
+            <td>
+                单项工程
+            </td>
+            <td colspan="7" style="text-align:center;">
+                <span style="color:red;">等待协同设计完成后添加</span>
+            </td>
+        </tr>*@
+        <tr>
+            <th>
+                建设单位
+            </th>
+            <td colspan="3">
+                <input name="ConstructUnit" style="width:94%;" class="easyui-textbox" validType="length[0,500]" value="@ViewData["ConstructUnit"]" />
+            </td>
+            <th>
+                提出单位
+            </th>
+            <td colspan="3">
+                <input name="SupplyUnit" style="width:90%;" class="easyui-textbox" validType="length[0,500]" value="@ViewData["SupplyUnit"]" />
+            </td>
+        </tr>
+        <tr>
+            <th rowspan="2">
+                变更性质
+            </th>
+            <td rowspan="2" colspan="3">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ColAttVal1",
+               isMult = false,
+               engName = "DesChange",
+               width = "90%",
+               ids=Model.ColAttVal1
+           })
+                <input type="hidden" value="@ViewBag.DesignKind" name="DesignKind" id="DesignKind" />
+            </td>
+            <th>
+                时间
+            </th>
+            <td colspan="3">
+                <input id="FormDate" name="FormDate" style="width:95%;" class="easyui-datebox" validType="dateISO" value="@Model.FormDate" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                变更费用(元)
+            </th>
+            <td colspan="3">
+                <input id="ChangeFee" name="ChangeFee" class="easyui-numberspinner" value="@ViewData["ChangeFee"]" style="width:90%;" validType="length[0,10]" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                变更原因
+            </th>
+            <td colspan="7">
+                @BaseData.getBase(new Params()
+            {
+                controlName = "ColAttVal2",
+                isMult = true,
+                isRequired=true,
+                engName = "DesChangeReason",
+                width = "100%",
+                ids=Model.ColAttVal2
+            })
+                <input type="hidden" value="@ViewBag.DesignChangeReason" id="DesignChangeReason"  name="DesignChangeReason" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                修改内容
+            </th>
+            <td colspan="7">
+                <input name="ModifyContent" style="width:98%;height:100px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" value="@ViewData["ModifyContent"]" />
+            </td>
+        </tr>
+        <tr>
+            <th style="width:10%;">
+                设计人员
+            </th>
+            <td  style="width:15%;">
+                <input name="DesignName" style="width:90%;" class="easyui-textbox" validType="length[0,200]" value="@ViewData["DesignName"]" />
+            </td>
+            <th style="width:10%;">
+                校核
+            </th>
+            <td style="width:15%;">
+                <input name="DesCheckName" style="width:90%;" class="easyui-textbox" validType="length[0,200]" value="@ViewData["DesCheckName"]" />
+            </td>
+            <th style="width:10%;">
+                审核
+            </th>
+            <td  style="width:15%;">
+                <input name="DesReview" style="width:90%;" class="easyui-textbox" validType="length[0,200]" value="@ViewData["DesReview"]" />
+            </td>
+            <th rowspan="2">
+                批准
+            </th>
+            <td rowspan="2">
+                <input name="ApproveName" class="easyui-textbox" validType="length[0,200]" value="@ViewData["ApproveName"]" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                造价人员
+            </th>
+            <td>
+                <input name="EvaluatePriceName" style="width:90%;" class="easyui-textbox" validType="length[0,200]" value="@ViewData["EvaluatePriceName"]" />
+            </td>
+            <th>
+                校核
+            </th>
+            <td>
+                <input name="EvaluatePriceCheckName" style="width:90%;" class="easyui-textbox" validType="length[0,200]" value="@ViewData["EvaluatePriceCheckName"]" />
+            </td>
+            <th>
+                审核
+            </th>
+            <td>
+                <input name="EvaluatepriceReview" style="width:90%;" class="easyui-textbox" validType="length[0,200]" value="@ViewData["EvaluatepriceReview"]" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                监理单位<br />意见
+            </th>
+            <td colspan="7">
+                <input name="FormNote" style="width:98%;height:100px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,500]" value="@Model.FormNote" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="8">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>
+                            专业监理工程师：
+                        </th>
+                        <td>
+                            <input name="SpecMonitorSignNameDate" class="easyui-textbox" validType="length[0,200]" value="@ViewData["SpecMonitorSignNameDate"]" />
+                        </td>
+                        <th>
+                            项目总监：
+                        </th>
+                        <td>
+                            <input name="ProjMajorSignNameDate" class="easyui-textbox" validType="length[0,200]" value="@ViewData["ProjMajorSignNameDate"]" />
+                        </td>
+                        <th>
+                            监理单位技术负责人：
+                        </th>
+                        <td>
+                            <input name="MonitorUnitTechMajorSignNameDate" class="easyui-textbox" validType="length[0,200]" value="@ViewData["MonitorUnitTechMajorSignNameDate"]" />
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+
+        <tr>
+            <th>
+                业主项目<br />部意见
+            </th>
+            <td colspan="7">
+                <input name="FormReason" style="width:98%;height:100px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" value="@Model.FormReason" />
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="8">
+                <table class="table table-bordered">
+                    <tr>
+                        <th>
+                            项目经理：
+                        </th>
+                        <td>
+                            <input name="ProjManagerSignNamedate" class="easyui-textbox" validType="length[0,200]" value="@ViewData["ProjManagerSignNamedate"]" />
+                        </td>
+                        <th>
+                            建设单位管理部门负责人：
+                        </th>
+                        <td>
+                            <input name="ConstructUnitDeptMajorSignNameDate" class="easyui-textbox" validType="length[0,200]" value="@ViewData["ConstructUnitDeptMajorSignNameDate"]" />
+                        </td>
+                        <th>
+                            主管领导：
+                        </th>
+                        <td>
+                            <input name="MajorLeaderSignNameDate" class="easyui-textbox" validType="length[0,200]" value="@ViewData["MajorLeaderSignNameDate"]" />
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="8" style="text-align:center;">
+                <span style="font-weight:bold;font-size:15px;">完工工程量确认</span>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                监理单位
+            </th>
+            <td colspan="3">
+                <input name="MonitorUnitSignNameDate" class="easyui-textbox" validType="length[0,200]" value="@ViewData["MonitorUnitSignNameDate"]" />
+            </td>
+            <th>
+                业主项目部
+            </th>
+            <td colspan="3">
+                <input name="HostProjDeptSignNameDate" class="easyui-textbox" validType="length[0,200]" value="@ViewData["HostProjDeptSignNameDate"]" />
+            </td>
+        </tr>
+        @*<tr>
+                <td>
+                    资料名称
+                </td>
+                <td colspan="2">
+                    <input id="MaterialName" name="MaterialName" style="width:240px;"  class="easyui-textbox" validType="length[0,500]" value="@ViewData["MaterialName"]" />
+                </td>
+                <td>
+                    资料来源
+                </td>
+                <td colspan="2">
+                    @BaseData.getBase(new Params()
+               {
+                   controlName = "MaterialSourceID",
+
+                   engName = "MaterialSourceID",
+                   width = "240px",
+                   ids = ViewData["MaterialSourceID"].ToString()
+               })
+                </td>
+            </tr>
+
+            <tr>
+                <td>
+                    部门名称
+                </td>
+                <td colspan="2">
+                    @BaseData.getBase(new Params()
+               {
+                   controlName = "DeptID",
+                   engName = "department",
+                   isRequired = true,
+                   width = "240px",
+                   ids = ViewData["DeptID"].ToString()
+               })
+                </td>
+                <td>
+                    专业
+                </td>
+                <td colspan="2">
+                    @BaseData.getBase(new Params()
+               {
+                   controlName = "SpeIDs",
+                   isMult = true,
+                   isRequired = true,
+                   engName = "Special",
+                   width = "240px",
+                   ids = ViewData["SpeIDs"].ToString()
+               })
+                </td>
+            </tr>
+            <tr>
+                <td style="width:140px;">
+                    评审人
+                </td>
+                <td style="width:240px;">
+                    <input name="ReviewName" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value='@ViewData["ReviewName"]' />
+                </td>
+                <td style="width:60px;">
+                    登记人
+                </td>
+                <td style="width:160px;text-align:center;">
+                    <label id="EmpName">@ViewData["EmpName"]</label>
+                </td>
+                <td>
+                    登记时间
+                </td>
+                <td>
+                    <input id="FormDate" name="FormDate" style="width:200px;" class="easyui-datebox"  validType="length[0,23]" value="@Model.FormDate" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    资料内容说明
+                </td>
+                <td colspan="5">
+                    <input name="FormReason" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" value="@Model.FormReason" />
+                </td>
+            </tr>
+            <tr>
+                <td rowspan="2" >
+                    评审人意见
+                </td>
+                <td colspan="5" style="border:none;">
+                    <input name="FormNote" style="width:98%;height:120px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" value="@Model.FormNote" />
+                </td>
+            </tr>
+            <tr>
+                <td style="border:none;"></td>
+                <td style="border:none;text-align:right;">
+                    签字
+                </td>
+                <td style="border:none;">
+                    <input name="SignName" style="width:90%;" class="easyui-textbox" validType="length[0,200]" value='@ViewData["SignName"]' />
+                </td>
+                <td style="border:none;text-align:right;">
+                    日期
+                </td>
+                <td style="border:none;">
+                    <input name="SignDate" style="width:200px;" class="easyui-datebox" validType="length[0,23]" value='@ViewData["SignDate"]' />
+                </td>
+            </tr>*@
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="7">
+
+
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.FormID;
+                    uploader.RefTable = "DesChange";
+                    uploader.Name = "DesChangeUpload";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+
+
+            </td>
+        </tr>
+    </table>
+    <div id="tbProj" style="padding:5px;height:auto; display:none;">
+        <input id="fullNameSearchProj" name="Words" style="width:250px;" JQWhereOptions="{ Key: 'ProjName', 'Contract': 'like' }" />
+    </div>
+
+                    }
+
+
+

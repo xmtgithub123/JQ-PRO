@@ -1,0 +1,138 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@section head {
+    <link href="~/lib/rwpUI/skins/lightblue/css/rwpDatagrid.css" rel="stylesheet" />
+    <link href="~/lib/rwpUI/skins/lightblue/css/rwpReset.css" rel="stylesheet" />
+    <script type="text/javascript">
+        $(function () {
+            $('#righttt').treegrid({
+                toolbar: '#tb',
+                url: '@Url.Action("girdjson", "basedata", new { @area="Core"})',
+                idField: 'id',
+                treeField: 'text',
+                border: 0,
+                fit: true,
+                animate: true,
+                singleSelect: true,
+                columns: [[
+                   { title: '名称', field: 'text', width: 260, align: 'left' },
+                   { title: '标识', field: 'BaseNameEng', width: 160, align: 'center' },
+                   { title: '扩展1', field: 'BaseAtt1', width: 90, align: 'center' },
+                   { title: '扩展2', field: 'BaseAtt2', width: 90, align: 'center' },
+                   { title: '扩展3', field: 'BaseAtt3', width: 90, align: 'center' },
+                   { title: '扩展4', field: 'BaseAtt4', width: 90, align: 'center' },
+                   { title: '扩展5', field: 'BaseAtt5', width: 90, align: 'center' }
+                ]],
+                queryParams: {
+                    baseID: 0
+                }
+            });
+            $('#lefttree').treegrid({
+                url: '@Url.Action("treejsonbytop2")',
+                idField: 'id',
+                treeField: 'text',
+                border: 0,
+                fit: true,
+                animate: true,
+                singleSelect: true,
+                columns: [[
+                   { title: '<b>选择基础类型</b>', field: 'text', width: 200, align: 'left' }
+                ]],
+                onLoadSuccess: function (row, data) {
+                    var firstid = data[0].children[0].id;
+                    $('#lefttree').treegrid('select', firstid.toString());
+                },
+                onSelect: function (node) {
+                    $('#righttt').treegrid('load', {
+                        baseID: node.id
+                    });
+                }
+            });
+        });
+
+        function addDatabase() {
+            var id = $("#lefttree").treegrid("getSelected").id;
+            if (!isNaN(id)) {
+                JQ.dialog.dialog({
+                    title: "添加基础数据信息",
+                    url: '@Url.Action("add")?parentid=' + $("#lefttree").treegrid("getSelected").id,
+                    width: '400',
+                    height: '400',
+                    JQID: 'righttt',
+                    JQLoadingType: 'treegrid'
+                });
+            }
+            else {
+                JQ.dialog.info("请选择基础类别");
+            }
+
+        }
+
+        function edit() {
+
+            var id = $("#righttt").treegrid("getSelected").id;
+            if (!isNaN(id)) {
+                var url = '@Url.Action("edit", "basedata", new { @area="Core"})';
+                JQ.dialog.dialog({
+                    title: "编辑基础数据信息",
+                    url: url + '?BaseID=' + id,
+                    width: '400',
+                    height: '400',
+                    JQID: 'righttt',
+                    JQLoadingType: 'treegrid'
+                });
+            }
+            else {
+                JQ.dialog.info("请选择行");
+            }
+        }
+
+        function del() {
+
+            var url = '@Url.Action("del", "basedata", new { @area="Core"})';
+
+            JQ.tools.ajax({
+                doBackResult: true,
+                url: url,
+                data: 'BaseID=' + $("#righttt").treegrid("getSelected").id
+            });
+            $('#righttt').treegrid('reload');
+        }
+
+        function updateMove(type) {
+            var row = $('#righttt').treegrid('getSelections');
+            if (row.length != 1) {
+                window.top.JQ.dialog.warning('您必须选择至少一项进行操作！！！');
+            }
+            else {
+                window.top.JQ.dialog.confirm("您是否确定要移动该数据？", function () {
+                    var id = row[0]['id'];
+                    var url = '@Url.Action("move", "basedata", new { @area="Core"})';
+                    JQ.tools.ajax({
+                        url: url,
+                        data: { BaseID: id, OrderType: type },
+                        succesCollBack: function () {
+                            $('#righttt').treegrid('reload');
+                        }
+                    });
+                }, null)
+            }
+        }
+    </script>
+}
+@section Body_Content{
+    <div data-options="region:'west'" style="width:205px">
+        <table id="lefttree"></table>
+    </div>
+    <div data-options="region:'center',border:false">
+        <table id="righttt"></table>
+    </div>
+    <div id="tb" style="padding:5px;height:30px">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick='addDatabase()'>新增</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-pencil'" onclick='edit()'>修改</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" onclick='del()'>删除</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-arrow-up'" onclick="updateMove(1)">上移</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-arrow-down'" onclick="updateMove(2)">下移</a>
+    </div>
+}

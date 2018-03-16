@@ -1,0 +1,1973 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{BA7594E9-29A3-4928-B269-9FFEA0ED363B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Bussiness</RootNamespace>
+    <AssemblyName>Bussiness</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="RazorGenerator.Mvc, Version=2.0.0.0, Culture=neutral, PublicKeyToken=7b26dc2a43f6a0d4, processorArchitecture=MSIL">
+      <HintPath>..\..\Lib\RazorGenerator.Mvc.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System">
+      <HintPath>C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\System.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Mvc, Version=4.0.0.1, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\System.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Lib\System.Web.WebPages.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WebActivatorEx">
+      <HintPath>..\..\Lib\WebActivatorEx.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\BussContractOtherFeeFact\info.cshtml">
+      <SubType>Code</SubType>
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\BussBiddingFileMobile\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingFileMobile\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingFileMobile\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingFileMobile\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingFile\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingFile\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingFile\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingFile\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingFile\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingFile\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingInfoMobile\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingInfoMobile\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingInfoMobile\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingInfoMobile\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractMobile\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractMobile\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractMobile\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractMobile\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherFeeFact\listOtherSub_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listOtherSub_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherFeeFact\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\BussContractOther\info.cshtml">
+      <SubType>Code</SubType>
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\BussBiddingCost\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingCost\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingInfo\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingInfo\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingInfo\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractModel\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractModel\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractModel\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractModel\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractModel\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractModel\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherFeeFact\infoOtherSub_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoOtherSub_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherFeeFact\infoOtherSub_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoOtherSub_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherFeeFact\infoOtherSub_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoOtherSub_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherFeeFact\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherFeeFact\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherFeeFact\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherFeeFact\listOtherSub_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listOtherSub_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherFeeFact\listOtherSub_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listOtherSub_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherFeeFact\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherFeeFact\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherInvoice\infoOtherSub_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoOtherSub_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherInvoice\infoOtherSub_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoOtherSub_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherInvoice\infoOtherSub_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoOtherSub_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherInvoice\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherInvoice\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherInvoice\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherInvoice\listOtherSub_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listOtherSub_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherInvoice\listOtherSub_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listOtherSub_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherInvoice\listOtherSub_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listOtherSub_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherInvoice\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherInvoice\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherInvoice\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOther\infoSub_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoSub_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOther\infoSub_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoSub_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOther\infoSub_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoSub_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOther\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOther\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOther\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOther\listConOtherSub_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listConOtherSub_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOther\listConOtherSub_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listConOtherSub_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOther\listConOtherSub_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listConOtherSub_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOther\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOther\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOther\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractSubMobile\Info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractSubMobile\Info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractSubMobile\Info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractSubMobile\Info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>Info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractSub\conSubList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>conSubList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractSub\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractSub\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractSub\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractSub\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractSub\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractSub\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContract\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContract\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\BussCustomer\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomer\subinfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>subinfo.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\BussBiddingCost\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingCost\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingCost\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingCost\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingInfo\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingInfo\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingInfo\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussBiddingInfo\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContract\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContract\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContract\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContract\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContract\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussFeeFact\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussFeeFact\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussFeeFact\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussFeeFact\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussFeeFact\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussFeeFact\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussFeeInvoice\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussFeeInvoice\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussFeeInvoice\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussFeeInvoice\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussFeeInvoice\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussFeeInvoice\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussProjInfoRecordsMobile\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussProjInfoRecordsMobile\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussProjInfoRecordsMobile\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussProjInfoRecordsMobile\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussProjInfoRecords\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussProjInfoRecords\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussProjInfoRecords\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussProjInfoRecords\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussProjInfoRecords\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="App_Start\RazorGeneratorMvcStart.cs" />
+    <Compile Include="BussinessAreaRegistration.cs" />
+    <Compile Include="Controllers\BusProjContractRelationController.cs" />
+    <Compile Include="Controllers\BussBiddingCostController.cs" />
+    <Compile Include="Controllers\BussBiddingCostMobileController.cs" />
+    <Compile Include="Controllers\BussBiddingCostMobileView.cs" />
+    <Compile Include="Controllers\BussBiddingFileController.cs" />
+    <Compile Include="Controllers\BussBiddingFileMobileController.cs" />
+    <Compile Include="Controllers\BussBiddingFileMoblieView.cs" />
+    <Compile Include="Controllers\BussBiddingInfoController.cs" />
+    <Compile Include="Controllers\BussBiddingInfoMobileController.cs" />
+    <Compile Include="Controllers\BussBiddingInfoMobileView.cs" />
+    <Compile Include="Controllers\BussBiddingInfoPackageController.cs" />
+    <Compile Include="Controllers\BussContractMobileController.cs" />
+    <Compile Include="Controllers\BussContractMobileView.cs" />
+    <Compile Include="Controllers\BussContractSubMobileController.cs" />
+    <Compile Include="Controllers\BussContractSubMobileView.cs" />
+    <Compile Include="Controllers\BussProjInfoRecordsMobileController.cs" />
+    <Compile Include="Controllers\BussProjInfoRecordsMobileView.cs" />
+    <Compile Include="Controllers\HZShowController.cs" />
+    <Compile Include="Controllers\ProjectStatisticsController.cs" />
+    <Compile Include="Controllers\BussConStatisticsController.cs" />
+    <Compile Include="Controllers\BussContractController.cs" />
+    <Compile Include="Controllers\BussContractModelController.cs" />
+    <Compile Include="Controllers\BussContractOtherController.cs" />
+    <Compile Include="Controllers\BussContractOtherFeeFactController.cs" />
+    <Compile Include="Controllers\BussContractOtherInvoiceController.cs" />
+    <Compile Include="Controllers\BussContractSubController.cs" />
+    <Compile Include="Controllers\BussCustomerController.cs" />
+    <Compile Include="Controllers\BussCustomerEvaluateController.cs" />
+    <Compile Include="Controllers\BussCustomerEvaluateDetailController.cs" />
+    <Compile Include="Controllers\BussCustomerLinkManController.cs" />
+    <Compile Include="Controllers\BussCustomerRememberController.cs" />
+    <Compile Include="Controllers\BussFeeFactController.cs" />
+    <Compile Include="Controllers\BussFeeInvoiceController.cs" />
+    <Compile Include="Controllers\BussFeePlanController.cs" />
+    <Compile Include="Controllers\BussProjInfoRecordsController.cs" />
+    <Compile Include="Controllers\BussSubFeeFactController.cs" />
+    <Compile Include="Controllers\BussSubFeeInvoiceController.cs" />
+    <Compile Include="Controllers\BussTendersCostController.cs" />
+    <Compile Include="Controllers\BussTendersInfoController.cs" />
+    <Compile Include="Controllers\BussTendersInfoDetailController.cs" />
+    <Compile Include="FlowProcessor\BussBiddingFile.cs" />
+    <Compile Include="FlowProcessor\BussBiddingInfo.cs" />
+    <Compile Include="FlowProcessor\BussContract.cs" />
+    <Compile Include="FlowProcessor\BussContractSub.cs" />
+    <Compile Include="FlowProcessor\BusinessProjectRecord.cs" />
+    <Compile Include="FlowProcessor\BusinessTender.cs" />
+    <Compile Include="htlist.generated.cs">
+      <DependentUpon>htlist.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Views\BusProjContractRelation\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BusProjContractRelation\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingCost\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingCost\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingCost\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingCost\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingCost\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingCost\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingCost\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingCost\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingFileMobile\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingFileMobile\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingFileMobile\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingFileMobile\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingFile\info.generated.cs">
+      <DependentUpon>info.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\BussBiddingFile\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingFile\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingFile\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingFile\list.generated.cs">
+      <DependentUpon>list.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\BussBiddingFile\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingFile\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingFile\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfoMobile\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfoMobile\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfoMobile\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfoMobile\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfoPackage\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfoPackage\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfo\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfo\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfo\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfo\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfo\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfo\ListInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ListInfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfo\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfo\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussBiddingInfo\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractMobile\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractMobile\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractMobile\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractMobile\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractModel\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractModel\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractModel\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractModel\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractModel\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractModel\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\infoOtherSub_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoOtherSub_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\infoOtherSub_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoOtherSub_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\infoOtherSub_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoOtherSub_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\listOtherSub_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listOtherSub_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\listOtherSub_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listOtherSub_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\listOtherSub_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listOtherSub_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\infoOtherSub_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoOtherSub_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\infoOtherSub_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoOtherSub_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\infoOtherSub_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoOtherSub_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\listOtherSub_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listOtherSub_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\listOtherSub_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listOtherSub_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\listOtherSub_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listOtherSub_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\infoSub.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoSub.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\infoSub_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoSub_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\infoSub_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoSub_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\infoSub_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoSub_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\listConOtherSub_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listConOtherSub_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\listConOtherSub_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listConOtherSub_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\listConOtherSub_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listConOtherSub_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSubMobile\Info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSubMobile\Info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSubMobile\Info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSubMobile\Info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSub\conSubList.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>conSubList.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSub\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSub\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSub\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSub\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSub\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSub\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContract\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContract\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContract\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContract\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContract\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContract\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContract\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomerRemember\subinfo.generated.cs">
+      <DependentUpon>subinfo.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\BussFeeFact\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeFact\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeFact\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeFact\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeFact\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeFact\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeFact\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeInvoice\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeInvoice\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeInvoice\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeInvoice\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeInvoice\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeInvoice\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecordsMobile\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecordsMobile\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecordsMobile\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecordsMobile\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecords\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecords\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecords\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecords\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecords\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecords\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecords\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecords\noteinfo.generated.cs">
+      <DependentUpon>noteinfo.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecords\notelist.generated.cs">
+      <DependentUpon>notelist.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\BussSubFeeFact\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeFact\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeFact\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeFact\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeFact\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeFact\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeInvoice\info_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeInvoice\info_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeInvoice\info_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeInvoice\list_cj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_cj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeInvoice\list_gc.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_gc.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeInvoice\list_sj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list_sj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\HZShow\hthzlist.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>hthzlist.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\HZShow\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ProjectStatistics\StatisticsList.generated.cs">
+      <DependentUpon>StatisticsList.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\BussConStatistics\StatisticsList.generated.cs">
+      <DependentUpon>StatisticsList.cshtml</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="Views\BussContractModel\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractModel\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\info.generated.cs">
+      <DependentUpon>info.cshtml</DependentUpon>
+      <SubType>Code</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\infoOtherSub.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoOtherSub.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherFeeFact\listOtherSub.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listOtherSub.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\infoOtherSub.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoOtherSub.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOtherInvoice\listOtherSub.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listOtherSub.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\info.generated.cs">
+      <DependentUpon>info.cshtml</DependentUpon>
+      <SubType>Code</SubType>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="Views\BussContractOther\infoAddConOtherFee.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoAddConOtherFee.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\infoAddConOtherSubFee.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>infoAddConOtherSubFee.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractOther\listConOtherSub.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>listConOtherSub.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSub\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSub\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContractSub\SelectProjSub.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SelectProjSub.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContract\FeeDetails.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>FeeDetails.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContract\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussContract\selectProj.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>selectProj.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomerEvaluateDetail\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomerEvaluate\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomerEvaluate\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomerEvaluate\subinfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>subinfo.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomerEvaluate\sublist.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>sublist.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomerLinkMan\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomerLinkMan\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomerRemember\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomerRemember\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomer\custstatisticslist.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>custstatisticslist.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomer\info.generated.cs">
+      <DependentUpon>info.cshtml</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="Views\BussCustomer\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomer\otherlist.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>otherlist.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomer\subinfo.generated.cs">
+      <DependentUpon>subinfo.cshtml</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+    <Compile Include="Views\BussCustomer\sublist.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>sublist.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussCustomer\substisticslist.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>substisticslist.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeFact\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeInvoice\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeeInvoice\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeePlan\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussFeePlan\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussProjInfoRecords\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeFact\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeFact\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeInvoice\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussSubFeeInvoice\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussTendersCost\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussTendersCost\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussTendersInfoDetail\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussTendersInfoDetail\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussTendersInfo\info.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>info.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussTendersInfo\list.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>list.cshtml</DependentUpon>
+    </Compile>
+    <Compile Include="Views\BussTendersInfo\ListInfo.generated.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ListInfo.cshtml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\web.config" />
+    <Content Include="Views\BusProjContractRelation\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BusProjContractRelation\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussBiddingCost\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussBiddingCost\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussBiddingInfoPackage\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussBiddingInfoPackage\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussBiddingInfo\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContractModel\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContractModel\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContractOtherFeeFact\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContractOtherInvoice\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContractOtherInvoice\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContractOther\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussBiddingFile\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussBiddingFile\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\BussContractOther\infoSub.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoSub.generated.cs</LastGenOutput>
+    </None>
+    <Content Include="Views\BussCustomerRemember\subinfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>subinfo.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\BussFeeFact\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussProjInfoRecords\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussProjInfoRecords\noteinfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>noteinfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussProjInfoRecords\notelist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>notelist.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussSubFeeFact\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussSubFeeFact\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussSubFeeFact\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussSubFeeFact\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussSubFeeFact\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussSubFeeFact\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussSubFeeInvoice\info_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussSubFeeInvoice\info_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussSubFeeInvoice\info_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussSubFeeInvoice\list_cj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_cj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussSubFeeInvoice\list_gc.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_gc.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussSubFeeInvoice\list_sj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list_sj.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\HZShow\hthzlist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>hthzlist.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\HZShow\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\ProjectStatistics\StatisticsList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>StatisticsList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussConStatistics\StatisticsList.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>StatisticsList.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractSub\info.cshtml">
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+      <Generator>RazorGenerator</Generator>
+    </None>
+    <Content Include="Views\BussContractSub\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomerEvaluateDetail\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomerEvaluate\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomerEvaluate\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomerLinkMan\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomerLinkMan\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomerRemember\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomerRemember\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomer\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussFeeFact\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussFeeInvoice\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussFeePlan\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussFeePlan\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussProjInfoRecords\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussProjInfoRecords\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussSubFeeFact\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussSubFeeFact\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussSubFeeInvoice\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussSubFeeInvoice\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussTendersCost\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussTendersCost\list.cshtml">
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+      <Generator>RazorGenerator</Generator>
+    </Content>
+    <Content Include="Views\BussTendersInfoDetail\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussTendersInfoDetail\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussTendersInfo\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussTendersInfo\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContractOther\infoAddConOtherFee.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoAddConOtherFee.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomer\custstatisticslist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>custstatisticslist.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomer\otherlist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>otherlist.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomer\sublist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>sublist.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomer\substisticslist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>substisticslist.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContract\selectProj.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>selectProj.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContract\FeeDetails.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>FeeDetails.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContract\info.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>info.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomerEvaluate\subinfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>subinfo.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussCustomerEvaluate\sublist.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>sublist.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContractOther\listConOtherSub.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listConOtherSub.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContractOther\infoAddConOtherSubFee.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoAddConOtherSubFee.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContractOtherFeeFact\listOtherSub.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listOtherSub.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContractOtherInvoice\listOtherSub.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>listOtherSub.generated.cs</LastGenOutput>
+    </Content>
+    <Content Include="Views\BussContractSub\SelectProjSub.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>SelectProjSub.generated.cs</LastGenOutput>
+    </Content>
+    <None Include="Views\BussBiddingInfo\ListInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ListInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherFeeFact\infoOtherSub.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoOtherSub.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussContractOtherInvoice\infoOtherSub.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>infoOtherSub.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussFeeInvoice\list.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>list.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Views\BussTendersInfo\ListInfo.cshtml">
+      <Generator>RazorGenerator</Generator>
+      <LastGenOutput>ListInfo.generated.cs</LastGenOutput>
+    </None>
+    <None Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+    <None Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\BLLLayer\Common\JQ.Common.csproj">
+      <Project>{1d40b4ed-3210-4daa-a3d9-baa70da99f98}</Project>
+      <Name>JQ.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\BLLLayer\DataModel\DataModel.csproj">
+      <Project>{99ef246d-a5e3-4411-af05-3b9578f12284}</Project>
+      <Name>DataModel</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\BLLLayer\DBSql\DBSql.csproj">
+      <Project>{068290b4-77e2-4650-931e-c1e7205ad648}</Project>
+      <Name>DBSql</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\RWP.FrameworkForWeb\JQ.Web.csproj">
+      <Project>{d89b17b5-f256-423d-8255-5f205ebf07ef}</Project>
+      <Name>JQ.Web</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Core\RWP.Util\JQ.Util.csproj">
+      <Project>{90ab0830-f6da-426c-a3b0-7516535985bf}</Project>
+      <Name>JQ.Util</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <ProjectExtensions />
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

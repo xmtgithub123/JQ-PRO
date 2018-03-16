@@ -1,0 +1,173 @@
+﻿@model JQ.BPM.Model.FormTableColumn
+@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="save()">
+        <span class="fa fa-save"></span>
+        <span>保存</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <form id="form1">
+        <div style="margin:5px">
+            <table class="documenttable">
+                <tr>
+                    <th style="width:80px">名称</th>
+                    <td style="width:280px"><input type="text" id="txtName" name="" placeholder="请输入数据列名称" class="yc_textbox" style="width:260px" value="@(Model.Name)"></td>
+                </tr>
+                <tr>
+                    <th>类型</th>
+                    <td><select id="listTypes" class="yc_select"></select></td>
+                </tr>
+                <tr style="height:40px">
+                    <th>默认值</th>
+                    <td>
+                        <select id="listDefaultValueType" class="yc_select">
+                            <option value="0">无</option>
+                            <option value="1">普通</option>
+                            <option value="2">函数</option>
+                        </select>
+                        <input type="text" id="txtDefaultValue" name="" placeholder="请输入默认值" class="yc_textbox" style="width:200px;margin-left:5px;" value="@(Model.DefaultValue)">
+                    </td>
+                </tr>
+                <tr id="tr_isNullable" style="height:40px;">
+                    <th></th>
+                    <td>
+                        <input type="checkbox" id="cbIsNullable" /><label for="cbIsNullable">是否允许空值</label>
+                    </td>
+                </tr>
+                <tr id="tr_nvarchar">
+                    <th>长度</th>
+                    <td>
+                        <input type="text" id="txtLength" name="" placeholder="请输入文本长度" class="yc_textbox" style="width:260px" />
+                    </td>
+                </tr>
+                <tr id="tr_decimal">
+                    <th>位数</th>
+                    <td>
+                        <input type="text" id="txtPrecision" name="" placeholder="请输入小数位数" class="yc_textbox" style="width:260px" />
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript">
+    function init() {
+        var types = [{ name: "文本", value: "nvarchar" }, { name: "整数", value: "int" }, { name: "小数", value: "decimal" }, { name: "日期", value: "datetime" }];
+        var _listTypes = document.getElementById("listTypes");
+        for (var i = 0; i < types.length; i++) {
+            var opt = document.createElement("option");
+            opt.setAttribute("value", types[i].value);
+            opt.appendChild(document.createTextNode(types[i].name));
+            _listTypes.appendChild(opt);
+        }
+        _listTypes.onchange = function () {
+            switch (YChart.getSelectedValue(this)) {
+                case "nvarchar":
+                    document.getElementById("tr_nvarchar").style.display = "";
+                    document.getElementById("tr_decimal").style.display = "none";
+                    document.getElementById("tr_isNullable").style.display = "";
+                    break;
+                case "int":
+                    document.getElementById("tr_nvarchar").style.display = "none";
+                    document.getElementById("tr_decimal").style.display = "none";
+                    document.getElementById("tr_isNullable").style.display = "";
+                    break;
+                case "decimal":
+                    document.getElementById("tr_nvarchar").style.display = "none";
+                    document.getElementById("tr_decimal").style.display = "";
+                    document.getElementById("tr_isNullable").style.display = "";
+                    break;
+                case "datetime":
+                    document.getElementById("tr_nvarchar").style.display = "none";
+                    document.getElementById("tr_decimal").style.display = "none";
+                    document.getElementById("tr_isNullable").style.display = "none";
+                    break;
+            }
+        }
+        YChart.setSelectedByValue(_listTypes, "@(Model.Type)");
+        _listTypes.onchange();
+        YChart.registerNumberBox({
+            element: [document.getElementById("txtLength"), document.getElementById("txtPrecision")],
+            precision: 0,
+            minValue: 0
+        });
+        @{
+            if (Model.DefaultValueType > 0)
+            {
+                <text>
+        YChart.setSelectedByValue(document.getElementById("listDefaultValueType"), "@(Model.DefaultValueType)");
+        </text>
+            }
+            if (Model.IsNullable||Model.ID==0)
+            {
+                 <text>
+        document.getElementById("cbIsNullable").checked = true;
+        </text>
+            }
+            if (Model.ID > 0)
+            {
+                <text>
+        document.getElementById("txtLength").value = "@(Model.MaxLength)";
+        document.getElementById("txtPrecision").value = "@(Model.Precision)";
+        </text>
+            }
+            else
+            {
+                 <text>
+        document.getElementById("txtLength").value = "255";
+        document.getElementById("txtPrecision").value = "2";
+        </text>
+            }
+        }
+        document.getElementById("listDefaultValueType").onchange = function () {
+            switch (YChart.getSelectedValue(this)) {
+                case "0":
+                    document.getElementById("txtDefaultValue").style.display = "none";
+                    this.style.marginTop = "-1px";
+                    break;
+                case "1":
+                    document.getElementById("txtDefaultValue").style.display = "";
+                    document.getElementById("txtDefaultValue").setAttribute("placeholder", "请输入默认值");
+                    this.style.marginTop = "0px";
+                    break;
+                case "2":
+                    document.getElementById("txtDefaultValue").style.display = "";
+                    document.getElementById("txtDefaultValue").setAttribute("placeholder", "请输入函数");
+                    this.style.marginTop = "0px";
+                    break;
+            }
+        }
+        document.getElementById("listDefaultValueType").onchange();
+    }
+
+    init();
+
+    function save() {
+        if (YChart.trim(document.getElementById("txtName").value) == "") {
+            return;
+        }
+        YChart.ajaxSubmit({
+            form: "form1",
+            url: "@(Url.Action("TableColumnSave","Setup",new { @area="Form" }))?id=@(ViewBag.ID)&tableID=@(ViewBag.TableID)",
+            type: "POST",
+            success: function (result) {
+                if (result.Result == false) {
+                    alert(result.Message);
+                }
+                else {
+                    window.frameElement.api.refreshGrid();
+                    frameElement.closeDialog();
+                }
+            }
+        });
+    }
+</script>

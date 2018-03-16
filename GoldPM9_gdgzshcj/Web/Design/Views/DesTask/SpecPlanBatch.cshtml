@@ -1,0 +1,280 @@
+﻿
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: "projectplanbatchform",
+        buttonTypes: ["close"],
+        beforeButtons: [
+            {
+                text: "确定", icon: "fa-check", onClick: function () {
+                    if(!$("#projectplanbatchform").form("validate")) {
+                        return;
+                    }
+                    var data=getSaveData();
+                    if(data.length==0) {
+                        return;
+                    }
+                    $("#tbList_PlanBatch").datagrid("loading");
+                    $.ajax({
+                        url:"@(Url.Action("SpecPlanBatchSaveSpecPlanData", "DesTask",new { area= "Design" }))",
+                        type:"POST",
+                        data:{ data:JSON.stringify(data),shenHe:$("#task_shenhe").combobox("getValue"),piZhun:$("#task_pizhun").combobox("getValue") },
+                        success:function(){
+                            JQ.dialog.dialogClose();
+                        },complete:function(){
+                            $("#tbList_PlanBatch").datagrid("loaded");
+                        }
+                    });
+                }
+            }
+        ],
+        succesCollBack: function (data) {
+            JQ.dialog.dialogClose();
+        }
+    });
+</script>
+<form id="projectplanbatchform">
+    <div id="tbList_toolbar">
+        审核：<input id="task_shenhe" name="task_shenhe" /> 批准：<input id="task_pizhun" name="task_pizhun" />
+    </div>
+    <table id="tbList_PlanBatch"></table>
+</form>
+<script type="text/javascript">
+    var _Qualification=@(Html.Raw(ViewBag.Qualification));
+    var height = document.getElementById("projectplanbatchform").parentNode.clientHeight;
+    var width = document.getElementById("projectplanbatchform").parentNode.clientWidth;
+    $("#tbList_PlanBatch").datagrid({
+        idField:"TaskId",
+        rownumbers: true,
+        toolbar: "#tbList_toolbar",
+        url: "@(Url.Action("SpecPlanBatchGetSpecPlanDataJson", "DesTask", new { @area="Design" }))",
+        queryParams: { taskIDSet: "@(Request.QueryString["taskIDs"])" },
+        columns: [[
+            {
+                title: "任务路径", field: 'ItemPathText', align: 'left', halign: "center", width: 700, formatter: function (value, rowData) {
+                    var itemPathText = "";
+                    if (rowData.ItemPath1 == "" || rowData.ItemPath2 == "") {
+                        itemPathText = rowData.ItemName.escapeHTML();
+                        rowData.ItemPathText = row.ItemName;
+                    } else {
+                        itemPathText = createTaskPath(rowData);
+                        rowData.ItemPathText = createTaskPathText(rowData);
+                    }
+                    return itemPathText;
+                }
+            }, {
+                title: "任务名称", field: "TaskName", align: "left", halign: "center", width: 100, formatter: function (value, rowData) {
+                    return "<input id=\"taskname_" + rowData.TaskId + "\" flag=\"taskname\" />";
+                }
+            }, {
+                title: "设计", field: "SheJi", align: "left", halign: "center", width: 80, formatter: function (value, rowData) {
+                    return "<input id=\"task_sheji_" + rowData.TaskId + "\" flag=\"task_sheji\" specialtyid=\"" + rowData.TaskSpecId + "\" />";
+                }
+            }, {
+                title: "校核", field: "JiaoHe", align: "left", halign: "center", width: 80, formatter: function (value, rowData) {
+                    return "<input id=\"task_jiaohe_" + rowData.TaskId + "\" flag=\"task_jiaohe\" specialtyid=\"" + rowData.TaskSpecId + "\" />";
+                }
+            }, {
+                title: "计划开始时间", field: "PlanStart", align: "left", halign: "center", width: 100, formatter: function (value, rowData) {
+                    var s=rowData.DatePlanStart.substring(0,10);
+                    if(s == "1900-01-01") {
+                        s="";
+                    }
+                    return "<input id=\"taskplanstart_" + rowData.TaskId + "\" flag=\"taskplanstart\" value=\""+s+"\" />";
+                }
+            }, {
+                title: "计划完成时间", field: "PlanFinish", align: "left", halign: "center", width: 100, formatter: function (value, rowData) {
+                    var s=rowData.DatePlanFinish.substring(0,10);
+                    if(s == "1900-01-01") {
+                        s= "";
+                    }
+                    return "<input id=\"taskplanfinish_" + rowData.TaskId + "\" flag=\"taskplanfinish\" value=\""+s+"\" />";
+                }
+            }
+        ]],
+        height: height - 3,
+        width: width - 3,
+        selectOnCheck: false,
+        checkOnSelect: false,
+        onLoadSuccess: function (datas) {
+            console.log(datas);
+            var _parent = $("#tbList_PlanBatch").parent();
+            _parent.find("[flag='taskname']").textbox({
+                width: 92,
+                value:"设计任务",
+                required:true
+            });
+            _parent.find("[flag='taskplanstart'],[flag='taskplanfinish']").datebox({
+                width: 92
+            });
+            var specialtyID,empData;
+            _parent.find("[flag='task_sheji']").each(function () {
+                if(!specialtyID) {
+                    specialtyID=this.getAttribute("specialtyid") ;
+                }
+                empData= Enumerable.From(_Qualification).Where("x=>x.QualificationSpecID==" + this.getAttribute("specialtyid") + "&&x.QualificationValue==@((int)DataModel.NodeType.设计)").Select("x=>{EmpID:x.EmpID,EmpName:x.EmpName}").Distinct("x=>x.EmpID").ToArray();
+                $(this).combobox({
+                    valueField: 'EmpID',
+                    textField: 'EmpName',
+                    data: empData,
+                    width: "75px",
+                    panelMaxHeight: '360px',
+                    required: true,
+                    editable: false
+                });
+                if(empData.length>0) {
+                    $(this).combobox("setValue",empData[0].EmpID);
+                }
+            });
+            _parent.find("[flag='task_jiaohe']").each(function () {
+                empData= Enumerable.From(_Qualification).Where("x=>x.QualificationSpecID==" + this.getAttribute("specialtyid") + "&&x.QualificationValue==@((int)DataModel.NodeType.校对)").Select("x=>{EmpID:x.EmpID,EmpName:x.EmpName}").Distinct("x=>x.EmpID").ToArray();
+                $(this).combobox({
+                    valueField: 'EmpID',
+                    textField: 'EmpName',
+                    data:empData,
+                    width: "75px",
+                    panelMaxHeight: '360px',
+                    required: true,
+                    editable: false
+                });
+                if(empData.length>0) {
+                    $(this).combobox("setValue",empData[0].EmpID);
+                }
+            });
+            if(!specialtyID) {
+                return;
+            }
+            empData=Enumerable.From(_Qualification).Where("x=>x.QualificationSpecID==" + specialtyID + "&&x.QualificationValue==@((int)DataModel.NodeType.审核)").Select("x=>{EmpID:x.EmpID,EmpName:x.EmpName}").Distinct("x=>x.EmpID").ToArray();
+            $("#task_shenhe").combobox({
+                valueField: 'EmpID',
+                textField: 'EmpName',
+                data: empData,
+                width: "75px",
+                panelMaxHeight: '360px',
+                required: true,
+                editable: false
+            });
+            if(empData.length>0) {
+                $("#task_shenhe").combobox("setValue",empData[0].EmpID);
+            }
+            empData=Enumerable.From(_Qualification).Where("x=>x.QualificationSpecID==" + specialtyID + "&&x.QualificationValue==@((int)DataModel.NodeType.批准)").Select("x=>{EmpID:x.EmpID,EmpName:x.EmpName}").Distinct("x=>x.EmpID").ToArray();
+            $("#task_pizhun").combobox({
+                valueField: 'EmpID',
+                textField: 'EmpName',
+                data: empData,
+                width: "75px",
+                panelMaxHeight: '360px',
+                required: true,
+                editable: false
+            });
+            if(empData.length>0) {
+                $("#task_pizhun").combobox("setValue",empData[0].EmpID);
+            }
+        },
+        onDblClickRow:function(index,row){
+            //双击同步选中
+            var sheji=$("#task_sheji_"+row.TaskId).combobox("getValue");
+            var jiaohe=$("#task_jiaohe_"+row.TaskId).combobox("getValue");
+            var rows=$("#tbList_PlanBatch").datagrid("getRows");
+            for(var i=0;i<rows.length;i++){
+                if(row.TaskId==rows[i].TaskId) {
+                    continue;
+                }
+                $("#task_sheji_"+rows[i].TaskId).combobox("setValue",sheji);
+                $("#task_jiaohe_"+rows[i].TaskId).combobox("setValue",jiaohe);
+            }
+        }
+    });
+    // 获取任务路径（纯文本）
+    function createTaskPathText(row) {
+        var jsonItemPath1 = row.ItemPath1;
+        var jsonItemPath2 = row.ItemPath2;
+        var separator = " ＞ ";
+        var arrItemPath1 = JSON.parse(jsonItemPath1);
+        var arrItemPath2 = JSON.parse(jsonItemPath2);
+        var path1 = (Enumerable.From(arrItemPath1).OrderBy("x=>x.rownum").Select(function (x) { return x.text; }).ToArray());
+        var path2 = (Enumerable.From(arrItemPath2).OrderBy("x=>x.rownum").Select(function (x) { return x.text; }).ToArray());
+        var path = [];
+        if (path1 != undefined && path1 != null) {
+            path.push(path1.join(separator));
+        }
+        if (path2 != undefined && path2 != null && path2.length > 0) {
+            path.push(path2.join(separator));
+        }
+
+        switch (row.ItemType) {
+            case 5:
+                path.push("{0}".format(row.ItemName));
+                break;
+        }
+
+        return path.join(separator);
+
+    }
+
+    // 获取任务路径（带LinkButton）
+    function createTaskPath(row) {
+        var jsonItemPath1 = row.ItemPath1;
+        var jsonItemPath2 = row.ItemPath2;
+
+        var separator = "<i class='fa fa-caret-right' style='margin: 0 5px;'></i>";
+        var arrItemPath1 = JSON.parse(jsonItemPath1);
+        var arrItemPath2 = JSON.parse(jsonItemPath2);
+
+        var path1 = (Enumerable.From(arrItemPath1).OrderBy("x=>x.rownum").Select(function (x) { return createLinkButton(x); }).ToArray());
+        var path2 = (Enumerable.From(arrItemPath2).OrderBy("x=>x.rownum").Select(function (x) { return createLinkButton(x); }).ToArray());
+        var path = [];
+        var pathExcel = [];
+        if (path1 != undefined && path1 != null) {
+            path.push(path1.join(separator));
+            pathExcel.push(path1.join('→'));
+        }
+        if (path2 != undefined && path2 != null && path2.length > 0) {
+            path.push(path2.join(separator));
+            pathExcel.push(path2.join('→'));
+        }
+
+        switch (row.ItemType) {
+            case 5:
+                path.push("<a href='javascript:void(0);' onclick=''>{0}</a>".format(row.ItemName));
+                pathExcel.push(row.ItemName);
+                break;
+        }
+        return path.join(separator);
+
+    }
+
+    function createLinkButton(data) {
+        //[{"rownum":1,"value":34,"text":"常州河海路110kV输变电2#主变扩建工程","active":"TaskGroup"},{...}]
+        var btn = "";
+        switch (data.active) {
+            case "Project":
+            case "TaskGroup":
+            case "Task":
+                btn = "<a href='javascript:void(0);' onclick=''>" + data.text + "</a>";
+                break;
+            default:
+                btn = "<a href='javascript:void(0);' onclick=''>" + data.text + "</a>";
+                break;
+        }
+        return btn;
+    }
+
+
+    function getSaveData() {
+        var result=[];
+        var rows=$("#tbList_PlanBatch").datagrid("getRows");
+        for(var i=0;i<rows.length;i++){
+            result.push({
+                Id:rows[i].TaskId,
+                TaskGroupId:rows[i].TaskGroupId,
+                TaskNumber:'',
+                TaskName:$("#taskname_"+rows[i].TaskId).textbox("getText"),
+                DatePlanStart: $("#taskplanstart_"+rows[i].TaskId).datebox("getText"),
+                DatePlanFinish:$("#taskplanfinish_"+rows[i].TaskId).datebox("getText"),
+                SheJi:$("#task_sheji_"+rows[i].TaskId).combobox("getValue"),
+                JiaoHe:$("#task_jiaohe_"+rows[i].TaskId).combobox("getValue")
+            });
+        }
+        return result;
+    }
+</script>

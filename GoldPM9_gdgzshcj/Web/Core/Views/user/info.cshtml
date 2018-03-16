@@ -1,0 +1,128 @@
+﻿@model DataModel.Models.BaseEmployee
+@using JQ.Web;
+<script type="text/javascript">
+    var requestUrl = '@Url.Action("json", "user",new { @area="Core"})';
+    JQ.form.submitInit({
+        formid: 'ajaxform',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "user", FormMethod.Post, new { @id = "ajaxform" }))
+{
+    @Html.HiddenFor(m => m.EmpID)
+    @Html.HiddenFor(m => m.EmpPassword)
+    <table class="table table-bordered" frame="void">
+        <tr>
+            <th style="width:70px;">
+                用户名
+            </th>
+            <td>
+                <input name="EmpLogin" style="width:98%;" class="easyui-textbox" data-options="required:true" value="@Model.EmpLogin" />
+            </td>
+            <th style="width:70px;">
+                姓名
+            </th>
+            <td>
+                <input name="EmpName" style="width:98%;" class="easyui-textbox" data-options="required:true" value="@Model.EmpName" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                设计盘符
+            </th>
+            <td>
+                <input name="EmpDisk" style="width:98%;" class="easyui-textbox" data-options="required:true" value="@Model.EmpDisk" />
+            </td>
+            <th>
+                IP地址
+            </th>
+            <td>
+                <input name="EmpIPAddress" style="width:98%;" class="easyui-textbox" value="@Model.EmpIPAddress" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                出生日期
+            </th>
+            <td>
+                <input name="EmpBirthDate" style="width:98%;" class="easyui-datebox" value="@Model.EmpBirthDate.ToString("yyyy-MM-dd")" />
+            </td>
+            <th>
+                主机名
+            </th>
+            <td>
+                <input name="EmpComputer" style="width:98%;" class="easyui-textbox" value="@Model.EmpComputer" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                职务职称
+            </th>
+            <td>
+                <input name="EmpTitle" style="width:98%;" class="easyui-textbox" value="@Model.EmpTitle" />
+            </td>
+            <th>
+                电话
+            </th>
+            <td>
+                <input name="EmpTel" style="width:98%;" class="easyui-textbox" value="@Model.EmpTel" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                Mac地址
+            </th>
+            <td>
+                <input name="EmpMacAddress" style="width:98%;" class="easyui-textbox" value="@Model.EmpMacAddress" />
+            </td>
+            <th>
+                人员部门
+            </th>
+            <td>
+                @BaseData.getBase(new Params()
+           {
+               controlName = "EmpDepID",
+               isRequired = true,
+               engName = "department",
+               width = "98%",
+               ids = Model.EmpDepID.ToString()
+           })
+            </td>
+        </tr>
+        <tr>
+            <th>
+                选择角色
+            </th>
+            <td>
+                @BaseData.getBase(new Params()
+           {
+               controlName = "PermissionEmpValue",
+               engName = "role",
+               isMult = true,
+               width = "98%",
+               ids = ViewBag.IDs
+           })
+            </td>
+
+            <th>
+                所属公司
+            </th>
+            <td>
+                @BaseData.getBase(new Params()
+           {
+               controlName = "CompanyID",
+               engName = "Company",
+               isMult = true,
+               width = "98%",
+               ids = Model.CompanyID.ToString()
+           })
+            </td>
+        </tr>
+    </table>
+}
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+

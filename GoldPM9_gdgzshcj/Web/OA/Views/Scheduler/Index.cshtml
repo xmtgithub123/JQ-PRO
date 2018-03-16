@@ -1,0 +1,217 @@
+﻿<html>
+<head>
+    <link href="@(Url.Content("~/Scripts/dhtmlx/scheduler/dhtmlxscheduler.css"))" rel="stylesheet" />
+    <style type="text/css" media="screen">
+        html, body {
+            margin: 0px;
+            padding: 0px;
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="scheduler_here" class="dhx_cal_container" style='width:100%; height:100%;'>
+        <div class="dhx_cal_navline">
+            <div class="dhx_cal_prev_button">&nbsp;</div>
+            <div class="dhx_cal_next_button">&nbsp;</div>
+            <div class="dhx_cal_today_button"></div>
+            <div class="dhx_cal_date"></div>
+            <div class="dhx_minical_icon" id="dhx_minical_icon" onclick="show_minical()">&nbsp;</div>
+            <div class="dhx_cal_tab" name="day_tab" style="right:204px;"></div>
+            <div class="dhx_cal_tab" name="week_tab" style="right:140px;"></div>
+            <div class="dhx_cal_tab" name="month_tab" style="right:76px;"></div>
+        </div>
+        <div class="dhx_cal_header">
+        </div>
+        <div class="dhx_cal_data">
+        </div>
+    </div>
+</body>
+</html>
+<script type="text/javascript" src="@(Url.Content("~/Scripts/jquery.min.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Scripts/dhtmlx/scheduler/dhtmlxscheduler.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Scripts/dhtmlx/scheduler/ext/dhtmlxscheduler_minical.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Scripts/dhtmlx/scheduler/locale_cn.js"))"></script>
+<script type="text/javascript">
+    window.onload = function () {
+        var step = 15;
+        var tempID = 0;
+        var format = scheduler.date.date_to_str("%H:%i");
+        var isSaved = false;
+        scheduler.config.hour_size_px = (60 / step) * 22;
+        scheduler.templates.hour_scale = function (date) {
+            html = "";
+            var hour = date.getHours();
+            for (var i = 0; i < 60 / step; i++) {
+                if (hour < 8 || hour > 17) {
+                    html += "<div style='height:22px;line-height:22px;background-color:#EFEFEF'>" + format(date) + "</div>";
+                }
+                else {
+                    html += "<div style='height:22px;line-height:22px;'>" + format(date) + "</div>";
+                }
+                date = scheduler.date.add(date, step, "minute");
+            }
+            return html;
+        }
+        scheduler.config.time_step = 15;
+        scheduler.config.details_on_create = true;
+        scheduler.config.details_on_dblclick = true;
+        scheduler.config.xml_date = "%Y-%m-%d %H:%i";
+        var datetimeformat = scheduler.date.date_to_str("%Y-%m-%d %H:%i");
+        scheduler.attachEvent("onEventCreated", function (eventID) {
+            var event = scheduler.getEvent(eventID);
+            if (event == null || eventID > 0) {
+                return false;
+            }
+            scheduler.setEvent(eventID, {
+                start_date: event.start_date,
+                end_date: scheduler.date.add(event.start_date, 30, "minute"),
+                text: event.text
+            });
+            scheduler.updateEvent(eventID);
+        });
+        @*scheduler.attachEvent("onBeforeLightbox", function (eventID) {
+            var params = "?id=" + eventID + "&parentID=@(Request.QueryString["a1b2c3wjpid"])";
+            var isNew = scheduler.getUserData(eventID, "isNew");
+            if (eventID < 0) {
+                var event = scheduler.getEvent(eventID);
+                if (event == null) {
+                    return false;
+                }
+                params += "&startTime=" + datetimeformat(event.start_date) + "&endTime=" + datetimeformat(event.end_date) + "&content=" + encodeURIComponent(event.text);
+            }
+            window.top.JQ.dialog.dialog({
+                title: "新建日程",
+                height: 500,
+                width: 600,
+                url: "@(Url.Action("Edit", "Scheduler",new { @area="OA" }))" + params,
+                onClose: function (datas) {
+                    //如果是新加的，则去掉
+                    if (eventID < 0) {
+                        scheduler.deleteEvent(eventID);
+                    }
+                }
+            });
+            return false;
+        });*@
+        scheduler.showLightbox = function (eventID) {
+            isSaved = false;
+            var params = "?id=" + eventID + "&parentID=@(Request.QueryString["a1b2c3wjpid"])";
+            var isNew = scheduler.getUserData(eventID, "isNew");
+            if (eventID < 0) {
+                var event = scheduler.getEvent(eventID);
+                if (event == null) {
+                    return false;
+                }
+                params += "&startTime=" + datetimeformat(event.start_date) + "&endTime=" + datetimeformat(event.end_date) + "&content=" + encodeURIComponent(event.text);
+            }
+            window.top.JQ.dialog.dialog({
+                title: (eventID < 0 ? "日程 - 新建" : "日程 - 编辑"),
+                height: 500,
+                width: 600,
+                url: "@(Url.Action("Edit", "Scheduler",new { @area="OA" }))" + params,
+                onClose: function (datas) {
+                    //如果是新加的，则去掉
+                    if (eventID < 0) {
+                        scheduler.deleteEvent(eventID);
+                    }
+                    if (!isSaved) {
+                        scheduler.endLightbox(false);
+                    }
+                }
+            });
+            return false;
+        }
+        scheduler.attachEvent("onViewChange", function () {
+            $("#scheduler_here>div.dhx_cal_data")[0].scrollTop = 700;
+            scheduler.load("@(Url.Action("GetData", "Scheduler",new { @area="OA" }))?startTime=" + datetimeformat(scheduler._min_date) + "&endTime=" + datetimeformat(scheduler._max_date), "json", function () {
+                //加载数据完成的事件
+            });
+        });
+        scheduler.templates.event_text = function (start, end, event) {
+            var texts = event.text.split("\n");
+            var div = document.createElement("div");
+            for (var i in texts) {
+                var p = document.createElement("p");
+                p.style.margin = "1px 0px 1px 0px";
+                p.appendChild(document.createTextNode(texts[i]));
+                div.appendChild(p);
+            }
+            return div.innerHTML;
+        }
+        scheduler.attachEvent("onEventChanged", function (id, event) {
+            $.ajax({
+                url: "@Url.Action("SaveData","Scheduler",new { @area="OA" })",
+                type: "POST",
+                data: { id: event.id, startTime: datetimeformat(event.start_date), endTime: datetimeformat(event.end_date), content: event.text },
+                success: function () {
+                }
+            });
+        });
+        scheduler.attachEvent("onEventDeleted", function (id) {
+            deleteSchedulerData(id);
+        });
+        scheduler.uid = function () {
+            return --tempID;
+        }
+        scheduler.init("scheduler_here", new Date("@(DateTime.Now.ToString("yyyy/MM/dd"))"), "week");
+    }
+
+    var afterSchedulerSave = function (data, originalEventID) {
+        if (!data) {
+            return;
+        }
+        isSaved = true;
+        if (originalEventID <= 0) {
+            scheduler.changeEventId(originalEventID, data.ID);
+        }
+        //setTimeout(function () {
+        //    alert(1);
+        //    scheduler.addEvent({
+        //        start_date: "25-08-2016 09:00",
+        //        end_date: "26-08-2016 12:00",
+        //        text: "Meeting",
+        //    });
+        //}, 5000);
+        scheduler.setEvent(data.ID, {
+            start_date: data.start_date,
+            end_date: data.end_date,
+            text: data.Content
+        });
+        scheduler.updateEvent(data.ID);
+    }
+
+    var deleteSchedulerData = function (eventID, isRemove) {
+        if (eventID <= 0) {
+            return;
+        }
+        $.ajax({
+            url: "@Url.Action("DeleteData","Scheduler",new { @area="OA" })",
+            type: "POST",
+            data: { id: eventID },
+            async: false,
+            success: function () {
+                if (isRemove) {
+                    scheduler.deleteEvent(eventID);
+                }
+            }
+        });
+        scheduler.endLightbox(false);
+    }
+
+    function show_minical() {
+        if (scheduler.isCalendarVisible())
+            scheduler.destroyCalendar();
+        else
+            scheduler.renderCalendar({
+                position: "dhx_minical_icon",
+                date: scheduler._date,
+                navigation: true,
+                handler: function (date, calendar) {
+                    scheduler.setCurrentView(date);
+                    scheduler.destroyCalendar()
+                }
+            });
+    }
+</script>

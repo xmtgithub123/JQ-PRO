@@ -1,0 +1,218 @@
+﻿<style type="text/css">
+    #ProjectProgressInfoPlanDiv .tree-file,
+    #ProjectProgressInfoPlanDiv .tree-folder {
+        background-image: none;
+    }
+    #ProjectProgressInfoPlanDiv .fa-folder.text-info,
+    #ProjectProgressInfoPlanDiv .fa-folder-open.text-info {
+        color: #ffb300;
+    }
+
+    .FlowNodeClass td {
+        font-size: 12px !important;
+        height: 20px !important;
+        border: 1px solid #D3D3D3;
+    }
+</style>
+
+<div id="ProjectProgressInfoPlanDiv" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'center',border:false">
+        <div class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'north',border:false" style="border-right-width:1px;border-bottom-width:1px;overflow:hidden">
+                <div style="height:30px;padding:5px 0px;">
+                    <div style="float:left;margin-left:5px;">
+                        <a class="easyui-linkbutton" id="reloadPlans" data-options="iconCls:'fa fa-repeat',plain:true">刷新</a>
+                    </div>
+                    <div style="float:right;margin-right:5px;margin-top:7px;">
+                        节点状态：
+                        <span class="node-example node-status-0-bg">未启动</span>
+                        <span class="node-example node-status-1-bg">已安排</span>
+                        <span class="node-example node-status-2-bg">进行中</span>
+                        <span class="node-example node-status-3-bg">已完成</span>
+                        <span class="node-example node-status-4-bg">已回退</span>
+                    </div>
+                </div>
+            </div>
+            <div data-options="region:'center',border:false" style="border-right-width:1px;">
+                <span id="_desupload_$_1_temp"></span>
+                <table id="ProjectProgressInfoPlan_plans"></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="@(Url.Content("~/Scripts/JQ/DesFlow.js"))" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+    var _enum_Design_NodeType_专业 = @((int)DataModel.NodeType.专业);
+    var _enum_Design_NodeType_设计 = @((int)DataModel.NodeType.设计);
+
+    var _enum_Design_TaskStatus_进行中 = @((int)DBSql.Design.TaskStatus.进行中);
+    var _enum_Design_TaskStatus_已停止 = @((int)DBSql.Design.TaskStatus.已停止);
+
+    var _enum_Design_FlowNodeStatus_未安排 = @((int)DBSql.Design.FlowNodeStatus.未安排);
+    var _enum_Design_FlowNodeStatus_已安排 = @((int)DBSql.Design.FlowNodeStatus.已安排);
+
+    var _enum_Design_TaskLevelType_层级父 = @((int)DBSql.Design.TaskLevelType.层级父);
+
+    var _ProjectProgressInfoPlan_projId = @ViewBag.projId;
+    var _ProjectProgressInfoPlan_taskGroupId = @ViewBag.taskGroupId;
+
+    // 打开模态对话框
+    function ProjectProgressInfoPlan_showModelDialog(title, url, width, height, onclose) {
+        var _ProjectProgressInfoPlan_DialogdivId = JQ.dialog.dialog({
+            title: decodeURIComponent(title),
+            url: url,
+            width: width,
+            height: height,
+            JQID: "",
+            JQLoadingType: "",
+            iconCls: "fa fa-table",
+            onClose: onclose
+        });
+        JQ.Flow.stopBubble();
+
+        // 刷新列表
+        window.top["_DialogCallback_" +_ProjectProgressInfoPlan_DialogdivId] = function () {
+            $("#ProjectProgressInfoPlan_plans", $("#ProjectProgressInfoPlanDiv")).treegrid("reload");
+        }
+    }
+
+    // 初始化附件列表
+    function ProjectProgressInfoPlanInit() {
+        //$.extend($.fn.treegrid.defaults.view, {
+        //    onAfterRender: function (target) {
+        //        if (target.id == "ProjectProgressInfoPlan_plans") {
+        //            var roots = $(target).treegrid("getRoots");
+        //            if (roots.length > 0) {
+        //                $.each(roots, function (i, e) {
+        //                    if (e.TaskLevelType > 1) {
+        //                        $(target).treegrid("update", { id: e.Id, row: { iconCls: "fa-folder" } });
+        //                    }
+        //                    //判断是否子节点
+        //                    var Chiledroots = $(target).treegrid("getChildren", e.Id);
+        //                    if (Chiledroots.length > 1) {
+        //                        $.each(Chiledroots, function (ic, ec) {
+        //                            if (ec.TaskLevelType > 1) {
+        //                                $(target).treegrid("update", { id: ec.Id, row: { iconCls: "fa-folder" } });
+        //                            }
+        //                        })
+        //                    }
+        //                });
+        //            }
+        //        }
+        //    }
+        //});
+
+        $("#ProjectProgressInfoPlan_plans", $("#ProjectProgressInfoPlanDiv")).treegrid({
+            idField: 'Id',
+            treeField: 'TaskName',
+            border: 0,
+            fit: true,
+            lines: true,
+            //animate: true,
+            selectOnCheck: false,
+            checkOnSelect: false,
+            singleSelect: true,
+            ctrlSelect: false,
+            url: '@Url.Action("ProjectProgressInfoPlanGetListJson")?projId=' + _ProjectProgressInfoPlan_projId + '&taskGroupId=' + _ProjectProgressInfoPlan_taskGroupId,
+            rownumbers: false,
+            //frozenColumns: [[  ]],
+            columns: [[
+                {title: 'ID', field: 'Id', width: 50, align: 'center', formatter:function (value,row,index) {
+                    return (row.Id <= 0 || row.TaskType == 1) ? "" : row.Id;
+                }},
+                { title: '任务名称', field: 'TaskName', align: 'left',halign:'center',formatter:function (value,row,index) {
+                    var TaskName="";
+                    row._groupName = "";
+                    if (row.TaskLevelType > 1) {
+                        if (row.Id < 0) {
+                            row._groupName = ProjectProgressInfoPlan_createTaskPathText(row); //保存分组名称，用于批量下载时创建对应的分组文件夹
+                            TaskName="<strong>"+row._groupName+"</strong>";
+                        } else {
+                            TaskName="<strong>"+row.TaskName+"</strong>";
+                        }
+                    }else {
+                        TaskName="<div>"+value+"</a>";
+                        TaskName+="</div>";
+                    }
+                    return TaskName;
+                }},
+                { title: '负责人', field: 'TaskEmpName', width: 80, align: 'center',halign:'center' },
+                { title: '人员安排', field: '12', width: 400, align: 'left',halign:'center',formatter:function (value,row,index) {
+                    return "<div class=\"swipe\"><div empPlan rootId='"+row.Id+"' specId='"+row.TaskSpecId+"' class='approve-progress' remark='0'></div></div>";
+                } },
+                { title: '计划开始', field: 'DatePlanStart', width: 80, align: 'center',halign:'center',formatter:JQ.tools.DateTimeFormatterByT },
+                { title: '计划完成', field: 'DatePlanFinish', width: 80, align: 'center',halign:'center',formatter:JQ.tools.DateTimeFormatterByT },
+                //{ title: '操作', field: '123', width: 145, align: 'left',halign:'center' ,formatter:function (value,row,index) {
+                //    var btnHtml="<a rootId='"+row.Id+"' specId='"+row.TaskSpecId+"' remark='0' btn  onclick=\"SpecDel('"+row.TaskSpecId+"','"+row.Id+"')\"  class=\"easyui-linkbutton\">删除</a> ";
+                //    if (row.Id>0) {
+                //        btnHtml+="<a rootId='"+row.Id+"' specId='"+row.TaskSpecId+"' remark='0' btnEdit  onclick=\"return GetTask('"+row.TaskSpecId+"','"+row.Id+"')\"  class=\"easyui-linkbutton\">查看</a> ";
+                //    }
+                //    return btnHtml;
+                //} },
+                { title: '父任务', field: 'TaskNextFlowNodeId', width: 60, align: 'center', formatter:function (value,row,index) {
+                    return (row.TaskNextFlowNodeId <= 0 || row.TaskType == 1) ? "" : row.TaskNextFlowNodeId;
+                }},
+                { title: '备注', field: 'TaskNote', width: 150, align: 'center'}
+            ]],
+            onLoadSuccess:function (row,data) {
+                if (data.total > 0) {
+
+                    // 统一数据的分组
+                    Enumerable.From(data.rows).Where("x => x._parentId == 0").ForEach(function(x,index) {
+                        Enumerable.From(data.rows).Where("s => s._parentId != 0 && s.TaskGroupId == {0}".format(x.TaskGroupId)).ForEach(function(s){
+                            s._groupName = x._groupName;
+                        });
+                    });
+
+                    $.each(data.rows,function (i,e) {
+                        var jsonNode = [];
+                        if (e.TaskFlowModelJson!="") {
+                            jsonNode=JSON.parse(e.TaskFlowModelJson).root.item;
+                            if (e.TaskType == 0) {
+                                var $table=$("div[empPlan][rootId='"+e.Id+"']", $("#ProjectProgressInfoPlanDiv"));
+                                if (e.TaskFlowModelJson!="") {
+                                    JQ.DesFlow.show({
+                                        Ctl:$table,
+                                        FlowData:jsonNode,
+                                        setNode: false
+                                    });
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+        });
+            
+
+        // 刷新文件列表
+        $("#reloadPlans", $("#ProjectProgressInfoPlanDiv")).click(function () {
+            //_dialogClose = false;
+            $("#ProjectProgressInfoPlan_plans", $("#ProjectProgressInfoPlanDiv")).treegrid("reload");
+        });
+    }
+
+    // 获取任务路径（纯文本）
+    function ProjectProgressInfoPlan_createTaskPathText(row) {
+        var jsonItemPath1 = row.GroupPathJson;
+
+        var separator = "<i class='fa fa-caret-right' style='margin: 0 5px;'></i>"; //＞
+        var arrItemPath1 = JSON.parse(jsonItemPath1);
+
+        var path1 = (Enumerable.From(arrItemPath1).OrderBy("x=>x.rownum").Select(function (x) { return x.text; }).ToArray());
+        var path = [];
+        if (path1 != undefined && path1 != null) {
+            path.push(path1.join(separator));
+        }
+
+        return path.join(separator);
+    }
+
+    $(function () {
+        // 初始化附件列表
+        ProjectProgressInfoPlanInit();
+    });
+</script>

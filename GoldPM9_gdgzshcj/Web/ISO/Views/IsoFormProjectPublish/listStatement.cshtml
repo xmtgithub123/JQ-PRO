@@ -1,0 +1,131 @@
+﻿@using JQ.Web;
+
+<script type="text/javascript">
+    var requestUrl = '@Url.Action("GetJsonStateMentList", "IsoFormProjectPublish", new { @area = "Iso" })';
+  
+        loadData();
+     
+    function loadData() {
+        var initColumns;
+        initColumns = [[], []];
+        initColumns[0].push({ title: "流水号", field: 'redJianSuoHao', colspan: 1, rowspan: 2, halign: "center", align: "left", width: "8%" });
+        initColumns[0].push({ title: "出版公司", field: 'JiLuWaiWeiGongSiName', colspan: 1, rowspan: 2, halign: "center", align: "left", width: "12%" });
+        initColumns[0].push({ title: "项目名称", field: 'redEngName', colspan: 1, rowspan: 2, halign: "center", align: "left", width: "14%" });
+        initColumns[0].push({ title: "项目检索号", field: 'redEngJianSuoHao', colspan: 1, rowspan: 2, halign: "center", align: "left", width: "8%" });
+
+        initColumns[0].push({ title: "晒图", colspan: 5, rowspan: 1 });
+        initColumns[0].push({ title: "复印", colspan: 3, rowspan: 1 });
+        initColumns[0].push({ title: "(打字)A4", field: 'stZheSuanZhangShu', colspan: 1, rowspan: 2, width: "5%", halign: "center", align: "center", });
+        initColumns[0].push({ title: "装订本数", field: 'fyBenNumber', colspan: 1, rowspan: 2, halign: "center", align: "center", width: "5%" });
+        initColumns[0].push({ title: "费用小计", field: 'JiLuFeiYongHeSuan', colspan: 1, rowspan: 2, halign: "center", align: "right", width: "7%" });
+
+        initColumns[1].push({ field: 'stA0Number', title: 'A0', width: "5%", halign: "center", align: "center", });
+        initColumns[1].push({ field: 'stA1Number', title: 'A1', width: "5%", halign: "center", align: "center", });
+        initColumns[1].push({ field: 'stA2Number', title: 'A2', width: "5%", halign: "center", align: "center", });
+        initColumns[1].push({ field: 'stA4Number', title: 'A3', width: "5%", halign: "center", align: "center", });
+        initColumns[1].push({ field: 'stA1Number', title: 'A4', width: "5%", halign: "center", align: "center", });
+
+        initColumns[1].push({ field: 'fyA2Number', title: 'A2', width: "5%", halign: "center", align: "center", });
+        initColumns[1].push({ field: 'fyA3Number', title: 'A3', width: "5%", halign: "center", align: "center", });
+        initColumns[1].push({ field: 'fyA4Number', title: 'A4', width: "5%", halign: "center", align: "center", });
+
+
+        JQ.datagrid.datagrid({
+            //JQButtonTypes: ['moreSearch'],//需要显示的按钮  'export',
+            //JQAddUrl: addUrl, //添加的路径
+            //JQEditUrl: editUrl,//编辑的路径
+            //JQDelUrl: delUrl, //删除的路径
+            JQPrimaryID: 'FormID',//主键的字段
+            JQID: 'IsoFormProjectPublishGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQFields: ["FormID"],//追加的字段名
+            url: requestUrl,//请求的地址
+            checkOnSelect: true,//是否包含check
+            //JQExcludeCol: [1, 10, 11, 12],//导出execl排除的列
+            toolbar: '#IsoFormProjectPublishPanel',//工具栏的容器ID
+            singleSelect: true,
+            columns: initColumns
+        });
+    }
+
+
+    //JQ.datagrid.datagrid({
+    //    JQButtonTypes: ['moreSearch'],//需要显示的按钮  'export',
+    //    //JQAddUrl: addUrl, //添加的路径
+    //    //JQEditUrl: editUrl,//编辑的路径
+    //    //JQDelUrl: delUrl, //删除的路径
+    //    JQPrimaryID: 'FormID',//主键的字段
+    //    JQID: 'IsoFormProjectPublishGrid',//数据表格ID
+    //    JQDialogTitle: '信息',//弹出窗体标题
+    //    JQWidth: '1024',//弹出窗体宽
+    //    JQHeight: '100%',//弹出窗体高
+    //    JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+    //    JQFields: ["FormID"],//追加的字段名
+    //    url: requestUrl,//请求的地址
+    //    checkOnSelect: true,//是否包含check
+    //    //JQExcludeCol: [1, 10, 11, 12],//导出execl排除的列
+    //    toolbar: '#IsoFormProjectPublishPanel',//工具栏的容器ID
+    //    singleSelect: true,
+    //    columns: [[
+    //          //{ field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+    //          { title: '流水号', field: 'redJianSuoHao', width: "8%", align: 'left', sortable: true, rowspan: 2 },
+    //          { title: '出版公司', field: 'JiLuWaiWeiGongSiName', width: "12%", align: 'left', sortable: true, rowspan: 2 },
+    //          { title: '工程名称', field: 'redEngName', width: "14%", align: 'left', sortable: true, rowspan: 2 },
+    //          { title: '工程检索号', field: 'redEngJianSuoHao', width: "10%", align: 'left', sortable: true, rowspan: 2 },
+    //          { title: '晒图', field: 'st', width: '25%', align: 'center', colspan: 5 },
+    //          { title: '复印', field: 'fy', width: '15%', align: 'center', colspan: 3 },
+    //    { title: '(打字)A4', field: 'stZheSuanZhangShu', width: "5%", align: 'left', sortable: true, rowspan: 2 },
+    //          { title: '装订本数', field: 'fyBenNumber', width: "5%", align: 'left', sortable: true, rowspan: 2 },
+    //          { title: '费用小计', field: 'JiLuFeiYongHeSuan', width: "5%", align: 'left', sortable: true, rowspan: 2 }],
+
+    //          [{ title: 'A0', field: 'stA0Number', width: "5%", align: 'left', sortable: true },
+    //          { title: 'A1', field: 'stA1Number', width: "5%", align: 'left', sortable: true },
+    //          { title: 'A2', field: 'stA2Number', width: "5%", align: 'left', sortable: true },
+    //          { title: 'A3', field: 'stA3Number', width: "5%", align: 'left', sortable: true },
+    //          { title: 'A4', field: 'stA4Number', width: "5%", align: 'left', sortable: true },
+    //          { title: 'A2', field: 'fyA2Number', width: "5%", align: 'left', sortable: true },
+    //          { title: 'A3', field: 'fyA3Number', width: "5%", align: 'left', sortable: true },
+    //          { title: 'A4', field: 'fyA4Number', width: "5%", align: 'left', sortable: true }]
+
+    //          //{
+    //          //    field: "opt", title: "查看", align: "center", halign: "center", width: "60px", formatter: function (value, row, index) {
+    //          //        return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"Show('" + row.FormID + "')\">查看</>";
+    //          //    }
+    //          //}
+    //    ]
+    //});
+
+
+    $("#JQSearch").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '流水号、项目名称、项目检索号',
+        onClickButton: function () {
+            JQ.datagrid.searchGrid(
+                {
+                    dgID: 'IsoFormProjectPublishGrid',
+                    loadingType: 'datagrid'
+                });
+        }
+    });
+
+</script>
+
+<table id="IsoFormProjectPublishGrid"></table>
+<div id="IsoFormProjectPublishPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+    <span jqpanel="toolbarPanel">
+    </span>
+    <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key: 'txtLike', 'Contract': 'like' }" />
+    @*<div class="moreSearchPanel">*@
+        @*登记时间
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validtype="dateISO" jqwhereoptions="{ Key:'ColAttDate1S', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validtype="dateISO" jqwhereoptions="{ Key:'ColAttDate1E', Contract:'<=',filedType:'Date' }">&nbsp;*@
+    @*</div>*@
+</div>
+
+

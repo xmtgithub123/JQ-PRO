@@ -1,0 +1,605 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.BussBiddingInfo
+
+@section head {
+    <style type="text/css">
+        .aui-btn {
+            padding: 10px 15px;
+            font-size: 13px;
+        }
+
+        .aui-btn-row:after {
+            border: 0;
+        }
+
+        .jq-text-disabled {
+            color: #898787;
+            width: 98%;
+            pointer-events: none;
+            background-color: #efefef !important;
+            border: 0;
+            font-size: 13px;
+        }
+
+        .set-disabled {
+            pointer-events: none !important
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .aui-input-hook {
+            line-height: 34px;
+            text-align: left;
+            padding-left: 20px;
+            background: #efefef;
+        }
+
+        .aui-display-hook {
+            display: none;
+            width: 30%;
+            float: right;
+            font-size: 13px;
+            line-height: 33px;
+            margin-right: 6px;
+            padding: 3px 6px;
+        }
+
+        .aui-input-width {
+            width: 98%;
+        }
+
+        .hiddenShow {
+            height: 0;
+        }
+
+        .aui-input-row label.aui-input-addon {
+            min-width: 90px;
+        }
+
+        .set-selected-icon select {
+            float: right;
+            margin-right: 5px;
+            border: 0;
+            margin-bottom: 0;
+        }
+
+        .set-selected-icon i {
+            position: absolute;
+            right: 25px;
+            top: 15px;
+        }
+        /*.aui-input-row input, .aui-input-row select, .set-selected-icon .aui-input-addon {
+            color: #9e9e9e;
+        }*/
+
+        .aui-input-row-position {
+            position: relative;
+            display: table;
+            padding: 6px 0;
+        }
+
+        .aui-input-row label.aui-input-addon {
+            font-size: 14px;
+        }
+
+        .error-border {
+            border: 1px solid red !important;
+        }
+    </style>
+}
+
+@section Body_Content{
+    <div class="aui-content" style="overflow-x:hidden">
+        <form id="BussBiddingInfoForm" class="aui-form">
+            <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+            @Html.DropDownList("Items")
+            <input type="hidden" id="CompanyType" name="CompanyType" value="SJ" />
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;投标编号</label>
+                <input name="BiddingNumber" id="BiddingNumber" type="text" class="aui-input" value="@Model.BiddingNumber" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目名称</label>
+                <div class="aui-input-block" id="EngineeringNameText">@Model.EngineeringName</div>
+                <input name="EngineeringName" id="EngineeringName" type="hidden" class="aui-input" value="@Model.EngineeringName" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;招标单位</label>
+                <input name="BiddingCustomerID" id="BiddingCustomerID" type="hidden" class="aui-input" />
+                <div class="aui-input-block" id="CustNameText">@(Model.CustName == "" ? "" : Model.CustName.ToString())</div>
+                <input name="CustName" id="CustName" type="hidden" class="aui-input" value="@(Model.CustName==""?"":Model.CustName.ToString())" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;招标代理</label>
+                <div class="aui-input-block" id="ZBDLText">@Model.ZBDL</div>
+                <input name="ZBDL" id="ZBDL" type="hidden" class="aui-input" value="@Model.ZBDL" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;报名时间</label>
+                <input name="EntryTime" id="EntryTime" type="date" class="aui-input" value="@(ViewBag.EntryTime)" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;开标日期</label>
+                <input name="BiddingOpeningTime" id="BiddingOpeningTime" type="date" class="aui-input" value="@(ViewBag.BiddingOpeningTime)" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;开标地点</label>
+                <div class="aui-input-block" id="KBAddressText">@Model.KBAddress</div>
+                <input name="KBAddress" id="KBAddress" type="hidden" class="aui-input" value="@Model.KBAddress" />
+            </div>
+            <div class="aui-input-row set-selected-icon">
+                <label class="aui-input-addon">&nbsp;&nbsp;等级</label>
+                <input type="hidden" id="BiddingBatch_i" value="@Model.BiddingBatch" />
+                @BaseData.getBaseSelect(new Params()
+           {
+               controlName = "BiddingBatch",
+               isRequired = true,
+               engName = "TBLevel",
+               width = "90%",
+               ids = Model.BiddingBatch.ToString()
+           })
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;投标保证金</label>
+                <select id="IsTemporary" name="IsTemporary" class="aui-input" style="width:30%;" value="@Model.IsTemporary">
+                    <option value="0">否</option>
+                    <option value="1">是</option>
+                </select>
+            </div>
+            <div id="bzs">
+                <div class="aui-input-row">
+                    <label class="aui-input-addon">&nbsp;&nbsp;保证金金额</label>
+                    <input name="TemporaryMoney" id="TemporaryMoney" type="number" class="aui-input" value="@Model.TemporaryMoney" />
+                </div>
+                <div class="aui-input-row">
+                    <label class="aui-input-addon">&nbsp;&nbsp;保证金是否退回</label>
+                    <select id="TemporaryIsBack" name="TemporaryIsBack" class="aui-input" style="width:30%;" value="@Model.TemporaryIsBack">
+                        <option value="0">否</option>
+                        <option value="1">是</option>
+                    </select>
+                </div>
+            </div>
+            <div id="bzs1">
+                <div class="aui-input-row">
+                    <label class="aui-input-addon">&nbsp;&nbsp;保证金退还日期</label>
+                    <input name="ReturnDate" id="ReturnDate" type="text" class="aui-input" value="@Model.ReturnDate.ToString("yyyy-MM-dd")" />
+                </div>
+            </div>
+
+            <div class="aui-input-row set-selected-icon">
+                <label class="aui-input-addon">&nbsp;&nbsp;投标状态</label>
+                <input type="hidden" id="BidStatus_i" value="@Model.BidStatus" />
+                @BaseData.getBaseSelect(new Params()
+           {
+               controlName = "BidStatus",
+               isRequired = true,
+               engName = "BiddingProgress",
+               width = "90%",
+               ids = Model.BidStatus.ToString()
+           })
+                <i class="aui-input-addon aui-iconfont aui-icon-rounddown"></i>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;状态时间</label>
+                <input name="BidStatusTime" id="BidStatusTime" type="date" class="aui-input" value="@(ViewBag.BidStatusTime)" />
+            </div>
+            <div class="aui-input-row set-selected-icon" id="BiddingDept">
+                <label class="aui-input-addon">&nbsp;&nbsp;主办部门</label>
+                <div class="aui-input-block" id="EmpDepIDNameText" style="width:63%;display:inline-block;">@Model.BiddingDeptName</div>
+                <input type="hidden" id="EmpDepIDName" name="EmpDepIDName" class="aui-input" value="@Model.BiddingDeptName" />
+                <input type="hidden" id="BiddingDeptName" name="BiddingDeptName" class="aui-input" value="@Model.BiddingDeptName" />
+                <input type="hidden" id="EmpDepID" value="@Model.BiddingDeptId" />
+                <input type="button" id="EmpDepBtn" namne="EmpDepBtn" class="aui-btn aui-btn-block aui-btn-success p-0" value="选择部门" style="width:32%;float:right;margin-right:8px;" onclick="SetDepartmentBegin('EmpDepID',1);" />
+            </div>
+            <div class="aui-input-row set-selected-icon">
+                <label class="aui-input-addon">&nbsp;&nbsp;协办部门</label>
+                <div class="aui-input-block" id="CoOrganizerNameText" style="width:63%;display:inline-block;">@Model.CoOrganizerName</div>
+                <input type="hidden" id="CoOrganizerName" name="CoOrganizerName" class="aui-input" value="@Model.CoOrganizerName" />
+                <input type="hidden" id="CoOrganizer" value="@Model.CoOrganizer" />
+                <input type="button" id="CoOrganizerBtn" namne="CoOrganizerBtn" class="aui-btn aui-btn-block aui-btn-success p-0" value="选择部门" style="width:32%;float:right;margin-right:8px;" onclick="SetDepartmentBegin('CoOrganizer',1);" />
+                @*@BaseData.getBaseSelect(new Params()
+                    {
+                        controlName = "CoOrganizer",
+                        isRequired = true,
+                        engName = "department",
+                        width = "90%",
+                        ids = Model.CoOrganizer.ToString()
+                    })*@
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目负责人</label>
+                <input name="ProjManager" id="ProjManager" type="text" class="aui-input" value="@Model.ProjManager" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;商务联系人</label>
+                <input name="Delegator" id="Delegator" type="hidden" class="aui-input" value="@Model.Delegator" />
+                <input name="DelegatorName" id="DelegatorName" type="hidden" class="aui-input" value="@ViewBag.DelegatorName" style="width:60%;" />
+                <div class="aui-input-block" id="DelegatorNameText" style="width:63%;display:inline-block;">@ViewBag.DelegatorName</div>
+                <input type="button" id="DelegatorBtn" namne="DelegatorBtn" class="aui-btn aui-btn-block aui-btn-success p-0" value="选择人员" style="width:32%;float:right;margin-right:8px;" onclick="SetSelectInfoBegin('Delegator',0);" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;技术联系人</label>
+                <input name="BiddingManageID" id="BiddingManageID" type="hidden" class="aui-input" value="@Model.BiddingManageID" />
+                <input name="BinddingMangeName" id="BinddingMangeName" type="hidden" class="aui-input" value="@ViewBag.BinddingMangeName" style="width:60%;" />
+                <input name="BiddingManageIDName" id="BiddingManageIDName" type="hidden" class="aui-input" value="@ViewBag.BinddingMangeName" style="width:60%;" />
+                <div class="aui-input-block" id="BinddingMangeNameText" style="width:63%;display:inline-block;">@ViewBag.BinddingMangeName</div>
+                <input type="button" id="BinddingMangeBtn" namne="BinddingMangeBtn" class="aui-btn aui-btn-block aui-btn-success p-0" value="选择人员" style="width:32%;float:right;margin-right:8px;" onclick="SetSelectInfoBegin('BiddingManageID',0);" />
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered" id="ProjPhaseGrid" style="font-size:12px;">
+                    <thead>
+                        <tr>
+                            <th>
+                                <div class="checkAll">
+                                    <input type="checkbox" name="name" value="" />
+                                </div>
+                            </th>
+                            <th>联合体</th>
+                            <th>联系人</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gridList" style="font-size:12px;"></tbody>
+                </table>
+            </div>
+            <!--模板-->
+            <script id="listTpl" type="text/x-dot-template">
+                {{~it:appendDataInfoData:index}}
+                <tr id="tr_{{=index}}">
+
+                    <td>
+                        <div class="checkbox" style="margin:0">
+                            <input type="checkbox" name="subBox" value="" />
+                        </div>
+                    </td>
+                    <td>
+                        <input type="hidden" name="name" value="{{=appendDataInfoData.id}}" />
+                        {{=appendDataInfoData.LHT}}
+                    </td>
+                    <td>
+                        {{=appendDataInfoData.LXR}}
+                    </td>
+                </tr>
+                {{~}}
+            </script>
+
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;信息来源</label>
+                @Html.TextAreaFor(model => Model.BiddingSourse, new { @style = "width:98%;height:80px" })
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;备注</label>
+                @Html.TextAreaFor(model => Model.BiddingNote, new { @style = "width:98%;height:80px" })
+            </div>
+            <input type="hidden" id="LHTTable" name="LHTTable" />
+            @*<div class="aui-input-row">
+                    <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+                </div>*@
+
+        </form>
+    </div>
+
+
+    <script type="text/javascript">
+        //信息来源
+        var JsonData;
+
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                //initFormBegin(JSON.stringify({
+                //    "Result": true,
+                //    "Message": null,
+                //    "NodeName": "发起审批",
+                //    //"AllowEditControls": "ProjNumber;ProjName;ProjEmpId;ProjTypeID;ColAttType2;ProjAreaID;ColAttType1;ProjPropertyID;ProjVoltID;TaskBasisName;TaskBasisNumber;CustName;ProjTaskSource;ProjDepId;ProjJoinDepIds;CreatorEmpName;DateCreate;DatePlanStart;DatePlanFinish;ProjTaskSource;ProjFeeSource;DatePlanDeliver;ProjDemand;ProjNoteOther;btnAddUnit;btnRemoveUnit;UploadFile1;btnChoice;btnInput;ProjPhaseGrid{ProjNumber,ProjName,ProjEmpId,ProjTypeID,DatePlanStart,DatePlanFinish,ProjPhaseIds,ProjFee,ProjDemand,ProjNoteOther,ProjVoltID,ColAttType3,ColAttVal3,ColAttVal4,ColAttVal5,ProjPhaseInfo};ColAttType4;ProjTaskContent;ProjCostGrid{ModelTempFee,ModelFactFee};btnImportUnit;btnDownImportExcel;CustID;CustLinkId;CustLinkTel;CustLinkWeb;ColAttVal1",
+                //    "SignControls": "",
+                //    "AllowEditControls":"{}"
+
+                //}));
+                //initFormBegin();
+            }
+
+        })
+
+        //替换字符
+        function replaceData(str) {
+            re = new RegExp("&quot;", "g");
+            var newstart = str.replace(re, '"');
+            return newstart;
+        }
+        //表单初始化
+        function initFormBegin(params) {
+
+
+            // 保证金额为2位小数
+            //$('#TemporaryMoney').change(function (e) {
+            //    if ($(this).val() == '') {
+            //        $(this).val('0.00')
+            //    }
+            //    else {
+            //        var money = $(this).val();
+            //        //var moneyValue = Math.round(money * Math.pow(10, 1)) / Math.pow(10, 1);
+            //        $(this).val(parseFloat(money).toFixed(2))
+            //    }
+               
+            //})
+
+
+            $("input[type='number']").change(function () {
+                var res = /^[0-9]+.?[0-9]*$/;
+                if (!res.test($("input[type='number']").val())) {
+                    $.alert('请输入数字')
+                    $("input[type='number']").val('');
+                }
+                else {
+                    var TemporaryMoneyValue = parseFloat($('#TemporaryMoney').val());
+                    $('#TemporaryMoney').val(TemporaryMoneyValue.toFixed(2));
+                }
+            })
+
+            var TemporaryMoneyValue = parseFloat($('#TemporaryMoney').val());
+            $('#TemporaryMoney').val(TemporaryMoneyValue.toFixed(2));
+
+            $("#Items").hide();
+            params = params.replace(/[\r\n]/g, "");//去除换行
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls
+                .replace('Delegator', 'DelegatorBtn')
+                .replace('BiddingManageID', 'BinddingMangeBtn')
+                .replace('EmpDepID', 'EmpDepBtn')
+                .replace('CoOrganizer','CoOrganizerBtn')
+
+           var isBZJ='@Model.IsTemporary';
+                if (isBZJ == "0") {
+                    $("#bzs").hide();
+                    $("#bzs1").hide();
+                }
+                else {
+                    $("#bzs").show();
+                    $("#bzs1").show();
+                }
+                $('#IsTemporary').change(function () {
+                    var selectValue = $('#IsTemporary option:selected').val();
+                    console.log(selectValue)
+                    if (selectValue == "0") {
+                        $("#bzs").hide();
+                        $("#bzs1").hide();
+                    }
+                    else {
+                        $("#bzs").show();
+                        $("#bzs1").show();
+                    }
+                })
+            var data = replaceData('@Model.LHTTable');
+           // console.log(data)
+            JsonData = JSON.parse(data);
+
+            var appendDataInfoData = JSON.parse(data).rows;
+            console.log(appendDataInfoData)
+            if (appendDataInfoData.length > 0) {
+                var interText = doT.template($("#listTpl").text())
+                $("#gridList").html(interText(appendDataInfoData));
+            }
+            else {
+                console.log('暂无数据')
+            }
+
+
+         $('#BiddingBatch').val($('#BiddingBatch_i').val()); //等级
+         $('#BidStatus').val($('#BidStatus_i').val());//投标状态
+
+         //$('#EmpDepID').val($('#EmpDepID_i').val());//主办部门
+         //$('#CoOrganizer').val($('#CoOrganizer_i').val());//协办部门
+         $('#IsTemporary').val(@Model.IsTemporary)
+         $('#TemporaryIsBack').val(@Model.TemporaryIsBack)
+
+         //清除时间审批时，默认为1900-01-01改为空
+         var EntryTime = $('#EntryTime').val(); //报名时间
+         var BiddingOpeningTime = $('#BiddingOpeningTime').val(); //开标日期
+         var ReturnDate = $('#ReturnDate').val(); //保证金退还日期
+         var BidStatusTime = $('#BidStatusTime').val(); //状态时间
+
+         if (EntryTime == '1900-01-01') {
+             $('#EntryTime').val('');
+         }
+         if (BiddingOpeningTime == '1900-01-01') {
+             $('#BiddingOpeningTime').val('');
+         }
+         if (ReturnDate == '1900-01-01') {
+             $('#ReturnDate').val('');
+         }
+         if (BidStatusTime == '1900-01-01') {
+             $('#BidStatusTime').val('');
+         }
+
+         //信息来源，替换换行符
+         var BiddingSourseValue = $('#BiddingSourse').val();
+         BiddingSourseValue = BiddingSourseValue.replace(/[\r\n]/g, "")
+         $('#BiddingSourse').val(BiddingSourseValue);
+
+         //备注，替换换行符
+         var BiddingNoteValue = $('#BiddingNote').val();
+         BiddingNoteValue = BiddingNoteValue.replace(/[\r\n]/g, "")
+         $('#BiddingNote').val(BiddingNoteValue);
+
+        //设置表单不可编辑样式及只读
+         $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+         DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('BussBiddingInfoForm'));
+
+         if (paramsObj.AllowEditControls == "{}") {
+             $('#CustNameText,#EngineeringNameText,#ZBDLText,#KBAddressText').removeClass('aui-input-block').addClass('aui-input-edit')
+             $('#BiddingSourse,#BiddingNote').removeClass('jq-text-disabled').addClass('aui-input')
+             $("#BiddingSourse,#BiddingNote").css({
+                 overflow: 'auto',
+
+             })
+         }
+         else {
+             $('#CustNameText,#EngineeringNameText,#ZBDLText,#KBAddressText').removeClass('aui-input-edit').addClass('aui-input-block')
+             $('#BiddingSourse,#BiddingNote').removeClass('jq-text-disabled').attr("readonly", "readonly").addClass('aui-input')
+             $("#BiddingSourse,#BiddingNote").css({
+                 overflow: 'auto',
+                 background: '#efefef',
+                 color: '#898787'
+             })
+         }
+
+
+        //告诉移动端页面初始完完毕
+        if (window.JinQuMobile) {
+            window.JinQuMobile.FormEnd();
+        }
+    }
+     /*----------------------------------------------------------------------------------------------*/
+    //表单验证交互
+     function validateFormBegin() {
+         var formVali = $('#BussBiddingInfoForm').validate({
+             rules: {
+                 EngineeringName: 'required', //项目名称
+                 BiddingBatch: 'required', //等级
+                 BiddingSourse: {
+                     required: false,
+                     maxlength: 500
+                 },
+                 BiddingNote: {
+                     required: false,
+                     maxlength: 500
+                 },
+                 BiddingNumber: 'required'
+             },
+             messages: {
+                 EngineeringName: '请输入项目名称',
+                 BiddingBatch: '请输入等级',
+                 BiddingSourse: {
+                     maxlength: '内容长度必须介于0-500之间'
+                 },
+                 BiddingNote: {
+                     maxlength: '内容长度必须介于0-500之间'
+                 },
+                 BiddingNumber: '请输入投标编号'
+             }
+         });
+
+         $('#LHTTable').val(JSON.stringify(JsonData))
+         // 项目名称
+         //$('#EngineeringName').val($('#EngineeringNameText').text());
+         // 招标代理
+         $('#ZBDL').val($('#ZBDLText').text());
+         // 开标地点
+         $('#KBAddress').val($('#KBAddressText').text());
+
+         // 保证金额不能为非数字或者负数
+         var temporaryMoney = $('#TemporaryMoney').val();
+         if (temporaryMoney < 0 || !temporaryMoney) {
+             $.alert('保证金额不能为非数字或者负数！')
+             return false;
+         }
+
+         isValidate = formVali.form();
+         if (isValidate) {
+             var formData = DomUtil.serialize(document.getElementById('BussBiddingInfoForm'));//json or =&
+             console.log(formData)
+             //告诉移动端页面初始完完毕
+             if (window.JinQuMobile) {
+                 window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+             }
+         }
+     }
+
+     /*----------------------------------------------------------------------------------------------*/
+     //不走验证流程
+     function noValidateFormBegin(params) {
+         $('#LHTTable').val(JSON.stringify(JsonData))
+         // 项目名称
+        // $('#EngineeringName').val($('#EngineeringNameText').text());
+         // 招标代理
+         $('#ZBDL').val($('#ZBDLText').text());
+         // 开标地点
+         $('#KBAddress').val($('#KBAddressText').text());
+         var formData = DomUtil.serialize(document.getElementById('BussBiddingInfoForm'));//json or =&
+         //告诉移动端页面验证完毕
+         if (window.JinQuMobile) {
+             window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+         }
+     }
+        //选择部门
+        function SetDepartmentBegin(IdName,n) {
+            // 1. 取页面已有人员信息
+           // alert(IdName + n)
+            var selemp = {
+                IdName: IdName,
+                ids: $('#' + IdName).val(),
+                names: $('#' + IdName + 'Name').val(),
+                isSingleSelect:n   //0：单选   1：多选
+            }
+            if (window.JinQuMobile) {
+                window.JinQuMobile.DepartmentBegin(JSON.stringify(selemp), 'SetSelectInfoEnd');
+            }
+        }
+
+        //联系人
+        function SetSelectInfoBegin(IdName,n) {
+            // 1. 取页面已有人员信息
+            var selemp = {
+                IdName: IdName,
+                ids: $('#' + IdName).val(),
+                names: $('#' + IdName + 'Name').val(),
+                isSingleSelect: n   //0：单选   1：多选
+            }
+            if (window.JinQuMobile) {
+                window.JinQuMobile.EmpSelectBegin(JSON.stringify(selemp), 'SetSelectInfoEnd');
+            }
+
+        }
+        //选择人员与部门共用的回调处理
+        function SetSelectInfoEnd(emp) {
+            //alert(emp)
+            emp = JSON.parse(emp);
+            var empRows = emp.rows;
+            var idName = emp.IdName;
+            var dataPushNameValue = [], dataPushIDValue = [];
+            for (var i = 0; i < empRows.length; i++) {
+                dataPushNameValue.push(empRows[i].names)
+                dataPushIDValue.push(empRows[i].ids)
+            }
+            if (idName == 'EmpDepID') {
+                $('#EmpDepID').val(dataPushIDValue);
+                $('#BiddingDeptName,#EmpDepIDName').val(dataPushNameValue);
+                $('#EmpDepIDNameText').text(dataPushNameValue);
+            }
+            if (idName == 'CoOrganizer') {
+                $('#CoOrganizer').val(dataPushIDValue);
+                $('#CoOrganizerName').val(dataPushNameValue);
+                $('#CoOrganizerNameText').text(dataPushNameValue);
+
+            }
+            if (emp.IdName == 'Delegator') {
+                $('#Delegator').val(dataPushIDValue);
+                $('#DelegatorName').val(dataPushNameValue);
+                $('#DelegatorNameText').text(dataPushNameValue);
+            }
+            if (emp.IdName == 'BiddingManageID') {
+                $('#BiddingManageID').val(dataPushIDValue);
+                $('#BiddingManageIDName,#BinddingMangeName').val(dataPushNameValue);
+                $('#BinddingMangeNameText').text(dataPushNameValue)
+            }
+        }
+
+
+    </script>
+}

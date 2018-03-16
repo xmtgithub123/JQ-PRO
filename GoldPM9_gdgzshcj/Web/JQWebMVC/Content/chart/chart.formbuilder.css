@@ -1,0 +1,44 @@
+﻿
+
+.y_auto_table {
+    table-layout: fixed;
+    box-sizing: border-box;
+    border-collapse: collapse;
+    position: relative;
+}
+
+    .y_auto_table tr td {
+        border: 1px solid #444444;
+        padding: 0px;
+        overflow: hidden;
+        cursor: text;
+        word-break: break-all;
+        word-wrap: break-word;
+    }
+
+        .y_auto_table tr td:focus {
+            outline: none;
+        }
+
+
+.form_widget {
+    cursor: default;
+    float: left;
+    padding: 0px 6px 0px 6px;
+    height: 30px;
+    line-height: 28px;
+    margin: 3px 3px 0px 3px;
+    border: 1px solid transparent;
+    width: 94px;
+    color: #666666;
+    text-align: left;
+    box-sizing: border-box;
+    -webkit-user-select: none;
+}
+
+    .form_widget:hover {
+        background-color: #FFFFFF;
+        color: #494949;
+        border: 1px solid #E5E5E5;
+        border-radius: 5px;
+    }

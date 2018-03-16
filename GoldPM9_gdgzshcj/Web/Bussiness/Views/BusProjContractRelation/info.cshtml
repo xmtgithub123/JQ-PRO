@@ -1,0 +1,73 @@
+﻿@model DataModel.Models.BusProjContractRelation
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'BusProjContractRelationForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.treegrid.autoReftreegrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }
+        });
+    });
+</script>
+@using (Html.BeginForm("save", "BusProjContractRelation", FormMethod.Post, new { @area = "Bussiness", @id = "BusProjContractRelationForm" }))
+{
+    @Html.HiddenFor(m => m.ID)
+    <table class="table table-bordered">
+	 
+                        <tr>
+                        <th width="10%">项目ID</th>
+                        <td width="40%">
+						  @BaseData.getBase(new Params()
+           {
+               controlName = "ProjID",
+               isRequired = true,
+               engName = "department",
+               width = "98%",
+               ids = Model.ProjID.ToString()
+           })
+                        </td>
+                        <th width="10%">合同ID</th>
+                        <td width="40%">
+						  @BaseData.getBase(new Params()
+           {
+               controlName = "ConID",
+               isRequired = true,
+               engName = "department",
+               width = "98%",
+               ids = Model.ConID.ToString()
+           })
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">合同金额</th>
+                        <td width="40%">
+						<input name="ConFee" style="width:98%;" class="easyui-numberspinner"   validType="length[0,18]" value="@Model.ConFee" />
+                        </td>
+                        <th width="10%">关联表ID</th>
+                        <td width="40%">
+						<input name="FormTableID" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.FormTableID" />
+                        </td>
+                        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @Html.Action("uploadFile", "usercontrol", new
+           {
+               @area = "Core",
+               AttachRefID = Model.ID,
+               AttachRefTable = "BusProjContractRelation"
+           })
+            </td>
+        </tr>
+    </table>
+	
+}
+
+
+

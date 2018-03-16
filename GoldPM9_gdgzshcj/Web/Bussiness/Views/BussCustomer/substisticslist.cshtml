@@ -1,0 +1,123 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            var startTime = $("#startTime").textbox('getValue');
+            var endTime = $("#endTime").textbox('getValue');
+            var ConSubStatus = $("#ConSubStatus").combotree('getValue');
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export', 'moreSearch'],//需要显示的按钮
+                // JQAddUrl: '@Url.Action("add")',//添加的路径
+                //JQEditUrl: '@Url.Action("edit")',//编辑的路径
+                //JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussCustomerStatiGrid',//数据表格ID
+                JQWidth: '900',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                //JQCustomSearch: [  //自定义搜索的字段
+                //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+                //],
+                JQExcludeCol: [1],//导出execl排除的列
+                //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+                //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+                //JQFields: ["", ""],//追加的字段名
+                url: '@Url.Action("SubStatisticsListjson", "BussCustomer",new { @area="Bussiness"})',//请求的地址
+                checkOnSelect: true,//是否包含check
+                fit: true,
+                toolbar: '#BussCustomerStatiPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                 // { title: '编号', field: 'Id', width: 120, align: 'center', sortable: true },
+
+        { title: '顾客名称', field: 'CustName', width: '60%', align: 'center', sortable: true },
+
+                 {
+                     field: 'Num', title: '合同个数', align: 'center', width: '18%',
+                     formatter: function (value, row) {
+                         return '<a class="easyui-linkbutton" onclick="DialogN(' + row.Id + ')" href="#" style="line-height:22px;">' + row.Num + '</a>';
+                     }
+
+                 },
+                 {
+                     field: 'Fee', title: '合同价格汇总（元）', align: 'center', width: '18%',
+                     formatter: function (value, row) {
+                         return '<a class="easyui-linkbutton" onclick=DialogN(' + row.Id + ')  href="#" style="line-height:22px;">' + row.Fee + '</a>';
+                     }
+                 }
+
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '顾客名称',
+                queryOptions: { Key: 'CustName', Contract: 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BussCustomerStatiGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                startTime: $("#startTime").textbox('getValue'),
+                                endTime: $("#endTime").textbox('getValue'),
+                                ConSubStatus: $("#ConSubStatus").combotree('getValue')
+                            }
+                        });
+                }
+            });
+        });
+
+        function getMathNo() {
+            var d = new Date();
+            var sp = "";
+            var month = d.getMonth() + 1;
+            var strDate = d.getDate();
+            if (month >= 1 && month <= 9) {
+                month = "0" + month;
+            }
+            if (strDate >= 0 && strDate <= 9) {
+                strDate = "0" + strDate;
+            }
+            var math = Math.floor(Math.random() * (1000000 + 1));
+            var cd = d.getHours() + sp + d.getMinutes() + sp + d.getSeconds() + sp + d.getMilliseconds();
+            return math + sp + cd;
+        };
+        function DialogN(id) {
+            window.top.addTab('付款合同信息', '@Url.Action("list", "BussContractSub")?ConSubCustId=' + id)
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+}
+
+@section Body_Content{
+    <table id="BussCustomerStatiGrid"></table>
+    <div id="BussCustomerStatiPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'CustName', Contract:'like'}" />
+
+        <div class="moreSearchPanel">
+            外委合同签订时间:&nbsp;&nbsp;
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'">
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            外委合同状态：
+            @BaseData.getBases(new Params() { isMult = false, engName = "ConSubStatus" })
+            &nbsp;&nbsp;&nbsp;&nbsp;
+            外委单位性质
+            @BaseData.getBases( new Params() { isMult = false, engName = "SubCustType" })
+        </div>
+
+
+    </div>
+}
+

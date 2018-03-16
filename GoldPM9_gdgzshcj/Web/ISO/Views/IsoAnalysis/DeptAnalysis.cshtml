@@ -1,0 +1,123 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+
+@section head {
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+    <script type="text/javascript">
+
+        var requestUrl = '@Url.Action("DeptAnalysisJSON", "IsoAnalysis", new { @area="ISO"})';
+
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQIsSearch: true,
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'tableGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQExcludeCol: [0],//导出execl排除的列
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#tablePanel',//工具栏的容器ID
+                JQExcludeCol: [1],
+                JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                  { title: '部门', field: 'DeptName', width: 120, align: 'left', sortable: true },
+	              {
+	                  title: '卷册总数', field: 'Num', width: 80, align: 'left', sortable: true, formatter: function (value, row, index) {
+	                      return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"InfoListView('" + row.Ids + "')\">" + value + "</>";
+	                  }
+	              },
+                  {
+                      title: '优秀', field: 'T_5', width: 80, align: 'center', sortable: true
+                  },
+                  {
+                      title: '良好', field: 'T_4', width: 80, align: 'center', sortable: true
+                  },
+                  {
+                      title: '一般', field: 'T_3', width: 80, align: 'center', sortable: true
+                  },
+                  {
+                      title: '较差', field: 'T_2', width: 80, align: 'center', sortable: true
+                  },
+                  {
+                      title: '很差', field: 'T_1', width: 80, align: 'center', sortable: true
+                  },
+                  {
+                      title: '原则性错误', field: 'T_59', width: 80, align: 'center', sortable: true
+                  },
+                  {
+                      title: '技术性差错', field: 'T_60', width: 80, align: 'center', sortable: true
+                  },
+                  {
+                      title: '一般性差错', field: 'T_61', width: 80, align: 'center', sortable: true
+                  },
+                  {
+                      title: '建议', field: 'T_97', width: 80, align: 'center', sortable: true
+                  }
+                ]]
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                height: 25,
+                prompt: '错误描述',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'tableGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+
+        function InfoListView(Ids) {
+            window.parent.document.getElementById("AnalysisIds").value = Ids;
+            JQ.dialog.dialog({
+                title: "卷册明细",
+                url: '@Url.Action("InfoList")',
+                width: '1024',
+                height: '100%',
+                JQID: 'DeptAnalysisGrid',
+                JQLoadingType: 'treegrid',
+                iconCls: 'fa fa-list-alt'
+            });
+        }
+        function SearchButton() {
+            JQ.datagrid.searchGrid(
+                      {
+                          dgID: 'tableGrid',
+                          loadingType: 'datagrid',
+                          queryParams: null
+                      });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="tableGrid"></table>
+    <div id="tablePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+        </span>
+       
+        <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+         <select id="isStartSearch" class="easyui-combobox" JQWhereOptions="[{ Key:'StatisticsPeriodType', Contract:'in',filedType:'Int'}]">
+            <option value="0">全部</option>
+            <option value="1">最近一个月</option>
+            <option value="2">最近一个季度</option>
+            <option value="3">最近半年</option>
+            <option value="4">最近一年</option>
+        </select>
+        <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-search'" onclick="SearchButton()">筛选</a>
+
+     
+    </div>
+}

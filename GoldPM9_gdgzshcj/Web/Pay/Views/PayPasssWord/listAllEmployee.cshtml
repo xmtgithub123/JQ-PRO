@@ -1,0 +1,82 @@
+﻿@using JQ.Web;
+
+
+<script type="text/javascript">
+    var requestUrl = '@Url.Action("json", "PayPasssWord", new { @area = "Pay" })';
+
+    //数据表格
+    JQ.datagrid.datagrid({
+        //JQAddUrl: addUrl,//添加的路径
+        //JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+        //JQEditUrl: editUrl,//编辑的路径
+        //OnJQEditClick: {//同上
+        //    JQField: ['EmpName'], JQCollBack: function () {
+        //        return [{ key: 'name', val: '1' }];
+        //    }
+        //},
+        //JQButtonTypes: [  'edit'],//需要显示的按钮
+        JQPrimaryID: 'EmpID',//主键的字段
+        JQID: 'tt',//数据表格ID
+        JQDialogTitle: '用户信息',//弹出窗体标题
+        JQWidth: '760',//弹出窗体宽
+        JQHeight: '100%',//弹出窗体高
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+        JQCustomSearch: [  //自定义搜索的字段
+            //{ value: 'EmpDepID', key: '人员部门', type: 'combox', engname: 'department' },//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+            //{ value: 'EmpLogin', key: '用户名' },
+            //{ value: 'EmpName', key: '姓名' }
+        ],
+        //JQExcludeCol: [1, 4, 10],//导出execl排除的列
+        JQFields: ["EmpID"],//追加的字段名
+        JQSearch: {
+            id: 'fullNameSearch',
+            prompt: '姓名',
+            loadingType: 'datagrid',//默认值为datagrid可以不传
+            $panel: $("#tb")//搜索的容器，可以不传
+        },
+        url: requestUrl,//请求的地址
+        checkOnSelect: false,//是否包含check
+        toolbar: '#tb',//工具栏的容器ID
+        columns: [[
+          { title: '姓名', field: 'EmpName', width: "15%", align: 'center', sortable: true },
+          { title: '用户名', field: 'EmpLogin', width: "15%", align: 'center', sortable: true },
+          { title: '所属部门', field: 'DepartmentName', width: "18%", align: 'center', sortable: true },//, JQIsExclude: true
+          { title: '管理人员系数', field: 'PayManageCoeff', width: "15%", align: 'right', sortable: true },
+          { title: '技能系数', field: 'PaySkillCoeff', width: "15%", align: 'right', sortable: true },
+             {
+                 title: '操作', field: 'opr', width: "20%", align: 'center',
+                 formatter: function (value, row) {
+                     return '<a  coeff class="easyui-linkbutton"   onclick="Coeff(' + row.EmpID + ')">系数配置</a>';
+                 }
+             }
+        ]]
+        ,
+        onLoadSuccess: function (row, data) {
+            $("a[coeff]").linkbutton({ iconCls: 'fa fa-edit' });
+        }
+    });
+
+    function Coeff(KeyId) {
+        JQ.dialog.dialog({
+            title: "绩效系数配置",
+            url: '@Url.Action("Coeff")' + '?id=' + KeyId,
+            width: '400',
+            height: '300',
+            JQID: 'tt',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-plus'
+        });
+    }
+
+</script>
+
+<table id="tt"></table>
+<div id="tb" style="padding:5px;height:auto;">
+    <span jqpanel="toolbarPanel">
+    </span>
+    <input id="fullNameSearch" value="" style="width:250px;" jqwhereoptions="{ Key: 'EmpName', 'Contract': 'like' }" />
+</div>
+
+
+
+

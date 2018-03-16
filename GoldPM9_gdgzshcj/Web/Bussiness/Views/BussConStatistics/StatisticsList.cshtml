@@ -1,0 +1,108 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+
+@section head {
+<script type="text/javascript" src="@Url.Content("~/Scripts/jquery.pivotgrid.js")"></script>
+<script type="text/javascript" src="@Url.Content("~/Scripts/JSTableToExcel.js")"></script>
+    <script type="text/javascript">
+        $(function () {
+            Load('','','','');
+            var exportPermission = '@ViewBag.exportPermission';
+            if(exportPermission=="0")
+            {
+                $("#Export").hide();
+            }
+
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '',
+                onClickButton: function () {
+                    //$('#ConStatistic').pivotgrid('reload');
+                    var isF = $('#ConIsFeeFinished').combobox('getValue');
+                    var isQ = $('#isQ').combobox('getValue');
+                    var startTime = $('#startTime').datebox('getText');
+                    var endTime = $('#endTime').datebox('getText');
+                    Load(isF,isQ,startTime,endTime);
+                }
+            });
+        });
+        function Load(isF,isQ,startT,endT) {
+            $('#ConStatistic').pivotgrid({
+                url:'@Url.Action("StatisticsListJson", "BussConStatistics")?isF='+isF + '&isQ=' + isQ + '&startT=' + startT+'&endT='+endT ,
+                method: 'post',
+                async: false,
+                pivot: {
+                    rows: ['年份', '月份'],
+                    columns: ['公司', '合同类型'],
+                    values: [
+                        { field: '合同个数', op: 'sum' },
+						{ field: '合同金额', op: 'sum' },
+						{ field: '结算金额', op: 'sum' },
+                        { field: '收款金额', op: 'sum' },
+						{ field: '开票额', op: 'sum' }
+
+                    ]
+                },
+                forzenColumnTitle: '<span style="font-weight:bold;">合同统计表</span>',
+                valuePrecision: 4,
+                valueFieldWidth: 70,
+                i18n: {
+                    fields: '字段',
+                    filters: '筛选条件',
+                    rows: '行',
+                    columns: '列',
+                    values: '统计数据列',
+                    ok: '确定',
+                    cancel: '取消'
+                },
+                valueFormatter:function(val)
+                {
+                    if(this.field.indexOf("合同个数")>=0)
+                    {
+                        return parseInt(val);//将合同的个数设置成整数
+                    }
+                    debugger
+                    if (this.field.indexOf("额") >= 0) {
+                        return parseFloat(val).toFixed(2);//将合同的个数设置成整数
+                    }
+                    return val;
+                }
+            })
+        }
+
+
+        //function SetLayOut()
+        //{
+        //    $('#ConStatistic').pivotgrid('layout');
+        //}
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <span style="margin-left:10px;line-height:35px;">
+        @*<a class="easyui-linkbutton" data-options="iconCls:'fa fa-cogs'" onclick="SetLayOut();">高级查询</a>*@
+        <a id="Export" class="easyui-linkbutton" data-options="iconCls:'fa fa-file-o'" onclick="Export('ConStatistic', '合同统计');">导出</a>
+        <select name="ConIsFeeFinished" id="ConIsFeeFinished" class="easyui-combobox" editable="false" style='font-size:12px;' JQWhereOptions="{ Key:'ConIsFeeFinished', Contract:'=',filedType:'Int' }">
+            <option value=''>请选择结算状态</option>
+            <option value='0'>未结清</option>
+            <option value='1'>已结清</option>
+        </select>
+        <select name="isQ" id="isQ" class="easyui-combobox" editable="false" style='font-size:12px;' JQWhereOptions="{ Key:'ConIsFeeFinished', Contract:'=',filedType:'Int' }">
+            <option value=''>请选择合同状态</option>
+            <option value='0'>未签</option>
+            <option value='1'>已签</option>
+        </select>
+        <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期开始'" JQWhereOptions="{ Key:'ConDate', Contract:'>=',filedType:'Date' }">
+        至
+        <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期结束'" JQWhereOptions="{ Key:'ConDate', Contract:'<=',filedType:'Date' }">&nbsp;
+        <input id="JQSearch" style="width:250px;" />
+    </span>
+    <table id="ConStatistic" style="width:100%;height:auto;"></table>
+}
+

@@ -1,0 +1,445 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.IsoDesignReturn
+
+@section head {
+    <style type="text/css">
+    .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+    .p-15{
+        padding:15px;
+    }
+
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+    .aui-input-check-disable {
+        font-size: 12px !important;
+        font-weight: normal !important;
+    }
+
+    .aui-input-check-disable label {
+        line-height: 45px;
+        margin-right: 15px;
+    }
+
+        .aui-input-check-disable input[type="checkbox"], .aui-input-check-disable input[type="radio"] {
+            width: auto;
+            margin: 0 5px 0 0;
+            line-height: 45px;
+        }
+</style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="IsoDesignReturnForm" class="aui-form">
+            <div class="p-15">
+               表 <label>@Model.TableNumber</label><input type="hidden" name="TableNumber" value="@Model.TableNumber" />
+                <br />编号 <input id="Number" name="Number" type="text" class="aui-input" style="display:inline;min-width: 60px;max-width: 60%;border: 1px solid #dbdbdb; border-radius: 6px;padding: 3px 6px;margin:0 3px;text-align:center;" validType="length[0,200]" value="@Model.Number" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目编号</label>
+                <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+                <input name="ProjNumber" id="ProjNumber" type="hidden" class="aui-input" value="@Model.ProjNumber" style="width:60%;margin-right:15px;text-overflow: ellipsis;" />
+                <div class="aui-input-block">@Model.ProjNumber</div>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目名称</label>
+                <input type="hidden" id="ProjId" name="ProjId" value="@Model.ProjId" />
+                <input type="hidden" id="CheckValue" name="CheckValue" />
+                <input type="hidden" id="CheckValue1" name="CheckValue1" />
+                <input type="hidden" name="ProjPhaseId" id="ProjPhaseId" value="@Model.ProjPhaseId" />
+                <input type="hidden" name="ProjPhaseName" id="ProjPhaseName" value="@Model.ProjPhaseName" />
+                <input name="ProjName" id="ProjName" type="hidden" class="aui-input" value="@Model.ProjName" />
+                <div class="aui-input-block">@Model.ProjName</div>
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp;回访时间</label>
+                <input type="date" id="ReturnDate" name="ReturnDate" class="aui-input" value="@Model.ReturnDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp;回访对象</label>
+                <input type="text" id="ReturnPerson" name="ReturnPerson" class="aui-input" value="@Model.ReturnPerson" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp;组织部门</label>
+                <div class="aui-input-block">@Model.OrganizeDepart</div>
+                <input type="hidden" id="OrganizeDepart" name="OrganizeDepart" class="aui-input" value="@Model.OrganizeDepart" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp;参与人</label>
+                <div class="aui-input-block">@Model.Participant</div>
+                <input type="hidden" id="Participant" name="Participant" class="aui-input" value="@Model.Participant" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;内容：</label>
+                <textarea rows="6" name="Text" id="Text" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.Text</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;需解决的问题<br/>&nbsp;&nbsp;及责任部门：</label>
+                <textarea rows="6" name="Unresolved" id="Unresolved" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.Unresolved</textarea>
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 问题是否解决</label>
+                <div id="FHYQ">
+                    <label>
+                        <input type="radio" name="Resolved" id="FHYQ1" style="vertical-align:middle;" />
+                        是
+                    </label>
+
+                    <label>
+                        <input type="radio" name="Resolved" id="FHYQ2" style="vertical-align:middle;" />
+                        否
+                    </label>
+                </div>
+                
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp; 是否通知顾客</label>
+                <div id="FHYQ">
+                    <label>
+                        <input type="radio" name="Response" id="FHYQ3" style="vertical-align:middle;" />
+                        是
+                    </label>
+
+                    <label>
+                        <input type="radio" name="Response" id="FHYQ4" style="vertical-align:middle;" />
+                        否
+                    </label>
+                </div>
+                
+                <input type="hidden" id="IsResolved" name="IsResolved" value="@Model.IsResolved" />
+                <input type="hidden" id="IsResponse" name="IsResponse" value="@Model.IsResponse" />
+            </div>
+
+
+
+
+
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+    </div>
+    <script type="text/javascript">
+
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                //initFormBegin(JSON.stringify({
+                //    "Result": true,
+                //    "Message": null,
+                //    "NodeName": null,
+                //    "SignControls": null,
+                //    "AllowEditControls": "{}"
+                //}));
+            }
+         })
+
+        //页面初始化
+        function initFormBegin(params) {
+          //  alert("@Model.IsResolved")
+            console.log(@Model.IsResolved)
+            if(@Model.IsResolved == 1){
+                document.getElementById('FHYQ1').checked = true;
+                $('#CheckValue').val('☑   否□');
+            }
+            else if(@Model.IsResolved == 2){
+                document.getElementById('FHYQ2').checked = true;
+                $('#CheckValue').val('□   否☑');
+            }
+            else
+                $('#CheckValue').val('□   否□');
+
+            if(@Model.IsResponse == 1){
+                document.getElementById('FHYQ3').checked = true;
+                $('#CheckValue1').val('☑   否□');
+            }
+            else if(@Model.IsResponse == 2){
+                document.getElementById('FHYQ4').checked = true;
+                $('#CheckValue1').val('□   否☑');
+            }
+            else
+                $('#CheckValue1').val('□   否□');
+            //清除时间，默认为1900-01-01改为空
+            var ReturnDate = $('#ReturnDate').val(); //回访时间
+
+            if ((ReturnDate == '1900-01-01')) {
+                $('#ReturnDate').val('');
+            }
+
+            //去除换行
+            //alert(window.location.href)
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+
+
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+
+            //清除时间审批时，默认为1900-01-01改为空
+            var PlanFinishTime = $('#PlanFinishTime').val();;
+            if ((PlanFinishTime == '1900-01-01')) {
+                $('#PlanFinishTime').val('');
+            }
+            //清除设计评审时机，默认为1900-01-01改为空
+            var ReviewTime = $('#ReviewTime').val();;
+            if ((ReviewTime == '1900-01-01')) {
+                $('#ReviewTime').val('');
+            }
+
+
+
+             //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('IsoDesignReturnForm'));
+
+            //需解决的问题及责任部门，替换换行符
+            var UnresolvedValue = $('#Unresolved').val();
+            UnresolvedValue = UnresolvedValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#Unresolved').val(UnresolvedValue);
+
+
+            //内容，替换换行符
+            var TextValue = $('#Text').val();
+            TextValue = TextValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#Text').val(TextValue);
+
+
+            if (((paramsObj.AllowEditControls).indexOf('Unresolved')) != -1) {
+                $("#Unresolved").removeClass('jq-text-disabled')
+                $("#Unresolved").css({
+                    overflow: 'auto',
+                })
+            }
+            if (paramsObj.AllowEditControls == "{}") {
+
+                $("#Text").removeClass('jq-text-disabled')
+                $("#Text").css({
+                    overflow: 'auto',
+                })
+            }
+            else {
+                $('#Text').removeClass('jq-text-disabled').attr("readonly", "readonly")
+                $("#Text").css({
+                    overflow: 'auto',
+                    background: '#efefef',
+                    color: '#898787'
+                })
+
+            }
+
+            if (((paramsObj.AllowEditControls).indexOf('FHYQ1')) != -1) {
+                $('input[type="checkbox"]').removeAttr('disabled');
+                $('input[type="radio"]').removeAttr('disabled');
+            }
+            else {
+                $('input[type="checkbox"]').attr("disabled", "disabled");
+                $('input[type="radio"]').attr("disabled", "disabled");
+            }
+
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+
+        //选中控件，隐藏控件，id，name，是否单选
+        function Checked(ckControl, hidCon, value, isOnlyName) {
+            //debugger;
+            if ($("#" + ckControl).attr("checked")) {
+                if (isOnlyName != undefined) {
+                    $(':checkbox[name=' + isOnlyName + ']').removeAttr('checked');
+                    $("#" + ckControl).attr('checked', 'checked');
+                }
+                var cId = ckControl.split('Q')[1];
+                if (Number(value) == 1) {
+                    if (Number(cId) < 3)
+                        $('#CheckValue').val('☑   否□');
+                    else
+                        $('#CheckValue1').val('☑   否□');
+                }
+                else if (Number(value) == 2) {
+                    if (Number(cId) < 3)
+                        $('#CheckValue').val('□   否☑');
+                    else
+                        $('#CheckValue1').val('□   否☑');
+                }
+
+                $("#" + hidCon).val(value);
+            } else {
+                $("#" + hidCon).val("");
+            }
+        }
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#IsoDesignReturnForm').validate({
+                rules: {
+
+                    ProjectName: 'required',//项目名称
+                    ColAttVal2:'required',//变更原因
+                    ModifyContent: { //修改内容
+                        required: false,
+                        maxlength: 500
+                    },
+                    FormNote: { // 监理单位意见
+                        required: false,
+                        maxlength: 500
+                    }
+                },
+                messages: {
+
+                    ProjectName: '请输入项目名称 ',
+                    ColAttVal2:'请输入变更原因',
+                    ModifyContent: {
+                        maxlength: '内容长度必须介于0-500之间'
+                    },
+                    FormNote: {
+                        maxlength: '内容长度必须介于0-500之间'
+                    }
+                }
+            });
+            //if ($('#ProjName').val() == '') {
+            //    $.alert('请选择项目！')
+            //    return false;
+            //}
+            isValidate = formVali.form();
+            if (isValidate) {
+
+                var valA = '';
+                var valAarr = [];
+                $("[name='Resolved']:checked").each(function (index, element) {
+                    //console.log($(this).attr('id'));
+                    var checkId = $(this).attr('id');
+                    if (checkId == 'FHYQ1') {
+                        $('#CheckValue').val('☑   否□');
+                        $('#IsResolved').val(1);
+                    }
+                    else if (checkId == 'FHYQ2'){
+                        $('#CheckValue').val('□   否☑');
+                        $('#IsResolved').val(2);
+                    }
+                });
+                $("[name='Response']:checked").each(function (index, element) {
+                    //console.log($(this).attr('id'));
+                    var checkId = $(this).attr('id');
+                    if (checkId == 'FHYQ3') {
+                        $('#CheckValue1').val('☑   否□');
+                        $('#IsResponse').val(1);
+                    }
+                    else if (checkId == 'FHYQ4'){
+                        $('#CheckValue1').val('□   否☑');
+                        $('#IsResponse').val(2);
+                    }
+                    else {
+                        $('#CheckValue1').val('□   否□');
+                    }
+                });
+
+
+
+                var formData = DomUtil.serialize(document.getElementById('IsoDesignReturnForm'));//json or =&
+                //console.log(formData)
+                //alert(JSON.stringify(formData))
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+            var formData = DomUtil.serialize(document.getElementById('IsoDesignReturnForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+    </script>
+}

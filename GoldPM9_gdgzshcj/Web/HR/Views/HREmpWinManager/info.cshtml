@@ -1,0 +1,76 @@
+﻿@model DataModel.Models.HREmpWinManager
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'HREmpWinManagerForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+
+    function SelectEmp() {
+        JQ.dialog.dialog({
+            title: "选择人员",
+            url: '@Url.Action("selectHREmp", "HREmployee", "Hr")',
+            width: '1024',
+            height: '100%',
+            iconCls: 'fa fa-plus',
+        });
+    }
+
+    var _SureEmp = function (row) {
+        $("#AptitudeEmpName").textbox("setValue", row.EmpName);
+        $("#AptitudeEmpId").val(row.Id);
+    }
+
+</script>
+@using (Html.BeginForm("save", "HREmpWinManager", FormMethod.Post, new { @area = "HR", @id = "HREmpWinManagerForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+
+        <tr>
+            <th width="10%">奖项名称</th>
+            <td colspan="3">
+                <input name="AptitudeName" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,50]" value="@Model.AptitudeName" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">获奖时间</th>
+            <td width="40%">
+                <input name="RegisterTime" style="width:98%;" class="easyui-datebox" validType="length[0,23]" value="@Model.RegisterTime" />
+            </td>
+            <th width="10%">获奖人员</th>
+            <td width="40%">
+                <input type="text" id="AptitudeEmpName" name="AptitudeEmpName" class="easyui-textbox" data-options="required:true,readonly:true" validType="length[0,50]" value="@Model.AptitudeEmpName" />
+                <input id="AptitudeEmpId" name="AptitudeEmpId" type="hidden" value="@Model.AptitudeEmpId" />
+                <a class="easyui-linkbutton" name="btnChoice" id="btnChoice" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="SelectEmp()">选择人员</a>
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">备注</th>
+            <td colspan="3">
+                <input name="Remark" style="width:98%;height:80px;" class="easyui-textbox" validType="length[0,500]" data-options="multiline:true" value="@Model.Remark" />
+            </td>
+        </tr>
+
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "HREmpWinManager";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+}

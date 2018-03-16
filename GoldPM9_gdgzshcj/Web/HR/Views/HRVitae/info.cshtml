@@ -1,0 +1,103 @@
+﻿@model DataModel.Models.HRVitae
+@using JQ.Web
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'HRVitaeForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+
+    function SelectEmp() {
+        JQ.dialog.dialog({
+            title: "选择人员",
+            url: '@Url.Action("selectHREmp", "HREmployee", "Hr")',
+            width: '1024',
+            height: '100%',
+            iconCls: 'fa fa-plus',
+        });
+    }
+
+    var _SureEmp = function (row) {
+        $("#EmpName").textbox("setValue", row.EmpName);
+        $("#EmpID").val(row.Id);
+    }
+</script>
+@using (Html.BeginForm("save", "HRVitae", FormMethod.Post, new { @area = "Hr", @id = "HRVitaeForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">
+                员工
+            </th>
+            <td width="40%">
+                <input type="text" id="EmpName" name="EmpName" class="easyui-textbox" data-options="required:true,readonly:true" validType="length[0,50]" value="@ViewBag.EmpName" />
+                <input id="EmpID" name="EmpID" type="hidden" value="@Model.EmpID" />
+                <a class="easyui-linkbutton" name="btnChoice" id="btnChoice" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="SelectEmp()">选择人员</a>
+            </td>
+            <th width="10%">
+                原单位
+            </th>
+            <td width="40%">
+                <input name="OldCom" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.OldCom" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                原部门
+            </th>
+            <td width="40%">
+                <input name="OldDep" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.OldDep" />
+            </td>
+            <th width="10%">
+                原职位
+            </th>
+            <td width="40%">
+                <input name="OldPost" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.OldPost" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                开始日期
+            </th>
+            <td width="40%">
+                <input name="StarDate" style="width:98%;" class="easyui-datebox" validType="length[0,20]" value="@Model.StarDate" />
+            </td>
+            <th width="10%">
+                结束日期
+            </th>
+            <td width="40%">
+                <input name="EndDate" style="width:98%;" class="easyui-datebox" validType="length[0,20]" value="@Model.EndDate" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                备注
+            </th>
+            <td width="40%" colspan="3">
+                <textarea name="Note" style="width:90%;height:100px;font-size:12px;" validType="length[0,500]">@Model.Note</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "HRVitae";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+	
+}
+
+
+

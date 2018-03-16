@@ -1,0 +1,73 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "IsoFormNode",new { @area="Iso"})',
+            addUrl = '@Url.Action("add","IsoFormNode",new {@area="Iso" })',
+            editUrl = '@Url.Action("edit", "IsoFormNode",new {@area="Iso" })',
+            delUrl = '@Url.Action("del", "IsoFormNode", new { @area = "Iso" })';
+        $(function () {
+            JQ.treegrid.treegrid({
+                JQButtonTypes: ['add', 'edit','del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'IsoFormNodeGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["FormID"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#IsoFormNodePanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+				  		{ title: '自增', field: 'FormID', width: 100, align: 'center', sortable: true  },		{ title: '调整节点ID', field: 'RefID', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展类别', field: 'ColAttType1', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展类别', field: 'ColAttType2', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展值', field: 'ColAttVal1', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展值2', field: 'ColAttVal2', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展值', field: 'ColAttVal3', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展值', field: 'ColAttVal4', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展值', field: 'ColAttVal5', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展时间1', field: 'ColAttDate1', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '扩展时间2', field: 'ColAttDate2', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '扩展时间3', field: 'ColAttDate3', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+                 { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'IsoFormNode' }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '筛选字段',
+                queryOptions: { 'Key': 'ColAttVal1', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.treegrid.searchGrid(
+                        {
+                            dgID: 'IsoFormNodeGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoFormNodeGrid"></table>
+    <div id="IsoFormNodePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            
+        </span>
+
+        <input id="JQSearch" style="width:250px;" />
+
+    </div>
+}
+

@@ -1,0 +1,72 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "OaBBS",new { @area="Oa"})',
+            addUrl = '@Url.Action("add","OaBBS",new {@area="Oa" })',
+            editUrl = '@Url.Action("edit", "OaBBS",new {@area="Oa" })',
+            delUrl = '@Url.Action("del", "OaBBS", new { @area = "Oa" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit','del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaBBSGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+				JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '筛选字段',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+				fitColumns: false,
+                nowrap: false,
+                toolbar: '#OaBBSPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+				  		{ title: '自增ID', field: 'Id', width: 100, align: 'center', sortable: true  },
+		{ title: '类别', field: 'BbsTypeID', width: 100, align: 'center', sortable: true  },		{ title: '标题', field: 'BbsTitle', width: 100, align: 'center', sortable: true  },
+		{ title: '父节点(BBS主题BBSID)', field: 'BbsParentID', width: 100, align: 'center', sortable: true  },
+		{ title: 'bbs内容或bbs回复内容', field: 'BbsNote', width: 100, align: 'center', sortable: true  },
+		{ title: 'IP地址', field: 'BbsIP', width: 100, align: 'center', sortable: true  },
+		{ title: '是否删除', field: 'BbsIsDeleted', width: 100, align: 'center', sortable: true  },
+		{ title: '查看次数', field: 'BbsClickedCount', width: 100, align: 'center', sortable: true  },
+		{ title: '最后修改时间', field: 'LastModificationTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '最后修改人ID', field: 'LastModifierEmpId', width: 100, align: 'center', sortable: true  },
+		{ title: '最后修改人姓名', field: 'LastModifierEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '创建时间', field: 'CreationTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '创建人ID', field: 'CreatorEmpId', width: 100, align: 'center', sortable: true  },
+		{ title: '创建人姓名', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '创建部门', field: 'CreatorDepId', width: 100, align: 'center', sortable: true  },
+		{ title: '创建部门姓名', field: 'CreatorDepName', width: 100, align: 'center', sortable: true  },
+		{ title: '删除人员', field: 'DeleterEmpId', width: 100, align: 'center', sortable: true  },
+		{ title: '删除人员姓名', field: 'DeleterEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '删除日期', field: 'DeletionTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+                 { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'OaBBS' }
+                ]]
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaBBSGrid"></table>
+    <div id="OaBBSPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            
+        </span>
+
+        <input id="JQSearch" style="width:250px;"  JQWhereOptions="{ 'Key': 'BbsTitle', 'Contract': 'like' }"/>
+
+    </div>
+}
+

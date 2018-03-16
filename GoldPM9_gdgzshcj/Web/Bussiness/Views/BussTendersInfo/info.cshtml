@@ -1,0 +1,429 @@
+﻿@model DataModel.Models.BussTendersInfo
+@using JQ.Web;
+<script type="text/javascript">
+    var x=0;
+    var requestUrl = '@Url.Action("GetCustomerList", "BussCustomer", new { @area= "Bussiness" })';
+    var _flowInstance=null;
+    $(function () {
+        $("#Items").hide();
+        JQ.form.submitInit({
+            formid: 'BussTendersInfoForm',//formid提交需要用到
+            buttonTypes: ['close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            },
+            beforeFormSubmit : function () {
+                var _Id = $("#Id").val();
+                var _TendersNumber = $("#TendersNumber").val();
+                var bit=0;
+                $.ajax({
+                    doBackResult: false,
+                    url: '@Url.Action("GetTendersCount", "BussTendersInfo")',
+                    data: { TendersNumber: _TendersNumber, Id: _Id },
+                    async: false,
+                    success: function (data) {
+                        bit=data
+                    }
+                })
+                if (bit > 0) {
+                    JQ.dialog.warning('存在相同的招标编号:[' + _TendersNumber + "]");
+                    return false;
+                }
+                var xml = GoldPM.loadXml("<Root></Root>");
+                try{
+                    var datas = $("#TenderUnitTable").datagrid("getData");
+                    if (datas.rows.length == 0) {
+                        JQ.dialog.warning("请先输入投标单位!");
+                        return false;
+                    }
+                    recuriseData(datas.rows, xml.documentElement);
+                    $("#strxml").val( JQ.Flow.htmlEncode(xml.documentElement.outerHTML));
+                }
+                catch (e)
+                {
+                    JQ.dialog.warning("请先输入正确的信息!");
+                    return false;
+                }
+            },
+            flow:{
+                flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+                flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+                url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+                instance: "_flowInstance",
+                processor: "Bussiness,Bussiness.FlowProcessor.BusinessTender",
+                onInit: function () {
+                    _flowInstance = this;
+                },
+                refID: "@(Model.Id)",
+                refTable: "BussTender",
+                dataCreator:"@(ViewBag.CreatorEmpId )"
+            },
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                var _tempFrame=window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+                if(_tempFrame){
+                    _tempFrame.contentWindow.refreshGrid();
+                }
+                _flowInstance.$form.parent().dialog("close");
+            }
+        });
+
+
+        $('#TenderUnitTable').datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'TenderUnitTable',//数据表格ID
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            url: '@Url.Action("TenderUnitInfo", "BussTendersInfo", new { @area = "Bussiness" })',
+            queryParams: {id:@Model.Id},
+            toolbar: '#TenderUnitPanel',//工具栏的容器ID
+            pagination: false,
+            idField:"Id",
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                {
+                    field: "CustomerInfo", title: "投标单位", width: 400, align: "center", formatter: function (value, rowData) {
+                        return "<input id=\"c_CustID"+rowData.Id+"\" style=\"width:98%\" />";
+                    }
+                },
+                 {
+                     field: "BusinessPoints", title: "商务得分", width: 80, halign: "center",align: "right", formatter: function (value, rowData) {
+                         return "<input id=\"c_BusinessPoints"+rowData.Id+"\" validType=\"intOrFloat\" style=\"width:98%\" />";
+                     }
+                 },
+                  {
+                      field: "TechnologyPoints", title: "技术得分", width: 80, halign: "center",align: "right", formatter: function (value, rowData) {
+                          return "<input id=\"c_TechnologyPoints"+rowData.Id+"\"  validType=\"intOrFloat\" style=\"width:98%\" />";
+                      }
+                  },
+                   {
+                       field: "TotalityPoints", title: "总体得分", width: 80, halign: "center",align: "right", formatter: function (value, rowData) {
+                           return "<input id=\"c_TotalityPoints"+rowData.Id+"\" validType=\"intOrFloat\" style=\"width:98%\" />";
+                       }
+                   },
+                  {
+                      field: "WinState", title: "招标状态", width: 90, align: "center", formatter: function (value, rowData) {
+                          var html = "<select id=\"c_WinState" + rowData.Id + "\" class=\"InputSelect\" style=\"width:88px;font-size:12px\">";
+                          $("#Items option").each(function () {
+                              var _key = $(this).attr("value");
+                              var _value = $(this).text();
+                              if(_key==decodeURIComponent(value).replace(/\+/g, " "))
+                              {
+                                  html += "<option selected=\"selected\" value=" + _key + ">" + _value + "</option>";
+                              }
+                              else{
+                                  html += "<option value=" + _key + ">" + _value + "</option>";
+                              }
+                          });
+                          html += "</select>";
+                          return html;
+                      }
+                  },
+                {
+                    field: "WinTime", title: "中标日期", width: 100, align: "center", formatter: function (value, rowData) {
+                        return "<input id=\"c_WinTime" + rowData.Id + "\" type=\"text\" validType=\"dateISO\" style=\"width:98px\" class=\"easyui-datebox\"/>";
+                    }
+                }
+            ]],
+            onLoadSuccess:function(data){
+                $.each(data.rows, function(i, n){
+                    var rowIndex=n.Id;
+                    var customerID=  n.CustomerID
+                    var _objId="c_CustID"+rowIndex;
+                    (function ($_objId) {
+                        JQ.combobox.common({
+                            id: $_objId,
+                            toolbar: '#tbCustomer',//工具栏的容器ID
+                            url: requestUrl,
+                            panelWidth: 550,
+                            panelHeight: 320,
+                            valueField: 'Id',
+                            textField: 'CustName',
+                            multiple: false,
+                            pagination: true,//是否分页
+                            queryParams:{TypeID:1},
+                            JQSearch: {
+                                id: 'fullNameSearch',
+                                prompt: '客户名称',
+                                $panel: $("#tbCustomer")//搜索的容器，可以不传
+                            },
+                            columns: [[
+                                         { field: 'Id', hidden: true },
+                                         { title: '单位名称', field: 'CustName', width: 180, align: 'left', sortable: true },
+                                         { title: '单位地址', field: 'CustAddress', width: 360, align: 'left', sortable: true }
+                            ]],
+                            onLoadSuccess:function() {
+                                $("#"+$_objId).combogrid('setValue',customerID);
+
+                                var custName =$("#"+$_objId).combogrid('getText');
+                                if(!isNaN(custName)){
+                                    $("#"+$_objId).combogrid('setText',n.CustName);
+                                }
+                            }
+                        });
+                    }(_objId));
+                    var _businessPoints = "c_BusinessPoints" + rowIndex;
+                    (function ($_businessPoints) {
+                        $('#' + $_businessPoints).textbox({
+                            inputEvents: $.extend({}, $.fn.textbox.defaults.inputEvents, {
+                                keyup: function (e) {
+                                    var array = $_businessPoints.split('c_BusinessPoints');
+                                    var y = array[1];
+                                    var bPoints=$(this).val().replace(/(^\s*)|(\s*$)/g, "");
+                                    var tPoints= $("#c_TechnologyPoints" + y).val();
+
+                                    var s=(isNaN(parseFloat(bPoints))==false?parseFloat(bPoints):0 )+(isNaN(parseFloat(tPoints))==false?parseFloat(tPoints):0);
+                                    $("#c_TotalityPoints"+y).textbox('setValue',s.toFixed(2));
+                                }
+                            })
+                        })
+                    }(_businessPoints))
+
+                    var _technologyPoints = "c_TechnologyPoints" + rowIndex;
+                    (function ($_technologyPoints) {
+                        $('#' + $_technologyPoints).textbox({
+                            inputEvents: $.extend({}, $.fn.textbox.defaults.inputEvents, {
+                                keyup: function (e) {
+                                    var array = $_technologyPoints.split('c_TechnologyPoints');
+                                    var y = array[1];
+                                    var bPoints=$("#c_BusinessPoints" + y).val();
+                                    var tPoints= $(this).val().replace(/(^\s*)|(\s*$)/g, "");
+
+                                    var s=(isNaN(parseFloat(bPoints))==false?parseFloat(bPoints):0 )+(isNaN(parseFloat(tPoints))==false?parseFloat(tPoints):0);
+                                    $("#c_TotalityPoints"+y).textbox('setValue',s.toFixed(2));
+                                }
+                            })
+                        })
+                    }(_technologyPoints))
+
+
+
+                    $("#c_BusinessPoints"+rowIndex).textbox();
+                    $("#c_BusinessPoints"+rowIndex).textbox('setValue',n.BusinessPoints);
+
+                    $("#c_TechnologyPoints"+rowIndex).textbox();
+                    $("#c_TechnologyPoints"+rowIndex).textbox('setValue',n.TechnologyPoints);
+
+                    $("#c_TotalityPoints"+rowIndex).textbox({readonly:true});
+                    $("#c_TotalityPoints"+rowIndex).textbox('setValue',n.TotalityPoints);
+
+
+                    $("#c_WinTime"+rowIndex).datebox();
+                    $("#c_WinTime"+rowIndex).datebox("setValue", n.WinTime);
+                });
+            }
+        });
+    });
+    function AddRow() {
+        x--;
+        var _mainTable=@Model.Id;
+        var _data = { "Id": x, "BussTendersInfoID": _mainTable, "CustomerID": "0", "BusinessPoints": "0", "TechnologyPoints": "0", "TotalityPoints": "0","WinState":"0","WinTime":"0" }
+        $('#TenderUnitTable').datagrid('appendRow', _data);
+        var _objId="c_CustID"+x;
+        (function ($_objId) {
+            JQ.combobox.common({
+                id: $_objId,
+                toolbar: '#tbCustomer',//工具栏的容器ID
+                url: requestUrl,
+                panelWidth: 550,
+                panelHeight: 320,
+                valueField: 'Id',
+                textField: 'CustName',
+                multiple: false,
+                pagination: true,//是否分页
+                queryParams:{TypeID:1},
+                editable:false,
+                JQSearch: {
+                    id: 'fullNameSearch',
+                    prompt: '客户名称',
+                    $panel: $("#tbCustomer")//搜索的容器，可以不传
+                },
+                columns: [[
+                             { field: 'Id', hidden: true },
+                             { title: '单位名称', field: 'CustName', width: 180, align: 'left', sortable: true },
+                             { title: '单位地址', field: 'CustAddress', width: 360, align: 'left', sortable: true }
+                ]]
+            });
+        }(_objId));
+
+        var _businessPoints = "c_BusinessPoints" + x;
+        (function ($_businessPoints) {
+            $('#' + $_businessPoints).textbox({
+                inputEvents: $.extend({}, $.fn.textbox.defaults.inputEvents, {
+                    keyup: function (e) {
+                        var array = $_businessPoints.split('c_BusinessPoints');
+                        var y = array[1];
+                        var bPoints=$(this).val().replace(/(^\s*)|(\s*$)/g, "");
+                        var tPoints= $("#c_TechnologyPoints" + y).val();
+                        var s=(isNaN(parseFloat(bPoints))==false?parseFloat(bPoints):0 )+(isNaN(parseFloat(tPoints))==false?parseFloat(tPoints):0);
+                        $("#c_TotalityPoints"+y).textbox('setValue',s.toFixed(2));
+                    }
+                })
+            })
+        }(_businessPoints))
+
+        var _technologyPoints = "c_TechnologyPoints" + x;
+        (function ($_technologyPoints) {
+            $('#' + $_technologyPoints).textbox({
+                inputEvents: $.extend({}, $.fn.textbox.defaults.inputEvents, {
+                    keyup: function (e) {
+                        var array = $_technologyPoints.split('c_TechnologyPoints');
+                        var y = array[1];
+                        var bPoints=$("#c_BusinessPoints" + y).val();
+                        var tPoints= $(this).val().replace(/(^\s*)|(\s*$)/g, "");
+                        var s=(isNaN(parseFloat(bPoints))==false?parseFloat(bPoints):0 )+(isNaN(parseFloat(tPoints))==false?parseFloat(tPoints):0);
+                        $("#c_TotalityPoints"+y).textbox('setValue',s.toFixed(2));
+                    }
+                })
+            })
+        }(_technologyPoints))
+
+        $("#c_WinTime"+x).datebox();
+        $("#c_TotalityPoints"+x).textbox({readonly:true});
+        window._flowInstance.setGridRowControl("TenderUnitTable",x);
+    }
+    function DelRow() {
+        var rows = $('#TenderUnitTable').datagrid("getSelections");
+        if(rows.length==0){
+            return;
+        }
+        JQ.dialog.confirm("确定要删除选中的投标单位吗？",function(){
+            var copyRows = [];
+            for (var j = 0; j < rows.length; j++) {
+                copyRows.push(rows[j]);
+            }
+            for (var i = 0; i < copyRows.length; i++) {
+                var index = $('#TenderUnitTable').datagrid('getRowIndex', copyRows[i]);
+                $('#TenderUnitTable').datagrid('deleteRow', index);
+            }
+        });
+    }
+
+    function recuriseData(data, parentNode) {
+        for (var i = 0; i < data.length; i++) {
+            var node = parentNode.ownerDocument.createElement("Item");
+            node.setAttribute("Id", data[i].Id);
+            node.setAttribute("CustomerID",  $("#c_CustID"+ data[i].Id).combogrid('grid').datagrid('getSelected').Id);
+            node.setAttribute("BusinessPoints", $("#c_BusinessPoints" + data[i].Id).val());
+            node.setAttribute("TechnologyPoints", $("#c_TechnologyPoints" + data[i].Id).val());
+            node.setAttribute("TotalityPoints", $("#c_TotalityPoints" + data[i].Id).val());
+            node.setAttribute("WinState", $("#c_WinState" + data[i].Id).val());
+            node.setAttribute("WinTime", $("#c_WinTime" + data[i].Id).datebox('getValue'));
+            parentNode.appendChild(node);
+            if (data[i].children && data[i].children.length > 0) {
+                recuriseData(data[i].children, node);
+            }
+        }
+    }
+
+    function Add() {
+        JQ.dialog.dialog({
+            title: "外委单位信息",
+            url: "@(Url.Action("addsub", "BussCustomer", new { @area = "Bussiness" }))",
+            width: '1024',
+            height: '100%',
+            type: "POST",
+            iconCls: 'fa  fa-plus'
+        });
+    }
+</script>
+@using (Html.BeginForm("save", "BussTendersInfo", FormMethod.Post, new { @area = "Bussiness", @id = "BussTendersInfoForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+
+    @Html.DropDownList("Items");
+
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">招标编号</th>
+            <td width="40%">
+                <input id="TendersNumber" name="TendersNumber" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,50]" value="@Model.TendersNumber" />
+            </td>
+            <th width="10%">招标名称</th>
+            <td width="40%">
+                <input name="TendersName" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,400]" value="@Model.TendersName" />
+            </td>
+
+        </tr>
+        <tr>
+            <th width="10%">登记时间</th>
+            <td width="40%">
+                <input name="TenderRegisterTime" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.TenderRegisterTime" />
+            </td>
+
+            <th width="10%">项目类型</th>
+
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "TenderProjectType",
+               isRequired = true,
+               engName = "TenderProjectType",
+               width = "98%",
+               ids = Model.TenderProjectType.ToString()
+           })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">开标时间</th>
+            <td width="40%">
+                <input name="TenderOpenTime" style="width:98%;" class="easyui-datebox" data-options="required:true,validType:['dateISO']" value="@Model.TenderOpenTime" />
+            </td>
+            <th width="10%">招标状态</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "TenderState",
+               isRequired = true,
+               engName = "TenderState",
+               width = "98%",
+               ids = Model.TenderState.ToString()
+           })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">设计范围</th>
+            <td colspan="3" style="width: 80%">
+                <textarea name="TenderScope" style="width:98%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.TenderScope</textarea>
+
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">备注</th>
+            <td colspan="3">
+                <textarea name="TendersRemarks" style="width:98%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.TendersRemarks</textarea>
+            </td>
+        </tr>
+        <Tr>
+            <th width="10%">投标单位</th>
+            <td colspan="3">
+                <table id="TenderUnitTable"></table>
+                <div id="TenderUnitPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+                    <span JQPanel="toolbarPanel">
+                        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" name="btnAddUnit" onclick="AddRow()">新增</a>
+                        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" name="btnRemoveUnit" onclick="DelRow()">删除</a>
+                        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" name="btnAddCustomer" onclick="Add()">添加投标单位信息</a>
+                      </span>
+                </div>
+
+            </td>
+        </Tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "BussTendersInfo";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <div id="tbCustomer" style="padding:5px;height:auto; display:none;">
+        <input id="fullNameSearch" style="width:250px;" JQWhereOptions="{ Key: 'CustName', 'Contract': 'like' }" />
+    </div>
+    <input type="hidden" id="strxml" name="strxml" />
+  }

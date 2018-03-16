@@ -1,0 +1,179 @@
+﻿@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        $("#JQSearch").textbox({
+            buttonText: "筛选",
+            buttonIcon: "fa fa-search",
+            height: 25,
+            prompt: "表单名称",
+            onClickButton: function () {
+                refreshGrid()
+            }
+        });
+
+        JQ.datagrid.datagrid({
+            JQButtonTypes: [''],
+            JQPrimaryID: "FlowID",
+            JQID: "tbList",
+            JQDialogTitle: "表单",
+            JQWidth: "768",//弹出窗体宽
+            JQHeight: '700',//弹出窗体高
+            JQLoadingType: "datagrid",
+            url: "@(Url.Action("GetFormsByProjID", "IsoForm", new { @area = "Iso" }))",
+            checkOnSelect: true,
+            //fitColumns: true,
+            nowrap: false,
+            toolbar: "#list_toolbar",
+            columns: [[
+                { field: "ck", align: "center", checkbox: true, JQIsExclude: true },
+                { title: "表单标题", field: "FlowTitle", width: "40%", align: "left", halign: "center" },
+                { title: "流程名称", field: "FlowName", width: "12%", align: "left", halign: "center" },
+                { title: "发起日期", field: "CreationTime", width: "80", align: "center", halign: "center", formatter: JQ.tools.DateTimeFormatterByT },
+                { title: "发起人", field: "CreatorEmpName", width: "80", align: "center", halign: "center" },
+                {
+                    title: "进度", field: "FlowStatusName", width: "15%", align: "left", halign: "center", formatter: function (value, rowData) {
+                        var a = document.createElement("a");
+                        a.setAttribute("href", "javascript:void(0)");
+                        a.appendChild(document.createTextNode(value));
+                        a.setAttribute("onclick", "openProgressDialog(" + rowData.ID + ",'" + encodeURIComponent(rowData.FlowName) + "');");
+                        return a.outerHTML;
+                    }
+                },
+                {
+                    title: "操作", field: "CZ", width: "40", align: "center", halign: "center",
+                    formatter: function (value, row, index) {
+                        return '<a btn  class="easyui-linkbutton"  data-options="iconCls:\'fa fa-check\'"   onclick="Edit(' + row.ID + ')">' + row.NodeState + '</a>';
+                    }
+                }
+            ]],
+            queryParams: getQueryParameters()
+        });
+
+        JQ.datagrid.datagrid({
+            JQPrimaryID: "id",
+            JQID: "tbListSpec",
+            JQDialogTitle: "表单",
+            JQWidth: "768",//弹出窗体宽
+            JQHeight: '700',//弹出窗体高
+            JQLoadingType: "datagrid",
+            url: "@(Url.Action("GetSpecByProjID", "IsoForm", new { @area = "Iso" }))",
+            checkOnSelect: true,
+            fitColumns: true,
+            nowrap: false,
+            columns: [[
+                { title: "专业", field: "SpecName", width: "15%", align: "center", halign: "center" },
+                { title: "卷册", field: "TaskName", width: "20%", align: "center", halign: "center" },
+                { title: "设计人员", field: "TaskEmpName", width: "10%", align: "center", halign: "center" },
+                {
+                    title: "操作", field: "CZ", width: "10%", align: "center", halign: "center", formatter: function (value, row, index) {
+                        if (row.TaskSpecId > 0) {
+                            return "<a   id=\"btn\" class=\"easyui-linkbutton\"  data-options=\"iconCls:'fa fa-file-word-o'\"  onclick=\"ShowDetail(' " + row.TaskID + "')\">校审单</a>     <a id=\"DesExch\" class=\"easyui-linkbutton\"  data-options=\"iconCls:'fa fa-file-word-o'\"  onclick=\"ShowDesExch(' " + row.TaskID + "')\">提资单</a>";
+                        } else {
+                            return "<a   id=\"btn\" class=\"easyui-linkbutton\"  data-options=\"iconCls:'fa fa-file-word-o'\"  onclick=\"ShowDetail(' " + row.TaskID + "')\">校审单</a> ";
+                        }
+                    }
+                }
+            ]],
+            queryParams: { ProjID: '@ViewBag.projID', TaskGroupID: '@ViewBag.taskGroupId' }
+        });
+    });
+
+    window.refreshGrid = function () {
+        var query = getQueryParameters();
+        query.FormIDs = $("#allformSelect").combotree("getValues");
+        query.FlowStatus = $("#FlowStatusEnum").combotree("getValue");
+        $("#tbList").datagrid("load", query);
+    }
+
+    function getQueryParameters() {
+        return { text: $("#JQSearch").textbox("getText"), projectID: "@(ViewBag.projID)", phaseID: "@(ViewBag.PhaseID)" };
+    }
+
+
+    function Edit(Id) {
+        var datas = $("#tbList").datagrid("getData").rows;
+        var FlowUrl = "";
+        var title = "";
+
+        $.each(datas, function (i, e) {
+            // debugger;
+            if (e.ID == Id) {
+                FlowUrl = e.FlowUrl;
+                title = e.FlowName + " " + e.FlowName;
+
+            }
+
+        });
+        JQ.dialog.dialog({
+            title: "查看",
+            url: "@(ViewBag.sitePath)" + FlowUrl,
+            width: '1024',
+            height: '100%',
+        });
+    }
+
+    //校审单
+    function ShowDetail(id) {
+        JQ.dialog.dialog({
+            title: "查看校审单",
+            url: '@Url.Action("desTaskCheckDetail", "IsoTaskCheck", new { @area = "ISO" })?taskId=' + id,
+            width: '1024',
+            height: '100%',
+            JQID: 'ISOCheckList',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-th-list',
+        });
+    }
+
+    //提资单
+    function ShowDesExch(id) {
+
+        JQ.dialog.dialog({
+            title: "查看提资信息",
+            url: '@Url.Action("ProjDesSpecExchList", "IsoForm", new { @area = "ISO" })?taskId=' + id,
+            width: '1024',
+            height: '100%',
+            JQID: 'ISOCheckList',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-th-list',
+        });
+    }
+
+    function openProgressDialog(flowID, flowName) {
+        JQ.Flow.showProgressDialog(decodeURIComponent(flowName), "@(Url.Action("Progress","PubFlow",new { @area="Core" }))?flowID=" + flowID);
+        JQ.Flow.stopBubble();
+    }
+</script>
+
+<div data-options="region:'north'" style="width:205px;height:40%;">
+
+    <table id="tbList"></table>
+    <div id="list_toolbar" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span class="label label-default"><strong style="padding:10px;">项目表单</strong></span>
+        <span jqpanel="toolbarPanel">
+        </span>
+        @Html.GetComboTree(new Condition()
+    {
+        Area = "Iso",
+        ControllerName = "IsoForm",
+        ActionName = "getAllFormJson",
+        controlName = "allformSelect",
+        isMult = true,
+        prompt = "表单类型"
+    })
+        @Html.GetComboTree(new Condition()
+    {
+        Area = "Iso",
+        ControllerName = "IsoForm",
+        ActionName = "getFlowStatusEnum",
+        controlName = "FlowStatusEnum",
+        isMult = false,
+        prompt = "审批状态"
+    })
+        <input id="JQSearch" style="width:250px;" />
+
+    </div>
+</div>
+<div id="ProjMainTab" data-options="region:'center',border:false">
+    <table id="tbListSpec"></table>
+</div>

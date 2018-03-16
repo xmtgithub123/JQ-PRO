@@ -1,0 +1,102 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "HRSalary",new { @area="Hr"})',
+            addUrl = '@Url.Action("add","HRSalary",new {@area="Hr" })',
+            editUrl = '@Url.Action("edit", "HRSalary",new {@area="Hr" })',
+            delUrl = '@Url.Action("del", "HRSalary", new { @area = "Hr" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add','edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'HRSalaryGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+				JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '筛选字段',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+				fitColumns: false,
+                nowrap: false,
+                toolbar: '#HRSalaryPanel',//工具栏的容器ID
+                JQExcludeCol:[1],
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '部门', field: 'DepName', width: 100, align: 'center', sortable: true },
+		            { title: '员工', field: 'EmpName', width: 100, align: 'center', sortable: true },
+		            { title: '用工类型', field: 'HireTypeName', width: 100, align: 'center', sortable: true },
+		            { title: '基本工资', field: 'BaseSalary', width: 100, align: 'center', sortable: true  },
+		            { title: '绩效工资', field: 'MeritSalary', width: 100, align: 'center', sortable: true },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'HRSalary' }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '姓名',
+                queryOptions: { 'Key': 'EmpName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'HRSalaryGrid',
+                            loadingType: 'datagrid',
+                            queryParams: { }
+                        });
+                }
+            });
+        });
+        function openDetailDialog(rowID) {
+            JQ.dialog.dialog({
+                title: "修改",
+                url: '@Url.Action("edit")' + '?Id=' + rowID,
+                width: '1024',
+                height: '100%',
+                JQID: 'HRSalaryGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="HRSalaryGrid"></table>
+    <div id="HRSalaryPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            
+        </span>
+
+        <input id="JQSearch" style="width:250px;"  JQWhereOptions="{ 'Key': 'EmpName', 'Contract': 'like' }"/>
+        <div class="moreSearchPanel">
+            @BaseData.getBases(new Params() { isMult = false, engName = "department", isAll = "1", allVal = "0", allText = "全部",
+           width="120px",queryOptions = "{ Key:'DepID', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params() { isMult = false, engName = "EmpStatus", isAll = "1", allVal = "0", allText = "全部",
+           width = "120px",queryOptions = "{ Key:'EmpStatusID', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params()
+           {
+               isMult = false,
+               engName = "HireType",
+               isAll = "1",
+               allVal = "0",
+               allText = "全部",
+               width = "120px",
+               queryOptions = "{ Key:'HireTypeID', Contract:'in',filedType:'Int'}"
+           })
+        </div>
+    </div>
+}
+

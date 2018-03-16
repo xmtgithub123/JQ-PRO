@@ -1,0 +1,215 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "user",new { @area="Core"})',
+            addUrl = '@Url.Action("add","user",new {@area="Core" })',
+            editUrl = '@Url.Action("edit", "user",new {@area="Core" })',
+            delUrl = '@Url.Action("del", "user", new { @area = "Core" })';
+        $(function () {
+            //数据表格
+            JQ.datagrid.datagrid({
+                JQAddUrl: addUrl,//添加的路径
+                JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+                JQEditUrl: editUrl,//编辑的路径
+                JQButtonTypes: ['add', 'edit', 'export', 'moreSearch'],//需要显示的按钮
+                JQPrimaryID: 'EmpID',//主键的字段
+                JQID: 'tt',//数据表格ID
+                JQDialogTitle: '用户信息',//弹出窗体标题
+                JQWidth: '760',//弹出窗体宽
+                JQHeight: '500',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQExcludeCol: [5,6],//导出execl排除的列
+                JQMergeCells: { fields: ['DepartmentName'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+                JQFields: ["EmpID"],//追加的字段名
+                JQSearch: {
+                    id: 'fullNameSearch',
+                    prompt: '姓名、角色',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                    $panel: $("#tb")//搜索的容器，可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: false,//是否包含check
+                fitColumns: true,
+                nowrap: false,
+                toolbar: '#tb',//工具栏的容器ID
+                columns: [[
+                  { title: '所属部门', field: 'DepartmentName', width: "10%", align: 'center', sortable: true },
+                  { title: '姓名', field: 'EmpName', width: "10%", align: 'center', sortable: true },
+                  { title: '用户名', field: 'EmpLogin', width: "10%", align: 'center', sortable: true },
+                  { title: '角色', field: 'RoleName', width: "45%", align: 'center' },
+                  {
+                      title: '状态', field: 'EmpIsDeleted', width: "10%", align: 'center', formatter: function (val, row) {
+                          var value = val > 0 ? "<span style='color:gray'>停用</span>" : "<span style='color:green'>启用</span>";
+                          //row.EmpIsDeleted = value;//更新数据行数据
+                          return value;
+                      }
+                  },
+                  {
+                      title: '签名', field: 'Sign', JQIsExclude: true, width: "130px", align: 'center', formatter: function (val, row) {
+                          var value = "<img src='../../SignImages/" + row.EmpLogin + ".png' onerror=\"javascript:this.src=''\"  style='width:100px; height:40px;' alt='无'>";
+                          return value;
+                      }
+                  },
+                ]],
+                onRowContextMenu: function (e, index, row) { //右键时触发事件
+                    var $m = $('#userMenu'),
+                        itemState = $m.menu('getItem', $('#setState')[0]),
+                        text = row.EmpIsDeleted == 1 ? '启用' : '停用';
+                    $.data(document.body, "selectTempData", row);//把临时数据存在缓存中
+                    $m.menu('setText', {
+                        target: itemState.target,
+                        text: text
+                    });
+                    $m.menu('show', {
+                        left: e.pageX,
+                        top: e.pageY
+                    });
+                    e.preventDefault();
+                }
+            });
+            
+
+            $("#httpUpload").click(function () {
+                var divid = getMathNo();
+                if (window.top.$("#" + divid).size() <= 0) {
+                    window.top.$("body").append("<div class='rwpdialogdiv' id='" + divid + "'></div>");
+                }
+                var paraJosn = {
+                    iconCls: 'fa fa-upload',
+                    title: "<b>手写签名文件上传</b>",
+                    content: '<iframe id="uploadIframe" frameborder="0" scrolling="no" style="width:100%;height:99%" src="@Url.Action("uploadByHttp", "usercontrol", new { @area = "Core", })?AttachRefID=0&AttachRefTable=ElecFile"></iframe>',
+                    width: '608',
+                    height: '353',
+                    resizable: false,
+                    maximizable: false,
+                    collapsible: false,
+                    modal: true,
+                    onClose: function () {
+                        Url = '@Url.Action("signMove", "user", new { @area = "Core", })';
+                        JQ.tools.ajax({
+                            doBackResult: true,
+                            url: Url,
+                        });
+                        $('#tt').datagrid('reload');
+                        window.top.$("#" + divid).parent().remove();
+                    }
+                };
+                var dialog = window.top.$("#" + divid).dialog(paraJosn);
+            });
+        });
+        function menuHandler(item) {
+            var data = $.data(document.body, "selectTempData");//获取临时数据
+            if (JQ.tools.isJson(data)) {
+                switch (item.id) {
+                    case "setState":
+                        JQ.tools.ajax({
+                            url: delUrl + '?EmpID=' + data.EmpID + '&isDel=' + (data.EmpIsDeleted == 1 ? '0' : '1'),
+                            succesCollBack: function () {
+                                $('#tt').datagrid('reload');
+                            }
+                        });
+                        break;
+                    case "moveUp":
+                        JQ.tools.ajax({
+                            url: '@Url.Action("UpdateEmpOrder", "user",new { @area="Core"})?EmpID=' + data.EmpID + '&OrderType=1',
+                            succesCollBack: function () {
+                                $('#tt').datagrid('reload');
+                            }
+                        });
+                        break;
+                    case "moveDown":
+                        JQ.tools.ajax({
+                            url: '@Url.Action("UpdateEmpOrder", "user",new { @area="Core"})?EmpID=' + data.EmpID + '&OrderType=2',
+                            succesCollBack: function () {
+                                $('#tt').datagrid('reload');
+                            }
+                        });
+                        break;
+                    case "DefaultPass":
+                        JQ.tools.ajax({
+                            url: '@Url.Action("DefaultPass", "user",new { @area="Core"})?EmpID=' + data.EmpID,
+                            succesCollBack: function () {
+                                $('#tt').datagrid('reload');
+                            }
+                        });
+                        break;
+                    case "ToEmp":
+                        JQ.dialog.confirm("确定要切换到此账户吗？", function () {
+                            JQ.tools.ajax({
+                                url: '@Url.Action("ToEmp", "user",new { @area="Core"})?EmpID=' + data.EmpID,
+                                succesCollBack: function (d) {
+                                    window.top.location.href = d.url;
+                                }
+                            });
+                        });
+                        break;
+                }
+            }
+            $.data(document.body, "selectTempData", null);//清空临时数据
+            return false;
+        }
+        function getMathNo() {
+            var d = new Date();
+            var sp = "";
+            var month = d.getMonth() + 1;
+            var strDate = d.getDate();
+            if (month >= 1 && month <= 9) {
+                month = "0" + month;
+            }
+            if (strDate >= 0 && strDate <= 9) {
+                strDate = "0" + strDate;
+            }
+            var math = Math.floor(Math.random() * (1000000 + 1));
+            var cd = d.getHours() + sp + d.getMinutes() + sp + d.getSeconds() + sp + d.getMilliseconds();
+            return math + sp + cd;
+        };
+        //同步部门人员
+        function SynchDeptEmp() {
+            JQ.dialog.confirm("确定要同步部门人员到RTX中吗？", function () {
+                JQ.tools.ajax({
+                    url: '@(Url.Action("LinkSynchDeptEmp", "user", new { @area= "Core" }))',
+                    
+                    succesCollBack: function (data) {
+                    }
+                });
+            }, null);
+        };
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="tt"></table>
+    <div id="tb" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" id="httpUpload">签名上传</a>
+            <a href="javascript:void(0);" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-play-circle'" style="display:none;" onclick="SynchDeptEmp()">同步部门人员</a>
+        </span>
+        <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+        @BaseData.getBases(new Params() { isMult = true, engName = "department", queryOptions = "{ Key:'EmpDepID', Contract:'in',filedType:'Int'}" })
+        <input id="fullNameSearch" style="width:250px;" JQWhereOptions="{ Key: 'EmpName,RoleName', 'Contract': 'like' }"    />
+        <div class="moreSearchPanel">         
+            <select id="isStartSearch" class="easyui-combobox" JQWhereOptions="[{ Key:'EmpIsDeleted', Contract:'=',filedType:'Bool'}]">
+                <option value="">所有状态</option>
+                <option value="0" selected="selected">启用</option>
+                <option value="1">停用</option>
+            </select>&nbsp;
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '生日开始'" JQWhereOptions="{ Key:'EmpBirthDate', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '生日结束'" JQWhereOptions="{ Key:'EmpBirthDate', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>
+    </div>
+ 
+    <div id="userMenu" class="easyui-menu" data-options="onClick:menuHandler" style="width:100px;display: none;">
+        <div id="setState"></div>
+        <div id="DefaultPass">恢复密码</div>
+        <div id="moveUp">上移</div>
+        <div id="moveDown">下移</div>
+        <div id="ToEmp">切换登录用户</div>
+    </div>
+}
+
+

@@ -1,0 +1,127 @@
+<#@ template hostspecific="true" language="C#" #>
+<#@ include file="EF.Utility.CS.ttinclude" #><#@
+ output extension=".cs" #><#
+
+    var efHost = (EfTextTemplateHost)Host;
+    var code = new CodeGenerationTools(this);
+#>
+<#@ assembly name="System.Data" #>
+<#@ assembly name="System.xml" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Data.SqlClient" #>
+<#@ import namespace="System.Data" #>
+using System;
+using System.Collections.Generic;
+
+namespace <#= code.EscapeNamespace(efHost.Namespace) #>
+{ 
+    public partial class <#= efHost.EntityType.Name #>
+    {
+<#
+    var collectionNavigations = efHost.EntityType.NavigationProperties.Where(
+        np => np.DeclaringType == efHost.EntityType
+            && np.ToEndMember.RelationshipMultiplicity == RelationshipMultiplicity.Many);
+ 				
+				string connectionString = @"Data Source=.;Initial Catalog=jqpm7_hnsbd;user id=sa;password=pass"; 
+				SqlConnection conn = new SqlConnection(connectionString);
+				conn.Open();
+				System.Data.DataTable schema = conn.GetSchema("TABLES");
+				string selectQuery = @"SELECT ColName,ColNote,DefaultText
+				FROM V_SystemTableStructure where TableName='@TableName'";
+				selectQuery = selectQuery.Replace("@TableName",efHost.EntityType.Name);  
+				SqlCommand command = new SqlCommand(selectQuery,conn);
+				SqlDataAdapter ad = new SqlDataAdapter(command);
+				System.Data.DataSet ds = new DataSet();   
+				ad.Fill(ds);
+				System.Data.DataTable dt=ds.Tables[0]; 
+				conn.Close();
+#>
+        public <#= code.Escape(efHost.EntityType) #>()
+        {
+<#
+			// Add a ctor to initialize any collections
+			if (collectionNavigations.Any())
+			{
+				foreach (var navProperty in collectionNavigations)
+				{
+#>
+			this.<#= code.Escape(navProperty.RelationshipType.Name) #> = new List<<#= code.Escape(navProperty.ToEndMember.GetEntityType()) #>>();
+<#
+				}
+			}
+#>
+			#region DefaultValue
+<#
+			foreach (var property in efHost.EntityType.Properties)
+			{ 
+				var typeUsage = code.Escape(property.TypeUsage);
+				var DefaultValue = ""; 
+			
+				var dr=	dt.Select("ColName='"+code.Escape(property)+"'"); 
+				var DefaultText="";
+				if(dr.Length > 0) 
+				{ 
+					DefaultText = dr[0][2].ToString();
+					DefaultText=DefaultText.Replace("(","").Replace("'","").Replace(")","").Replace("(space((0)))","").Replace("N","");
+				}
+
+				switch(typeUsage)
+                {
+					case "bool":DefaultValue = " false";break;
+					case "long":DefaultValue = "0";break;
+					case "int":DefaultValue = "0";break;
+					case "decimal":DefaultValue = "0";break;
+					case "System.DateTime":DefaultValue = " new DateTime(1900,1,1)";break;
+					case "string":DefaultValue = "\""+DefaultText+"\"";break;
+				}
+				if(DefaultValue != "")
+                {
+#>
+			this.<#= code.Escape(property) #> = <#= DefaultValue #>;
+<# 
+                }
+			}
+#>
+			#endregion
+		}
+<#      
+    foreach (var property in efHost.EntityType.Properties)
+    {
+        var typeUsage = code.Escape(property.TypeUsage);
+        // Fix-up spatial types for EF6
+        if (efHost.EntityFrameworkVersion >= new Version(6, 0)
+            && typeUsage.StartsWith("System.Data.Spatial."))
+        {
+            typeUsage = typeUsage.Replace(
+                "System.Data.Spatial.",
+                "System.Data.Entity.Spatial.");
+        }
+
+ 		var dr=	dt.Select("ColName='"+code.Escape(property)+"'");
+		var note = "";
+		if(dr.Length > 0)  note = dr[0][1].ToString();
+		 
+#>
+		///<summary><#= note #></summary>
+        <#= Accessibility.ForProperty(property) #> <#= typeUsage #> <#= code.Escape(property) #> { get; set; }
+<#
+    }
+
+    foreach (var navProperty in efHost.EntityType.NavigationProperties.Where(np => np.DeclaringType == efHost.EntityType))
+    {
+        if (navProperty.ToEndMember.RelationshipMultiplicity == RelationshipMultiplicity.Many)
+        {
+#>
+        public virtual ICollection<<#= code.Escape(navProperty.ToEndMember.GetEntityType()) #>> <#= code.Escape(navProperty.RelationshipType.Name) #> { get; set; }
+<#
+        }
+        else
+        {
+#>
+        public virtual <#= code.Escape(navProperty.ToEndMember.GetEntityType()) #> <#= code.Escape(navProperty.RelationshipType.Name) #> { get; set; }
+<#
+        }
+    }
+#>
+    }
+}

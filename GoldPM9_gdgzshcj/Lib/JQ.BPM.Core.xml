@@ -1,0 +1,251 @@
+<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>JQ.BPM.Core</name>
+  </assembly>
+  <members>
+    <member name="T:JQ.BPM.Configuration.Context">
+      <summary>
+            配置管理部分
+            </summary>
+    </member>
+    <member name="T:JQ.BPM.Configuration.BPMContext">
+      <summary>
+            启动器
+            </summary>
+    </member>
+    <member name="F:JQ.BPM.Configuration.BPMContext.DBNameOrConnectionString">
+      <summary>
+            数据库连接字符串或名称
+            </summary>
+    </member>
+    <member name="F:JQ.BPM.Configuration.BPMContext.CurrentUser">
+      <summary>
+            获取获取设置当前登录用户的信息
+            </summary>
+    </member>
+    <member name="F:JQ.BPM.Configuration.BPMContext.IsUseSelfDB">
+      <summary>
+            是否使用自带数据库
+            </summary>
+    </member>
+    <member name="M:JQ.BPM.Configuration.BPMContext.Resolve``1">
+      <summary>
+            获取已注册的服务
+            </summary>
+      <returns>
+      </returns>
+    </member>
+    <member name="M:JQ.BPM.Configuration.BPMContext.Resolve``1(System.String)">
+      <summary>
+            获取已注册的服务
+            </summary>
+      <param name="name">注册时使用的名称</param>
+      <returns>
+      </returns>
+    </member>
+    <member name="M:JQ.BPM.Configuration.BPMContext.Register``1">
+      <summary>
+            注册服务
+            </summary>
+    </member>
+    <member name="M:JQ.BPM.Configuration.Ensure.NotNull(System.Object,System.String)">
+      <summary>
+            Checks an argument to ensure it isn't null.
+            </summary>
+      <param name="argumentValue">The argument value to check.</param>
+      <param name="argumentName">The name of the argument.</param>
+    </member>
+    <member name="M:JQ.BPM.Configuration.Ensure.NotNullOrEmty(System.String,System.String)">
+      <summary>
+            验证字符串是否为NULL
+            </summary>
+      <param name="argumentValue">
+      </param>
+      <param name="argumentName">
+      </param>
+    </member>
+    <member name="M:JQ.BPM.Configuration.Ensure.NotNullOrEmptyEnumerable``1(System.Collections.Generic.IEnumerable{``0},System.String)">
+      <summary>
+            Checks an array argument to ensure it isn't null or empty.
+            </summary>
+      <param name="argumentValue">The argument value to check.</param>
+      <param name="argumentName">The name of the argument.</param>
+    </member>
+    <member name="M:JQ.BPM.Configuration.Ensure.NotNullOrEmptyString(System.String,System.String)">
+      <summary>
+            Checks a string argument to ensure it isn't null or empty.
+            </summary>
+      <param name="argumentValue">The argument value to check.</param>
+      <param name="argumentName">The name of the argument.</param>
+    </member>
+    <member name="M:JQ.BPM.Configuration.Ensure.DoesNotContainZeroByte(System.String,System.String)">
+      <summary>
+            Checks a string argument to ensure it doesn't contain a zero byte.
+            </summary>
+      <param name="argumentValue">The argument value to check.</param>
+      <param name="argumentName">The name of the argument.</param>
+    </member>
+    <member name="M:JQ.BPM.Configuration.Ensure.NotZeroIntPtr(System.IntPtr,System.String)">
+      <summary>
+            Checks an argument to ensure it isn't a IntPtr.Zero (aka null).
+            </summary>
+      <param name="argumentValue">The argument value to check.</param>
+      <param name="argumentName">The name of the argument.</param>
+    </member>
+    <member name="M:JQ.BPM.Configuration.Ensure.IsExpectedIntPtr(System.IntPtr,System.IntPtr,System.String)">
+      <summary>
+            Checks a pointer argument to ensure it is the expected pointer value.
+            </summary>
+      <param name="argumentValue">The argument value to check.</param>
+      <param name="expectedValue">The expected value.</param>
+      <param name="argumentName">The name of the argument.</param>
+    </member>
+    <member name="M:JQ.BPM.Configuration.Ensure.ConformsTo``1(``0,System.Func{``0,System.Boolean},System.String)">
+      <summary>
+            Checks an argument by applying provided checker.
+            </summary>
+      <param name="argumentValue">The argument value to check.</param>
+      <param name="checker">The predicate which has to be satisfied</param>
+      <param name="argumentName">The name of the argument.</param>
+    </member>
+    <member name="M:JQ.BPM.Configuration.Ensure.PositiveInt32(System.Int64,System.String)">
+      <summary>
+            Checks an argument is a positive integer.
+            </summary>
+      <param name="argumentValue">The argument value to check.</param>
+      <param name="argumentName">The name of the argument.</param>
+    </member>
+    <member name="T:JQ.BPM.Configuration.RouteTimer.OnTimerElapsedEventArgs">
+      <summary>
+            参数
+            </summary>
+      <param name="datetime">
+      </param>
+    </member>
+    <member name="M:JQ.BPM.Configuration.RouteTimer.Begin">
+      <summary>
+            开始
+            </summary>
+    </member>
+    <member name="M:JQ.BPM.Configuration.RouteTimer.Stop">
+      <summary>
+            暂停
+            </summary>
+    </member>
+    <member name="P:JQ.BPM.Configuration.RouteTimer.Default">
+      <summary>
+            默认项
+            </summary>
+    </member>
+    <member name="P:JQ.BPM.Configuration.RouteTimer.IsRuning">
+      <summary>
+            是否正在运行中
+            </summary>
+    </member>
+    <member name="E:JQ.BPM.Configuration.RouteTimer.OnTimerElapsed">
+      <summary>
+            触发的事件（每隔一分钟）
+            </summary>
+    </member>
+    <member name="M:JQ.BPM.Configuration.TypeConverter.CreateInstance``1">
+      <summary>
+            创建对应类型实例
+            </summary>
+      <typeparam name="T">
+      </typeparam>
+      <returns>
+      </returns>
+    </member>
+    <member name="M:JQ.BPM.Configuration.TypeConverter.ConvertToDerivedType``2(``0)">
+      <summary>
+            类型转换（基类到子类）
+            </summary>
+      <typeparam name="TBase">源类型</typeparam>
+      <typeparam name="T">目标类型</typeparam>
+      <param name="t">源类型实例</param>
+      <returns>
+      </returns>
+    </member>
+    <member name="M:JQ.BPM.Configuration.TypeConverter.ConvertToBaseType``2(``0)">
+      <summary>
+            类型转换（子类到基类）
+            </summary>
+      <typeparam name="T">源类型</typeparam>
+      <typeparam name="TBase">目标类型</typeparam>
+      <param name="t">源类型实例</param>
+      <returns>
+      </returns>
+    </member>
+    <member name="M:JQ.BPM.Configuration.TypeConverter.ReadTypeFactoryFromCache(System.Type,System.Type)">
+      <summary>
+            从缓存中读取类型工厂
+            </summary>
+      <param name="fromType">源类型</param>
+      <param name="targetType">目标类型</param>
+      <returns>
+      </returns>
+    </member>
+    <member name="M:JQ.BPM.Configuration.TypeConverter.GetTypeFactory(System.Type,System.Type)">
+      <summary>
+            获取类型工厂
+            </summary>
+      <param name="fromType">源类型</param>
+      <param name="targetType">目标类型</param>
+      <returns>
+      </returns>
+    </member>
+    <member name="M:JQ.BPM.Configuration.TypeConverter.GetDynamicMethodName(System.Type,System.Type)">
+      <summary>
+            获取动态方法的名称
+            </summary>
+      <param name="fromType">源类型</param>
+      <param name="targetType">目标类型</param>
+      <returns>
+      </returns>
+    </member>
+    <member name="T:JQ.BPM.Configuration.Utility">
+      <summary>
+            工具
+            </summary>
+    </member>
+    <member name="M:JQ.BPM.Configuration.Utility.ToInt(System.Object,System.Int32)">
+      <summary>
+            转换成int类型
+            </summary>
+      <param name="value">
+      </param>
+      <param name="defaultValue">
+      </param>
+      <returns>
+      </returns>
+    </member>
+    <member name="M:JQ.BPM.Configuration.Utility.ToInt(System.Object,System.Action{System.Int32},System.Action)">
+      <summary>
+            转换成int类型
+            </summary>
+      <param name="value">
+      </param>
+      <returns>
+      </returns>
+    </member>
+    <member name="M:JQ.BPM.Configuration.Utility.TryDeleteFile(System.String)">
+      <summary>
+            删除文件
+            </summary>
+      <param name="filePath">文件路径</param>
+      <returns>
+      </returns>
+    </member>
+    <member name="M:JQ.BPM.Configuration.Utility.TryDeleteDirectory(System.String,System.Boolean)">
+      <summary>
+            删除文件夹
+            </summary>
+      <param name="directory">
+      </param>
+      <param name="includeChildDir">是否包含子目录和文件</param>
+      <returns>
+      </returns>
+    </member>
+  </members>
+</doc>

@@ -1,0 +1,122 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div id="div1" style="display:none;padding:5px;">
+        <table class="documenttable" style="width:100%">
+            <tr>
+                <th style="width:15%">名称</th>
+                <td style="width:35%">
+                    <input type="text" id="txtName" name="" class="yc_textbox" style="width:80%">
+                </td>
+                <th style="width:15%">
+
+                </th>
+                <td style="width:35%"></td>
+            </tr>
+            <tr style="height:38px">
+                <th>
+                    宽度
+                </th>
+                <td>
+                    <input type="text" id="txtWidth" name="" class="yc_textbox" style="width:80%"> px
+                </td>
+                <th></th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>
+                    内间距
+                </th>
+                <td colspan="3">
+                    上 <input type="text" id="txtPaddingTop" class="yc_textbox" style="width:32px" /> px
+                    右 <input type="text" id="txtPaddingRight" class="yc_textbox" style="width:32px" /> px
+                    下 <input type="text" id="txtPaddingBottom" class="yc_textbox" style="width:32px" /> px
+                    左 <input type="text" id="txtPaddingLeft" class="yc_textbox" style="width:32px" /> px
+                </td>
+            </tr>
+            <tr>
+                <th>外边距</th>
+                <td colspan="3">
+                    上 <input type="text" id="txtMarginTop" class="yc_textbox" style="width:32px" /> px
+                    右 <input type="text" id="txtMarginRight" class="yc_textbox" style="width:32px" /> px
+                    下 <input type="text" id="txtMarginBottom" class="yc_textbox" style="width:32px" /> px
+                    左 <input type="text" id="txtMarginLeft" class="yc_textbox" style="width:32px" /> px
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="div2" style="display:none;padding:5px;"></div>
+</div>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript">
+    var yTab = new YChart.Tab({
+        container: "divcontent",
+        offsetHeight: 0,
+        tabs: [
+            {
+                name: "controlproperty",
+                title: "控件属性",
+                element: "div1",
+                closable: false
+            },
+            {
+                name: "processproperty",
+                title: "流程属性",
+                element: "div2",
+                closable: false
+            }
+        ]
+    });
+
+    window.onDialogLoaded = function () {
+        YChart.registerNumberBox({
+            element: [document.getElementById("txtWidth"), document.getElementById("txtPaddingTop"), document.getElementById("txtPaddingRight"), document.getElementById("txtPaddingBottom"), document.getElementById("txtPaddingLeft"), document.getElementById("txtMarginTop"), document.getElementById("txtMarginRight"), document.getElementById("txtMarginBottom"), document.getElementById("txtMarginLeft")],
+            precision: 0,
+            min: 0
+        });
+        var source = window.frameElement.api.getSource();
+        var style = source.element.ownerDocument.defaultView.getComputedStyle(source.element);
+        document.getElementById("txtName").value = source.element.getAttribute("id") || "";
+        document.getElementById("txtWidth").value = style.width.replace("px", "");
+        document.getElementById("txtPaddingTop").value = style.paddingTop.replace("px", "");
+        document.getElementById("txtPaddingRight").value = style.paddingRight.replace("px", "");
+        document.getElementById("txtPaddingBottom").value = style.paddingBottom.replace("px", "");
+        document.getElementById("txtPaddingLeft").value = style.paddingLeft.replace("px", "");
+        document.getElementById("txtMarginTop").value = style.marginTop.replace("px", "");
+        document.getElementById("txtMarginRight").value = style.marginRight.replace("px", "");
+        document.getElementById("txtMarginBottom").value = style.marginBottom.replace("px", "");
+        document.getElementById("txtMarginLeft").value = style.marginLeft.replace("px", "");
+    }
+
+    function sure() {
+        //验证名称是否存在
+        var name = document.getElementById("txtName").value;
+        if (name && window.frameElement.api.isExists(name)) {
+            alert("控件名称已经存在，无法保存！");
+            return;
+        }
+        window.frameElement.api.saveData({
+            name: name,
+            style: {
+                width: document.getElementById("txtWidth").value,
+                padding: document.getElementById("txtPaddingTop").value + "px" + " " + document.getElementById("txtPaddingRight").value + "px" + " " + document.getElementById("txtPaddingBottom").value + "px" + " " + document.getElementById("txtPaddingLeft").value + "px",
+                margin: document.getElementById("txtMarginTop").value + "px" + " " + document.getElementById("txtMarginRight").value + "px" + " " + document.getElementById("txtMarginBottom").value + "px" + " " + document.getElementById("txtMarginLeft").value + "px"
+            }
+        });
+        frameElement.closeDialog();
+    }
+</script>

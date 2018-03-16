@@ -1,0 +1,79 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "BaseEmpTeam",new { @area="Core"})',
+               addUrl = '@Url.Action("add","BaseEmpTeam",new {@area="Core" })',
+               editUrl = '@Url.Action("edit", "BaseEmpTeam",new {@area="Core" })',
+               delUrl = '@Url.Action("del", "BaseEmpTeam", new { @area = "Core" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BaseEmpTeamGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '600',//弹出窗体宽
+                JQHeight: '500',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: true,
+                JQExcludeCol: [1],//导出execl排除的列
+                toolbar: '#BaseEmpTeamPanel',//工具栏的容器ID
+                columns: [[
+                        { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                        {
+                            title: '团队类别', field: 'TeamTypeName', width: 100, align: 'center', formatter: function (val, row) {
+                                row.TeamTypeName = row.TeamType == 0 ? "个人团队" : "公共团队";
+                                return row.TeamType == 0 ? "<span style='color:gray'>个人团队</span>" : "<span style='color:green'>公共团队</span>";
+                            }
+                        },
+                        //{ field: 'TeamTypeName', align: 'center', hidden: true, },
+                        { title: '团队名称', field: 'TeamName', width: 100, align: 'center', sortable: true },
+		                {
+		                    title: '创建时间', field: 'CreationTime', width: 100, align: 'center', sortable: true, formatter: function (value,row,index) {
+		                        row.CreationTime = JQ.tools.DateTimeFormatterByT(value, row, index);
+		                        return row.CreationTime;
+		                    }
+		                },
+		                { title: '创建人姓名', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true },
+		                { title: '团队成员', field: 'TeamMembers', width: 200, align: 'center', sortable: true },
+		                { title: '团队备注', field: 'TeamNote', width: 200, align: 'center', sortable: true }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '团队名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BaseEmpTeamGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="BaseEmpTeamGrid"></table>
+    <div id="BaseEmpTeamPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;"  JQWhereOptions="{ 'Key': 'TeamName', 'Contract': 'like' }"/>
+
+    </div>
+}
+

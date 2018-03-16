@@ -1,0 +1,94 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")',//添加的路径
+                JQEditUrl: '@Url.Action("edit")',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaNewGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '900',//弹出窗体宽
+                JQHeight: '725',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: '@Url.Action("json", "OaNew", new { @area= "OA" })',//请求的地址
+                JQExcludeCol: [1, 6, 7],//导出execl排除的列
+                checkOnSelect: true,//是否包含check
+                fitColumns: true,
+                nowrap: false,
+                toolbar: '#OaNewPanel',//工具栏的容器ID
+                columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '类别', field: 'NewsTypeName', width: "10%", align: 'center', sortable: true },
+                { title: '标题', field: 'NewsTitle', width: "45%", align: 'left', halign: "center", sortable: true },
+                { title: '发布人', field: 'CreatorEmpName', width: "10%", align: 'center', sortable: true },
+                { title: '发布时间', field: 'NewsDate', width: "10%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+
+                 { field: 'JQFiles', title: '附件', align: "10%", align: 'center', width: 100, JQIsExclude: true, JQRefTable: 'OaNew' },
+                 {
+                     field: 'opt', title: '操作', width: 100, align: 'center', JQIsExclude: true,
+                     formatter: function (value, row, index) {
+                         return "<a href=\"javascript:void(0)\" onclick=\"openDetailDialog('" + row.Id + "');\">查看</a>"
+                     }
+                 }
+
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '标题、新闻内容',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'OaNewGrid',
+                            loadingType: 'datagrid',
+                            queryParams: { endDate: $("#endTime").datebox('getValue') }
+                        });
+                }
+            });
+        });
+
+        function openDetailDialog(rowID) {
+            JQ.dialog.dialog({
+                title: "查看",
+                url: '@Url.Action("Query")' + '?Id=' + rowID,
+                width: '900',
+                height: '725',
+                JQID: 'OaNewGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaNewGrid"></table>
+    <div id="OaNewPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'NewsTitle,NewsContent', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+
+            @BaseData.getBaseSystem(new Params() { isMult = true, engName = "NewsType", queryOptions = "{ Key:'NewsTypeID', Contract:'in',filedType:'Int'}" })
+
+            &nbsp; &nbsp;
+            发布时间
+            &nbsp;
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" jqwhereoptions="{ Key:'NewsDate', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'">&nbsp;
+
+            @*<input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key:'NewsTitle,NewsContent', Contract:'like'}">*@
+        </div>
+    </div>
+}
+

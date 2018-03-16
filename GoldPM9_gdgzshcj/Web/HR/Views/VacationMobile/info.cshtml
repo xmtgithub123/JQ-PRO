@@ -1,0 +1,375 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.Vacation
+
+@section head {
+ <style type="text/css">
+
+    .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+
+    .p-15 {
+        padding: 15px;
+    }
+
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+    .error {
+        color: red;
+        font-size: 14px;
+        display: inline-block;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+     .aui-dialog {
+         z-index: 999;
+     }
+     .error-border {
+         border: 1px solid red !important;
+     }
+</style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="VacationForm" class="aui-form">
+            <div class="aui-input-row">
+                <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+                <input id="EmpID" name="EmpID" type="hidden" value="@ViewBag.EmpID" />
+                <label class="aui-input-addon">&nbsp;&nbsp;请假员工</label>
+                <div class="aui-input-block" id="EmpNameText"></div>
+                <input name="EmpName" id="EmpName" type="hidden" class="aui-input" value="@ViewBag.EmpName"/>
+            </div>
+            <div class="aui-input-row set-selected-icon">
+                <label class="aui-input-addon">&nbsp;&nbsp;请假类型</label>
+                <input type="hidden" id="VacationType_i" value="@Model.VacationType" />
+                @BaseData.getBaseSelect(new Params()
+               {
+                   controlName = "VacationType",
+                   isRequired = true,
+                   engName = "VacationTypeId",
+                   width = "98%",
+                   ids = Model.VacationType.ToString()
+               })
+                <input type="hidden" id="selectedItem" name="selectedItem" />
+                <input type="hidden" id="selectedOthers" name="selectedOthers" />
+                <input type="hidden" id="selectedTypeName" name="selectedTypeName" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;开始时间</label>
+                <input name="StartDate" id="StartDate" type="date" class="aui-input" value="@Model.StartDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;结束时间</label>
+                <input name="EndDate" id="EndDate" type="date" class="aui-input" value="@Model.EndDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;请假天数</label>
+                <input name="Days" id="Days" type="number" class="aui-input" value="@Model.Days" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;累计天数</label>
+                <input name="SumDays" id="SumDays" type="number" class="aui-input" value="@ViewBag.SumDays" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;请假原因</label>
+                <textarea rows="6" name="VacationReason" id="VacationReason" style="width:98%;overflow:auto;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.VacationReason</textarea>
+            </div>
+
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+            <input type="hidden" id="isExist" name="isExist" value="@(ViewBag.isExist)" />
+        </form>
+
+       
+    </div>
+    <script type="text/javascript">
+        var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+        };
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                //initFormBegin(JSON.stringify({
+                //    "AllowEditControls": "StampID;StartDate;VacationType;EndDate;Days;SumDays;selectSingLeEng;StampEmpesult;UploadFile1"
+                //}));
+               // initFormBegin();
+            }
+
+        })
+
+        //页面初始化
+        function initFormBegin(params) {
+
+
+            $('#EmpNameText').text($('#EmpName').val()) //请假员工
+
+            //去除换行
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+
+           //请假类型
+            $('#VacationType').val($('#VacationType_i').val())
+
+            //清除时间审批时，默认为1900-01-01改为空
+            var StartDate = $('#StartDate').val(); //开始时间
+            var EndDate = $('#EndDate').val(); //结束时间
+            if ((StartDate == '1900-01-01')) {
+                $('#StartDate').val('');
+            }
+            if ((EndDate == '1900-01-01')) {
+                $('#EndDate').val('');
+            }
+
+
+           
+
+            $('#StartDate').change(function () {
+                var endDateValue = $('#EndDate').val();
+                var startDateValue = $('#StartDate').val();
+                if (endDateValue != "" && startDateValue != "") {
+                    var timeks = new Date(startDateValue);
+                    var timejs = new Date(endDateValue);
+                    var timediff = (timejs - timeks) / (1000 * 60 * 60 * 24) + 1;//这里算相差几分钟
+                    if (timediff < 0) {
+                        $.alert('开始时间不能大于结束时间');
+                        $("#EndDate").val("");
+                        $("#Days").val("");
+                    }
+                    else {
+                        $("#Days").val(timediff)
+                    }
+
+                }
+            })
+
+            $('#EndDate').change(function () {
+                var endDateValue = $('#EndDate').val();
+                var startDateValue = $('#StartDate').val();
+                if (endDateValue != "" && startDateValue != "") {
+                    var timeks = new Date(startDateValue);
+                    var timejs = new Date(endDateValue);
+                    var timediff = (timejs - timeks) / (1000 * 60 * 60 * 24)+1;//这里算相差几分钟
+                    if (timediff < 0) {
+                        $.alert('开始时间不能大于结束时间');
+                        $("#EndDate").val("");
+                        $("#Days").val("");
+                    }
+                    else {
+                        $("#Days").val(timediff)
+                    }
+
+                }
+            })
+            //请假天数
+            $("input[type='number']").change(function () {
+                var res = /^[0-9]+.?[0-9]*$/;
+                if (!res.test($("input[type='number']").val())) {
+                    $.alert('请输入数字')
+                    $("input[type='number']").val('');
+                    return false;
+                }
+                if (!/^\d+$/.test($("input[name='Days']").val())) {
+                    $.alert("请输入正确的天数");
+                    $("input[name='Days']").val('');
+                    return false;
+                }
+                if (!/^\d+$/.test($("input[name='SumDays']").val())) {
+                    $.alert("请输入正确的天数");
+                    $("input[name='SumDays']").val('');
+                    return false;
+                }
+            })
+            var days = 0;
+            $('#VacationType').change(function () {
+                var n = $('#VacationType option:selected ').text();
+                //alert(n)
+                if ('@ViewBag.EmpName' == '') {
+                    if (n == '年休假') {
+                        $('#Days').val(days)
+                    }
+                    else
+                        $('#Days').val(0)
+                }
+                //导出有关
+                var select = '□';
+                var selectText = '□病假      □事假      □年休假      □公假      □生日假';
+                var selectTypeName = n;
+                switch (n) {
+                    case "病假": selectText = '☑病假      □事假      □年休假      □公假      □生日假'; break;
+                    case "事假": selectText = '□病假      ☑事假      □年休假      □公假      □生日假'; break;
+                    case "年休假": selectText = '□病假      □事假      ☑年休假      □公假      □生日假'; break;
+                    case "公假": selectText = '□病假      □事假      □年休假      ☑公假      □生日假'; break;
+                    case "生日假": selectText = '□病假      □事假      □年休假      □公假      ☑生日假'; break;
+                    default: select = '☑';
+                }
+                $('#selectedItem').val(selectText);
+                $('#selectedOthers').val(select);
+                if (select == '☑')
+                    $('#selectedTypeName').val(n);
+            })
+
+            //请假原因，替换换行符
+            var VacationReasonValue = $('#VacationReason').val();
+            VacationReasonValue = VacationReasonValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#VacationReason').val(VacationReasonValue);
+
+
+            var paramsObj = JSON.parse(params);
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls.replace("StampID", "selectProjNameBtn");
+
+            //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('VacationForm'));
+
+            
+
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#VacationForm').validate({
+                rules: {
+                    VacationType: 'required',//请假类型
+                    StartDate:'required',//开始时间
+                    EndDate: 'required',//结束时间
+                    VacationReason: {
+                        required: false,
+                        maxlength: 500
+                    },
+                },
+                messages: {
+                    VacationType: '请输入请假类型',//请假类型
+                    StartDate: '请输入开始时间',//开始时间
+                    EndDate: '请输入结束时间', //结束时间
+                    StampEmpesult: {
+                        maxlength: '内容长度必须介于0-500之间'
+                    }
+                }
+            });
+
+            if (('@ViewBag.EmpName' == '请添加员工信息')) {
+                $.alert("请添加员工信息");
+                return false;
+            }
+
+            isValidate = formVali.form();
+            if (isValidate) {
+                var formData = DomUtil.serialize(document.getElementById('VacationForm'));//json or =&
+                console.log(formData)
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+            var formData = DomUtil.serialize(document.getElementById('VacationForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+        function getEmployeeLevel() {
+            var isExist = $('#isExist').val();
+            var days = $('#Days').val();
+            var result = {
+                isExist: isExist,
+                days: days
+            }
+            alert
+            if (window.JinQuMobile) {
+                window.JinQuMobile.employeeLevel(JSON.stringify(result));
+            }
+        }
+
+    </script>
+}

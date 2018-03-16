@@ -1,0 +1,16 @@
+﻿@{
+    string[] arr = ViewBag.EngName as string[];
+    DBSql.Sys.BaseData bd = new DBSql.Sys.BaseData();
+}
+
+@{
+    if (arr != null && arr.Length > 0)
+    {
+        foreach (var item in arr)
+        {
+            <select id="@item" name="@item" class="easyui-combotree" style="width:160px;"
+                    data-options="url:'@Url.Action("treejson","basedata",new { @area="Core",@isSel="true",@engName=item})'">
+            </select>
+        }
+    }
+}

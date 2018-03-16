@@ -1,0 +1,516 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div id="div1" style="display:none;padding:5px;">
+        <table class="documenttable" style="width:100%">
+            <tr>
+                <th style="width:15%">名称</th>
+                <td style="width:35%">
+                    <input type="text" id="txtName" name="" class="yc_textbox" style="width:80%">
+                </td>
+                <th style="width:15%">
+                    类型
+                </th>
+                <td style="width:35%">
+                    <span id="lblTypeName"></span>
+                </td>
+            </tr>
+            <tr>
+                <th>标题</th>
+                <td>
+                    <textarea id="txtDisplayName" class="yc_textbox" style="width:80%" rows="2"></textarea>
+                </td>
+                <th>模式</th>
+                <td>
+                    <select id="listMode" class="yc_select">
+                        <option value="1">单人</option>
+                        <option value="2">多人</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    配置模式
+                </th>
+                <td>
+                    <select id="listActorMode" class="yc_select">
+                        <option value="1">使用配置</option>
+                        <option value="2">使用变量</option>
+                    </select>
+                </td>
+                <th>
+                    <span id="span_1">处理模式</span>
+                </th>
+                <td>
+                    <select id="listProcessMode" class="yc_select">
+                        <option value="1">并行模式</option>
+                        <option value="2">串行模式</option>
+                    </select>
+                </td>
+            </tr>
+            <tr id="tr1">
+                <th>角色部门</th>
+                <td colspan="3">
+                    <div style="margin:3px 0px 0px 0px">
+                        <input type="checkbox" id="cbIsUseLaunchDepartment" /><label for="cbIsUseLaunchDepartment">使用发起人（第一步骤）相同部门</label>
+                    </div>
+                    <div style="margin:3px 0px 0px 0px">
+                        <input type="checkbox" id="cbIsUseCurrentDepartment" /><label for="cbIsUseCurrentDepartment">使用当前登录人员相同部门</label>
+                    </div>
+                    <div style="margin:3px 0px 0px 0px">
+                        <input id="txtChooseRoles" type="text" class="yc_textbox" placeholder="请选择角色" readonly="readonly" style="width:320px;" /><div id="btnClearRoles" class="yc_btn_style1" style="display:inline-block;margin-left:3px">清空</div>
+                    </div>
+                </td>
+            </tr>
+            <tr id="tr2">
+                <th>指定人员</th>
+                <td colspan="3">
+                    <input id="txtChooseUsers" type="text" class="yc_textbox" placeholder="请选择指定人员" readonly="readonly" style="width:320px;" /><div id="btnClearUsers" class="yc_btn_style1" style="display:inline-block;margin-left:3px">清空</div>
+                </td>
+            </tr>
+            <tr id="tr3">
+                <th>变量名称</th>
+                <td>
+                    <input type="text" id="txtVariableName" name="txtVariableName" class="yc_textbox" style="width:80%">
+                </td>
+                <th>
+                    <div>系统变量</div>
+                    <div>取值方式</div>
+                </th>
+                <td>
+                    <div>
+                        <input type="radio" id="rdSystemVariableMode1" value="1" name="getSystemVariableMode" /><label for="rdSystemVariableMode1">取发起人</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="rdSystemVariableMode2" value="2" name="getSystemVariableMode" /><label for="rdSystemVariableMode2">取当前步骤处理人</label>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    可退回步骤
+                </th>
+                <td colspan="3" id="td_backs"></td>
+            </tr>
+            <tr>
+                <th>
+                    可不同意
+                </th>
+                <td>
+                    <input type="checkbox" id="cbIsCanDisagree" />
+                </td>
+                <th>
+                </th>
+                <td></td>
+            </tr>
+        </table>
+    </div>
+    <div id="div2" style="display:none;padding:5px;">
+        <div class="yc_headtoolbar2" style="border:1px solid #EFEFEF;float:none;box-sizing:border-box;">
+            <div style="float:left;width:5px">
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="appendGridData()">
+                <span class="fa fa-plus"></span>
+                <span>添加</span>
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="deleteRow()">
+                <span class="fa fa-minus"></span>
+                <span>删除</span>
+            </div>
+        </div>
+        <div id="div_grid" style="margin-top:-1px;"></div>
+    </div>
+</div>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.grid.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<script type="text/javascript">
+
+    var yGrid, temp = 0;
+    function init() {
+        var shape = frameElement.api.getSource();
+        var tabs = [
+            {
+                name: "property",
+                title: "属性",
+                element: "div1",
+                closable: false
+            }
+        ];
+        if (shape.virtualTransitions) {
+            tabs.push({
+                name: "virtualtransitions",
+                title: "虚拟路径",
+                element: "div2",
+                closable: false
+            });
+        }
+        var yTab = new YChart.Tab({
+            container: "divcontent",
+            offsetHeight: 0,
+            tabs: tabs
+        });
+        switch (shape.symbol) {
+            case "start":
+                YChart.setText(document.getElementById("lblTypeName"), "开始");
+                document.getElementById("txtDisplayName").setAttribute("readonly", "readonly");
+                break;
+            case "end":
+                YChart.setText(document.getElementById("lblTypeName"), "结束");
+                document.getElementById("txtDisplayName").setAttribute("readonly", "readonly");
+                break;
+            case "activity":
+                YChart.setText(document.getElementById("lblTypeName"), "步骤");
+                break;
+            case "transition":
+                YChart.setText(document.getElementById("lblTypeName"), "线条");
+                break;
+        }
+        document.getElementById("txtDisplayName").value = shape.displayName;
+        document.getElementById("txtName").value = shape.name;
+        document.getElementById("cbIsCanDisagree").checked = shape.isCanDisagree == "1";
+        if (shape.virtualTransitions) {
+            initPropertyGrid(shape);
+        }
+        var _listMode = document.getElementById("listMode");
+        YChart.setSelectedByValue(_listMode, shape.mode);
+        if (shape.mode == "2") {
+            YChart.setSelectedByValue(document.getElementById("listProcessMode"), shape.processMode);
+        }
+        _listMode.onchange = function () {
+            if (YChart.getSelectedValue(this) == "1") {
+                document.getElementById("span_1").style.display = "none";
+                document.getElementById("listProcessMode").style.display = "none";
+            }
+            else {
+                document.getElementById("span_1").style.display = "";
+                document.getElementById("listProcessMode").style.display = "";
+            }
+        }
+        _listMode.onchange();
+        var _listActorMode = document.getElementById("listActorMode");
+        YChart.setSelectedByValue(_listActorMode, shape.actorMode);
+        _listActorMode.onchange = function () {
+            if (YChart.getSelectedValue(this) == "1") {
+                document.getElementById("tr1").style.display = "";
+                document.getElementById("tr2").style.display = "";
+                document.getElementById("tr3").style.display = "none";
+            }
+            else {
+                document.getElementById("tr1").style.display = "none";
+                document.getElementById("tr2").style.display = "none";
+                document.getElementById("tr3").style.display = "";
+            }
+        }
+        _listActorMode.onchange();
+        document.getElementById("txtVariableName").value = shape.actorVariableName || "";
+        if (shape.getActorSystemVariableMode == "1") {
+            document.getElementById("rdSystemVariableMode1").checked = true;
+        }
+        else if (shape.getActorSystemVariableMode == "2") {
+            document.getElementById("rdSystemVariableMode2").checked = true;
+        }
+        else {
+            document.getElementById("rdSystemVariableMode1").checked = true;
+        }
+        var _td_backs = document.getElementById("td_backs");
+        for (var i = 0; i < shape.chart.shapes.length; i++) {
+            if (shape.chart.shapes[i].symbol != "activity" || shape.chart.shapes[i] == shape) {
+                continue;
+            }
+            var _checkbox = YChart.createElement("input", { id: "cb_step_" + i, type: "checkbox", value: shape.chart.shapes[i].name }, { marginLeft: "5px" });
+            _td_backs.appendChild(_checkbox);
+            for (var j = 0; j < shape.backSteps.length; j++) {
+                if (shape.chart.shapes[i].name == shape.backSteps[j]) {
+                    _checkbox.checked = true;
+                    break;
+                }
+            }
+            _td_backs.appendChild(YChart.createElement("label", { "for": "cb_step_" + i }, null, shape.chart.shapes[i].displayName));
+        }
+        document.getElementById("txtChooseRoles").setAttribute("roles", shape.roles);
+        document.getElementById("txtChooseUsers").setAttribute("users", shape.users);
+        if (shape.roles || shape.users) {
+            var postData = {};
+            if (shape.roles) {
+                postData.roleIDs = shape.roles;
+            }
+            if (shape.users) {
+                postData.userIDs = shape.users;
+            }
+            YChart.ajax({
+                url: "@(Url.Action("GetUserAndRoleNames", "User",new { @area="Center" }))",
+                type: "POST",
+                data: postData,
+                async: false,
+                success: function (result) {
+                    if (result.Role) {
+                        document.getElementById("txtChooseRoles").value = result.Role;
+                    }
+                    if (result.User) {
+                        document.getElementById("txtChooseUsers").value = result.User;
+                    }
+                }
+            });
+        }
+        document.getElementById("txtChooseRoles").ondblclick = function () {
+            //选择相应人员
+            new YChart.Dialog({
+                url: "@(Url.Action("ChooseRole","Widget",new { @area="Center" }))?ids=" + (this.getAttribute("roles") || ""),
+                height: 400,
+                width: 400,
+                title: "选择角色",
+                icon: "fa-child",
+                api: {
+                    afterChoosed: function (choosedRoles) {
+                        var _txtChooseRoles = document.getElementById("txtChooseRoles");
+                        _txtChooseRoles.value = "";
+                        _txtChooseRoles.setAttribute("roles", "");
+                        var roles = "";
+                        for (var i = 0; i < choosedRoles.length; i++) {
+                            if (i != 0) {
+                                roles += ",";
+                                _txtChooseRoles.value += ",";
+                            }
+                            roles += choosedRoles[i].ID;
+                            _txtChooseRoles.value += choosedRoles[i].Name;
+                        }
+                        _txtChooseRoles.setAttribute("roles", roles);
+                    }
+                }
+            });
+        }
+        document.getElementById("btnClearRoles").onclick = function () {
+            document.getElementById("txtChooseRoles").value = "";
+            document.getElementById("txtChooseRoles").setAttribute("roles", "");
+        }
+        document.getElementById("txtChooseUsers").ondblclick = function () {
+            new YChart.Dialog({
+                url: "@(Url.Action("ChooseUser","Widget",new { @area="Center" }))?ids=" + (this.getAttribute("users") || ""),
+                height: 480,
+                width: 520,
+                title: "选择用户",
+                icon: "fa-child",
+                api: {
+                    afterChoosed: function (choosedUsers) {
+                        var _txtChooseUsers = document.getElementById("txtChooseUsers");
+                        _txtChooseUsers.value = "";
+                        _txtChooseUsers.setAttribute("users", "");
+                        var users = "";
+                        for (var i = 0; i < choosedUsers.length; i++) {
+                            if (i != 0) {
+                                users += ",";
+                                _txtChooseUsers.value += ",";
+                            }
+                            users += choosedUsers[i].ID;
+                            _txtChooseUsers.value += choosedUsers[i].Name;
+                        }
+                        _txtChooseUsers.setAttribute("users", users);
+                    }
+                }
+            });
+        }
+        document.getElementById("btnClearUsers").onclick = function () {
+            document.getElementById("txtChooseUsers").value = "";
+            document.getElementById("txtChooseUsers").setAttribute("users", "");
+        }
+        document.getElementById("cbIsUseLaunchDepartment").checked = shape.isUseLaunchDepartment == "1";
+        document.getElementById("cbIsUseCurrentDepartment").checked = shape.isUseCurrentDepartment == "1";
+        document.getElementById("cbIsUseLaunchDepartment").onchange = function () {
+            if (this.checked) {
+                document.getElementById("cbIsUseCurrentDepartment").checked = false;
+            }
+        }
+        document.getElementById("cbIsUseCurrentDepartment").onchange = function () {
+            if (this.checked) {
+                document.getElementById("cbIsUseLaunchDepartment").checked = false;
+            }
+        }
+    }
+
+    init();
+
+    function initPropertyGrid(shape) {
+        yGrid = new YChart.Grid({
+            height: 302,
+            container: document.getElementById("div_grid"),
+            idField: "id",
+            checkbox: true,
+            columns: [
+                {
+                    title: "名称", width: 100, field: "name", align: "center", formatter: function (cell, rowData) {
+                        cell.appendChild(YChart.createElement("input", { id: "txtName" + rowData.id, type: "text", className: "yc_textbox", value: rowData.name }, { width: "80px" }));
+                    }
+                },
+                {
+                    title: "类型", width: 350, field: "type", align: "left", formatter: function (cell, rowData) {
+                        var select = document.createElement("select");
+                        select.className = "yc_select";
+                        select.setAttribute("id", "listType" + rowData.id);
+                        cell.appendChild(select);
+                        var option = document.createElement("option");
+                        option.setAttribute("value", "1");
+                        option.appendChild(document.createTextNode("节点"));
+                        if (rowData.type == "1") {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                        option = document.createElement("option");
+                        option.setAttribute("value", "2");
+                        option.appendChild(document.createTextNode("变量"));
+                        if (rowData.type == "2") {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                        var listShape = document.createElement("select");
+                        listShape.className = "yc_select";
+                        listShape.style.marginLeft = "3px";
+                        listShape.style.width = "100px";
+                        listShape.setAttribute("id", "listShape" + rowData.id);
+                        cell.appendChild(listShape);
+                        var shapes = frameElement.api.getShapes();
+                        for (var i = 0; i < shapes.length; i++) {
+                            if (shapes[i] == shape || shapes[i].symbol == "start" || !shapes[i].symbol) {
+                                continue;
+                            }
+                            var option = document.createElement("option");
+                            option.appendChild(document.createTextNode(shapes[i].displayName));
+                            option.setAttribute("value", shapes[i].name);
+                            if (shapes[i].name == rowData.toName) {
+                                option.selected = true;
+                            }
+                            listShape.appendChild(option);
+                        }
+                        var txtVariableName = YChart.createElement("input", { id: "txtVariable" + rowData.id, type: "text", className: "yc_textbox", placeholder: "请输入变量名称" }, { width: "263px", marginLeft: "3px" });
+                        txtVariableName.value = rowData.variableName;
+                        cell.appendChild(txtVariableName);
+                        var txtExpression = YChart.createElement("input", { id: "txtExpression" + rowData.id, type: "text", className: "yc_textbox", placeholder: "请输入表达式" }, { width: "160px", marginLeft: "3px" });
+                        txtExpression.value = rowData.expression;
+                        cell.appendChild(txtExpression);
+                        select.onchange = function () {
+                            if (YChart.getSelectedValue(this) == "1") {
+                                listShape.style.display = "";
+                                txtExpression.style.display = "";
+                                txtVariableName.style.display = "none";
+                            }
+                            else {
+                                listShape.style.display = "none";
+                                txtExpression.style.display = "none";
+                                txtVariableName.style.display = "";
+                            }
+                        }
+                        select.onchange();
+                    }
+                }
+            ]
+        });
+        yGrid.setDatas(shape.virtualTransitions);
+        for (var i = 0; i < shape.virtualTransitions.length; i++) {
+            if (shape.virtualTransitions[i].id > temp) {
+                temp = shape.virtualTransitions[i].id;
+            }
+        }
+    }
+
+    function appendGridData() {
+        yGrid.appendData({
+            id: ++temp,
+            name: "",
+            type: "1",
+            variableName: "",
+            expression: ""
+        });
+    }
+
+    function deleteRow() {
+        if (yGrid.choosed.length == 0) {
+            return;
+        }
+        YChart.Dialog.confirm("提示", "确定要删除吗？", function (flag) {
+            if (!flag) {
+                return;
+            }
+            for (var i = 0; i < yGrid.choosed.length; i++) {
+                yGrid.removeRow(yGrid.getRowID(yGrid.choosed[i]));
+                i--;
+            }
+        });
+    }
+
+    function sure() {
+        var name = YChart.trim(document.getElementById("txtName").value);
+        var displayName = YChart.trim(document.getElementById("txtDisplayName").value);
+        if (name == "" || displayName == "") {
+            return;
+        }
+        var virtualTransitions = [];
+        for (var i = 0; i < yGrid.datas.length; i++) {
+            var vt = {
+                id: yGrid.datas[i].id,
+                name: document.getElementById("txtName" + yGrid.datas[i].id).value,
+                type: YChart.getSelectedValue(document.getElementById("listType" + yGrid.datas[i].id)),
+            };
+            if (vt.type == "1") {
+                //节点
+                vt.variableName = "";
+                vt.toName = YChart.getSelectedValue(document.getElementById("listShape" + yGrid.datas[i].id));
+                vt.expression = document.getElementById("txtExpression" + yGrid.datas[i].id).value;
+            }
+            else if (vt.type == "2") {
+                //变量
+                vt.variableName = document.getElementById("txtVariable" + yGrid.datas[i].id).value;
+                vt.toName = "";
+                vt.expression = "";
+            }
+            virtualTransitions.push(vt);
+        }
+        var result = { name: name, virtualTransitions: virtualTransitions, displayName: displayName, mode: YChart.getSelectedValue(document.getElementById("listMode")) };
+        result.actorMode = YChart.getSelectedValue(document.getElementById("listActorMode"));
+        result.actorVariableName = YChart.trim(document.getElementById("txtVariableName").value);
+        if (result.actorMode == "2" && result.actorVariableName == "") {
+            YChart.showTip(document.getElementById("txtVariableName"), "请填写变量名称");
+            return;
+        }
+        if (document.getElementById("rdSystemVariableMode1").checked) {
+            result.getActorSystemVariableMode = "1";
+        }
+        else if (document.getElementById("rdSystemVariableMode2").checked) {
+            result.getActorSystemVariableMode = "2";
+        }
+        if (result.mode == "2") {
+            result.processMode = YChart.getSelectedValue(document.getElementById("listProcessMode"));
+        }
+        result.backSteps = [];
+        result.roles = document.getElementById("txtChooseRoles").getAttribute("roles") || "";
+        result.users = document.getElementById("txtChooseUsers").getAttribute("users") || "";
+        result.isUseLaunchDepartment = document.getElementById("cbIsUseLaunchDepartment").checked ? "1" : "0";
+        result.isUseCurrentDepartment = document.getElementById("cbIsUseCurrentDepartment").checked ? "1" : "0";
+        var _td_backs = document.getElementById("td_backs");
+        for (var i = 0; i < _td_backs.childNodes.length; i++) {
+            if (_td_backs.childNodes[i].nodeType != 1 || _td_backs.childNodes[i].tagName != "INPUT" || _td_backs.childNodes[i].getAttribute("type") != "checkbox") {
+                continue;
+            }
+            if (_td_backs.childNodes[i].checked) {
+                result.backSteps.push(_td_backs.childNodes[i].getAttribute("value"));
+            }
+        }
+        if (frameElement.api.saveData(result) == false) {
+            return;
+        }
+        frameElement.closeDialog();
+    }
+</script>

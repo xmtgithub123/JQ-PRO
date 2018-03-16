@@ -1,0 +1,768 @@
+﻿@model DataModel.Models.BussContract
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'BussContractForm',//formid提交需要用到
+            buttonTypes: ['close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                var tab = $('#mainTab').tabs('getSelected');
+                var index = $('#mainTab').tabs('getTabIndex', tab);
+                debugger;
+                $("#mainTab").find("iframe")[index].contentWindow.refreshGrid();
+                _flowInstance.$form.parent().dialog("close");
+            },
+            beforeFormSubmit :function () {
+                var result=true;
+                var _Id = $("#Id").val();
+                var _ConNumber = $("#ConNumber").textbox('getText');
+                if (_ConNumber == "") {
+                    $("#ConNumber").textbox('setValue', "暂无");
+                }
+                var bit;
+                if(_Id==""){
+                    //判断编号重名
+                    $.ajax({
+                        doBackResult: false,
+                        url: '@Url.Action("GetConCodeCount", "BussContract")',
+                        data: { ConNumber: _ConNumber, Id: _Id },
+                        async: false,
+                        success: function (data) {
+                            bit=data
+                        }
+                    })
+
+                    if (bit > 0) {
+                        JQ.dialog.warning('存在相同的合同编号:[' + _ConNumber + "]");
+                        return false;
+                    }
+                }
+
+                if (typeof($("#planTable")[0])!="undefined") {
+                    var _tb=$("#planTable").datagrid("getRows");
+                    $.each(_tb,function (i,e) {
+                        if(!$("#planTable").datagrid("validateRow",i)){
+                            $("#planTable").datagrid("scrollTo",i);
+                            JQ.dialog.warning("收款计划正在编辑中！！！");
+                            result=false;
+                            return false;
+                        }
+                    });
+                }
+                if (!result) {
+                    return result;
+                }
+                //计划收款、项目信息存入 input中
+                if (typeof($("#ProjTable")[0])!="undefined") {
+                    Save_Proj();
+                }
+
+                if (typeof($("#planTable")[0])!="undefined") {
+                    var _PlanData=$("#planTable").datagrid("getRows");
+                    $.each(_PlanData,function (i,e) {
+                        $("#planTable").datagrid("endEdit",i);
+                    });
+                    $("#PlanTable_Data").val(JSON.stringify(_PlanData));
+                }
+
+                //联系人
+                $("#CustLinkManName").val($("#CustLinkId").combobox("getText"));
+                $("#CustName").val($("#CustID").combobox("getText"));
+
+                debugger;
+                var data=$('#SHYJTable').datagrid("getData");
+                try{
+                    recuriseData(data.rows);
+                    $("#SHYJ").val(JSON.stringify(data))
+
+                }catch (e)
+                {
+                    JQ.dialog.warning("请先输入正确的信息!");
+                    return false;
+                }
+
+            },
+            flow: {
+                //isShowSave: true,
+                flowNodeID: "@(Request.QueryString["flowNodeID"] == null ? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+                flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] == null ? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+                url: "@(Url.Action("FlowWidget", "PubFlow", new { @area = "Core" }))",
+                instance: "_flowInstance",
+                processor: "Bussiness,Bussiness.FlowProcessor.BussContract",
+                refID: "@(Model.Id)",
+                refTable: "BussContract",
+                dataCreator: "@(ViewBag.CreatorEmpId)"
+            }
+        });
+
+        $.extend($.fn.datagrid.defaults.view,{
+            onAfterRender:function(_target){
+                if (_target.id=="ProjTable") {
+                    var _rowData=$(_target).datagrid("getRows");
+
+                    var _oldData=$.parseJSON($("#ProjTable_Data").val());
+
+                    $(_rowData).each(function (i,r) {
+                        //var _rowIndex=$(target).datagrid("getRowIndex",_rowData[i]);
+
+                        $(_target).datagrid("beginEdit",i);
+                        if($("#ProjTable_Data").val()==""){return true;}
+
+                        $.each(_oldData,function (oi,or) {
+                            if (r.ProjID==or.ProjID) {
+                                //alert(JSON.stringify(r.PorjID+"___"+or));
+                                var ed = $(_target).datagrid("getEditor",{index:i,field:'ConFee'});
+                                $(ed.target).numberbox("setValue",or.ConFee);
+                                return false;
+                                //var productname = $(ed[0].target).combobox('getText');
+                                //$(target).datagrid("updateRow",i,or);
+                            }
+                        })
+                    })
+                }
+            }
+        });
+
+        var isFB='@Model.ConStreamNumber';
+        if(isFB!=""&&isFB=="1"){
+            $("#ConStreamNumber").val(1);
+        }else{
+            $("#ConStreamNumber").val(0);
+        }
+
+        var Id='@Model.ColAttVal1.ToString()';
+        var conType='@Model.FatherID.ToString()';
+        if(conType!="0"){
+            $("#ColAttVal1").val(Id);
+        } else {
+            $("#ColAttVal1").combobox({
+                readonly:true,
+            });
+
+            $("[name='ZHTLX']").hide();
+        }
+
+        var data = replace('@Model.SHYJ');
+        if (data != "") {
+            json_data = JSON.parse(data);
+        }
+    });
+
+    //替换字符
+    function replace(str) {
+        re = new RegExp("&quot;", "g");
+        var newstart = str.replace(re, '"');
+        return newstart;
+    }
+
+    //选择工程前，将已有的工程中合同金额暂存
+    function Save_Proj() {
+        var _rowData=$("#ProjTable").datagrid("getRows");
+        $(_rowData).each(function (i,r) {
+            var _rowIndex=$("#ProjTable").datagrid("getRowIndex",_rowData[i]);
+            $("#ProjTable").datagrid("endEdit",_rowIndex);
+            $("#ProjTable").datagrid("beginEdit",_rowIndex);
+        });
+
+        $("#ProjTable_Data").val(JSON.stringify(_rowData));
+    }
+
+    var json_data = '@Model.SHYJ';
+    if (json_data!='') {
+        json_data = JSON.parse(replace(json_data));
+    }
+
+    $('#SHYJTable').datagrid({
+        JQPrimaryID: 'Id',//主键的字段
+        JQID: 'SHYJTable',//数据表格ID
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+        pagination: false,
+        singleSelect:true,
+        data: json_data,
+        nowrap:false,
+        columns: [[
+            {
+                field: "SHYJ", title: "审核意见", width: '75%', align: "lefr", formatter: function (value, rowData, index) {
+                    debugger;
+                    rowData.Id=index;
+                    if (rowData.CZRID ==@ViewBag.EmpId){
+                        if (value == undefined) {
+                            return "<input type=\"text\" id=\"T_SHYJ" + index + "\"  style=\"width:98%;text-align:left;height:16px \" />";
+                        } else {
+                            return "<input type=\"text\" id=\"T_SHYJ" + index + "\"  style=\"width:98%;text-align:left;height:16px \" value=\"" + value.replace(/\+/g, " ") + "\" />";
+                        }
+
+                    } else {
+                        if (value == undefined) {
+                            return "";
+
+                        } else {
+                            return value.replace(/\+/g, " ");
+                        }
+                    }
+                }
+            },
+            {
+                field: "CZR", title: "操作人", width: '20%', align: "left", formatter: function (value, rowData, index) {
+                    if (value=="") {
+                        rowData.CZR = '@ViewBag.EmpName' + "&nbsp;&nbsp;&nbsp;&nbsp;" + '@ViewBag.Time';
+                        rowData.CZRID = '@ViewBag.EmpId';
+                        rowData.CZRQ = '@ViewBag.Time';
+                    }
+
+                    return "<span style=\"padding-left:10px;\">" + rowData.CZR + "</span><span style=\"padding-left:10px;\">" + rowData.CZRQ + "</span>";
+                }
+            }
+        ]]
+    });
+
+    function DelSHYJ() {
+        var row = $('#SHYJTable').datagrid("getSelected");
+        if (row.CZRID != '@ViewBag.EmpId') {
+            alert("不能删除别人的意见");
+            return;
+        }
+
+        var index = $('#SHYJTable').datagrid('getRowIndex', row);
+        $('#SHYJTable').datagrid('deleteRow', index);
+    }
+
+    function AddSHYJ() {
+        var czr = '@ViewBag.EmpName';
+        var czsj = '@ViewBag.Time';
+        var czrid = '@ViewBag.EmpId';
+        var _data = { "SHYJ": "", "CZR": czr, "CZRQ": czsj, "CZRID": czrid };
+        $('#SHYJTable').datagrid('appendRow', _data);
+    }
+
+    function recuriseData(data) {
+        for (var i = 0; i < data.length; i++) {
+            data[i].Id = data[i].Id;
+            data[i].SHYJ=$("#T_SHYJ" + data[i].Id).val();
+        }
+    }
+
+</script>
+
+@using (Html.BeginForm("save", "BussContract", FormMethod.Post, new { @area = "Bussiness", @id = "BussContractForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.FatherID)
+
+    <input type="hidden" id="CompanyType" name="CompanyType" value="FGS" />
+
+    <table class="table table-bordered">
+
+        <tr>
+            <th width="15%">合同编号</th>
+            <td width="35%">
+                <input id="ConNumber" name="ConNumber" style="width:98%;" class="easyui-textbox" data-options="prompt:'不填则默认暂无'" validType="length[0,100]" value="@Model.ConNumber" />
+            </td>
+            <th width="15">合同名称</th>
+            <td width="35%">
+                <input name="ConName" style="width:98%;" class="easyui-textbox" validType="length[0,200]" data-options="required:true" value="@Model.ConName" />
+            </td>
+
+        </tr>
+
+        <tr>
+            <th width="15%">合同类别</th>
+            <td width="35%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ConType",
+               isRequired = true,
+               engName = "ContractType",
+               width = "98%",
+               ids = Model.ConType.ToString()
+           })
+            </td>
+
+            <th width="15%">是否分包</th>
+            <td width="35%">
+                <select id="ConStreamNumber" name="ConStreamNumber" data-options="editable:false" class="easyui-combobox" style="width:98%;">
+                    <option value="0">否</option>
+                    <option value="1">是</option>
+                </select>
+                @*<input name="ConStreamNumber" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@Model.ConStreamNumber" />*@
+            </td>
+
+        </tr>
+        <tr>
+            <th width="15%">合同金额(元)</th>
+            <td width="35%">
+                <input name="ConFee" id="ConFee" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" data-options="precision:2" value="@Model.ConFee" />
+            </td>
+            <th width="15%" name="ZHTLX">合同类型</th>
+            <td width="35%" name="ZHTLX">
+                <select id="ColAttVal1" name="ColAttVal1" class="easyui-combobox" style="width:98%;">
+                    <option value="0">补充合同</option>
+                    <option value="1">变更合同</option>
+                </select>
+            </td>
+        </tr>
+
+
+        @{
+            if (Model.FatherID.ToString() == "0")
+            {
+                <text>
+                    <tr>
+                        <th>
+                            项目名称
+                            <input type="hidden" id="HideprojIDs" value="@(ViewData["ProjIDs"])" />
+                            <input type="hidden" name="ProjTable_Data" id="ProjTable_Data" />
+
+                        </th>
+
+                        <td colspan="3">
+
+                            <table id="ProjTable"></table>
+
+                            <div id="ProjTablePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+
+                                <span JQPanel="toolbarPanel">
+                                    <a name="selectEng" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="selectEng()">选择项目</a>
+                                    <a name="DelEng" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="DelEng()">删除</a>
+                                </span>
+
+                                <script type="text/javascript">
+
+                                    $(function () {
+                                        $('#ProjTable').datagrid({
+                                            JQPrimaryID: 'Id',//主键的字段
+                                            JQID: 'ProjTable',//数据表格ID
+                                            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                                            url: '@Url.Action("GetProjList", "BussContract", new { @area = "Bussiness" })',
+                                            toolbar: '#ProjTablePanel',//工具栏的容器ID
+                                            pagination: false,
+                                            queryParams: { projIDs: '@(ViewData["ProjIDs"])',ConID:'@Model.Id' },
+                                            columns: [[
+                                                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                                                { field: 'ProjNumber', title: '项目编号',halign:'center', width: 150, },
+                                                { field: 'ProjName', title: '项目名称',halign:'center', width: 300, },
+                                                //{ field: 'ProjName', title: '项目类型', width: 200, },
+                                                 {
+                                                     field: 'ConFee',
+                                                     title: '合同金额(元)',
+                                                     width: 150, align: 'right',halign:'center',
+                                                     editor: {
+                                                         type: 'numberspinner',
+                                                         options: { precision: 2, prefix: '￥', required: true,onChange:totleFee }
+                                                     }
+                                                 },
+                                            ]],
+                                        });
+                                    });
+                                    //返回回调刷新
+                                    var _ProjCallBack = function (param) {
+                                        var projIDs = $("#HideprojIDs").val().split(",");
+                                        for (var i = 0; i < param.length; i++) {
+                                            if (projIDs.indexOf(param[i]) < 0) { projIDs.push(param[i]); }
+                                        }
+                                        $("#HideprojIDs").val(projIDs);
+
+                                        $("#ProjTable").datagrid({
+                                            url: '@Url.Action("GetProjList", "BussContract", new { @area = "Bussiness" })',
+                                            queryParams: { projIDs: $("#HideprojIDs").val() },
+                                        });
+                                        //计划收款后编辑行、刷新编辑行的combox
+                                        if (typeof(IsEdit)!="undefined") {
+                                            if (IsEdit!=undefined&&IsEdit) {
+                                                //重新加载combox
+                                                reloadCombox(editIndex);
+                                            }
+                                        }
+
+                                    }
+                                    //选择工程
+                                    function selectEng() {
+                                        Save_Proj();//暂存项目信息
+                                        JQ.dialog.dialog({
+                                            title: "选择项目",
+                                            url: '@Url.Action("selectProj")?CompanyType=FGS',
+                                            width: '1024',
+                                            height: '100%',
+                                            JQID: 'ProjTable',
+                                            JQLoadingType: 'datagrid',
+                                            iconCls: 'fa fa-list',
+
+                                        });
+                                    }
+                                    //删除
+                                    function DelEng() {
+                                        Save_Proj();
+                                        var row = $('#ProjTable').datagrid('getSelections');
+                                        if (row.length < 1) {
+                                            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+                                        }
+                                        else {
+
+                                            var projIDs = $("#HideprojIDs").val().split(",");
+                                            for (var i = 0; i < row.length; i++) {
+                                                delete projIDs[projIDs.indexOf(row[i]["ProjID"])];
+                                            }
+                                            $("#HideprojIDs").val(projIDs);
+
+                                            $("#ProjTable").datagrid({
+                                                url: '@Url.Action("GetProjList", "BussContract", new { @area = "Bussiness" })',
+                                                queryParams: { projIDs: $("#HideprojIDs").val() },
+                                            });
+                                        }
+                                        reloadCombox();
+
+                                    }
+
+                                    //重新统计值
+                                    function totleFee(newValue,oldValue) {
+                                        var _FeeRow= $("#ProjTable").datagrid("getRows");
+                                        var _totleF=0.0;
+                                        $.each(_FeeRow,function (i,e) {
+                                            var ed=$("#ProjTable").datagrid("getEditor",{index:i,field:'ConFee'});
+                                            if (ed) {
+                                                if (!isNaN(parseFloat($(ed.target).numberbox("getValue")))) {
+                                                    _totleF+=parseFloat($(ed.target).numberbox("getValue"));
+                                                }
+                                            }
+                                        });
+
+                                        $("#ConFee").numberbox("setValue",_totleF);
+                                    }
+                                </script>
+
+                            </div>
+                        </td>
+                    </tr>
+                </text>
+            }
+        }
+
+        <tr>
+            <th>合同履行方式</th>
+            <td>
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ConFulfilType",
+               isRequired = true,
+               engName = "ConDealWays",
+               width = "98%",
+               ids = Model.ConFulfilType.ToString()
+           })
+            </td>
+            <th>合同状态</th>
+            <td>
+
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ConStatus",
+               isRequired = true,
+               engName = "ConStatus",
+               width = "98%",
+               ids = Model.ConStatus.ToString()
+           })
+
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">客户名称</th>
+            <td colspan="3">
+                <input id="CustID" name="CustID" style="width:98%;" />
+                <input id="CustName" name="CustName" type="hidden" isFirst="0" value="@Model.CustName">
+                <script type="text/javascript">
+                    $(function () {
+                        $("#CustID").combobox({
+                            url: '@Url.Action("GetCustomerListComboboxWithCount", "BussCustomer", new { @area = "Bussiness" })?TopCount=10',
+                            valueField: 'Id',
+                            textField: 'CustName',
+                            mode:'remote',
+                            onBeforeLoad:function (param) {
+                                if ($("#CustName").attr("isFirst")=="0") {
+                                    param.q=$("#CustName").val();
+                                }
+                            },
+                            onLoadSuccess:function (row) {
+                                debugger;
+                                if ($("#CustID").combobox("getText")==""&&$("#CustName").attr("isFirst")=="0") {
+                                    $("#CustID").combobox("setText",$("#CustName").val());
+                                    $("#CustName").attr("isFirst","1");
+                                }
+                            },
+                            onHidePanel:function(){
+                                $("#CustLinkId").combobox("setValue","");
+                                $("#CustLinkManTel").textbox("setValue","");
+                                $("#CustLinkManWeb").textbox("setValue","");
+                                var custid=$("#CustID").combobox("getValue");
+                                if(isNaN(custid)){
+                                    custid=-1;
+                                    url='@Url.Action("getLinkManCombobox", "BussCustomerLinkMan", new { @area = "Bussiness" })?CustID='+custid;
+                                }else{
+                                    url='@Url.Action("getLinkManCombobox", "BussCustomerLinkMan", new { @area = "Bussiness" })?CustID='+custid;
+                                }
+                                //加载联系人
+                                $("#CustLinkId").combobox({
+                                    url:url,
+                                    valueField: 'Id',
+                                    textField: 'CustLinkManName',
+                                    editable:true,
+                                    onLoadSuccess:function () {
+                                        var data= $(this).combobox("getData");
+                                        if (data.length>0) {
+                                            $(this).combobox("setValue",data[0].Id);
+                                            $("#CustLinkManTel").textbox("setValue",data[0].linkTel);
+                                            $("#CustLinkManWeb").textbox("setValue",data[0].linkWeb);
+                                        }
+                                    },
+                                    onSelect:function (item) {
+                                        //加载联系人
+                                        $("#CustLinkManTel").textbox("setValue",item.linkTel);
+                                        $("#CustLinkManWeb").textbox("setValue",item.linkWeb);
+                                    }
+                                })
+                            }
+                        })
+
+                    })
+                </script>
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">联系人</th>
+            <td width="35%">
+                <input id="CustLinkId" name="CustLinkId" style="width:98%;" />
+                <input id="CustLinkManName" name="CustLinkManName" type="hidden" value="@Model.CustLinkManName">
+                <script type="text/javascript">
+                    $(function () {
+                        $("#CustLinkId").combobox({
+                            url: '@Url.Action("getLinkManCombobox", "BussCustomerLinkMan", new { @area = "Bussiness" })?CustID=@Model.CustID',
+                            valueField: 'Id',
+                            textField: 'CustLinkManName',
+                            onSelect:function (item) {
+                                //加载联系人
+                                $("#CustLinkManTel").textbox("setValue",item.linkTel);
+                                $("#CustLinkManWeb").textbox("setValue",item.linkWeb);
+                            },
+                            filter:function (q, row) {
+                                $("#CustLinkManTel").textbox("setValue","");
+                                $("#CustLinkManWeb").textbox("setValue","");
+                                return true;
+                            },
+                            onLoadSuccess:function () {
+                                $("#CustLinkId").combobox("setText",$("#CustLinkManName").val());
+                            },
+                        })
+
+                    })
+                </script>
+            </td>
+            <th width="15%">联系电话</th>
+            <td width="35%">
+                <input id="CustLinkManTel" name="CustLinkManTel" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@Model.CustLinkManTel" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">邮箱</th>
+            <td width="35%">
+                <input id="CustLinkManWeb" name="CustLinkManWeb" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@Model.CustLinkManWeb" />
+            </td>
+            <th width="15%">结算金额(元)</th>
+            <td width="35%">
+                <input name="ConBalanceFee" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" data-options="precision:2" value="@Model.ConBalanceFee" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">登记人</th>
+            <td width="35%">
+                @Model.CreateEmpName
+            </td>
+            <th width="15%">登记日期</th>
+            <td width="35%">
+                @Model.CreateDate.ToString("yyyy-MM-dd")
+            </td>
+        </tr>
+        <tr>
+            <th>付款条件</th>
+            <td colspan="3">
+                <input name="ConPay" style="width:98%;height:80px" value="@Model.ConPay" class="easyui-textbox" data-options="multiline:true" validType="length[0,4000]" />
+            </td>
+        </tr>
+        <tr>
+            <th>审核意见</th>
+            <td colspan="3">
+                <a class="easyui-linkbutton" id="btnAddSHYJ" name="btnAddSHYJ" data-options="plain:true,iconCls:'fa fa-plus'" onclick="AddSHYJ()">新增</a>
+                <a class="easyui-linkbutton" id="btnRemoveSHYJ" name="btnRemoveSHYJ" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="DelSHYJ()">删除</a>
+                <table id="SHYJTable"></table>
+            </td>
+        </tr>
+        @{ if (Model.Id == 0 && Model.FatherID == 0)
+            {
+                <tr>
+                    <th width="15%">收款计划</th>
+                    <td colspan="3">
+                        <script type="text/javascript">
+                            $(function () {
+                                showGrid();
+                            })
+                            function showGrid() {
+                                $('#planTable').datagrid({
+                                    JQPrimaryID: 'PorjID',//主键的字段
+                                    JQID: 'planTable',//数据表格ID
+                                    JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                                    url: '@Url.Action("jsonPlan", "BussContract", new { @area = "Bussiness" })',
+                                    queryParams: { projIDs: $("#projIDs").val() },
+                                    toolbar: '#planTablePanel',//工具栏的容器ID
+                                    pagination: false,
+                                    columns: [[
+                                        { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                                        {
+                                            field: 'ProjID', title: '项目名称', width: 200,
+                                            formatter: function (value, row) {
+                                                //console.log(JSON.stringify(row));
+                                                //return JSON.stringify(row);
+                                                return row.text;
+                                            },
+                                            editor: {
+                                                type: 'combobox',
+                                                options: {
+                                                    url: '@Url.Action("GetProjJson")?projIDs=' + $("#HideprojIDs").val()+"&ConID="+@Model.Id,
+                                                    valueField: 'id',
+                                                    textField: 'text',
+                                                    editable: false,
+                                                    required: true,
+                                                    //panelHeight: 'auto',
+                                                    //data: [{ ProjId: 1, ProjN: '测试' }],
+                                                    //success: function (backJson) {
+                                                    //    alert(JSON.stringify(backJson));
+                                                    //}
+
+                                                    //prompt:'请选择工程',
+
+                                                }
+                                            }
+                                        },
+                                        {
+                                            field: 'FeeMoney',
+                                            title: '合同金额(元)',
+                                            width: 100, align: 'right',
+                                            editor: {
+                                                type: 'numberspinner',
+                                                options: { precision: 2, prefix: '￥', required: true }
+                                            }
+                                        },
+                                        { field: 'FeeDate', title: '计划收款日期', width: 120, editor: { type: 'datebox', options: {
+                                            validType:['dateISO'], required: true } } },
+                                        {
+                                            field: 'FeeNote', title: '收费说明', width: 150,
+                                            editor: { type: 'textbox', options: { validType: length[0, 23] } }
+                                        },
+                                    ]],
+                                });
+                            }
+
+                            //新增一行
+                            function AddFee() {
+                                $('#planTable').datagrid('appendRow', {});
+                                editIndex = $('#planTable').datagrid('getRows').length - 1;
+                                $('#planTable') .datagrid('beginEdit', editIndex);
+
+                                //重新加载combox
+                                reloadCombox();
+                            }
+                            //删除行
+                            function DelFee() {
+                                var row = $('#planTable').datagrid('getSelections');
+                                $.each(row,function (i,e) {
+                                    var _getIndex=$("#planTable").datagrid("getRowIndex",e);
+                                    $('#planTable').datagrid('deleteRow',_getIndex);
+                                });
+                            }
+
+                            //重新加载combox
+                            function reloadCombox(rowindex) {
+                                var _row=$("#planTable").datagrid("getRows");
+                                $.each(_row,function (i,e) {
+                                    var _EditRow = $("#planTable").datagrid("getEditors", i);
+                                    var _target = _EditRow[0];
+                                    var ComBoValue= $(_target.target).combobox('getValue');
+                                    if ((","+ $("#HideprojIDs").val()+",").indexOf(","+ComBoValue+",")==-1) {
+                                        $(_target.target).combobox('setValue',"0");
+                                    }
+
+                                    if (_target.type == "combobox") {
+                                        $(_target.target).combobox('reload', '@Url.Action("GetProjJson")?projIDs=' + $("#HideprojIDs").val());
+                                    }
+                                })
+
+                            }
+
+                        </script>
+                        <table id="planTable"></table>
+                        <input type="hidden" name="PlanTable_Data" id="PlanTable_Data" />
+                        <div id="planTablePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+                            <span JQPanel="toolbarPanel">
+                                <a name="feeplanAdd" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="AddFee()">新增</a>
+                                <a name="feeplanDel" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="DelFee()">删除</a>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+            }}
+        <tr>
+            <th width="15%">备注</th>
+            <td colspan="3">
+                <input name="ConNote" style="width:98%;height:80px" value="@Model.ConNote" class="easyui-textbox" data-options="multiline:true" validType="length[0,500]" />
+            </td>
+        </tr>
+        @{if (Model.FatherID != 0)
+            {
+                <text>
+                    <tr>
+                        <th>
+                            主合同编号
+                        </th>
+                        <td colspan="3">
+                            <input name="ConMainNumber" style="display:none; width:98%" value="@Model.ConMainNumber" validType="length[0,500]" />
+                            @Model.ConMainNumber
+                        </td>
+                    </tr>
+                </text>
+            }
+        }
+        <tr>
+            <th width="15%">签订日期</th>
+            <td width="35%">
+                <input name="ConDate" style="width:98%;" class="easyui-datebox" validType="length[0,23]" data-options="validType:['dateISO']" value="@Model.ConDate" />
+            </td>
+            <th width="15%">归档盒号</th>
+            <td width="35%">
+                <input name="ConFileNumber" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@Model.ConFileNumber" />
+            </td>
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "BussContract";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+
+            </td>
+        </tr>
+    </table>
+
+    <div id="tbCustomer" style="padding:5px;height:auto; display:none;">
+        <input id="fullNameSearchCustomer" style="width:250px;" JQWhereOptions="{ Key: 'CustName', 'Contract': 'like' }" />
+    </div>
+
+
+    <input type="hidden" id="SHYJ" name="SHYJ" />
+
+                    }

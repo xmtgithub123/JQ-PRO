@@ -1,0 +1,23 @@
+﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    @RenderPage("~/Areas/Core/Views/Shared/_Header.cshtml")
+</head>
+<body>
+    <div id="Lay">
+        <div id="LayCenter">
+
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(function () {
+            $("#LayCenter").attr("data-options", "region:'center',href:'" + window.frameElement.url+"'");
+            $("#Lay").layout({
+                fit: true,
+            });
+        })
+    </script>
+</body>
+</html>

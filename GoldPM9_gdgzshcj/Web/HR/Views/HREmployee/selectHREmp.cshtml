@@ -1,0 +1,61 @@
+﻿
+
+<script type="text/javascript">
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'HREmployeeGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '768',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQFields: ["Id"],//追加的字段名
+            JQSearch: {
+                id: 'JQSearch',
+                prompt: '筛选字段',
+                loadingType: 'datagrid',//默认值为datagrid可以不传
+            },
+            url: '@Url.Action("json", "HREmployee",new { @area="Hr"})',//请求的地址
+            fitColumns: false,
+            nowrap: false,
+            singleSelect:true,
+            toolbar: '#HREmployeePanel',//工具栏的容器ID
+            columns: [[
+                { title: '部门', field: 'DepName', width: 100, align: 'center', sortable: true },
+                { title: '姓名', field: 'EmpName', width: 100, align: 'center', sortable: true },
+                { title: '入职日期', field: 'EmpJoinDate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '性别', field: 'EmpSexName', width: 100, align: 'center', sortable: true },
+                { title: '手机', field: 'EmpPhoneNumber', width: 100, align: 'center', sortable: true },
+                { title: '年休天数', field: 'VacationDays1', width: 100, align: 'center', sortable: true },
+                { title: '最高学历', field: 'LastEducationName', width: 100, align: 'center', sortable: true }
+            ]]
+        });
+    });
+
+    function closeDia() {
+        JQ.dialog.dialogClose();
+    }
+
+    function sure() {
+
+        var rows = $('#HREmployeeGrid').datagrid('getSelections');
+        if (rows.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        _SureEmp(rows[0]);
+        JQ.dialog.dialogClose();
+    }
+</script>
+<table id="HREmployeeGrid"></table>
+<div id="HREmployeePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" name="btnSure" id="btnSure" data-options="plain:true,iconCls:'fa fa-save'" onclick="sure()">确定</a>
+        <a class="easyui-linkbutton" name="btnCancel" id="btnCancel" data-options="plain:true,iconCls:'fa fa-close'" onclick="closeDia()">取消</a>
+    </span>
+
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'EmpName', 'Contract': 'like' }" />
+    <div class="moreSearchPanel">
+    </div>
+</div>
+

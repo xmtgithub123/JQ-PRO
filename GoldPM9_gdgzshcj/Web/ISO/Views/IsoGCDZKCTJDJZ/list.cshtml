@@ -1,0 +1,114 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "IsoGCDZKCTJDJZ", new { @area="Iso"})?type=@ViewBag.FormType',
+            addUrl = '@Url.Action("add", "IsoGCDZKCTJDJZ", new {@area="Iso" })?type=@ViewBag.FormType',
+            editUrl = '@Url.Action("edit", "IsoGCDZKCTJDJZ",new {@area="Iso" })',
+            delUrl = '@Url.Action("del", "IsoGCDZKCTJDJZ", new { @area = "Iso" })?type=@ViewBag.FormType';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'IsoGCDZKCTJDJZGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '项目编号、项目名称',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                JQExcludeCol: [1,11,12,13],//导出execl排除的列
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: false,
+                nowrap: false,
+                toolbar: '#IsoGCDZKCTJDJZPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true },
+                    { title: '项目名称', field: 'ProjName', width: 300, align: 'center', sortable: true },
+                    { title: '阶段名称', field: 'ProjPhaseName', width: 100, align: 'center', sortable: true },
+                    { title: '创建时间', field: 'CreationTime', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '创建人姓名', field: 'CreatorEmpName', width: 80, align: 'center', sortable: true },
+                    { title: '工程地点', field: 'EngGCDD', width: 200, align: 'center', sortable: true },
+                    { title: '交付日期', field: 'EngCGJFRQ', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '顾客', field: 'CustName', width: 200, align: 'center', sortable: true },
+                    { title: '设计人', field: 'EngSJR', width: 100, align: 'center', sortable: true },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'IsoGCDZKCTJDJZ' },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrEmpID)")
+                    },
+                    {
+                        field: 'opt', title: '操作', width: "40", align: 'center', JQIsExclude: true,
+                        formatter: function (value, row, index) {
+                            var title = "查看";
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                            }
+
+                            return "<a class='easyui-linkbutton' onclick='Look(" + row.Id + ")'>" + title + "</a>";
+                        }
+                    }
+
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#IsoGCDZKCTJDJZGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+        });
+
+        function Look(val) {
+            JQ.dialog.dialog({
+                title: "工程地质勘察条件单",
+                url: editUrl + "?Id=" + val,
+                width: '1000',
+                height: '100%',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-search',
+                onClose: function () {
+                    $("#IsoGCDZKCTJDJZGrid").datagrid("reload");
+                }
+
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoGCDZKCTJDJZGrid"></table>
+    <div id="IsoGCDZKCTJDJZPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;"  JQWhereOptions="{ 'Key': 'ProjNumber,ProjName', 'Contract': 'like' }"/>
+
+    </div>
+}
+

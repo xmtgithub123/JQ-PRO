@@ -1,0 +1,83 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+<style type="text/css">
+    .user-image {
+        float: left;
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+    }
+</style>
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "user",new { @area="Core"})';
+        $(function () {
+            //数据表格
+            JQ.datagrid.datagrid({
+                JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+                JQPrimaryID: 'EmpID',//主键的字段
+                JQID: 'dg',//数据表格ID
+                JQDialogTitle: '用户信息',//弹出窗体标题
+                JQWidth: '760',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQExcludeCol: [1, 4, 10],//导出execl排除的列
+                //JQMergeCells: { fields: ['DepartmentName'], Only: 'DepartmentName' },
+                JQFields: ["EmpID"],//追加的字段名
+                JQSearch: {
+                    id: 'fullNameSearch',
+                    prompt: '姓名',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                    $panel: $("#tb")//搜索的容器，可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: false,//是否包含check
+                fitColumns: false,
+                nowrap: false,
+                toolbar: '#tb',//工具栏的容器ID
+                frozenColumns: [[
+                {
+                    title: ' ', field: 'EmpID', width: "120", align: 'center', formatter: function (val, row) {
+                        return "<img src='@(Url.Action("GetAvatar","User",new { @area="Core" }))?id=" + val + "' class='user-image' alt='User Image'>"
+                    }
+                },
+                { title: '姓名', field: 'EmpName', width: 100, align: 'center', sortable: true },
+                { title: '所属部门', field: 'DepartmentName', width: 100, align: 'center', sortable: true },
+                        ]],
+                columns: [[
+                { title: '人员生日', field: 'EmpBirthDate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		        { title: '职务职称', field: 'EmpTitle', width: 100, align: 'center', sortable: true },
+		        { title: '电话', field: 'EmpTel', width: 100, align: 'center', sortable: true },
+		        { title: '内线号码', field: 'EmpTelNX', width: 100, align: 'center', sortable: true },
+		        { title: '外线号码', field: 'EmpTelWX', width: 100, align: 'center', sortable: true },
+		        { title: '房间号', field: 'EmpFJNum', width: 100, align: 'center', sortable: true },
+		        { title: 'OA邮箱', field: 'EmpOaMail', width: 100, align: 'center', sortable: true },
+		        { title: '公司邮箱', field: 'EmpComMail', width: 100, align: 'center', sortable: true },
+                { title: '电脑IP地址', field: 'EmpIPAddress', width: 100, align: 'center', sortable: true },
+                { title: '电脑MAC地址', field: 'EmpMacAddress', width: 100, align: 'center', sortable: true },
+		        //{ title: '子网掩码', field: 'EmpZWAddress', width: 100, align: 'center', sortable: true },
+		        //{ title: '网关地址', field: 'EmpWGAddress', width: 100, align: 'center', sortable: true },
+                { title: '备注', field: 'EmpNote', width: 100, align: 'center', sortable: true },
+                ]]
+            });
+        });
+    </script>
+
+}
+@section Body_Content{
+    <table id="dg"></table>
+    <div id="tb" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+        </span>
+
+        <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+        @BaseData.getBases(new Params() { isMult = true, engName = "department", queryOptions = "{ Key:'EmpDepID', Contract:'in',filedType:'Int'}" })
+        <input id="fullNameSearch" value="" style="width:250px;" JQWhereOptions="{ Key: 'EmpName', 'Contract': 'like' }" />
+
+         
+    </div>
+}
+
+

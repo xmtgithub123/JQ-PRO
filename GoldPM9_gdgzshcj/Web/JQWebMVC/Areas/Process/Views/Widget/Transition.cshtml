@@ -1,0 +1,96 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div id="div1" style="display:none;padding:5px;">
+        <table class="documenttable" style="width:100%">
+            <tr>
+                <th style="width:15%">名称</th>
+                <td style="width:35%">
+                    <input type="text" id="txtName" name="" class="yc_textbox" style="width:80%">
+                </td>
+                <th style="width:15%">
+                    类型
+                </th>
+                <td style="width:35%">
+                    <span id="lblTypeName">线条</span>
+                </td>
+            </tr>
+            <tr>
+                <th>表达式</th>
+                <td>
+                    <input type="text" id="txtExpression" name="" class="yc_textbox" style="width:90%" placeholder="请输入表达式">
+                </td>
+                <th>
+                    默认线
+                </th>
+                <td>
+                    <input type="checkbox" id="cbIsDefault" /><label for="cbIsDefault"></label>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    说明
+                </th>
+                <td colspan="3">
+                    <span id="span1"></span>
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="div2" style="display:none;padding:5px;">
+    </div>
+</div>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript">
+    function init() {
+        var yTab = new YChart.Tab({
+            container: "divcontent",
+            offsetHeight: 0,
+            tabs: [
+                {
+                    name: "property",
+                    title: "属性",
+                    element: "div1",
+                    closable: false
+                }
+            ]
+        });
+        var shape = frameElement.api.getSource();
+        document.getElementById("txtName").value = shape.name;
+        document.getElementById("txtExpression").value = shape.expression;
+        document.getElementById("cbIsDefault").checked = shape.isDefault;
+        //设置属性
+        YChart.setText(document.getElementById("span1"), "从[" + (shape.fromActivityPoint ? shape.fromActivityPoint.source.displayName : " ") + "]至[" + (shape.toActivityPoint ? shape.toActivityPoint.source.displayName : " ") + "]");
+    }
+
+    init();
+
+    function sure() {
+        var name = YChart.trim(document.getElementById("txtName").value);
+        if (!name) {
+            return;
+        }
+        if (frameElement.api.saveData({
+            name: name,
+            expression: document.getElementById("txtExpression").value,
+            isDefault: document.getElementById("cbIsDefault").checked
+        }) == false) {
+            return;
+        }
+        frameElement.closeDialog();
+    }
+</script>

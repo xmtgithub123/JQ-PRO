@@ -1,0 +1,55 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="manager.ttinclude"#>
+<# var manager = Manager.Create(Host, GenerationEnvironment); #>
+<# manager.StartNewFile("jqpm7Context.cs","tt"); #>
+using System.Data.Entity;
+using DataModel.Models;
+using DataModel.Models.Mapping;
+namespace DAL
+{
+    public partial class JQPM9_DefaultContext : DbContext
+    {
+        static JQPM9_DefaultContext()
+        {
+            Database.SetInitializer<JQPM9_DefaultContext>(null);
+        }
+
+        public JQPM9_DefaultContext()
+            : base("Name=jqpm7Context")
+        {
+             
+        }
+<#
+	foreach(BaseNameSpace item in DbHelper.GetBaseNameSpaceTables(config.ConnectionString, config.TableNames))
+	{
+		string ClassName = item.TableNames;
+#>
+        public DbSet<<#=ClassName#>> <#=ClassName#>s { set; get; }
+<#
+    }
+#>
+
+        protected override void OnModelCreating(DbModelBuilder modelBuilder)
+        {
+<#
+	foreach(BaseNameSpace item in DbHelper.GetBaseNameSpaceTables(config.ConnectionString, config.TableNames))
+	{
+		string ClassName = item.TableNames;
+#>
+        modelBuilder.Configurations.Add(new <#=ClassName#>Map());
+<#
+    }
+#>
+        }
+    }
+}
+<# manager.EndBlock(); #>
+
+<# manager.Process(true); #>
+<#+
+	public class config
+	{ 
+		public static readonly string ConnectionString="Data Source=192.168.0.8\\j9SQL2008R2;Initial Catalog=JQPM9_gdgzshcj;User ID=sa;Password=j9;";
+		public static readonly string TableNames="";
+	}
+#>

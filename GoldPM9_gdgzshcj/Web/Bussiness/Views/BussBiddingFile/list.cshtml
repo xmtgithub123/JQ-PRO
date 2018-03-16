@@ -1,0 +1,135 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("GetBiddingFileList", "BussBiddingFile", new { @area= "Bussiness" })?CompanyType=FGS',
+            addUrl = '@Url.Action("add", "BussBiddingFile", new {@area= "Bussiness" })?CompanyType=FGS',
+            editUrl = '@Url.Action("edit", "BussBiddingFile", new {@area= "Bussiness" })',
+            delUrl = '@Url.Action("del", "BussBiddingFile", new { @area = "Bussiness" })'
+
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: addUrl,//添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl,//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussBiddingFileGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQExcludeCol: [1, 12],//导出execl排除的列
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussBiddingFilePanel',//工具栏的容器ID
+                columns: [[
+                 { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                 { title: '投标编号', field: 'BiddingNumber', width: "12%", align: 'left', sortable: true },
+		         { title: '项目名称', field: 'EngineeringName', width: "20%", align: 'left', sortable: true },
+                 { title: '投标文件名', field: 'ProjName', width: "15%", align: 'left', sortable: true },
+		         { title: '商务负责人', field: 'BusinessEmpName', width: "6%", align: 'center', sortable: true },
+		         { title: '技术负责人', field: 'TechnologyEmpName', width: "6%", align: 'center', sortable: true },
+		         { title: '计划开始时间', field: 'DatePlanStart', width: "6%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                 { title: '计划完成日期', field: 'DatePlanFinish', width: "6%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                 {
+                     field: 'JQFiles', title: '附件', align: 'center', width: "4%", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'Project', formatter: function (value, row) {
+                         return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                     }
+                 },
+                 {
+                     field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrEmpID)")
+                 },
+                 {
+                     field: 'opt', title: '操作', width: 100, align: 'center', JQIsExclude: true,
+                     formatter: function (value, row, index) {
+                         var title = "查看";
+                         if (row._EditStatus == 1) {
+                             title = "修改";
+                         }
+                         else if (row._EditStatus == 2) {
+                             title = "处理";
+                         }
+                         return "<a href=\"javascript:void(0)\" onclick=\"ShowBiddingFileDialogue('" + row.Id + "');\">" + title + "</a>"
+                     }
+                 }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#BussBiddingFileGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '投标编号、项目名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BussBiddingFileGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+
+        function ShowBiddingFileDialogue(Id) {
+            JQ.dialog.dialog({
+                title: "投标信息明细",
+                url: '@Url.Action("edit", "BussBiddingFile", new { @area = "Bussiness" })?CompanyType=FGS&id=' + Id,
+                width: '1024',
+                height: '100%',
+                JQID: 'BussBiddingFileGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="BussBiddingFileGrid"></table>
+    <div id="BussBiddingFilePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+        </span>
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'txtLike', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            登记时间
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'DateCreateS', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'DateCreateE', Contract:'<=',filedType:'Date' }">&nbsp;
+            计划开始时间
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'DatePlanStartS', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'DatePlanStartE', Contract:'<=',filedType:'Date' }">&nbsp;
+            计划完成日期
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'DatePlanFinishS', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'DatePlanFinishE', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>
+    </div>
+}
+

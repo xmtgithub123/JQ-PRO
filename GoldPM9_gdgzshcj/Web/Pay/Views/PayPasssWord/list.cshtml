@@ -1,0 +1,146 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "PayPasssWord", new { @area = "Pay" })';
+        $(function () {
+
+            //数据表格
+            JQ.datagrid.datagrid({
+                //JQAddUrl: addUrl,//添加的路径
+                //JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+                //JQEditUrl: editUrl,//编辑的路径
+                //OnJQEditClick: {//同上
+                //    JQField: ['EmpName'], JQCollBack: function () {
+                //        return [{ key: 'name', val: '1' }];
+                //    }
+                //},
+                //JQButtonTypes: [  'edit'],//需要显示的按钮
+                JQPrimaryID: 'EmpID',//主键的字段
+                JQID: 'tt',//数据表格ID
+                JQDialogTitle: '用户信息',//弹出窗体标题
+                JQWidth: '760',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQCustomSearch: [  //自定义搜索的字段
+                    //{ value: 'EmpDepID', key: '人员部门', type: 'combox', engname: 'department' },//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+                    //{ value: 'EmpLogin', key: '用户名' },
+                    //{ value: 'EmpName', key: '姓名' }
+                ],
+                //JQExcludeCol: [1, 4, 10],//导出execl排除的列
+                JQFields: ["EmpID"],//追加的字段名
+                JQSearch: {
+                    id: 'fullNameSearch',
+                    prompt: '姓名',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                //    $panel: $("#tb")//搜索的容器，可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: false,//是否包含check
+                toolbar: '#tb',//工具栏的容器ID
+                columns: [[
+                  { title: '姓名', field: 'EmpName', width: "20%", align: 'center', sortable: true },
+                  { title: '用户名', field: 'EmpLogin', width: "20%", align: 'center', sortable: true },
+                  { title: '所属部门', field: 'DepartmentName', width: "20%", align: 'center', sortable: true },//, JQIsExclude: true
+                     {
+                         title: '操作', field: 'opr', width: "25%", align: 'center',
+                         formatter: function (value, row) {
+                             return '<a edit  class="easyui-linkbutton"    JQPermissionName="add"  data-options="iconCls:\'fa fa-check\'"   onclick="Edit(' + row.EmpID + ')">修改密码</a>   ' + '<a  recoverpwd class="easyui-linkbutton"   JQPermissionName="edit"   onclick="RecoverPwd(' + row.EmpID + ')">恢复密码</a> ';
+                         }
+                     }
+                ]],
+                onLoadSuccess: function (row, data) {
+                    $("a[edit]").linkbutton({ iconCls: 'fa fa-edit' });
+                    $("a[recoverpwd]").linkbutton({ iconCls: 'fa fa-edit' });
+                }
+            });
+
+        });
+
+
+        //修改密码
+        function Edit(KeyId) {
+            JQ.dialog.dialog({
+                title: "修改绩效密码",
+                url: '@Url.Action("edits")' + '?id=' + KeyId,
+                width: '400',
+                height: '300',
+                JQID: 'tt',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+        //恢复密码
+        function RecoverPwd(KeyId) {
+            $.messager.confirm("系统提示", "您确定恢复绩效密码吗？", function (r) {
+                if (r) {
+                    $.ajax({
+                        url: "@(Url.Action("RecoverPwd", "PayPasssWord", new { @area = "Pay" }))",
+                        data: {
+                            EmpID: KeyId
+                        },
+                        type: "POST",
+                        success: function (result) {
+                            if (result.Result == "0") {
+                                alert(result.Message);
+                                return;
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+    
+        @*function menuHandler(item) {
+            var key = $("#mm3").attr("rowid");
+            switch (item.text) {
+                case "收款":
+                    JQ.dialog.dialog({
+                        title: "查看其他收款合同信息",
+                        url: '@Url.Action("AddConOtherFee")' + '?Id=' + key,
+                        width: '1024',
+                        height: '100%',
+                        JQID: 'BussContractOtherGrid',
+                        JQLoadingType: 'datagrid',
+                        iconCls: 'fa fa-plus'
+                    });
+                    break;
+                case "查看":
+                    JQ.dialog.dialog({
+                        title: "查看信息",
+                        url: '@Url.Action("edit")' + '?Id=' + key,
+                        width: '1024',
+                        height: '100%',
+                        JQID: 'BussContractOtherGrid',
+                        JQLoadingType: 'datagrid',
+                        iconCls: 'fa fa-plus'
+                    });
+                    break;
+                default:
+                    break;
+            }
+        }*@
+
+    </script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="tt"></table>
+    <div id="tb" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+        </span>
+        @*&nbsp;&nbsp;<span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>&nbsp;&nbsp;&nbsp;*@
+        <input id="fullNameSearch" value="" style="width:250px;" jqwhereoptions="{ Key: 'EmpName', 'Contract': 'like' }" />
+    </div>
+
+    @*<div id="mm3" class="easyui-menu" style="width:80px;" data-options="onClick:menuHandler">
+        <div id="div1">修改密码</div>
+        <div id="div2">恢复密码</div>
+    </div>*@
+}
+
+

@@ -1,0 +1,75 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+    <link href="@(Url.Content("~/Content/chart/site.css"))" rel="stylesheet" />
+    <link href="@(Url.Content("~/Content/chart/chart.datebox.css"))" rel="stylesheet" />
+    <link href="@(Url.Content("~/Content/chart/fonts/font-awesome.min.css"))" rel="stylesheet" />
+    <style type="text/css">
+        div.yc_control_panel:after {
+            display: block;
+            content: " ";
+            position: absolute;
+            right: 0;
+            top: 0px;
+            z-index: 1;
+            border: 8px solid transparent;
+            border-top-color: #499CC1;
+            border-width: 8px 6px 8px 8px;
+        }
+
+        .yc_inlinetable {
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        .yc_inlinetable_toolbar {
+            height: 32px;
+            background-color: #EAEAEA;
+            border-top: 1px solid #666666;
+            border-left: 1px solid #666666;
+            border-right: 1px solid #666666;
+            overflow: hidden;
+        }
+
+        .yc_inlinetable_toolbar_btn {
+            cursor: pointer;
+            float: left;
+            padding: 0px 5px 0px 5px;
+            height: 24px;
+            line-height: 24px;
+            margin: 3px 0px 0px 5px;
+            border: 1px solid transparent;
+            border-radius: 3px;
+            -webkit-user-select: none;
+        }
+
+            .yc_inlinetable_toolbar_btn:hover {
+                border: 1px solid #BBBBBB;
+            }
+
+        .yc_inlinetable th {
+            background-color: #EAEAEA;
+            text-align: center;
+            height: 32px;
+            border: 1px solid #666666;
+            outline: none;
+        }
+
+        .yc_inlinetable td {
+            height: 40px;
+            border: 1px solid #666666;
+            outline: none;
+        }
+    </style>
+</head>
+<body style="font-size:16px;font-family:宋体;">
+</body>
+</html>

@@ -1,0 +1,70 @@
+﻿
+@using JQ.Web;
+<style type="text/css">
+    .rwpdialogdiv {
+        padding: 0px;
+    }
+</style>
+<script type="text/javascript">
+    var requestUrl = '@Url.Action("TransferJson", "PayPasssWord", new { @area = "Pay" })?RowId=@Request.QueryString["RowId"]';
+    $(function () {
+        $(".dialog-toolbar :last").hide();
+
+        //数据表格
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'EmpID',//主键的字段
+            JQID: 'CoffeeGrid',//数据表格ID
+            JQDialogTitle: '用户信息',//弹出窗体标题
+            JQWidth: '760',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQFields: ["EmpID"],//追加的字段名
+            JQSearch: {
+                id: 'JQSearch',
+                prompt: '姓名',
+                loadingType: 'datagrid',//默认值为datagrid可以不传
+                $panel: $("#tb")//搜索的容器，可以不传
+            },
+            url: requestUrl,//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#tb',//工具栏的容器ID
+            columns: [[
+                {field: 'ck', align: 'center', checkbox: true},
+              { title: '姓名', field: 'EmpName', width: "18%", align: 'center', sortable: true },
+              { title: '用户名', field: 'EmpLogin', width: "18%", align: 'center', sortable: true },
+              { title: '所属部门', field: 'DepartmentName', width: "20%", align: 'center', sortable: true },//, JQIsExclude: true
+              { title: '管理人员系数', field: 'PayManageCoeff', width: "15%", align: 'center', sortable: true }
+            ]]
+        });
+
+
+    });
+    function selectCoffee() {
+        var rows = $('#CoffeeGrid').datagrid('getSelections');
+        if (rows.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        for (var rowindex = 0; rowindex < rows.length; rowindex++) {
+            var tab = $('#mainTab').tabs('getSelected');
+            var index = $('#mainTab').tabs('getTabIndex', tab);
+            $("#mainTab").find("iframe")[index].contentWindow.copyData(rows[rowindex]);
+        }
+
+        JQ.dialog.dialogClose();
+    }
+</script>
+
+<table id="CoffeeGrid"></table>
+<div id="tb" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectCoffee()">确定选择</a>
+    </span>
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+
+    <input id="JQSearch"  style="width:250px;" jqwhereoptions="{ Key: 'EmpName', 'Contract': 'like' }" />
+    <span style="font-size:14px;color:red;margin-left:20px;">*请到绩效模板菜单中，维护管理系数(显示管理系数>0)</span>
+</div>
+
+
+

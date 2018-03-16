@@ -1,0 +1,97 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout.cshtml";
+}
+<div id="divLeft" style="width:220px;float:left">
+    <div id="divLeftHead" class="headtoolbar" style="float:none;border-bottom:none;border-right:1px solid #E5E5E5">
+        <div style="float:left;width:5px"></div>
+        <div id="btnClose" class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+            <span class="fa fa-close"></span>
+            <span>关闭</span>
+        </div>
+        <div class="headtoolbarbtn" onclick="window.location.reload()">
+            <span class="fa fa-refresh"></span>
+            <span>刷新</span>
+        </div>
+    </div>
+    <ul id="treelist"></ul>
+</div>
+<div id="divRight" style="float:left;overflow:hidden">
+    <iframe id="frame" frameborder="0" style="width:100%;height:100%;"></iframe>
+</div>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript">
+    var lastSelect;
+    window.onDialogLoaded = function () {
+        document.getElementById("divLeft").style.height = document.documentElement.clientHeight + "px";
+        document.getElementById("divRight").style.width = (document.documentElement.clientWidth - document.getElementById("divLeft").offsetWidth) + "px";
+        document.getElementById("divRight").style.height = document.documentElement.clientHeight + "px";
+        $("#treelist").treegrid({
+            idField: "id",
+            treeField: "formTemplateID",
+            url: "@(Url.Action("GetRelationTreeData","Manage",new { @area="Form" }))",
+            queryParams: { formTemplateID: "@(Request.QueryString["formTemplateID"])", formID: "@(Request.QueryString["id"])" },
+            rownumbers: true,
+            height: document.getElementById("divRight").clientHeight - document.getElementById("divLeftHead").offsetHeight,
+            columns: [[
+                {
+                    title: "名称", field: "formTemplateID", width: 180, halign: "center", formatter: function (value, rowData) {
+                        switch (rowData.type)
+                        {
+                            case "1":
+                                return YChart.createElement("span", null, { fontWeight: "bolder" }, rowData.text).outerHTML;
+                            case "2":
+                                return YChart.createElement("span", null, { color: "#444444",fontStyle:"italic" }, rowData.text).outerHTML;
+                            default:
+                                return YChart.createElement("span", null, { color: "#000000" }, rowData.text).outerHTML;
+                        }
+                    }
+                }
+            ]],
+            singleSelect:true,
+            onClickRow: function (rowData) {
+                navigateFrame(rowData);
+            },
+            onLoadSuccess: function (row, rowData) {
+                if (lastSelect) {
+                    $("#treelist").treegrid("select", lastSelect);
+                    var _rowData = $("#treelist").treegrid("find", lastSelect);
+                    if (!_rowData) {
+                        return;
+                    }
+                    navigateFrame(_rowData, _rowData.type=="2"?1:0);
+                }
+                else if (rowData.length > 0) {
+                    $("#treelist").treegrid("select", rowData[0].id);
+                    navigateFrame(rowData[0]);
+                }
+            }
+        });
+    }
+
+    document.getElementById("frame").treeApi = {
+        refresh: function () {
+            $("#treelist").treegrid("reload");
+        }
+    };
+
+    function navigateFrame(rowData, isForce) {
+        if (rowData.id == lastSelect && !isForce) {
+            return;
+        }
+        lastSelect = rowData.id;
+        switch (rowData.type) {
+            case "1":
+                //根节点，显示具体表单
+                document.getElementById("frame").setAttribute("src", "@(Url.Action("Edit","Manage",new { @area="Form" }))?id=" + rowData.formID + "&formTemplateID=" + rowData.formTemplateID + "&processID=" + rowData.processID);
+                break;
+            case "2":
+                //分类节点，显示具体列表
+                document.getElementById("frame").setAttribute("src", "@(Url.Action("List","Manage",new { @area="Form" }))?formTemplateID=" + rowData.formTemplateID + "&referenceField=" + rowData.referenceField + "&referenceID=" +rowData.referenceID);
+                break;
+            case "3":
+                //数据节点，显示具体表单
+               document.getElementById("frame").setAttribute("src", "@(Url.Action("Edit","Manage",new { @area="Form" }))?id=" + rowData.formID + "&formTemplateID=" + rowData.formTemplateID + "&processID=" + rowData.processID);
+                break;
+        }
+    }
+</script>

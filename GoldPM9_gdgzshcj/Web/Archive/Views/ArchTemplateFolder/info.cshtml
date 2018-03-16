@@ -1,0 +1,45 @@
+﻿@model DataModel.Models.ArchTemplateFolder
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'ArchShareFolderForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+
+    JQ.combobox.selEmp({
+        id: 'FolderManagerId'
+    });
+</script>
+@using (Html.BeginForm("save", "ArchTemplateFolder", FormMethod.Post, new { @area = "Archive", @id = "ArchShareFolderForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th width="15%">父节点名称</th>
+            <td width="35%">
+                <input name="ParentName" readonly="readonly" class="easyui-textbox" style="width:98%;" value="@ViewBag.ParentName" />
+                <input name="FolderParentID" type="hidden" value="@Model.FolderParentID"  />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">目录名称</th>
+            <td width="35%">
+                <input name="FolderName" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,100]" value="@Model.FolderName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">描述</th>
+            <td width="35%">
+                <textarea  name="FolderRemark" style="width:98%; height:60px;" class="easyui-textbox" validType="length[0,500]">@Model.FolderRemark</textarea>
+            </td>
+        </tr>
+    </table>
+
+}
+
+
+

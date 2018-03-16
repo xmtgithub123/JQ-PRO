@@ -1,0 +1,293 @@
+﻿<style type="text/css">
+    #ProjectProgressInfoAttachDiv .tree-title {
+        height: auto;
+    }
+    #ProjectProgressInfoAttachDiv .fa-folder,
+    #ProjectProgressInfoAttachDiv .fa-folder-open {
+        color: #ffb300;
+    }
+
+    .FlowNodeClass td {
+        font-size: 12px !important;
+        height: 20px !important;
+        border: 1px solid #D3D3D3;
+    }
+</style>
+<style type="text/css">
+    .jq-panel .list-group-item {
+        border-bottom: 1px solid #dbdbdb;
+        padding: 10px 15px;
+    }
+
+    .jq-panel-heading {
+        font-weight: bold;
+    }
+
+    .jq-btn-block {
+        width: auto;
+    }
+
+    .jq-btn {
+        padding: 2px 12px;
+    }
+
+    .jq-panel .list-group-item span.item-title {
+        display: inline-block;
+        float: left;
+        width: 60px;
+        text-align: left;
+        margin-right: 5px;
+    }
+
+    .jq-panel .list-group-item p.item-text {
+        padding-left: 70px;
+        /* margin: -15px 0; */
+        text-indent: -0px;
+        color: #848484;
+    }
+</style>
+
+<div id="ProjectProgressInfoAttachDiv" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'center',border:false">
+        <div class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'north',border:false" style="border-right-width:1px;border-bottom-width:1px;overflow:hidden">
+                <div style="height:30px;padding:5px 0px;">
+                    <div style="float:left;margin-left:5px;">
+                        <a class="easyui-linkbutton" id="reloadFiles" data-options="iconCls:'fa fa-repeat',plain:true">刷新</a>
+                        <a class="easyui-linkbutton" id="downFile" data-options="plain:true,iconCls:'fa fa-download'">下载</a>
+                    </div>
+                    <div style="float:right;margin-right:5px;margin-top:7px;">
+                        节点状态：
+                        <span class="node-example node-status-0-bg">未启动</span>
+                        <span class="node-example node-status-1-bg">已安排</span>
+                        <span class="node-example node-status-2-bg">进行中</span>
+                        <span class="node-example node-status-3-bg">已完成</span>
+                        <span class="node-example node-status-4-bg">已回退</span>
+                    </div>
+                </div>
+            </div>
+            <div data-options="region:'center',border:false" style="border-right-width:1px;">
+                <span id="_desupload_$_1_temp"></span>
+                <table id="ProjectProgressInfoAttach_files"></table>
+                <div id="ProjectProgressInfoAttach_rigthMenu" data-options="onClick:ProjectProgressInfoAttach_rigthMenuHandler" class="easyui-menu" style="width:100px;display: none;">
+                    <div id="showAttachSplitFiles" data-options="iconCls:'fa fa-object-ungroup'">拆图文件</div>
+                    <div id="showAttachHistory" data-options="iconCls:'fa fa-history'">历史版本</div>
+                    <div id="showAttachInfo" data-options="iconCls:'fa fa-info-circle'">文件属性</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="@(Url.Content("~/Scripts/touchSlider.js"))" type="text/javascript"></script>
+<script src="@(Url.Content("~/Scripts/uploader/upload.js"))" type="text/javascript"></script>
+<script src="@(Url.Content("~/Scripts/uploader/jq.taskUpload.js"))" type="text/javascript"></script>
+<script src="@(Url.Content("~/Scripts/JQ/DesFlow.js"))" type="text/javascript"></script>
+
+<script type="text/javascript">
+
+    var _ProjectProgressInfoAttachDesignUpload = new JQ.taskUpload();
+
+    var _ProjectProgressInfoAttach_projId = @ViewBag.projId;
+    var _ProjectProgressInfoAttach_taskGroupId = @ViewBag.taskGroupId;
+    var _ProjectProgressInfoAttach_taskId = @ViewBag.taskId;
+
+
+    // 打开模态对话框
+    function ProjectProgressInfoAttach_showModelDialog(title, url, width, height, onclose) {
+        var _ProjectProgressInfoAttach_DialogdivId = JQ.dialog.dialog({
+            title: decodeURIComponent(title),
+            url: url,
+            width: width,
+            height: height,
+            JQID: "",
+            JQLoadingType: "",
+            iconCls: "fa fa-table",
+            onClose: onclose
+        });
+        JQ.Flow.stopBubble();
+
+        // 刷新列表
+        window.top["_DialogCallback_" +_ProjectProgressInfoAttach_DialogdivId] = function () {
+            $("#ProjectProgressInfoAttach_files", $("#ProjectProgressInfoAttachDiv")).treegrid("unselectAll");
+            $("#ProjectProgressInfoAttach_files", $("#ProjectProgressInfoAttachDiv")).treegrid("reload");
+        }
+    }
+
+    // 初始化附件列表
+    function ProjectProgressInfoAttachInit() {
+        _ProjectProgressInfoAttachDesignUpload.requireurl = '@Url.Action("ProjectProgressInfoAttachGetListJson")?projId=' + _ProjectProgressInfoAttach_projId + '&taskGroupId=' + _ProjectProgressInfoAttach_taskGroupId + '&taskId=' + _ProjectProgressInfoAttach_taskId;
+        _ProjectProgressInfoAttachDesignUpload.downloadUrl = "@(Url.Action("Download", "ProcessFile", new { @area = "Core" }))";
+        _ProjectProgressInfoAttachDesignUpload.batchDownloadUrl = "@(Url.Action("BatchDownload", "ProcessFile", new { @area = "Core" }))";
+        _ProjectProgressInfoAttachDesignUpload.flash_swf_url="@(Url.Content("~/Scripts/uploader/upload.swf"))";
+        _ProjectProgressInfoAttachDesignUpload.silverlight_xap_url= "@(Url.Content("~/Scripts/uploader/upload.xap"))";
+        _ProjectProgressInfoAttachDesignUpload.init($("#ProjectProgressInfoAttach_files", $("#ProjectProgressInfoAttachDiv")),{
+            rownumbers:true,
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true},
+                { title: '附件信息', field: 'AttachName', align: 'left',halign:'center',formatter:function (value,row,index) {
+                    var FileName="";
+                    row._groupName = "";
+                    if (row.AttachExt==".") {
+                        if (row.AttachID < 0) {
+                            row._groupName = ProjectProgressInfoAttach_createTaskPathText(row); //保存分组名称，用于批量下载时创建对应的分组文件夹
+                            FileName="<div style=\"float:left;cursor:pointer\"  onclick=\"expandFun("+row.AttachID+")\" ><strong>"+row._groupName+"</strong></div>";
+                        } else {
+                            FileName="<div style=\"float:left;cursor:pointer\"  onclick=\"expandFun("+row.AttachID+")\" ><strong>"+row.AttachName+"</strong></div>";
+                        }
+                    }else {
+                        FileName="<div><a href=\""+_ProjectProgressInfoAttachDesignUpload.buildDownloadUrl(row.AttachID, { type: 'attach' })+"\" target='_blank' >"+value+"</a>";
+                        FileName+="</div>";
+                    }
+                    return FileName;
+                } },
+                { title: '校审流程', field: '12', width: 500, align: 'left',formatter:function (value,row,index) {
+                    return "<div class=\"swipe\"><div id=\"FlowNode_files_"+row.AttachID+"\" class=\"approve-progress\"></div></div>"
+                } },
+                { title: "版本", field: "AttachVer", width: 50, align: "center", halign: "center",formatter:function (value, row,index) {
+                    if(row.AttachExt=="."){
+                        return "";
+                    }else {
+
+                        return value;
+                    }
+                } },
+                {
+                    title: "大小", field: "AttachSize", width: 76, align: "center", halign: "center", formatter: function (value, row,index) {
+                        if(row.AttachExt=="."){
+                            return "";
+                        }else {
+                            return JQ.tools.getFileSizeText(value);
+                        }
+                    }},
+                {
+                    title: "修改时间", field: "AttachDateChange", width: 120, align: "center", halign: "center", formatter: function (value, rowData,index) {
+                        return JQ.tools.DateTimeFormatterByT(rowData.AttachDateChange);
+                    }
+                },
+                {
+                    title: "上传日期", field: "AttachDateUpload", width: 90, align: "center", halign: "center", formatter: function (value, rowData,index) {
+                        return JQ.tools.DateTimeFormatterByT(rowData.AttachDateUpload);
+                    }
+                }
+            ]],
+            onLoadSuccess:function (row,data) {
+                if (data.total > 0) {
+
+                    // 统一数据的分组
+                    Enumerable.From(data.rows).Where("x => x._parentId == 0").ForEach(function(x,index) {
+                        Enumerable.From(data.rows).Where("s => s._parentId != 0 && s.AttachRefID == {0}".format(x.AttachRefID)).ForEach(function(s){
+                            s._groupName = x._groupName;
+                        });
+                    });
+
+                    $.each(data.rows,function (i,e) {
+                        e.__checkbox = true;
+                        var jsonNode = [];
+                        if (e.AttachFlowNodeJson!="") {
+                            jsonNode=JSON.parse(e.AttachFlowNodeJson).root.item;
+
+                            if (e.AttachExt!=".") {
+                                var $table=$("div[id='FlowNode_files_"+e.AttachID+"']", $("#ProjectProgressInfoAttachDiv"));
+                                if (e.AttachFlowNodeJson!="") {
+                                    JQ.DesFlow.show({
+                                        Ctl:$table,
+                                        FlowData:jsonNode,
+                                    });
+                                }
+                            }
+                        }
+                    });
+                }
+            },
+            onContextMenu: function (e, row) {
+                if (row == null) return;
+                if (row.AttachId < 0) return;
+                $.data(document.body, "selectTempData", row);//把临时数据存在缓存中
+                // 显示右键菜单
+                var $m = $('#ProjectProgressInfoAttach_rigthMenu');
+                $m.menu('show', {
+                    left: e.pageX,
+                    top: e.pageY
+                });
+                e.preventDefault();
+            }
+        });
+
+        
+
+        // 下载文件
+        $("#downFile", $("#ProjectProgressInfoAttachDiv")).click(function () {
+            _ProjectProgressInfoAttachDesignUpload.download($(this));
+        });
+
+        // 刷新文件列表
+        $("#reloadFiles", $("#ProjectProgressInfoAttachDiv")).click(function () {
+            //_dialogClose = false;
+            $("#ProjectProgressInfoAttach_files", $("#ProjectProgressInfoAttachDiv")).treegrid("reload");
+            $("#ProjectProgressInfoAttach_files", $("#ProjectProgressInfoAttachDiv")).treegrid("unselectAll");
+        });
+    }
+
+    function ProjectProgressInfoAttach_rigthMenuHandler(item) {
+        var data = $.data(document.body, "selectTempData");//获取临时数据
+        //var data = $("#TaskInfo_files", $("#TaskInfoDiv")).treegrid("getSelected");
+        if (JQ.tools.isJson(data)) {
+            switch (item.id) {
+                case "showAttachSplitFiles":
+                    ProjectProgressInfoAttach_showModelDialog(
+                        "拆图文件：{0}".format(data.AttachName),
+                        '@Url.Action("TaskAttachSplitFilesList")?AttachID=' + data.AttachID + '&AttachVer=' + data.AttachVer,
+                        800,
+                        700
+                    );
+                    break;
+                case "showAttachHistory":
+                    ProjectProgressInfoAttach_showModelDialog(
+                        "历史版本：{0}".format(data.AttachName),
+                        '@Url.Action("AttachHistory", "BaseAttach", new { @area = "Core" })?AttachID=' + data.AttachID,
+                        600,
+                        600
+                    );
+                    break;
+                case "showAttachInfo":
+                    ProjectProgressInfoAttach_showModelDialog(
+                        "文件属性：{0}".format(data.AttachName),
+                        '@Url.Action("AttachInfo", "BaseAttach", new { @area = "Core" })?AttachID=' + data.AttachID,
+                        500,
+                        500
+                    );
+                    break;
+            }
+        }
+        //$.data(document.body, "selectTempData", null);//清空临时数据
+        return false;
+    }
+
+    // 获取任务路径（纯文本）
+    function ProjectProgressInfoAttach_createTaskPathText(row) {
+        var jsonItemPath1 = row.AttachGroup;
+        var jsonItemPath2 = row.AttachName;
+
+        var separator = "\\"; //＞
+        var arrItemPath1 = JSON.parse(jsonItemPath1);
+        var arrItemPath2 = JSON.parse(jsonItemPath2);
+
+        var path1 = (Enumerable.From(arrItemPath1).OrderBy("x=>x.rownum").Select(function (x) { return x.text; }).ToArray());
+        var path2 = (Enumerable.From(arrItemPath2).OrderBy("x=>x.rownum").Select(function (x) { return x.text; }).ToArray());
+        var path = [];
+        if (path1 != undefined && path1 != null) {
+            path.push(path1.join(separator));
+        }
+        if (path2 != undefined && path2 != null && path2.length > 0) {
+            path.push(path2.join(separator));
+        }
+
+        return path.join(separator);
+    }
+
+    $(function () {
+        // 初始化附件列表
+        ProjectProgressInfoAttachInit();
+    });
+</script>

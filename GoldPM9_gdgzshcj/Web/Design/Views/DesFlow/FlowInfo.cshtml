@@ -1,0 +1,53 @@
+﻿@model DataModel.Models.DesFlow
+@using JQ.Web;
+<script type="text/javascript">
+
+    JQ.form.submitInit({
+        formid: 'DesFlowform',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            var _tempFrame = window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+            if (_tempFrame) {
+                _tempFrame.contentWindow.refreshGrid();
+            }
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("FlowListSaveInfo", "DesFlow", FormMethod.Post, new { @area = "Design", @id = "DesFlowform",@name= "DesFlowform" }))
+{
+    @Html.HiddenFor(m => m.ID)
+    <table class="table table-bordered">
+        <tr>
+            <th width="20%">流程名称</th>
+            <td width="80%" colspan="3">
+                <input name="FlowName" style="width:98%;" class="easyui-textbox" validType="length[0,50]" data-options="required:true" value="@(Model.FlowName)" />
+            </td>
+        </tr>
+        <tr>
+            <th width="20%">专业类型</th>
+            <td width="30%">
+                <select id="FlowSpecType" name="FlowSpecType" value="@(Model.FlowSpecType)" class="easyui-combobox" data-options="panelHeight:58,editable:false">
+                    <option value="0">普通专业</option>
+                    <option value="1">汇总专业</option>
+                </select>
+            </td>
+            <th width="20%">层级类型</th>
+            <td width="30%">
+                <select id="FlowLevelType" name="FlowLevelType" value="@(Model.FlowLevelType)" class="easyui-combobox" data-options="panelHeight:86,editable:false">
+                    <option value="0">无层级</option>
+                    <option value="1">子层级</option>
+                    <option value="2">父层级</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+
+}
+<script type="text/javascript">
+    $("#DesFlowform select[value]").each(function () {
+        $(this).val(this.getAttribute("value"));
+    });
+</script>
+
+

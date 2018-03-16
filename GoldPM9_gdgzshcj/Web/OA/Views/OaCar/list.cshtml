@@ -1,0 +1,68 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "OaCar",new { @area="Oa"})',
+            addUrl = '@Url.Action("add","OaCar",new {@area="Oa" })',
+            editUrl = '@Url.Action("edit", "OaCar",new {@area="Oa" })',
+            delUrl = '@Url.Action("del", "OaCar", new { @area = "Oa" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaCarGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQExcludeCol: [1, 8],//导出execl排除的列
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#OaCarPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '车辆名称', field: 'CarName', width: "30%", align: 'center', sortable: true },
+                    { title: '车牌号', field: 'CarNumber', width: "20%", align: 'center', sortable: true },
+                    { title: '乘座人数', field: 'CarSeat', width: "15%", align: 'center', sortable: true },
+                    { title: '标称油耗', field: 'CarOil', width: "15%", align: 'center', sortable: true },
+                    { title: '驾驶员', field: 'CarDriver', width: "15%", align: 'center', sortable: true },
+                    { title: '购车日期', field: 'CarBuyDate', width: "15%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'OaCar' }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '车辆名称、车牌号',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'OaCarGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaCarGrid"></table>
+    <div id="OaCarPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'CarName,CarNumber', 'Contract': 'like' }" />
+
+    </div>
+}
+

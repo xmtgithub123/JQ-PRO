@@ -1,0 +1,133 @@
+﻿@model DataModel.Models.FlowModel
+<style type="text/css">
+    #divFlows th {
+        border: solid 1px #D6D6D6;
+        padding: 5px;
+        white-space: nowrap;
+        list-style: none;
+        background-color: white;
+        cursor: pointer;
+        margin: 3px;
+    }
+</style>
+<script type="text/javascript">
+    var  buttons=[];
+    var view=0;
+    @{
+        if (string.IsNullOrEmpty(Request.QueryString["view"]))
+        {
+            <text>
+    buttons.push({icon: "fa-chevron-left", text: "添加上级", onClick: function () {
+        appendItem("previous");
+    }});
+    buttons.push({ icon: "fa-chevron-right", text: "添加下级", onClick: function () {
+        appendItem("next");
+    }});
+    buttons.push({ icon: "fa-minus-circle", text: "删除", onClick: function () {
+        deleteItem();
+    }});
+    view=1;
+    </text>
+        }
+    }
+    JQ.form.submitInit({
+        formid: 'FlowModel',//formid提交需要用到
+        buttonTypes: ['save', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        buttons:buttons
+    });
+    loadFlowHTML();
+    function appendItem(mode) {
+        var modelNodeID=document.getElementById("choosedNodeID").value;
+        if(!modelNodeID) {
+            return;
+        }
+        $.ajax({
+            type:"POST",
+            url:"@(Url.Action("AppendNode","PubFlow",new { @area="Core"}))",
+            data:{ modelNodeID : modelNodeID,mode:mode},
+            success:function(result){
+                if(result.Result=="0"){
+                    alert("操作失败！");
+                    return;
+                }
+                document.getElementById("divFlows").innerHTML = result.HTML;
+                registerEvents();
+            }
+        });
+    }
+
+    function loadFlowHTML(){
+        $.ajax({
+            type: "post",
+            url: "@(Url.Action("GetModelNodesHtml", "PubFlow",new { @area="Core" }))",
+            data: { flowModelID:@(ViewBag.FlowModelID) },
+            success: function (result) {
+                document.getElementById("divFlows").innerHTML = result;
+                registerEvents();
+            }
+        });
+    }
+
+    function registerEvents(){
+        var _last=null;
+        var nodes=$("#divFlows th[data]");
+        nodes.filter(":not(:eq(0))").click(function () {
+            if(_last) {
+                _last.style.backgroundColor="#FFFFFF";
+            }
+            this.style.backgroundColor="#D6D6D6";
+            _last=this;
+            document.getElementById("choosedNodeID").value=this.getAttribute("data").split("_")[0];
+        }).dblclick(function () {
+            if(view==0) {
+                return;
+            }
+            JQ.dialog.dialog({
+                title: $(this).text(),
+                url: "@(Url.Action("EditNode", "PubFlow",new { @area="Core" }))?modelNodeID=" + this.getAttribute("data").split("_")[0],
+                width: 800,
+                height: 600,
+                JQID: "",
+                JQLoadingType: "",
+                iconCls: 'fa fa-pencil'
+            });
+        });
+        nodes.filter("(:eq(0))").css("cursor","not-allowed");
+    }
+
+    function deleteItem(){
+        var modelNodeID=document.getElementById("choosedNodeID").value;
+        if(!modelNodeID) {
+            return;
+        }
+        if(!confirm("确定要删除吗？")) {
+            return;
+        }
+        $.ajax({
+            url:"@(Url.Action("DeleteNode", "PubFlow",new { @area="Core" }))",
+            data: { modelNodeID:modelNodeID },
+            type:"POST",
+            success: function(result){
+                if(result.Result=="0") {
+                    alert(result.Message);
+                    return;
+                }
+                document.getElementById("divFlows").innerHTML = result.HTML;
+                registerEvents();
+            }
+        });
+    }
+
+    var onAfterSave=function (){
+        loadFlowHTML();
+    }
+</script>
+@using (Html.BeginForm("GetModelNodesHtml", "PubFlow", FormMethod.Post, new { @area = "Core", @id = "FlowModel", @name = "FlowModel" }))
+{
+    <div id="divFlows"></div>
+    <input type="hidden" name="choosedNodeID" id="choosedNodeID" />
+}

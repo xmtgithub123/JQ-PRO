@@ -1,0 +1,456 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.DesExch
+@section head {
+
+    <style type="text/css" > 
+        .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+    .error {
+        color: red;
+        font-size: 14px;
+        display: block;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .error-border {
+        border: 1px solid red !important;
+    }
+
+    .aui-input-check-disable {
+        font-size: 12px !important;
+        font-weight: normal !important;
+    }
+
+    .aui-input-check-disable label {
+        line-height: 45px;
+        margin-right: 15px;
+    }
+
+    .aui-input-check-disable input[type="checkbox"] {
+        width: auto;
+        line-height: 45px;
+    }
+</style>
+
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="DesExchform" class="aui-form">
+            
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;收资人</label>
+                <input name="SpecEmps" id="SpecEmps" type="hidden" class="aui-input"  data-msg="@ViewBag.SpecEmps" value="@ViewBag.SpecEmps" style="width:98%;" />
+                <div class="aui-input-block" id="SpecEmpsName"></div>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="ProjPhaseGrid" style="font-size:12px;">
+                    <thead>
+                        <tr>
+                            @{
+                                if (@ViewBag.State == 0)
+                                {
+                            <th>
+                                <div class="checkAll">
+                                    <input type="checkbox" name="checkbox" value="" />
+                                </div>
+                            </th>
+                                }
+                            }
+                            
+                            <th>文件名称</th>
+                            <th>文件版本</th>
+                            <th>上传日期</th>
+                            <th>上传人</th>
+                            
+                        </tr>
+                    </thead>
+                    <tbody id="gridListShow" style="font-size:12px;"></tbody>
+                </table>
+            </div>
+            <!--模板-->
+            <script id="listTp2" type="text/x-dot-template">
+                {{~it:appendProjectGetInfoData:index}}
+                <tr id="{{=appendProjectGetInfoData.AttachID}}">
+                    @{
+                        if (@ViewBag.State == 0)
+                        {
+                            <td>
+                                <div class="checkbox" style="margin:0">
+                                    <input type="checkbox" name="subBox" value="" />
+                                </div>
+                            </td>
+                        }
+                    }
+                    
+                    <td>
+                        {{=appendProjectGetInfoData.AttachName}}
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.AttachVer == '0' ? '':appendProjectGetInfoData.AttachVer}}
+                    </td>
+                    <td>
+                        {{=(Date.jsonStringToDate(appendProjectGetInfoData.AttachDateUpload)).getFullYear() =='1900' ? '':(Date.jsonStringToDate(appendProjectGetInfoData.AttachDateUpload)).format("yyyy-MM-dd")}}
+                        @*{{=appendProjectGetInfoData.AttachDateUpload}}*@
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.AttachEmpName}}
+                    </td>
+                    
+                </tr>
+                {{~}}
+            </script>
+
+            @Html.HiddenFor(m => m.Id)
+            @Html.HiddenFor(m => m.taskGroupId)
+            @Html.HiddenFor(m => m.FlowId)
+            @Html.HiddenFor(m => m.ExchTaskId)
+            <input type="hidden" id="ReId" name="ReId" value="@Model.Id" />
+            <input type="hidden" name="JsonRows" id="JsonRows" />
+            <input type="hidden" name="ReverseIdent" value="@ViewBag.ReverseIdent" />
+            <input type="hidden" id="AttachExchIds" name="AttachExchIds" />
+            <label class="aui-input-addon">&nbsp;&nbsp;提资详情：</label>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;提资标题</label>
+                <input name="ExchTitle" id="ExchTitle" type="text" class="aui-input" style="width:98%;" value="@Model.ExchTitle"/>
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;提资内容</label>
+                <textarea rows="6" name="ExchContent" id="ExchContent" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.ExchContent</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;提资期限</label>
+                <input type="date" id="ExcLastPutTime" name="ExcLastPutTime" class="aui-input" value="@ViewBag.ExcLastPutTime.ToString("yyyy-MM-dd")" />
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;提资专业</label>
+                <input name="ExchSpecId" id="ExchSpecId" type="hidden" class="aui-input" style="width:98%;" value="@Model.ExchSpecId" />
+                <div class="aui-input-block" id="ExchSpecName"></div>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;提资人</label>
+                <input name="ExchEmpId" id="ExchEmpId" type="hidden" class="aui-input" style="width:98%;" value="@Model.ExchEmpId" />
+                <div class="aui-input-block" id="ExchEmpName"></div>
+            </div>
+
+
+            <label class="aui-input-addon" style="margin:10px 0;">&nbsp;&nbsp;项目详情：</label>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目名称</label>
+                <input name="ProjId" id="ProjId" type="hidden" class="aui-input" style="width:98%;" value="@(@Model.ProjId==0 ? "" :@Model.ProjId.ToString())" />
+                <input name="ProjName" id="ProjName" type="text" class="aui-input" style="width:98%;" />
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目编号</label>
+                <div class="aui-input-block" id="ProjNumber">@ViewBag.ProjNumber</div>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;负责人员</label>
+                <div class="aui-input-block" id="ProjEmpName">@ViewBag.ProjEmpName</div>
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;计划开始</label>
+                <input type="date" id="DatePlanStart" name="DatePlanStart" class="aui-input" value="@ViewBag.DatePlanStart.ToString("yyyy-MM-dd")" />
+                @*<input type="date" id="DatePlanStart" name="DatePlanStart" class="aui-input" value="@ViewBag.DatePlanStart.ToString("yyyy-MM-dd")" />*@
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;计划结束</label>
+                <input type="date" id="DatePlanFinish" name="DatePlanFinish" class="aui-input" value="@ViewBag.DatePlanFinish.ToString("yyyy-MM-dd")" />
+            </div>
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+        
+    </div>
+
+
+<script type="text/javascript">
+    var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+    };
+
+    $(function () {
+        if (window.JinQuMobile == undefined) {
+            initFormBegin(JSON.stringify({
+                "AllowEditControls": "{}"
+            }));
+           // initFormBegin();
+        }
+    })
+
+
+    //页面初始化
+    function initFormBegin(params) {
+        //去除换行
+
+           
+        var specEmpValue = $('#SpecEmps').val();
+        if (specEmpValue != '[]') {
+            var objSpecEmpData = JSON.parse(specEmpValue)[0];
+            console.log(objSpecEmpData)
+            var RecEmp = [];
+            RecEmp.push({ 'Id': objSpecEmpData.Id, 'RecSpecId': objSpecEmpData.SpecID, 'RecSpecName': objSpecEmpData.SpecName, 'RecEmpId': objSpecEmpData.EmpID, 'RecEmpName': objSpecEmpData.EmpName });
+            $('#SpecEmpsName').text('<' + objSpecEmpData.SpecName + '>' + objSpecEmpData.EmpName)
+
+            //console.log(RecEmp)
+            $('#JsonRows').val(JSON.stringify(RecEmp))
+        }
+        
+
+        //console.log(RecEmp)
+        
+
+
+        params = params.replace(/[\r\n]/g, "");
+        params = params.replace(/\s/g, "");
+        var paramsObj = JSON.parse(params);
+        paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+
+
+
+        //清除时间，默认为1900-01-01改为空
+        var ExcLastPutTime = $('#ExcLastPutTime').val(); //提资期限
+        var DatePlanStart = $('#DatePlanStart').val(); //计划开始
+        var DatePlanFinish = $('#DatePlanFinish').val(); //计划结束
+
+        //提资期限 - 获取数据
+        if ((ExcLastPutTime == '1900-01-01')) {
+            $('#ExcLastPutTime').val('');
+        }
+
+        //计划开始 - 获取数据
+        if ((DatePlanStart == '1900-01-01')) {
+            $('#DatePlanStart').val('');
+        }
+
+        //计划结束 - 获取数据
+        if ((DatePlanFinish == '1900-01-01')) {
+            $('#DatePlanFinish').val('');
+        }
+        if ('@ViewBag.State' == 0) {
+            $.post('@Url.Action("DesignAttachByTask", "DesExch")'+'?taskId=@Model.ExchTaskId', function (_rData) {
+                console.log(JSON.parse(_rData))
+                var appendBussConSubInfoData = JSON.parse(_rData).rows
+                if (appendBussConSubInfoData.length > 0) {
+                    var interText = doT.template($("#listTp2").text())
+                    $("#gridListShow").html(interText(appendBussConSubInfoData));
+                }
+                else {
+                    console.log('暂无数据')
+                }
+            })
+        }
+        else {
+            $.post('@Url.Action("ExchAttach", "DesExch")', {
+                ExchId:'@Model.Id'
+            }, function (_rData) {
+                console.log(JSON.parse(_rData))
+                var appendBussConSubInfoData = JSON.parse(_rData).rows
+                if (appendBussConSubInfoData.length > 0) {
+
+                    var interText = doT.template($("#listTp2").text())
+                    $("#gridListShow").html(interText(appendBussConSubInfoData));
+
+                }
+                else {
+                    console.log('暂无数据')
+                }
+            })
+        }
+
+         //提资专业 - 获取数据
+         $.post('@Url.Action("ComboSpec", "DesExch", new { @area = "Design" })'+ '?projID=@Model.ProjId&TaskGroupId=@Model.taskGroupId&IsTotal=1', function (_rData) {
+            // console.log(_rData)
+            // var rowData = JSON.parse(_rData).rows;
+             for (var i = 0; i < _rData.length; i++) {
+                 var rowDataOne = _rData[i];
+                 if (@Model.ExchSpecId == rowDataOne.TaskSpecId) {
+                     $('#ExchSpecName').text(rowDataOne.TaskName)
+                 }
+             }
+
+        })
+
+        //项目名称 - 获取数据
+         $.post('@Url.Action("combogridJson", "Project",new { @area = "Project" })', {
+             projId: '@Model.ProjId',
+             Words: $("#fullNameSearchProj").val()
+         }, function (_rData) {
+             //console.log(JSON.parse(_rData))
+             var rowData = JSON.parse(_rData).rows;
+             for (var i = 0; i < rowData.length; i++) {
+                 var rowDataOne = rowData[i];
+                 if (rowDataOne.Id == '@Model.ProjId') {
+                     $('#ProjName').val(rowDataOne.ProjName)
+                 }
+             }
+          })
+
+         //提资人 - 获取数据
+         $.post('@Url.Action("GetAllPersonBySpecID", "DesExch", new { @area = "Design" })'+ '?SpecId=0', function (_rData) {
+             var rowData = JSON.parse(_rData);
+             //console.log(rowData)
+             for (var i = 0; i < rowData.length; i++) {
+                 var rowDataOne = rowData[i];
+                 //console.log(rowDataOne.EmpID)
+                 if ('@Model.ExchEmpId' == rowDataOne.EmpID) {
+                     $('#ExchEmpName').text(rowDataOne.EmpName)
+                 }
+                
+             }
+
+        })
+
+        //设置表单不可编辑样式及只读
+        $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+        DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('DesExchform'));
+
+        //if (paramsObj.AllowEditControls == "-") {
+        //    $('.checkbox input[name="subBox"]').removeClass('jq-text-disabled').attr("readonly", "readonly")
+        //}
+
+
+        //提资内容，替换换行符
+        var ExchContentValue = $('#ExchContent').val();
+        ExchContentValue = ExchContentValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+        $('#ExchContent').val(ExchContentValue);
+
+
+
+        //告诉移动端页面初始完完毕
+        if (window.JinQuMobile) {
+            window.JinQuMobile.FormEnd();
+        }
+    }
+    //表单验证交互
+    function validateFormBegin() {
+        var formVali = $('#DesExchform').validate({
+            rules: {
+                ExchTitle: 'required',//提资标题
+                ExchContent: 'required' //提资内容
+            },
+            messages: {
+                ExchTitle: '请输入提资标题', //提资标题
+                ExchContent: '请输入提资内容'//提资内容
+            }
+        });
+
+        isValidate = formVali.form();
+        if (isValidate) {
+
+            var attrIDArr = [];
+            //console.log($('#gridListShow tr:eq(1)').attr("id"))
+            $("input[name='subBox']:checked").closest('tr').each(function (i, e) {
+                attrIDArr.push($(this).attr('id'))
+            })
+            console.log(attrIDArr)
+            $('#AttachExchIds').val(attrIDArr)
+            var formData = DomUtil.serialize(document.getElementById('DesExchform'));//json or =&
+            console.log(formData)
+
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+    }
+
+
+    /*----------------------------------------------------------------------------------------------*/
+    //不走验证流程
+    function noValidateFormBegin(params) {
+        var formData = DomUtil.serialize(document.getElementById('DesExchform'));//json or =&
+        //告诉移动端页面验证完毕
+        if (window.JinQuMobile) {
+            window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+        }
+    }
+
+
+</script>
+}

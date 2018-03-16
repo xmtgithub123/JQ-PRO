@@ -1,0 +1,74 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")?CompanyType=GC',//添加的路径
+                JQEditUrl: '@Url.Action("edit")?CompanyType=GC',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussContractModelGrid',//数据表格ID
+                JQDialogTitle: '合同模板信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '90%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                //JQCustomSearch: [  //自定义搜索的字段
+                //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+                //],
+                JQExcludeCol: [1, 6],//导出execl排除的列
+                //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+                //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+                //JQFields: ["", ""],//追加的字段名
+                url: '@Url.Action("json","BussContractModel",new { @area="Bussiness"})?CompanyType=GC',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussContractModelPanel',//工具栏的容器ID
+                columns: [[
+        { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		{ title: '合同模板名称', field: 'ConModelName', width: "30%", align: 'center', sortable: true },
+		{ title: '合同模板备注', field: 'ConModelNote', width: "36%", align: 'center', sortable: true },
+		{ title: '上传人', field: 'CreatorEmpName', width: "10%", align: 'center', sortable: true },
+		{ title: '上传时间', field: 'CreationTime', width: "10%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+
+                 { field: 'JQFiles', title: '附件', align: 'center', width: "10%", JQIsExclude: true, JQRefTable: 'BussContractModel' }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '合同模板名称',
+                queryOptions: { 'Key': 'ConModelName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BussContractModelGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="BussContractModelGrid"></table>
+    <div id="BussContractModelPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+
+        </span>
+        &nbsp;
+        <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '上传开始'" jqwhereoptions="{ Key:'CreationTime', Contract:'>=',filedType:'Date' }">
+        至
+        <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '上传结束'" jqwhereoptions="{ Key:'CreationTime', Contract:'<=',filedType:'Date' }">&nbsp;
+
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key:'ConModelName', Contract:'like'}">
+    </div>
+}
+
+

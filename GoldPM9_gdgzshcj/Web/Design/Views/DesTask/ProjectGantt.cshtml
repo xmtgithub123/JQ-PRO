@@ -1,0 +1,852 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+
+@section head {
+
+    <link rel=stylesheet href="@(Url.Content("~/Scripts/jQueryGantt/platform.css"))" type="text/css">
+    <link rel=stylesheet href="@(Url.Content("~/Scripts/jQueryGantt/libs/dateField/jquery.dateField.css"))" type="text/css">
+
+    <link rel=stylesheet href="@(Url.Content("~/Scripts/jQueryGantt/gantt.css"))" type="text/css">
+    <link rel=stylesheet href="@(Url.Content("~/Scripts/jQueryGantt/ganttPrint.css"))" type="text/css" media="print">
+    <link rel="stylesheet" href="@(Url.Content("~/Scripts/jQueryGantt/libs/jquery.svg.css"))" type="text/css">
+
+
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/libs/jquery.1.8.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/libs/jquery-ui-1.8.js"))"></script>
+
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/libs/jquery.livequery.min.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/libs/jquery.timers.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/libs/platform.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/libs/date.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/libs/i18nJs.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/libs/dateField/jquery.dateField.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/libs/JST/jquery.JST.js"))"></script>
+
+
+    <script type="text/javascript" src="@(Url.Content("~/Scripts/jQueryGantt/libs/jquery.svg.min.js"))"></script>
+    <script type="text/javascript" src="@(Url.Content("~/Scripts/jQueryGantt/libs/jquery.svgdom.1.8.js"))"></script>
+
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/ganttUtilities.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/ganttTask.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/ganttDrawerSVG.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/ganttGridEditor.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/jQueryGantt/ganttMaster.js"))"></script>
+
+    <style>
+        .resEdit {
+            padding: 15px;
+        }
+
+        .resLine {
+            width: 95%;
+            padding: 3px;
+            margin: 5px;
+            border: 1px solid #d0d0d0;
+        }
+
+        /*body {
+            overflow: hidden;
+        }*/
+        .ganttButtonBar {
+            text-align: center;
+        }
+
+        .wordpage {
+            margin: 20px;
+            background-color: #FFFFFF;
+            -moz-box-shadow: 0px 0px 7px #808080;
+            -webkit-box-shadow: 0px 0px 7px #808080;
+            box-shadow: 0px 0px 7px #808080;
+        }
+    </style>
+    <style>
+        .btn-medium {
+            padding: 5px 15px;
+            font-size: 18px;
+            color: white !important;
+        }
+
+        .pageheader {
+            text-align: center;
+        }
+
+            .pageheader h1 {
+                color: #000000;
+                font-size: 24px;
+                font-weight: bold;
+                padding: 20px 10px 10px 10px;
+            }
+
+        .pagefoot {
+            text-align: center;
+            padding: 10px 10px 20px 10px;
+        }
+
+            .pagefoot .l-btn-text {
+                vertical-align: middle !important;
+            }
+
+            .pagefoot .btn-blue {
+                background: -webkit-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+                background: -moz-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+                background: -o-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+                background: linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+                border: none;
+            }
+
+            .pagefoot .btn-green {
+                background: -webkit-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+                background: -moz-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+                background: -o-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+                background: linear-gradient(top,#6cd2b7 0,#69a898 100%);
+                border: none;
+            }
+
+            .pagefoot .btn-blue:hover {
+                background: #3d93cf;
+            }
+
+            .pagefoot .btn-green:hover {
+                background: #69a898;
+            }
+
+        .ml-10 {
+            margin-left: 10px;
+        }
+
+        .mr-10 {
+            margin-right: 10px;
+        }
+    </style>
+
+    <script type="text/javascript">
+
+        var _mainTabsUsed = @Html.Raw(ViewBag.mainTabsUsed);
+
+        var isFilter='@(Request.Params["from"] ==null?"":Request.Params["from"])';
+
+        var tabId = 0;
+        var tabNum = 0;
+        var tabs = [
+            '@Url.Action("PlanTableInfo", "DesTask", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId',
+            '@Url.Action("ProjectPlanInfo", "DesTask", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId',
+            '@Url.Action("ExchPlanInfo", "DesExch", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId',
+            '@Url.Action("SpecPlanInfo", "DesTask", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId',
+            '@Url.Action("ProjectGantt", "DesTask", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId'
+        ];
+
+        var ge;  //this is the hugly but very friendly global var for the gantt editor
+        $(function () {
+            // 导航栏点击
+            $(".pageheader li").each(function(i, li) {
+                if (tabs[i].toLowerCase().indexOf(window.location.pathname.toLowerCase()) > -1) tabId = i;
+                $(li).click(function() {
+                    //window.parent.changeTabId(i);
+                    //console.log(tabs[i] + "&time=" + (new Date()).getTime());
+                    window.location.href = tabs[i] + "&time=" + (new Date()).getTime();
+                });
+            });
+
+            // 页面载入后，设置导航当前页面节点，并处理前后节点状态
+            $(".pageheader li").each(function(i, li) {
+                var $li = $(li);
+                var isShow = true;
+                switch(i){
+                    case 0:
+                        isShow = _mainTabsUsed.PlanTableList;
+                        break;
+                    case 1:
+                        isShow = _mainTabsUsed.ProjectPlanList;
+                        break;
+                    case 2:
+                        isShow = _mainTabsUsed.ExchPlanList;
+                        break;
+                    case 3:
+                        isShow = _mainTabsUsed.SpecPlanList;
+                        break;
+                    case 4:
+                        isShow = _mainTabsUsed.ProjGanttList;
+                        break;
+                }
+                $li.toggle(isShow);
+                if (isShow) tabNum++;
+                if (i < tabId) {
+                    $li.addClass("visited");
+                    $li.find(".small-tag").html('<i class="fa fa-check" aria-hidden="true"></i>');
+                } else if (i == tabId) {
+                    $li.addClass("active");
+                    $li.find(".small-tag").html(tabNum);
+                } else {
+                    $li.find(".small-tag").html(tabNum);
+                }
+            });
+
+            //load templates
+            $("#ganttemplates").loadTemplates();
+
+            // here starts gantt initialization
+            ge = new GanttMaster();
+            ge.resourceUrl = "@(Url.Content("~/Scripts/jQueryGantt/res/"))";
+            var workSpace = $("#workSpace");
+            workSpace.css({ width: $(window).width() - 15, height: $(window).height() - 200 });
+            ge.init(workSpace);
+
+
+            //inject some buttons (for this demo only)
+            $(".ganttButtonBar h1").html("");
+            $(".ganttButtonBar div").addClass('buttons');
+            //overwrite with localized ones
+            loadI18n();
+
+            //simulate a data load from a server.
+            loadGanttFromServer();
+
+
+            //fill default Teamwork roles if any
+            if (!ge.roles || ge.roles.length == 0) {
+                setRoles();
+            }
+
+            //fill default Resources roles if any
+            if (!ge.resources || ge.resources.length == 0) {
+                setResource();
+            }
+
+
+            /*/debug time scale
+            $(".splitBox2").mousemove(function(e){
+              var x=e.clientX-$(this).offset().left;
+              var mill=Math.round(x/(ge.gantt.fx) + ge.gantt.startMillis)
+              $("#ndo").html(x+" "+new Date(mill))
+            });*/
+
+            $(window).resize(function () {
+                workSpace.css({ width: $(window).width() - 15, height: $(window).height() - 200 });//workSpace.position().top
+                workSpace.trigger("resize.gantt");
+            }).oneTime(150, "resize", function () { $(this).trigger("resize") });
+
+
+
+            if(isFilter=="gantt"||isFilter=="projectcenter")
+            {
+                $("#div1").hide(); $("#div2").hide(); $("#div3").show();
+            }
+            else{
+                $("#div1").show(); $("#div2").show(); $("#div3").hide();
+            }
+
+            if(@ViewBag.edit==0)
+            {
+                $("#btnSave").hide();
+                $("#div2").hide(); $("#div3").hide();
+            }
+        });
+
+
+        // 返回上一页面
+        function GoToBackPage() {
+            //window.parent.changeTabId(tabId - 1);
+            window.location.href = tabs[tabId - 1] + "&time=" + (new Date()).getTime();
+        }
+
+        function loadGanttFromServer(taskId, callback) {
+            var prof = new Profiler("loadServerSide");
+            prof.reset();
+            $.ajax({
+                dataType: "json",
+                url: "@(Url.Action("getproject", "DesTask", new { @area= "Design" }))",
+                type: "POST",
+                data: { projID: @ViewBag.projID },
+                success: function (response) {
+                    if (response.Result) {
+                        prof.stop();
+                        ge.loadProject(response.project);
+                        ge.checkpoint();
+                    }
+                }
+            });
+        }
+
+
+        function saveGanttOnServer() {
+
+            var prj = ge.saveProject();
+            var prof = new Profiler("saveServerSide");
+
+            if (ge.deletedTaskIds.length > 0) {
+                if (!confirm("TASK_THAT_WILL_BE_REMOVED\n" + ge.deletedTaskIds.length)) {
+                    return;
+                }
+            }
+            $.ajax({
+                dataType: "text",
+                url: "@(Url.Action("svproject", "DesTask", new { @area= "Design" }))",
+                type: "POST",
+                data: { data: JSON.stringify(prj),projID:@ViewBag.projID },
+                success: function (response) {
+                    if (response=="ok") {
+                        if(isFilter=="gantt"||isFilter=="projectcenter")
+                        {
+                            JQ.dialog.show("保存成功!");
+                        }
+                        else
+                        {
+                            JQ.dialog.show("保存成功!");
+                            //JQ.dialog.confirm("所有步骤流转完成，是否要关闭当前页面？", function () {
+                            //    JQ.dialog.dialogClose();
+                            //}, null);
+                        }
+                    } else {
+                        JQ.dialog.error("保存失败!");
+                    }
+                }
+            });
+        }
+
+
+        //-------------------------------------------  Create some demo data ------------------------------------------------------
+        function setRoles() {
+            ge.roles = [
+              {
+                  id: "tmp_1",
+                  name: "Project Manager"
+              },
+              {
+                  id: "tmp_2",
+                  name: "Worker"
+              },
+              {
+                  id: "tmp_3",
+                  name: "Stakeholder/Customer"
+              }
+            ];
+        }
+
+        function setResource() {
+            var res = [];
+            for (var i = 1; i <= 10; i++) {
+                res.push({ id: "tmp_" + i, name: "Resource " + i });
+            }
+            ge.resources = res;
+        }
+
+
+        function editResources() {
+
+        }
+
+        function clearGantt() {
+            ge.reset();
+        }
+
+        function loadI18n() {
+            GanttMaster.messages = {
+                "CANNOT_WRITE": "不能编辑",
+                "CHANGE_OUT_OF_SCOPE": "没有超出编辑范围更新父级的权限",
+                "START_IS_MILESTONE": "开始是里程碑",
+                "END_IS_MILESTONE": "结束时里程碑",
+                "TASK_HAS_CONSTRAINTS": "任务包含约束",
+                "GANTT_ERROR_DEPENDS_ON_OPEN_TASK": "错误：特定于开放的任务",
+                "GANTT_ERROR_DESCENDANT_OF_CLOSED_TASK": "错误：衍生于关闭的任务",
+                "TASK_HAS_EXTERNAL_DEPS": "任务包含外部依赖",
+                "GANTT_ERROR_LOADING_DATA_TASK_REMOVED": "错误：加载被删除的任务",
+                "ERROR_SETTING_DATES": "日期时间设置错误（依赖时间关系或父级任务工期）",
+                "CIRCULAR_REFERENCE": "有无限循环参照",
+                "CANNOT_DEPENDS_ON_ANCESTORS": "不能依赖父级任务",
+                "CANNOT_DEPENDS_ON_DESCENDANTS": "不能依赖子级任务",
+                "INVALID_DATE_FORMAT": "无效日期格式",
+                "TASK_MOVE_INCONSISTENT_LEVEL": "任务移动非连续级别",
+                "GANTT_QUARTER_SHORT": "季度",
+                "GANTT_SEMESTER_SHORT": "半年"
+            };
+        }
+
+
+
+        //-------------------------------------------  Get project file as JSON (used for migrate project from gantt to Teamwork) ------------------------------------------------------
+        function getFile() {
+            $("#gimBaPrj").val(JSON.stringify(ge.saveProject()));
+            $("#gimmeBack").submit();
+            $("#gimBaPrj").val("");
+
+            /*  var uriContent = "data:text/html;charset=utf-8," + encodeURIComponent(JSON.stringify(prj));
+             neww=window.open(uriContent,"dl");*/
+        }
+
+
+        //-------------------------------------------  LOCAL STORAGE MANAGEMENT (for this demo only) ------------------------------------------------------
+        Storage.prototype.setObject = function (key, value) {
+            this.setItem(key, JSON.stringify(value));
+        };
+
+
+        Storage.prototype.getObject = function (key) {
+            return this.getItem(key) && JSON.parse(this.getItem(key));
+        };
+
+
+        function loadFromLocalStorage() {
+            var ret;
+            if (localStorage) {
+                if (localStorage.getObject("teamworkGantDemo")) {
+                    ret = localStorage.getObject("teamworkGantDemo");
+                }
+            } else {
+                $("#taZone").show();
+            }
+            if (!ret || !ret.tasks || ret.tasks.length == 0) {
+                ret = JSON.parse($("#ta").val());
+
+
+                //actualiza data
+                var offset = new Date().getTime() - ret.tasks[0].start;
+                for (var i = 0; i < ret.tasks.length; i++)
+                    ret.tasks[i].start = ret.tasks[i].start + offset;
+
+
+            }
+            ge.loadProject(ret);
+            ge.checkpoint(); //empty the undo stack
+
+        }
+
+
+        function saveInLocalStorage() {
+            var prj = ge.saveProject();
+            if (localStorage) {
+                localStorage.setObject("teamworkGantDemo", prj);
+            } else {
+                $("#ta").val(JSON.stringify(prj));
+            }
+        }
+
+
+        //-------------------------------------------  Open a black popup for managing resources. This is only an axample of implementation (usually resources come from server) ------------------------------------------------------
+
+        function editResources() {
+
+            //make resource editor
+            var resourceEditor = $.JST.createFromTemplate({}, "RESOURCE_EDITOR");
+            var resTbl = resourceEditor.find("#resourcesTable");
+
+            for (var i = 0; i < ge.resources.length; i++) {
+                var res = ge.resources[i];
+                resTbl.append($.JST.createFromTemplate(res, "RESOURCE_ROW"))
+            }
+
+
+            //bind add resource
+            resourceEditor.find("#addResource").click(function () {
+                resTbl.append($.JST.createFromTemplate({ id: "new", name: "resource" }, "RESOURCE_ROW"))
+            });
+
+            //bind save event
+            resourceEditor.find("#resSaveButton").click(function () {
+                var newRes = [];
+                //find for deleted res
+                for (var i = 0; i < ge.resources.length; i++) {
+                    var res = ge.resources[i];
+                    var row = resourceEditor.find("[resId=" + res.id + "]");
+                    if (row.size() > 0) {
+                        //if still there save it
+                        var name = row.find("input[name]").val();
+                        if (name && name != "")
+                            res.name = name;
+                        newRes.push(res);
+                    } else {
+                        //remove assignments
+                        for (var j = 0; j < ge.tasks.length; j++) {
+                            var task = ge.tasks[j];
+                            var newAss = [];
+                            for (var k = 0; k < task.assigs.length; k++) {
+                                var ass = task.assigs[k];
+                                if (ass.resourceId != res.id)
+                                    newAss.push(ass);
+                            }
+                            task.assigs = newAss;
+                        }
+                    }
+                }
+
+                //loop on new rows
+                resourceEditor.find("[resId=new]").each(function () {
+                    var row = $(this);
+                    var name = row.find("input[name]").val();
+                    if (name && name != "")
+                        newRes.push(new Resource("tmp_" + new Date().getTime(), name));
+                });
+
+                ge.resources = newRes;
+
+                closeBlackPopup();
+                ge.redraw();
+            });
+
+
+            var ndo = createBlackPage(400, 500).append(resourceEditor);
+        }
+
+        function addRootTask()
+        {
+            var task=ge.currentTask;
+            var id=task.id;
+            var projid=task.projId;
+
+            JQ.dialog.dialog({
+                title: decodeURIComponent("新增关键节点"),
+                url: "@(Url.Action("addRootTask", "DesTask", new { @area="Design" }))?id=" +id+"&projid="+projid,
+                width: 800,
+                height: 700,
+                JQID: "",
+                JQLoadingType: "",
+                iconCls: "fa fa-table"
+            });
+            JQ.Flow.stopBubble();
+        }
+
+        function editTask(id)
+        {
+            JQ.dialog.dialog({
+                title: decodeURIComponent("编辑工作内容"),
+                url: "@(Url.Action("editTask", "DesTask", new { @area="Design" }))?id=" +id,
+                width: 800,
+                height: 700,
+                JQID: "",
+                JQLoadingType: "",
+                iconCls: "fa fa-table"
+            });
+            JQ.Flow.stopBubble();
+        }
+        function deleteTask()
+        {
+            var task=ge.currentTask;
+            if(task.keyPointType=="0")
+            {
+                JQ.dialog.error("策划专业信息无法删除！");
+                return false;
+            }
+            var id=task.id;
+            JQ.tools.ajax({
+                url: "@(Url.Action("delTaskGantt", "DesTask", new { @area = "Design" }))?Id="+id,
+                type: "POST",
+                succesCollBack: function (result) {
+                    loadGanttFromServer();
+                }
+            });
+        }
+        window.top.refresh=function(){
+            loadGanttFromServer();
+        }
+
+    </script>
+}
+
+@section Body_Content{
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',border:false" style="border-bottom-width:1px;overflow:hidden">
+        <div style="height:30px;padding:5px;">
+            <div style="float:left;margin-left:5px;">
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="saveGanttOnServer()">保存</a>
+            </div>
+            <div style="float:right;margin-right:5px;margin-top:7px;">
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'center',border:false">
+        <div class="nowordpage">
+            <div class="pageheader" id="div1">
+                @*<h1>项目计划单</h1>*@
+                <div class="row-fluid-wrap">
+                    <ul class="clearfix ul-fluid ">
+                        <li class="">
+                            <div class="list-wrap">
+                                <div class="line"></div>
+                                <a href="#"><div class="small-tag">1</div></a>
+                                <div class="line"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                            <p>计划要求</p>
+                        </li>
+                        <li class="">
+                            <div class="list-wrap">
+                                <div class="line"></div>
+                                <a href="#"><div class="small-tag">2</div></a>
+                                <div class="line"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                            <p>项目策划</p>
+                        </li>
+                        <li class="">
+                            <div class="list-wrap">
+                                <div class="line"></div>
+                                <a href="#"><div class="small-tag">4</div></a>
+                                <div class="line"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                            <p>提资策划</p>
+                        </li>
+                        <li class="">
+                            <div class="list-wrap">
+                                <div class="line"></div>
+                                <a href="#"><div class="small-tag">3</div></a>
+                                <div class="line"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                            <p>专业策划</p>
+                        </li>
+                        <li class="">
+                            <div class="list-wrap">
+                                <div class="line"></div>
+                                <a href="#"><div class="small-tag">5</div></a>
+                                <div class="line"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                            <p>关键节点</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="workSpace" style="padding:0px; overflow-y:auto; overflow-x:hidden;border:1px solid #e5e5e5;position:relative;margin:0px 5px 20px 5px;"></div>
+
+        </div>
+
+
+        <div id="gantEditorTemplates" style="display:none;">
+            <div class="__template__" type="GANTBUTTONS">
+                @*gantbuttons*@
+                <!--
+                <div class="ganttButtonBar noprint">
+                  <h1 style="float:left">task tree/gantt</h1>
+                  <button onclick="$('#workSpace').trigger('zoomMinus.gantt');" class="button textual" title="zoom out"><span class="teamworkIcon">)</span></button>
+                  <button onclick="$('#workSpace').trigger('zoomPlus.gantt');" class="button textual" title="zoom in"><span class="teamworkIcon">(</span></button>
+                  <span class="ganttButtonSeparator"></span>
+                  <button onclick="deleteTask();" class="button textual" title="delete"><span class="teamworkIcon">&cent;</span></button>
+                   <span class="ganttButtonSeparator"></span>
+                    <button onclick="addRootTask();" id="btnSave" class="button first big" title="save">新增关键节点</button>
+                  </div></div>
+                -->
+
+            </div>
+
+            <div class="__template__" type="TASKSEDITHEAD">
+                @*tasksedithead*@
+                <!--
+                 <table class="gdfTable" cellspacing="0" cellpadding="0">
+                  <thead>
+                  <tr style="height:40px">
+                    <th class="gdfColHeader" style="width:35px;"></th>
+                    <th class="gdfColHeader" style="width:25px;"></th>
+                    <th class="gdfColHeader gdfResizable" style="width:200px;text-align:center">任务名称</th>
+                    <th class="gdfColHeader gdfResizable" style="width:80px;text-align:center">相关责任人</th>
+                    <th class="gdfColHeader gdfResizable" style="width:80px;text-align:center">开始时间</th>
+                    <th class="gdfColHeader gdfResizable" style="width:80px;text-align:center">完成时间</th>
+                    <th class="gdfColHeader gdfResizable" style="width:80px;text-align:center">持续天数</th>
+                    <th class="gdfColHeader gdfResizable" style="width:80px;text-align:center">完成比例</th>
+                    <th class="gdfColHeader gdfResizable" style="width:200px;text-align:center">相关备注</th>
+                  </tr>
+                  </thead>
+                </table>
+                          -->
+            </div>
+
+            <div class="__template__" type="TASKROW">
+                @*taskrow*@
+                <!--
+                <tr taskId="(#=obj.id#)" class="taskEditRow" level="(#=level#)">
+                  <th class="gdfCell edit" align="right" style="cursor:pointer;"><span class="taskRowIndex">(#=obj.getRow()+1#)</span> <span class="teamworkIcon" style="font-size:12px;" >e</span></th>
+                  <td class="gdfCell noClip" align="center"><div class="taskStatus cvcColorSquare" status="(#=obj.status#)"></div></td>
+                  <td class="gdfCell indentCell" style="padding-left:(#=obj.level*10#)px;">
+                    <div class="(#=obj.isParent()?'exp-controller expcoll exp':'exp-controller'#)" align="center"></div>
+                    <input type="text" name="name" value="(#=obj.name#)">
+                  </td>
+                  <td class="gdfCell"><input type="text" name="ManageEmpName"  value="(#=obj.ManageEmpName#)"></td>
+                  <td class="gdfCell"><input type="text" name="start"  value="" class="date"></td>
+                  <td class="gdfCell"><input type="text" name="end" value="" class="date"></td>
+                  <td class="gdfCell"><input type="text" name="duration" value="(#=obj.duration#)"></td>
+                  <td class="gdfCell"><input type="text" name="progress" value="(#=obj.progress#)"></td>
+                  <td class="gdfCell"><input type="text" name="Description" value="(#=obj.description#)"></td>
+                </tr>
+                -->
+            </div>
+
+            <div class="__template__" type="TASKEMPTYROW">
+                @*taskemptyrow*@
+                <!--
+                <tr class="taskEditRow emptyRow" >
+                  <th class="gdfCell" align="right"></th>
+                  <td class="gdfCell noClip" align="center"></td>
+                  <td class="gdfCell"></td>
+                  <td class="gdfCell"></td>
+                  <td class="gdfCell"></td>
+                  <td class="gdfCell"></td>
+                  <td class="gdfCell"></td>
+                  <td class="gdfCell"></td>
+                  <td class="gdfCell"></td>
+                </tr>
+                -->
+            </div>
+
+            <div class="__template__" type="TASKBAR">
+                @*taskbar*@
+                <!--
+                <div class="taskBox taskBoxDiv" taskId="(#=obj.id#)" >
+                  <div class="layout (#=obj.hasExternalDep?'extDep':''#)">
+                    <div class="taskStatus" status="(#=obj.status#)"></div>
+                    <div class="taskProgress" style="width:(#=obj.progress>100?100:obj.progress#)%; background-color:(#=obj.progress>100?'red':'rgb(153,255,51);'#);"></div>
+                    <div class="milestone (#=obj.startIsMilestone?'active':''#)" ></div>
+
+                    <div class="taskLabel"></div>
+                    <div class="milestone end (#=obj.endIsMilestone?'active':''#)" ></div>
+                  </div>
+                </div>
+                -->
+            </div>
+
+            <div class="__template__" type="CHANGE_STATUS">
+                @*change_status*@
+                <!--
+                  <div class="taskStatusBox">
+                    <div class="taskStatus cvcColorSquare" status="STATUS_ACTIVE" title="active"></div>
+                    <div class="taskStatus cvcColorSquare" status="STATUS_DONE" title="completed"></div>
+                    <div class="taskStatus cvcColorSquare" status="STATUS_FAILED" title="failed"></div>
+                    <div class="taskStatus cvcColorSquare" status="STATUS_SUSPENDED" title="suspended"></div>
+                    <div class="taskStatus cvcColorSquare" status="STATUS_UNDEFINED" title="undefined"></div>
+                  </div>
+                -->
+            </div>
+
+
+            <div class="__template__" type="TASK_EDITOR">
+                @*task_editor*@
+                <!--
+                <div class="ganttTaskEditor">
+                <table width="100%">
+                  <tr>
+                    <td>
+                      <table cellpadding="5">
+                        <tr>
+                          <td><label for="code">code/short name</label><br><input type="text" name="code" id="code" value="" class="formElements"></td>
+                         </tr><tr>
+                          <td><label for="name">name</label><br><input type="text" name="name" id="name" value=""  size="35" class="formElements"></td>
+                        </tr>
+                        <tr></tr>
+                          <td>
+                            <label for="description">description</label><br>
+                            <textarea rows="5" cols="30" id="description" name="description" class="formElements"></textarea>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                    <td valign="top">
+                      <table cellpadding="5">
+                        <tr>
+                        <td colspan="2"><label for="status">status</label><br><div id="status" class="taskStatus" status=""></div></td>
+                        <tr>
+                        <td colspan="2"><label for="progress">progress</label><br><input type="text" name="progress" id="progress" value="" size="3" class="formElements"></td>
+                        </tr>
+                        <tr>
+                        <td><label for="start">start</label><br><input type="text" name="start" id="start"  value="" class="date" size="10" class="formElements"><input type="checkbox" id="startIsMilestone"> </td>
+                        <td rowspan="2" class="graph" style="padding-left:50px"><label for="duration">dur.</label><br><input type="text" name="duration" id="duration" value=""  size="5" class="formElements"></td>
+                      </tr><tr>
+                        <td><label for="end">end</label><br><input type="text" name="end" id="end" value="" class="date"  size="10" class="formElements"><input type="checkbox" id="endIsMilestone"></td>
+                      </table>
+                    </td>
+                  </tr>
+                  </table>
+
+                <h2>assignments</h2>
+                <table  cellspacing="1" cellpadding="0" width="100%" id="assigsTable">
+                  <tr>
+                    <th style="width:100px;">name</th>
+                    <th style="width:70px;">role</th>
+                    <th style="width:30px;">est.wklg.</th>
+                    <th style="width:30px;" id="addAssig"><span class="teamworkIcon" style="cursor: pointer">+</span></th>
+                  </tr>
+                </table>
+
+                <div style="text-align: right; padding-top: 20px"><button id="saveButton" class="button big">保存</button></div>
+                </div>
+                -->
+            </div>
+
+
+            <div class="__template__" type="ASSIGNMENT_ROW">
+                @*assignment_row*@
+                <!--
+                <tr taskId="(#=obj.task.id#)" assigId="(#=obj.assig.id#)" class="assigEditRow" >
+                  <td ><select name="resourceId"  class="formElements" (#=obj.assig.id.indexOf("tmp_")==0?"":"disabled"#) ></select></td>
+                  <td ><select type="select" name="roleId"  class="formElements"></select></td>
+                  <td ><input type="text" name="effort" value="(#=getMillisInHoursMinutes(obj.assig.effort)#)" size="5" class="formElements"></td>
+                  <td align="center"><span class="teamworkIcon delAssig" style="cursor: pointer">d</span></td>
+                </tr>
+                -->
+            </div>
+
+
+            <div class="__template__" type="RESOURCE_EDITOR">
+                @*resource_editor*@
+                <!--
+                <div class="resourceEditor" style="padding: 5px;">
+
+                  <h2>Project team</h2>
+                  <table  cellspacing="1" cellpadding="0" width="100%" id="resourcesTable">
+                    <tr>
+                      <th style="width:100px;">name</th>
+                      <th style="width:30px;" id="addResource"><span class="teamworkIcon" style="cursor: pointer">+</span></th>
+                    </tr>
+                  </table>
+
+                  <div style="text-align: right; padding-top: 20px"><button id="resSaveButton" class="button big">save</button></div>
+                </div>
+                -->
+            </div>
+
+
+            <div class="__template__" type="RESOURCE_ROW">
+                @*resource_row*@
+                <!--
+                <tr resId="(#=obj.id#)" class="resRow" >
+                  <td ><input type="text" name="name" value="(#=obj.name#)" style="width:100%;" class="formElements"></td>
+                  <td align="center"><span class="teamworkIcon delRes" style="cursor: pointer">d</span></td>
+                </tr>
+                -->
+            </div>
+        </div>
+    </div>
+</div>
+    <script type="text/javascript">
+        $.JST.loadDecorator("ASSIGNMENT_ROW", function (assigTr, taskAssig) {
+
+            var resEl = assigTr.find("[name=resourceId]");
+            for (var i in taskAssig.task.master.resources) {
+                var res = taskAssig.task.master.resources[i];
+                var opt = $("<option>");
+                opt.val(res.id).html(res.name);
+                if (taskAssig.assig.resourceId == res.id)
+                    opt.attr("selected", "true");
+                resEl.append(opt);
+            }
+
+
+            var roleEl = assigTr.find("[name=roleId]");
+            for (var i in taskAssig.task.master.roles) {
+                var role = taskAssig.task.master.roles[i];
+                var optr = $("<option>");
+                optr.val(role.id).html(role.name);
+                if (taskAssig.assig.roleId == role.id)
+                    optr.attr("selected", "true");
+                roleEl.append(optr);
+            }
+
+            if (taskAssig.task.master.canWrite && taskAssig.task.canWrite) {
+                assigTr.find(".delAssig").click(function () {
+                    var tr = $(this).closest("[assigId]").fadeOut(200, function () {
+                        $(this).remove();
+                    });
+                });
+            }
+        });
+    </script>
+}

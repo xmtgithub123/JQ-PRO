@@ -1,0 +1,63 @@
+﻿@model DataModel.Models.Weekly
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'WeeklyForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        beforeFormSubmit: function () {
+        },
+        // 成功回调函数,data为服务器返回值
+        succesCollBack: function (data) {
+            // 刷新上一级数据表格，必须在close窗体前调用
+            if (typeof (_WeekCallBack) == "function") {
+                _WeekCallBack();
+            }
+            JQ.datagrid.autoRefdatagrid();
+            // 关闭窗体放在最后一步执行，以避免找不到事件源
+            JQ.dialog.dialogClose();
+        }
+    });
+</script>
+@using (Html.BeginForm("weeksave", "EmpManage", FormMethod.Post, new { @area = "Engineering", @id = "WeeklyForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <input id='TaskGroupId' name='TaskGroupId' style='display:none;' value='@Request["EngID"]' />
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">标题</th>
+            <td width="40%" colspan="3">
+                <input name="Title" style="width:48%;" class="easyui-textbox" validType="length[0,50]" prompt="请输入标题" data-options="required:true" value="@Model.Title" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">内容</th>
+            <td width="40%" colspan="3">
+                <input name="Detail" style="width:98%;height:180px" value="@Model.Detail" class="easyui-textbox" prompt="请输入内容" data-options="multiline:true,required:true" validType="length[0,5000]" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">开始日期</th>
+            <td width="40%">
+                <input name="StartTime" style="width:48%;" class="easyui-datebox" validType="length[0,23]" data-options="required:true" value="@(Model.StartTime.ToString("yyyy-MM-dd"))" />
+            </td>
+            <th width="10%">结束日期</th>
+            <td width="40%">
+                <input name="EndTime" style="width:48%;" class="easyui-datebox" validType="length[0,23]" data-options="required:true" value="@(Model.EndTime.ToString("yyyy-MM-dd"))" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "Weekly";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+}

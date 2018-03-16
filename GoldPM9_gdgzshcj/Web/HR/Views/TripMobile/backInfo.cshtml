@@ -1,0 +1,366 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.Trip
+@section head {
+ <style type="text/css">
+
+    .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+
+    .p-15 {
+        padding: 15px;
+    }
+
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+    .error {
+        color: red;
+        font-size: 14px;
+        display: inline-block;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+     .aui-dialog {
+         z-index: 999;
+     }
+     .error-border {
+         border: 1px solid red !important;
+     }
+     .aui-input-check-disable {
+         font-size: 12px !important;
+         font-weight: normal !important;
+     }
+
+    .aui-input-check-disable label {
+        line-height: 45px;
+        margin-right: 15px;
+    }
+
+    .aui-input-check-disable input[type="checkbox"], .aui-input-check-disable input[type="radio"] {
+        width: auto;
+        line-height: 45px;
+    }
+
+   
+</style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="TripForm" class="aui-form">
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;申请日期</label>
+                <input name="ApplicationDate" id="ApplicationDate" type="date" class="aui-input" value="@Model.ApplicationDate.ToString("yyyy-MM-dd")" />
+                <div class="aui-input-block">@Model.ApplicationDate.ToString("yyyy-MM-dd")</div>
+            </div>
+            <div class="aui-input-row">
+                <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+               @* <input id="EmpID" name="EmpID" type="hidden" value="@ViewBag.EmpID" />*@
+                <label class="aui-input-addon">&nbsp;&nbsp;出差人</label>
+                <div class="aui-input-block">@Model.CreatorEmpName</div>
+                <input name="CreatorEmpName" id="CreatorEmpName" type="hidden" class="aui-input" value="@Model.CreatorEmpName" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;出差天数</label>
+                <div class="aui-input-block">@Model.Days</div>
+                <input name="Days" id="Days" type="number" class="aui-input" value="@Model.Days" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;出差起始日期</label>
+                <div class="aui-input-block">@Model.StartDate.ToString("yyyy-MM-dd")</div>
+                <input name="StartDate" id="StartDate" type="date" class="aui-input" value="@Model.StartDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;结束时间</label>
+                <div class="aui-input-block">@Model.EndDate.ToString("yyyy-MM-dd")</div>
+                <input name="EndDate" id="EndDate" type="date" class="aui-input" value="@Model.EndDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;出差省市与地区</label>
+                <div class="aui-input-block">@Model.TripReceive</div>
+                <input name="TripReceive" id="TripReceive" type="hidden" class="aui-input" value="@Model.TripReceive" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;出差事由</label>
+                <div class="aui-input-block">@Model.TripReason</div>
+                <textarea rows="6" name="TripReason" id="TripReason" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.TripReason</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;配合类型</label>
+                <div class="aui-input-block">@Model.TripType</div>
+                <input name="TripType" id="TripType" type="hidden" class="aui-input" value="@Model.TripType" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;实际天数</label>
+                <input name="SJTS" id="SJTS" type="number" class="aui-input" value="@Model.SJTS" />
+            </div>
+            
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;补贴属性</label>
+                <input name="BTSX_i" id="BTSX_i" type="hidden" class="aui-input" value="@Model.BTSX" />
+                @BaseData.getBaseSelect(new Params()
+               {
+                   isMult = false,
+                   controlName = "BTSX",
+                   isRequired = true,
+                   engName = "BTSX",
+                   width = "98%",
+                   ids = Model.BTSX.ToString()
+               })
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;补贴费用</label>
+                <input name="BTFY" id="BTFY" type="number" class="aui-input" value="@Model.BTFY" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;补贴方式</label>
+                <input name="BTFS_i" id="BTFS_i" type="hidden" class="aui-input" value="@Model.BTFS" />
+                @BaseData.getBaseSelect(new Params()
+               {
+                   isMult = false,
+                   controlName = "BTFS",
+                   isRequired = true,
+                   engName = "BTFS",
+                   width = "98%",
+                   ids = Model.BTFS.ToString()
+               })
+            </div>
+
+
+
+
+
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+    </div>
+    <script type="text/javascript">
+        var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+        };
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                //initFormBegin(JSON.stringify({
+                //    "AllowEditControls": "{}"
+                //}));
+                //initFormBegin();
+            }
+
+        })
+
+        //页面初始化
+        function initFormBegin(params) {
+
+            //alert(params)
+            //去除换行
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+
+            var paramsObj = JSON.parse(params);
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls.replace("StampID", "selectProjNameBtn");
+
+            //清除时间审批时，默认为1900-01-01改为空
+            var ApplicationDate = $('#ApplicationDate').val(); 
+            var StartDate = $('#StartDate').val(); //开始时间
+            var EndDate = $('#EndDate').val(); //结束时间
+
+            if ((ApplicationDate == '1900-01-01')) {
+                $('#ApplicationDate').val('');
+            }
+            if ((StartDate == '1900-01-01')) {
+                $('#StartDate').val('');
+            }
+            if ((EndDate == '1900-01-01')) {
+                $('#EndDate').val('');
+            }
+
+            $('#ApplicationDate').hide();
+            $('#Days').hide();
+            $('#StartDate').hide();
+            $('#EndDate').hide();
+            $('#TripReason').hide();
+
+            //天数
+
+
+            $("#SJTS").change(function () {
+                var res = /^[0-9]+.?[0-9]*$/;
+                if (!res.test($("input[name='SJTS']").val())) {
+                    $.alert('请输入数字')
+                    $("input[name='SJTS']").val('');
+                    return false;
+                }
+                else {
+                    var SJTSValue = parseFloat($('#SJTS').val());
+                    $('#SJTS').val(SJTSValue.toFixed(1));
+                }
+            })
+            $("#BTFY").change(function () {
+                var res = /^[0-9]+.?[0-9]*$/;
+                if (!res.test($("input[name='BTFY']").val())) {
+                    $.alert('请输入数字')
+                    $("input[name='BTFY']").val('');
+                    return false;
+                }
+                else {
+                    var BTFYValue = parseFloat($('#BTFY').val());
+                    $('#BTFY').val(BTFYValue.toFixed(2));
+                }
+            })
+
+            $('#BTSX').val($('#BTSX_i').val())
+            $('#BTFS').val($('#BTFS_i').val())
+
+            $("input[type='number']").change(function () {
+                var res = /^[0-9]+.?[0-9]*$/;
+                if (!res.test($("input[type='number']").val())) {
+                    $.alert('请输入数字')
+                    $("input[type='number']").val('');
+                }
+                else {
+                    var SJTSValue = parseFloat($('#SJTS').val());
+                    $('#SJTS').val(SJTSValue.toFixed(1));
+
+                    var BTFYValue = parseFloat($('#BTFY').val());
+                    $('#BTFY').val(BTFYValue.toFixed(2));
+                }
+            })
+           
+
+            //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('TripForm'));
+
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#TripForm').validate({
+                rules: {
+                    BTSX: 'required',//补贴属性
+                    BTFS: 'required',//补贴方式
+                    
+                },
+                messages: {
+                    BTSX:'请输入补贴属性',
+                    BTFS: '请输入结束时间', //结束时间
+                   
+                }
+            });
+
+           
+            isValidate = formVali.form();
+            if (isValidate) {
+               
+                var formData = DomUtil.serialize(document.getElementById('TripForm'));//json or =&
+               // alert(JSON.stringify(formData))
+                console.log(formData)
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+
+          
+            var formData = DomUtil.serialize(document.getElementById('TripForm'));//json or =&
+           // alert(JSON.stringify(formData))
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+
+
+    </script>
+}

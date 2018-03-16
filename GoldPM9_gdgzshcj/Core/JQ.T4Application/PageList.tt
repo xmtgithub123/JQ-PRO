@@ -1,0 +1,104 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="manager.ttinclude"#>
+<# var manager = Manager.Create(Host, GenerationEnvironment); #>
+<#
+	var arr = DbHelper.GetV_SystemTableStructure(config.ConnectionString);
+	var FKey = DbHelper.GetV_SystemTableFKey(config.ConnectionString);
+	foreach(BaseNameSpace item in DbHelper.GetBaseNameSpaceTables(config.ConnectionString, config.TableNames))
+	{
+		string ClassName = item.TableNames ;
+		string WebNameSpace =  "PMWeb." + item.WebNameSpace.Replace("/",".").Trim(','); 
+		string DirPath = "tt/Web/" + item.DBSqlNameSpace +  "/View/"+ item.TableNames ;
+
+		string First = DbHelper.GetFirstString(arr,item.TableNames);
+		string PKCol = DbHelper.GetPKColumn(arr,item.TableNames);
+		string FirstDate = DbHelper.GetFirstDateColNote(arr,item.TableNames);
+		List<V_SystemTableFKey> RefFkey = DbHelper.GetFKeyColumn(FKey,item.TableNames);
+
+		List<V_SystemTableStructure> TableStructure = arr.Where(p => p.TableName == item.TableNames).ToList();
+#>
+<# manager.StartNewFile("list.cshtml",DirPath); #>
+@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "<#=item.TableNames#>",new { @area="<#=item.DBSqlNameSpace#>"})',
+            addUrl = '@Url.Action("add","<#=item.TableNames#>",new {@area="<#=item.DBSqlNameSpace#>" })',
+            editUrl = '@Url.Action("edit", "<#=item.TableNames#>",new {@area="<#=item.DBSqlNameSpace#>" })',
+            delUrl = '@Url.Action("del", "<#=item.TableNames#>", new { @area = "<#=item.DBSqlNameSpace#>" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit','del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: '<#=PKCol#>',//主键的字段
+                JQID: '<#=item.TableNames#>Grid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["<#=PKCol#>"],//追加的字段名
+				JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '筛选字段',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+				fitColumns: false,
+                nowrap: false,
+                toolbar: '#<#=item.TableNames#>Panel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+				  <#
+foreach (var childCol in  TableStructure)
+{
+	string FK = DbHelper.GetSortField(arr,FKey,item.TableNames,childCol.ColName);
+	//判断时间类型 yyyy-MM-dd
+	string DataFormatString = "" ;
+	if(childCol.ColType == "datetime" || childCol.ColType == "smalldatetime") DataFormatString = ", formatter: JQ.tools.DateTimeFormatterByT";
+	if(FK == "")
+    {
+#>
+		{ title: '<#=childCol.ColNote#>', field: '<#=childCol.ColName#>', width: 100, align: 'center', sortable: true <#=DataFormatString#> },
+<#
+    }
+	else
+    {
+#>
+		{ title: '<#=childCol.ColNote#>', field: '<#=childCol.ColName#>', width: 100, align: 'center', sortable: true <#=DataFormatString#> },<#
+    }
+}
+#>
+                 { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: '<#=ClassName#>' }
+                ]]
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="<#=item.TableNames#>Grid"></table>
+    <div id="<#=item.TableNames#>Panel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            
+        </span>
+
+        <input id="JQSearch" style="width:250px;"  JQWhereOptions="{ 'Key': '<#=First#>', 'Contract': 'like' }"/>
+
+    </div>
+}
+
+<# manager.EndBlock(); #>
+<#}#>
+<# manager.Process(true); #>
+<#+
+	public class config
+	{ 
+		public static readonly string ConnectionString="Data Source=192.168.0.8\\j9SQL2008R2;Initial Catalog=JQPM9_gdgzshcj;User ID=sa;Password=j9;";	
+		public static readonly string TableNames="";
+	}
+#>

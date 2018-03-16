@@ -1,0 +1,224 @@
+﻿@model DataModel.Models.OaEquipGet
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'OaEquipGetForm',//formid提交需要用到
+        docName: 'OaEquipGet',
+        ExportName: '设备采购申请单',
+        buttonTypes: ['exportForm', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "OA,OA.FlowProcessor.OaEquipGetFlow",
+            refID: "@(Model.Id)",
+            refTable: "OaEquipGetFlow",
+            beforeFormSubmit: function () {
+                var rows = $("#dgGrid").datagrid("getRows");
+                if (rows.length < 1) {
+                    $.messager.alert("提示", "请选择要采购的设备！！！");
+                    return false;
+                }
+                for (var i = 0; i < rows.length; i++) {
+                    var number = rows[i].Number;
+                    if (number == undefined || number == "") {
+                        $.messager.alert("提示", "请输入设备数量！！！");
+                        return false;
+                    }
+                }
+                $("#EquipId").val(JSON.stringify($("#dgGrid").datagrid("getData").rows));
+                console.log($("#EquipId").val());
+                return true;
+            }
+        },
+        onBefore:function()
+        {
+            $("#dgGrid").datagrid('hideColumn', "Id");
+
+        },
+        onAfter: function () {
+            $("#dgGrid").datagrid('showColumn', "Id");
+
+        }
+    });
+
+    var EquipArray = new Array();
+    var EquipOrOffice = "?EquipOrOffice=" + '@Request.QueryString["EquipOrOffice"]';
+    var chooseUrl = '@Url.Action("EquipmentChoose", "OaEquipUse", new { @area="Oa"})';
+    function EquipmentChoose() {
+        JQ.dialog.dialog({
+            title: "设备选择",
+            url: chooseUrl + EquipOrOffice + "&EquIds=" + EquipArray.join(',') + "",
+            width: '800',
+            height: '600',
+            JQID: 'OaEquipmentGrid',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-search'
+        });
+    }
+
+    $.extend($.fn.datagrid.methods, {
+        editCell: function (jq, param) {
+            return jq.each(function () {
+                var opts = $(this).datagrid('options');
+                var fields = $(this).datagrid('getColumnFields', true).concat($(this).datagrid('getColumnFields'));
+                for (var i = 0; i < fields.length; i++) {
+                    var col = $(this).datagrid('getColumnOption', fields[i]);
+                    col.editor1 = col.editor;
+                    if (fields[i] != param.field) {
+                        col.editor = null;
+                    }
+                }
+                $(this).datagrid('beginEdit', param.index);
+                for (var i = 0; i < fields.length; i++) {
+                    var col = $(this).datagrid('getColumnOption', fields[i]);
+                    col.editor = col.editor1;
+                }
+            });
+        }
+    });
+
+    var editIndex = undefined;
+    function endEditing() {
+        if (editIndex == undefined) { return true }
+        if ($('#dgGrid').datagrid('validateRow', editIndex)) {
+            $('#dgGrid').datagrid('endEdit', editIndex);
+            editIndex = undefined;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function onClickCell(index, field) {
+        if (endEditing()) {
+            $('#dgGrid').datagrid('selectRow', index)
+                    .datagrid('editCell', { index: index, field: field });
+            editIndex = index;
+        }
+    }
+
+    var insert = function (row) {
+        $('#dgGrid').datagrid('appendRow', {
+            Id: -1,
+            EquipId: row.Id,
+            EquipNumber: row.EquipNumber,
+            EquipName: row.EquipName,
+            EquipModel: row.EquipModel
+        });
+        EquipArray.push(row.Id);
+    }
+
+    function formatOper(val, row, index) {
+        return '<a href="javascript:void(0)" class="easyui-linkbutton" onclick="DeleteRow()">删除</a>';
+    }
+
+    $(function () {
+        $('#dgGrid').datagrid({
+            width: 'auto',
+            striped: false,
+            singleSelect: true,
+            url: '@Url.Action("json", "OaEquipStock", new { @area="Oa"})' + "?EquipFormID=@Model.Id&EquipFormType=OaEquipGet",//请求的地址
+            //queryParams:{},
+            loadMsg: '数据加载中请稍后……',
+            pagination: false,
+            rownumbers: false,
+            onLoadSuccess: function (data) {
+                var rows = $("#dgGrid").datagrid("getRows");
+                for (var i = 0; i < rows.length; i++) {
+                    EquipArray.push(rows[i].EquipId);
+                }
+            }
+        });
+    });
+
+    function DeleteRow() {
+        var row = $('#dgGrid').datagrid('getSelected');
+        if (row != undefined) {
+            var rowIndex = $('#dgGrid').datagrid('getRowIndex', row);
+
+            $('#dgGrid').datagrid('deleteRow', rowIndex);
+
+            EquipArray.splice($.inArray(row.EquipId, EquipArray), 1);
+        }
+    }
+</script>
+@using (Html.BeginForm("save", "OaEquipGet", FormMethod.Post, new { @area = "Oa", @id = "OaEquipGetForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th>设备</th>
+            <td colspan="3">
+                <a id="btn" href="javascript:void(0);" class="easyui-linkbutton" name="btnChooseEquipment" data-options="iconCls:'fa fa-search'" onclick="EquipmentChoose()">选择设备</a>
+                <input type="hidden" id="EquipId" name="EquipId" />
+                <input type="hidden" id="EquipOrOffice" name="EquipOrOffice" value='@Request.QueryString["EquipOrOffice"]' />
+                <table id="dgGrid" bookmark="dgGrid" style="width:910px;height:auto" data-options="singleSelect: true,onClickCell: onClickCell">
+                    <thead>
+                        <tr>
+                            <th data-options="field:'EquipNumber'" style="width:200px;">设备编号</th>
+                            <th data-options="field:'EquipName'" style="width:250px;">设备名称</th>
+                            <th data-options="field:'EquipModel'" style="width:200px;">设备规格</th>
+                            <th data-options="field:'Number',editor:'numberbox'" style="width:125px;">数量</th>
+                            <th data-options="field:'Id',formatter:formatOper,align:'center'" style="width:100px;">操作</th>
+                        </tr>
+                    </thead>
+                </table>
+
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">外委单位</th>
+            <td width="40%">
+                <input name="EquipGetCustomer" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,100]" value="@Model.EquipGetCustomer" />
+            </td>
+            <th width="10%">金额</th>
+            <td width="40%">
+                <input name="EquipGetMenoy" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" data-options="precision:2" value="@Model.EquipGetMenoy" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">申请时间</th>
+            <td width="40%">
+                <input name="EquipGetApplyDate" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.EquipGetApplyDate" />
+            </td>
+
+            <th width="10%">采购时间</th>
+            <td width="40%">
+                <input name="EquipGetDate" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.EquipGetDate" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">备注</th>
+            <td colspan="3">
+                <input name="EquipGetNote" style="width:98%;height:90px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,500]" value="@Model.EquipGetNote" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "OaEquipGet";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+    </table>
+                    }

@@ -1,0 +1,250 @@
+﻿@*@section Body_Content{*@
+    @model DataModel.Models.BussCustomerEvaluate
+    @using JQ.Web;
+    <script type="text/javascript">
+
+            JQ.form.submitInit({
+                formid: 'BussCustomerEvaluateForm',//formid提交需要用到
+                buttonTypes: ['submit', 'close'],//默认按钮
+                succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                    JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                    JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+                }
+            });
+            JQ.combotree.selEmp({ id: 'ReceiveEmpIDs', isMult: true, width: '98%' });
+            var Read = '@ViewBag.Read';
+            if(Read=='1')
+            {
+                $('a[jqpermissionname="submit"]').hide();
+                $("#toolbar").children('a').eq(0).hide();//隐藏保存
+                $("#uploadfile1_upload").hide();//隐藏上传
+                $("#uploadfile1_delete").hide();//隐藏删除
+            }
+        $("#ReceiveEmpIDs").combotree('setValues', '@Model.ReceiveEmpIDs');
+        $('#CustID').combogrid({
+            panelWidth: 550,
+            panelHeight: 385,
+            value: '@Model.CustID',
+            idField: 'Id',
+            textField: 'CustName',
+            url: '@Url.Action("dropListCustmerJson", "BussCustomer",new { @area = "Bussiness" })?custId=@Model.CustID',//请求的地址
+            editable: true,
+            pagination: true,           //是否分页
+            rownumbers: true,           //序号
+            collapsible: false,         //是否可折叠的
+            method: 'post',
+            fit:true,
+            columns: [[
+                { title: '客户类别', field: 'CustTypeName', width: 100, align: 'center', sortable: true },
+        { title: '客户名称', field: 'CustName', width: 140, align: 'center', sortable: true },
+        { title: '办公地址', field: 'CustAddress', width: 160, align: 'center', sortable: true },
+		{ title: '客户地区', field: 'CustRegion', width: 100, align: 'center', sortable: true }
+            ]],
+            keyHandler: {
+                up: function () {               //【向上键】押下处理
+                    var selected = $('#CustID').combogrid('grid').datagrid('getSelected');
+                    if (selected)
+                    {
+                        var index = $('#CustID').combogrid('grid').datagrid('getRowIndex', selected);
+                        if (index > 0) {
+                            $('#CustID').combogrid('grid').datagrid('selectRow', index - 1);
+                        }
+                    }
+                    else {
+                        var rows = $('#CustID').combogrid('grid').datagrid('getRows');
+                        $('#CustID').combogrid('grid').datagrid('selectRow', rows.length - 1);
+                    }
+                },
+                down: function () {             //【向下键】押下处理
+                    //取得选中行
+                    var selected = $('#CustID').combogrid('grid').datagrid('getSelected');
+                    if (selected) {
+                        var index = $('#CustID').combogrid('grid').datagrid('getRowIndex', selected);
+                        if (index < $('#CustID').combogrid('grid').datagrid('getData').rows.length - 1) {
+                            $('#CustID').combogrid('grid').datagrid('selectRow', index + 1);
+                        }
+                    } else {
+                        $('#CustID').combogrid('grid').datagrid('selectRow', 0);
+                    }
+                },
+                enter: function () {             //【回车键】押下处理
+                    var row = $('#CustID').combogrid('grid').datagrid('getSelected');
+                    $('#CustID').combogrid('hidePanel');
+                },
+                query: function (keyword) {     //【动态搜索】处理
+                    //设置查询参数
+                    var queryParams = $('#CustID').combogrid("grid").datagrid('options').queryParams;
+                    queryParams.keyword = keyword;
+                    $('#CustID').combogrid("grid").datagrid('options').queryParams = queryParams;
+                    //重新加载
+                    var pager = $('#CustID').combogrid('grid').datagrid('getPager');
+                    pager.pagination('refresh');
+                    pager.pagination('select', 1);
+                    $('#CustID').combogrid("grid").datagrid("reload");
+                    $('#CustID').combogrid("setValue", keyword);                    //将查询条件存入隐藏域
+                    $('#keyWord').val(keyword);
+                }
+            },
+            onSelect: function (val, row) {
+                $("#CustType").text(row.CustTypeName);
+            },
+            onLoadSuccess: function () {
+
+                $("#CustType").text('@ViewBag.CustTypeName');
+
+            }
+        });
+        $("#CustID").combogrid({
+            readonly:true
+        });
+       
+        var selectValue = "";
+        var selectText = "";
+
+        JQ.combobox.common({
+            id: 'ProjID',
+            toolbar: '#tbProj',//工具栏的容器ID
+            url: '@Url.Action("combogridJson", "Project",new { @area="Project"})',//请求的地址
+            panelWidth: 550,
+            panelHeight: 400,
+            valueField: 'Id',
+            textField: 'ProjNumber',
+            editable: false,
+            multiple: false,
+            pagination: true,//是否分页
+            queryParams:
+                {
+                    projId: '@Model.ProjID',
+                    Words: $("#fullNameSearchProj").val()
+                },
+            columns: [[
+                { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true },
+                { title: '项目名称', field: 'ProjName', width: 260, align: 'center', sortable: true },
+                { title: '项目阶段', field: 'PhaseName', width: 140, align: 'center', sortable: true }
+            ]],
+            onSelect: function (val, row) {
+                $("#ProjName").text(row.ProjName);
+                selectValue = row.Id;
+                selectText = row.ProjName;
+            },
+            onLoadSuccess: function () {
+                $("#ProjName").text('@ViewBag.ProjName');
+                var selectRow = $(this).combogrid('grid').datagrid('getSelected');
+                if (selectRow != undefined) {
+                    selectText = $(this).combogrid('getText');
+                }
+                if (selectRow == undefined) {
+                    $(this).combogrid('setText', selectText);
+                }
+            }
+
+        });
+        $("#fullNameSearchProj").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '项目名称、项目编号',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+                    {
+                        $dg: $("#ProjID").combogrid('grid'),
+                        loadingType: 'datagrid',
+                        queryParams:
+                                 {
+                                     projId: '@Model.ProjID',
+                                     Words: $("#fullNameSearchProj").val()
+                                 }
+                    });
+            }
+
+        });
+    </script>
+    @using (Html.BeginForm("save", "BussCustomerEvaluate", FormMethod.Post, new { @area = "Bussiness", @id = "BussCustomerEvaluateForm" }))
+    {
+        @Html.HiddenFor(m => m.Id)
+        <table class="table table-bordered">
+
+            <tr>
+                <th width="15%">顾客名称</th>
+                <td width="35%">
+                    <select id="CustID" name="CsutID" class="easyui-combogrid" style="width:98%;"></select>
+                    <input type="hidden" id="keyWord" name="keyWord" />
+                </td>
+                <th width="15%">客户类别(自动获取)</th>
+                <td width="35%">
+                    <label id="CustType"></label>
+                </td>
+            </tr>
+            <tr>
+                <th style="width:15%;">
+                    项目编号
+                </th>
+                <td style="width:35%;">
+                    @*<select id="ProjID" name="ProjID" class="easyui-combogrid" style="width:98%;"></select>*@
+                    <input id="ProjID" name="ProjID" data-options="required:true,multiple:false" style="width:99%;" value="@(@Model.ProjID==0 ? "" :@Model.ProjID.ToString())" />
+                </td>
+                <th style="width:15%;">
+                    项目名称(自动获取)
+                </th>
+                <td style="width:35%;">
+                    <label id="ProjName"></label>
+                </td>
+            </tr>
+            <tr>
+                <th width="15%">评价日期</th>
+                <td>
+                   
+                    <input name="CreationTime" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.CreationTime" />
+                </td>
+                <th>
+                    评价结果
+                </th>
+                <td>
+                    @BaseData.getBase(new Params()
+                {
+                    controlName = "EvaluationTypeID",
+                    isRequired = true,
+                    engName = "EvaluateResultType",
+                    width = "98%",
+                    ids = Model.EvaluationTypeID.ToString()
+                })
+                </td>
+                </tr>
+            <tr>
+                <th width="15%">评价内容</th>
+                <td colspan="3">
+                    <input name="EvaluaterNote" style="width:98%;height:60px;" class="easyui-textbox"  data-options="multiline:true"  validType="length[0,1000]" value="@Model.EvaluaterNote" />
+                </td>
+            </tr>
+            <tr>
+                <th style="width:15%">
+                    接收人
+                </th>
+                <td colspan="3">
+                    <select name="ReceiveEmpIDs" id="ReceiveEmpIDs" style="width:98%;" />
+                </td>
+
+            </tr>
+            <tr>
+                <th>
+                    上传附件
+                </th>
+                <td colspan="3">
+                    @{
+                        var uploader = new DataModel.FileUploader();
+                        uploader.RefID = Model.Id;
+                        uploader.RefTable = "BussCustEvaluate";
+                        uploader.Name = "uploadfile1";
+                        @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                    }
+                </td>
+            </tr>
+        </table>
+        <div id="tbProj" style="padding:5px;height:auto; display:none;">
+            <input id="fullNameSearchProj" name="Words" style="width:250px;" JQWhereOptions="{ Key: 'ProjName', 'Contract': 'like' }" />
+        </div>
+ }
+@*}*@
+
+
+

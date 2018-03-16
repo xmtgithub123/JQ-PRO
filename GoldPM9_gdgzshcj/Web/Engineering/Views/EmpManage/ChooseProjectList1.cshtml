@@ -1,0 +1,141 @@
+﻿@using JQ.Web;
+@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@section Body_Content {
+<script type="text/javascript">
+    var requestUrl = '@Url.Action("ProjectPlanListJsonAll", "DesTask",new { @area="Design"})?FormMenu=ProjectPlanList&TaskGroupStatus=2&TaskGroupId=@Request.QueryString["TaskGroupId"]';
+    var params = {};
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'DesTaskGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '768',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+            JQFields: ["Id"],//追加的字段名
+            url: requestUrl,//请求的地址
+            checkOnSelect: true,
+            singleSelect: true,
+            queryParams: params,
+            toolbar: '#DesTaskPanel',//工具栏的容器ID
+            JQExcludeCol: [1, 9],
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                {
+                    title: '状态', field: 'TaskGroupStatusName', width: 40, align: 'center', formatter: function (value, row, index) {
+                        var icon = "";
+                        var title = "";
+                        switch (row.TaskGroupStatus) {
+                            case 0:
+                                title = "未启动";
+                                icon = "fa-circle-o";
+                                break;
+                            case 1:
+                                title = "已轮到";
+                                icon = "fa-dot-circle-o";
+                                break;
+                            case 2:
+                                title = "进行中";
+                                icon = "fa-play-circle";
+                                break;
+                            case 3:
+                                title = "已完成";
+                                icon = "fa-check-circle";
+                                break;
+                            case 4:
+                                title = "已停止";
+                                icon = "fa-minus-circle";
+                                break;
+                        }
+                        row.TaskGroupStatusName = title;
+                        return "<i class=\"fa " + icon + "\" title=\"" + title + "\"></i>";
+                    }
+                },
+                { title: '项目编号', field: 'ProjNumber', width: '10%', align: 'center', sortable: true },
+                { title: '项目名称', field: 'ProjName', width: '30%', align: 'left', sortable: true },
+                { title: '阶段', field: 'ProjPhaseName', width: '10%', align: 'center', sortable: true },
+                { title: '负责人', field: 'ProjPhaseEmpName', width: '10%', align: 'center', sortable: true },
+                { title: '计划开始', field: 'DatePlanStart', width: '10%', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '计划结束', field: 'DatePlanFinish', width: '10%', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+            ]]
+        });
+
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '项目名称、编号',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+                    {
+                        dgID: 'DesTaskGrid',
+                        loadingType: 'datagrid',
+                        queryParams: params
+                    });
+            }
+        });
+    });
+
+
+    function Sure() {
+        var ids = [];
+        var rows = $('#DesTaskGrid').datagrid('getChecked');
+        if (rows.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        //for (var rowindex = 0; rowindex < rows.length; rowindex++) {
+        //    //insert(rows[rowindex]);
+        //    ids.push(rows[rowindex]["TaskGroupId"])
+        //}
+        _ProjCallBack(rows);
+        JQ.dialog.dialogClose();
+    }
+    function closedialog() {
+        JQ.dialog.dialogClose();
+    }
+</script>
+
+<table id="DesTaskGrid"></table>
+<div id="DesTaskPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a href="javascript:void(0);" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-check-circle'" onclick="Sure()">确定</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="closedialog()">关闭</a>
+    </span>
+
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'p.ProjNumber,p.ProjName', Contract:'like'}" />
+</div>
+    <script type="text/javascript">
+        var sourceWin, dialogID;
+        //function closeDialog() {
+        //    sourceWin.postMessage({
+        //        command: "closeDialog",
+        //        dialogID: dialogID
+        //    }, "*");
+        //}
+
+        //function callback() {
+        //    var ids = [];
+        //    var rows = $('#DesTaskGrid').datagrid('getChecked');
+        //    if (rows.length < 1) {
+        //        window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+        //        return;
+        //    }
+        //    sourceWin.postMessage({
+        //        command: "execMethod",
+        //        methodName: "afterChooseProject",
+        //        arguments: rows[0],
+        //        isMulti: true,
+        //        isCloseDialog: true,
+        //        dialogID: dialogID
+        //    }, "*");
+        //}
+
+        //window.onmessage = function (ev) {
+        //    sourceWin = ev.source;
+        //    dialogID = ev.data.dialogID;
+        //}
+    </script>
+    }

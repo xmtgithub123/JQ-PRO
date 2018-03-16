@@ -1,0 +1,211 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@model DataModel.Models.BaseEmployee
+
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")?CompanyType=FGS',//添加的路径
+                JQEditUrl: '@Url.Action("edit")?CompanyType=FGS',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussContractOtherGrid',//数据表格ID
+                JQDialogTitle: '其它收款合同信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                //JQCustomSearch: [  //自定义搜索的字段
+                //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+                //],
+                JQExcludeCol: [1, 9, 11],//导出execl排除的列
+                //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+                //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+                //JQFields: ["", ""],//追加的字段名
+                url: '@Url.Action("json", "BussContractOther", new { @area = "Bussiness" })?CompanyType=FGS&Footer=true',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussContractOtherPanel',//工具栏的容器ID
+                showFooter: true,
+                columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '合同编号', field: 'ConNumber', width: "10%", align: 'left', sortable: true },
+                { title: '合同名称', field: 'ConrName', width: "14%", align: 'left', sortable: true },
+                { title: '客户单位', field: 'CustName', width: "14%", align: 'left', sortable: true },
+        {
+            title: '合同金额（元）', field: 'ConFee', width: "8%", align: 'right', sortable: false, formatter: function (value, row, index) {
+                if (row.Footer) {
+                    return row.ConFee;
+                }
+                if (row.ConOtherFulfilType == '@((int)DataModel.ConDealWays.开口)') {
+                    var value = "<div><span>" + row.ConFee + "</span></div>";
+                    row.ConFee = value;//更新数据行数据
+                    return value;
+                } else {
+                    var value = "<div><span>" + row.ConrBalanceFee + "</span></div>";
+                    row.ConFee = value;//更新数据行数据
+                    return value;
+                }
+            }
+        },
+        { title: '已收款（元）', field: 'SumFeeMoney', width: "8%", align: 'right', sortable: false },
+        {
+            title: '未收款（元）', field: 'NoFeeMoney', width: "8%", align: 'right', sortable: false, formatter: function (value, row, index) {
+                if (row.Footer) {
+                    return row.NoFeeMoneyInfo;
+                }
+                if (row.ConOtherFulfilType == '@((int)DataModel.ConDealWays.开口)') {
+                    var value = row.NoFeeMoney;
+                    if (value <= 0) {
+                        value = 0;
+                    }
+                    row.NoFeeMoney = value;//更新数据行数据
+                    return value;
+                } else {
+                    var value = row.NoConrBalanceFeeMoney;
+                    if (value <= 0) {
+                        value = 0;
+                    }
+                    row.NoFeeMoney = value;//更新数据行数据
+                    return value;
+                }
+            }
+        },
+        { title: '已开票（元）', field: 'SumInvoiceMoney', width: "8%", align: 'right', sortable: false },
+        { field: 'JQFiles', title: '附件', align: 'center', width: "6%", JQIsExclude: true, JQRefTable: 'BussContractOther' },
+        {
+            title: '是否结清', field: 'ConIsFeeFinished', width: "8%", align: 'center', formatter: function (val, row) {
+                if (row.Footer) {
+                    return "";
+                }
+                else {
+                    return val == "已结清" ? "<span style='color:green'>已结清</span>" : "<span style='color:red'>未结清</span>";
+                }
+            }
+        },
+        {
+            field: 'opt', title: '操作', width: "12%", align: 'center',
+            formatter: function (value, row, index) {
+                if (row.Footer) {
+                    return "";
+                }
+                return "<a href=\"javascript:void(0)\"   JQPermissionName=\"add\" id=\"mb" + index + "\" dataid=\"" + row.Id + "\" flag=\"menubutton\"   >操作</a>";
+            }
+        }
+                ]],
+                onLoadSuccess: function (row, data) {
+                    var htmlFooter = $("#BussContractOtherGrid").datagrid("getPanel").find(".datagrid-footer").find("tr");
+                    htmlFooter.find("td[field=\"JQFiles\"]").find(".datagrid-cell").empty();
+                    htmlFooter.find("td[field=\"FlowProgress\"]").find(".datagrid-cell").empty();
+
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '合同名称、合同编号、客户单位',
+                //queryOptions: { 'Key': 'ConNumber,ConrName,CustName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BussContractOtherGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                KeyJQSearch: $("#JQSearch").val(),
+                            }
+                        });
+                }
+            });
+            //setTextAlign("ConNumber", "text-align:left;");
+            //setTextAlign("ConrName", "text-align:left;");
+        });
+
+        //function setTextAlign(filed, align) {
+        //    $("tr[class='datagrid-header-row']").find("td[field='" + filed + "']").children().removeAttr("style").attr("style", align);
+        //}
+
+        $.extend($.fn.datagrid.defaults.view, {
+            onAfterRender: function () {
+                $("a[flag='menubutton']").mouseover(function () {
+                    document.getElementById("mm3").setAttribute("rowid", this.getAttribute("dataid"));
+                }).menubutton({
+                    iconCls: 'fa fa-edit',
+                    menu: '#mm3'
+                });
+            }
+        });
+
+        function menuHandler(item) {
+            var key = $("#mm3").attr("rowid");
+            switch (item.text) {
+                case "收款":
+                    JQ.dialog.dialog({
+                        title: "修改其他收款合同信息",
+                        url: '@Url.Action("AddConOtherFee")' + '?CompanyType=FGS&Id=' + key,
+                        width: '1024',
+                        height: '100%',
+                        JQID: 'BussContractOtherGrid',
+                        JQLoadingType: 'datagrid',
+                        iconCls: 'fa fa-plus',
+                        onClose: function () {
+                            $("#BussContractOtherGrid").datagrid("reload");
+                        }
+                    });
+                    break;
+                case "修改":
+                    JQ.dialog.dialog({
+                        title: "修改信息",
+                        url: '@Url.Action("edit")' + '?CompanyType=FGS&Id=' + key,
+                        width: '1024',
+                        height: '100%',
+                        JQID: 'BussContractOtherGrid',
+                        JQLoadingType: 'datagrid',
+                        iconCls: 'fa fa-plus'
+                    });
+                    break;
+                default:
+                    break;
+            }
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="BussContractOtherGrid"></table>
+    <div id="BussContractOtherPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+        </span>
+        &nbsp;
+        @*<select id="isStartSearch" class="easyui-combobox" jqwhereoptions="[{ Key:'IsFeeFinished', Contract:'=',filedType:'Bool'}">
+                <option value="">是否结清</option>
+                <option value="0">未结清</option>
+                <option value="1">已结清</option>
+            </select>&nbsp;*@
+        <select name="ConIsFeeFinished" class="easyui-combobox" editable="false" style='font-size:12px;' JQWhereOptions="{ Key:'ConIsFeeFinished', Contract:'=',filedType:'Int' }">
+            <option value=''>请选择合同状态</option>
+            <option value='0'>未结清</option>
+            <option value='1'>已结清</option>
+        </select>
+        @BaseData.getBases(
+                      new Params() { isMult = false, engName = "ConStatus", queryOptions = "{ Key:'ConOtherStatus', Contract:'in',filedType:'Int'}" },
+                                   new Params() { isMult = false, engName = "ContractType", queryOptions = "{ Key:'ConOtherType', Contract:'in',filedType:'Int'}" }
+                // new Params() { isMult = false, engName = "ConStatus", queryOptions = "{ Key:'ConOtherStatus', Contract:'in',filedType:'Int'}"
+                             )
+        <input id="JQSearch" style="width:250px;" />
+
+        <div class="moreSearchPanel">
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '登记日期开始'" jqwhereoptions="{ Key:'CreationTime', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '登记日期结束'" jqwhereoptions="{ Key:'CreationTime', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>
+    </div>
+    <div id="mm3" class="easyui-menu" style="width:80px;" data-options="onClick:menuHandler">
+        <div id="div1">收款</div>
+        <div id="div2">修改</div>
+    </div>
+}
+

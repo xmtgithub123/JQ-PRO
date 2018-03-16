@@ -1,0 +1,189 @@
+﻿@using JQ.Web;
+<script type="text/javascript">
+    @*$(function () {
+
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'TechDetailGrid',//数据表格ID
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            url: '@Url.Action("TechStatisticsDetailJson", "PayBalanceUserAccount", new { @area = "Pay" })?EngiID=@Request.QueryString["id"]',//请求的地址
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '1000',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            singleSelect: false,//是否包含check
+            checkOnSelect: true,//是否包含check
+            columns: [[
+              { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+    { title: '结算日期', field: 'BalanceDate', width: 90, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+    { title: '结算批次名称', field: 'LotName', width: 200, align: 'center', sortable: true },
+    { title: '分配产值', field: 'EngAmountArrange', width: 100, align: 'center', sortable: true },
+    { title: '人员', field: 'TechEmpName', width: 140, align: 'center', sortable: true },
+    { title: '来源', field: 'BalanceReason', width: 100, align: 'center', sortable: true },
+    { title: '产值', field: 'BalanceAmount', width: 100, align: 'center', sortable: true },
+    { title: '提奖金额（元）', field: 'BalanceMoney', width: 100, align: 'center', sortable: true },
+    { title: '备注', field: 'BalanceNote', width: 100, align: 'center', sortable: true }
+            ]]
+        });
+    })*@
+    $(function () {
+        $("#TechDetailGrid").datagrid({
+            iconCls: 'icon-edit',
+            multiSelect: false,
+            rownumbers: true,
+            url: '@Url.Action("TechStatisticsDetailJson", "PayBalanceUserAccount", new { @area = "Pay" })?EngiID=@Request.QueryString["id"]',//请求的地址
+            fitColumns: true,
+            columns: [[
+        { title: '结算日期', field: 'BalanceDate', width: "8%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+        { title: '结算批次名称', field: 'LotName', width: "20%", align: 'left', sortable: true },
+        { title: '分配产值', field: 'EngAmountArrange', width: "8%", align: 'right', sortable: true },
+        { title: '人员', field: 'TechEmpName', width: "8%", align: 'center', sortable: true },
+        { title: '来源', field: 'BalanceReason', width: "8%", align: 'center', sortable: true },
+        { title: '产值', field: 'BalanceAmount', width: "8%", align: 'right', sortable: true },
+        { title: '提奖金额（元）', field: 'BalanceMoney', width: "10%", align: 'right', sortable: true },
+        { title: '备注', field: 'BalanceNote', width: "14%", align: 'center', sortable: true },
+        {
+            title: '修改', field: 'Opt', width: "14%", align: 'center', sortable: true,
+            formatter: function (val, row) {
+                if (parseInt(row.ChangeCount) > 0) {
+                    return '<a ShowDialog href="#" class="easyui-linkbutton" onclick="ShowDialog(' + row.Id + ')">修改</a>' + '&nbsp;&nbsp;&nbsp;<a ShowList href="#" class="easyui-linkbutton" onclick="ShowList(' + row.Id + ')">查看</a>'
+                }
+                return '<a ShowDialog href="#" class="easyui-linkbutton" onclick="ShowDialog(' + row.Id + ')">修改</a>'
+            }
+        }
+            ]],
+            onLoadSuccess: function (row) {
+                MergeCells('BalanceDate', $(this).datagrid('getRows'));
+                MergeCells('LotName', $(this).datagrid('getRows'));
+                MergeCells('EngAmountArrange', $(this).datagrid('getRows'));
+
+
+                $("a[ShowDialog]").linkbutton({ iconCls: 'fa fa-edit' });
+                $("a[ShowList]").linkbutton({ iconCls: 'fa fa-edit' });
+            }
+        });
+
+        //setTextAlign("LotName", "text-align:center;")
+        //setTextAlign("EngAmountArrange", "text-align:center;")
+        //setTextAlign("BalanceAmount", "text-align:center;")
+        //setTextAlign("BalanceMoney", "text-align:center;")
+    })
+
+    //function setTextAlign(filed, align) {
+    //    $("tr[class='datagrid-header-row']").find("td[field='" + filed + "']").children().removeAttr("style").attr("style", align);
+    //}
+
+    function ShowDialog(id) {
+        JQ.dialog.dialog({
+            title: '修改历史结算信息',
+            width: '800',
+            height: '400',
+            url: '@Url.Action("edit", "PayBalanceChangeHist",new { @area="pay"})?id=' + id,
+            onClose: function () {
+                $("#TechDetailGrid").datagrid("reload");
+            }
+        });
+    }
+
+    function ShowList(id) {
+        JQ.dialog.dialog({
+            title: '修改历史结算信息',
+            width: '800',
+            height: '650',
+            url: '@Url.Action("list", "PayBalanceChangeHist",new { @area="pay"})?payBalanceAcountId=' + id
+        });
+    }
+
+    function MergeCells(field, rows) {
+        var merges = [];
+        for (var i = 0; i < rows.length; i++) {
+            if (i == 0) {
+                merges.push({ index: i, rowspan: 1, val: rows[i][field] });
+            }
+            else {
+                if (merges[merges.length - 1].val == rows[i][field]) {
+                    merges[merges.length - 1].rowspan += 1;
+                }
+                else {
+                    merges.push({ index: i, rowspan: 1, val: rows[i][field] });
+                }
+            }
+        }
+        for (var i = 0; i < merges.length; i++) {
+            if (merges[i].rowspan > 1) {
+                $("#TechDetailGrid").datagrid('mergeCells', {
+                    index: merges[i].index,
+                    rowspan: merges[i].rowspan,
+                    field: field
+                });
+
+            }
+        }
+    }
+</script>
+
+<table class="table table-bordered">
+    <tr>
+        <td colspan="6" style="border:none;">
+            <span style="font-size:16px;font-weight:bold;">工程结算明细</span>
+        </td>
+    </tr>
+    <tr>
+        <th style="width:13%;">
+            项目名称
+        </th>
+        <td style="width:29%;">
+            <label id="ProjName">@ViewBag.ProjName</label>
+        </td>
+        <th style="width:13%;">
+            是否结清
+        </th>
+        <td style="width:13%;">
+            <label id="BalanceState">@ViewBag.BalanceState</label>
+        </td>
+        <th style="width:13%;">
+            工程产值
+        </th>
+        <td style="width:20%;">
+            <label id="Amount">@ViewBag.Amount</label>
+        </td>
+    </tr>
+    <tr>
+        <th>
+            已分配产值
+        </th>
+        <td>
+            <label id="DistributeAmount">@ViewBag.DistributeAmount</label>
+        </td>
+        <th>
+            未分配产值
+        </th>
+        <td>
+            <label id="UnDistributeAmount">@ViewBag.UnDistrFee</label>
+        </td>
+        <th>
+            已分配金额
+        </th>
+        <td>
+            <label id="DistributeMoney">@ViewBag.DistributeMoney</label>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="6" style="border:none;">
+            <span style="font-size:16px;font-weight:bold;">技术人员结算信息</span>
+        </td>
+    </tr>
+    <tr>
+        <td colspan="6">
+            <table id="TechDetailGrid"></table>
+        </td>
+    </tr>
+</table>
+
+
+
+
+
+
+
+
+

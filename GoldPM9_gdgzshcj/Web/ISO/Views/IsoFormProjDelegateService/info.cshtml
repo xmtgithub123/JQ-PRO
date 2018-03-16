@@ -1,0 +1,239 @@
+﻿@model DataModel.Models.IsoForm
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoFormProjDelegateServiceForm',//formid提交需要用到
+        docName: 'IsoFormProjDelegateService',
+        ExportName: '项目工代',
+        buttonTypes: @Html.Raw(ViewBag.ExportPermission),//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }, flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "ISO,ISO.FlowProcessor.IsoFormProjDelegateService",
+            onInit: function () {
+                _flowInstance = this;
+            },
+            refID: "@(Model.FormID)",
+            refTable: "IsoFormProjDelegateService"
+            @Html.Raw(ViewBag.editPermission)
+        }
+    });
+
+    @Html.Raw(ViewBag.submitPermission)
+    $("#FormDate").datebox({ readonly: true })
+    $("#MaterialName").textbox({ required: true })
+ 
+    var selectValue="";
+    var selectText="";
+
+    JQ.combobox.common({
+        id: 'ProjID',
+        toolbar: '#tbProj',//工具栏的容器ID
+        url: '@Url.Action("combogridJson", "Project",new { @area="Project"})',//请求的地址
+        panelWidth: 600,
+        panelHeight: 400,
+        valueField: 'Id',
+        textField: 'ProjName',
+        editable: false,
+        multiple: false,
+        pagination: true,//是否分页
+        queryParams:
+            {
+                projId:'@Model.ProjID',
+                Words:$("#fullNameSearchProj").val()
+            },
+        columns: [[
+            { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true },
+            { title: '项目名称', field: 'ProjName', width: 260, align: 'center', sortable: true },
+            { title: '项目阶段', field: 'PhaseName', width: 140, align: 'center', sortable: true }
+        ]],
+        onSelect: function (val, row) {
+           
+            $("#ProjNumber").text(row.ProjNumber);
+            $("#PhaseID").text(row.PhaseName);
+            $("#ProjEmpName").text(row.ProjEmpName);
+
+            selectValue=row.Id;
+            selectText=row.ProjName;
+        },
+        onLoadSuccess: function () {
+            $("#PhaseID").text('@ViewBag.PhaseID');
+            $("#ProjEmpName").text('@ViewBag.ProjEmpName');
+            $("#ProjNumber").text('@ViewBag.ProjNumber');
+            $("#ProjEmpId").text('@ViewBag.ProjEmpId');
+            var selectRow=$(this).combogrid('grid').datagrid('getSelected');
+            if(selectRow!=undefined)
+            {
+                selectText=$(this).combogrid('getText');
+            }
+            if(selectRow==undefined)
+            {
+                $(this).combogrid('setText',selectText);
+            }
+        }
+
+    });
+
+
+    $("#fullNameSearchProj").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '项目名称、项目编号',
+        onClickButton: function () {
+            JQ.datagrid.searchGrid(
+                {
+                    $dg:$("#ProjID").combogrid('grid'),
+                    loadingType: 'datagrid',
+                    queryParams:
+                             {
+                                 projId:'@Model.ProjID',
+                                 Words:$("#fullNameSearchProj").val()
+                             }
+                });
+        }
+
+    });
+
+
+    function downfile() {
+        @*var row = "@Model.ColAttVal1".split(',');
+        if (row.length <= 0) {
+            return;
+        }*@
+
+        var parm;
+        $.each(row, function (i, n) {
+            if (i == 0) {
+                parm = "id=" + n;
+
+            } else {
+                parm += "&id=" + n;
+            }
+        });
+
+        debugger;
+        //return;
+
+        Url = '@Url.Action("DownFile", "ArchElecFile", new { @area = "Archive" })?';
+        downurlfile(Url + parm);
+        //$('#ElecFileGrid').datagrid('reload');
+    }
+
+    function downurlfile(url) {
+        var _a = document.createElement("a");
+        _a.setAttribute("href", url);
+        document.body.appendChild(_a);
+        _a.click();
+        document.body.removeChild(_a);
+    }
+</script>
+
+@using (Html.BeginForm("save", "IsoFormProjDelegateService", FormMethod.Post, new { @area = "Iso", @id = "IsoFormProjDelegateServiceForm" }))
+{
+    @Html.HiddenFor(m => m.FormID)
+    <table class="table table-bordered">
+        <tr style="border:none;">
+            <td colspan="4" style="border:none;text-align:center;">
+                <span style="font-weight:bold;font-size:large;">项目工代</span>
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">
+                项目名称
+            </th>
+            <td width="40%">
+                @*<select id="ProjID" name="ProjID" class="easyui-combogrid" data-options="required:true" style="width:98%;"></select>
+                <input type="hidden" id="Words" name="Words" />*@
+
+                <input id="ProjID" name="ProjID" data-options="required:true,multiple:false" style="width:99%;" value="@(@Model.ProjID==0 ? "" :@Model.ProjID.ToString())" />
+                <input type="hidden" name="ProjIDName" value="@ViewBag.ProjName" />
+            </td>
+            <th width="10%">
+                项目编号
+            </th>
+            <td width="40%" bookmark="ProjNumber">
+                <label id="ProjNumber"></label>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                设计阶段
+            </th>
+            <td width="40%" bookmark="PhaseID">
+                <label id="PhaseID"></label>
+            </td>
+            <th width="10%">
+                项目负责人
+            </th>
+            <td width="40%" bookmark="ProjEmpName">
+                <label id="ProjEmpName"></label>
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">
+                申请日期
+            </th>
+            <td width="40%" bookmark="CreationTime">
+                @*<input id="FormDate" name="FormDate"  class="easyui-datebox" validtype="length[0,23]" value="@Model.FormDate" />*@
+                @Model.CreationTime.ToString("yyyy-MM-dd")
+            </td>
+
+            <th width="10%">
+                申请人
+            </th>
+            <td width="40%" bookmark="CreatorEmpName">
+                @*<label id="EmpName">@ViewData["EmpName"]</label>*@
+                @Model.CreatorEmpName
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">
+                申请原因
+            </th>
+            <td width="40%" colspan="3">
+                <input name="FormReason" style="width:98%;height:80px" data-options="required:true,multiline:true" class="easyui-textbox" validtype="length[0,500]" data-options="multiline:true" value="@Model.FormReason" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                备注
+            </th>
+            <td colspan="3">
+                <input name="FormNote" style="width:98%;height:80px" class="easyui-textbox" validtype="length[0,500]" data-options="multiline:true" value="@Model.FormNote" />
+            </td>
+        </tr>
+
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+    var uploader = new DataModel.FileUploader();
+    uploader.RefID = Model.FormID;
+    uploader.RefTable = "IsoForm";
+    uploader.Name = "uploadfile1";
+    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+
+        </tr>
+    </table>
+
+    <div id="tbProj" style="padding:5px;height:auto; display:none;">
+        <input id="fullNameSearchProj" name="Words" style="width:250px;" jqwhereoptions="{ Key: 'ProjName', 'Contract': 'like' }" />
+    </div>
+}
+

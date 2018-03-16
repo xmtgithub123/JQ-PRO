@@ -1,0 +1,54 @@
+﻿@model JQ.Web.PassWordInfo
+@{
+    ViewBag.Title = "修改密码";
+    Layout = null;   
+}
+ <script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'ajaxform-changepassword',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.dialog.dialogClose();
+        }
+    });
+    $(function () {
+        $.extend($.fn.validatebox.defaults.rules, {
+            /*必须和某个字段相等*/
+            equalTo: {
+                validator: function (value, param) {
+                    return $(param[0]).val() == value;
+                },
+                message: '字段不匹配'
+            },
+            //验证密码  
+            Pwd: {  
+                validator: function (value) {  
+                    return /^(?![a-zA-Z0-9]+$)(?![^a-zA-Z/D]+$)(?![^0-9/D]+$).{8,30}$/.test(value);
+                },  
+                message: '密码长度在8-30之间，并且包含字符、数字和特殊字符!'
+            }, 
+        });
+    });
+</script>
+@using (Html.BeginForm("modifpassword", "layout", FormMethod.Post, new { @id = "ajaxform-changepassword" }))
+{
+    <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <th>旧密码：</th>
+                <td><input id="oldPassWord" name="oldPassWord" type="password" class="easyui-textbox" data-options="required:true" /></td>
+            </tr>
+            <tr>
+                <th>新密码：</th>
+                <td><input id="newPassWord" name="newPassWord" type="password" class="easyui-textbox" data-options="required:true" validType="Pwd" invalidMessage="密码长度在8-30之间，并且包含字符、数字和特殊字符!"/>
+                    <p> <span style="color:red">密码长度在8-30之间，并且包含字符、数字和特殊字符!</span></p>
+                </td>
+               
+            </tr>
+            <tr>
+                <th>确认密码：</th>
+                <td><input id="inputNewPassWord" name="inputNewPassWord" type="password" class="easyui-textbox" data-options="required:true" validType="equalTo['#newPassWord']" invalidMessage="两次输入密码不匹配"/></td>
+            </tr>
+        </tbody>
+    </table>
+}

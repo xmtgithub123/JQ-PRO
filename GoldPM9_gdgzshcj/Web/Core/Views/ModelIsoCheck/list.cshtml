@@ -1,0 +1,103 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "ModelIsoCheck",new { @area="Core"})',
+               addUrl = '@Url.Action("add","ModelIsoCheck",new {@area="Core" })',
+               editUrl = '@Url.Action("edit", "ModelIsoCheck",new {@area="Core" })',
+               delUrl = '@Url.Action("del", "ModelIsoCheck", new { @area = "Core" })';
+
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'ModelIsoCheckGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#ModelIsoCheckPanel',//工具栏的容器ID
+                JQExcludeCol: [1,8],
+                JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+	              { title: '阶段', field: 'PhaseName', width: 100, align: 'left', sortable: true },
+                  { title: '专业', field: 'SpecialName', width: 100, align: 'left', sortable: true },              
+                  { title: '错误类型', field: 'ErrorTypeName', width: 100, align: 'left', sortable: true },
+                  { title: '差错内容', field: 'CheckItem', width: 300, align: 'left', sortable: true },
+                  { title: '备注', field: 'CheckNote', width: 300, align: 'left', sortable: true },
+                {
+                    title: '状态', field: 'DeleterEmpId', width: "5%", align: 'center', sortable: true,
+                    formatter: function (val, row) {
+                        return val == "停用" ? "<span style='color:red'>停用</span>" : "<span style='color:green'>启用</span>";
+                    }
+                },
+                ]],
+                //queryParams: {
+                //    queryInfo: '[{"Key":"DeleterEmpId","Contract":"=","filedType":"Int","Value":"0"}]'
+                //}
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '差错内容',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ModelIsoCheckGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                //ProjectPhases: $('#ProjectPhase').combotree("getValues"),
+                            }
+                        });
+                }
+            });
+            $('#isStartSearch').combobox({
+                editable:false ,
+                onSelect: function () {
+                    var ss = document.getElementsByClassName("textbox-button textbox-button-right l-btn l-btn-small");
+                    $(ss).click();
+                }
+            });
+        });
+
+    </script>
+}
+
+@section Body_Content{
+    <table id="ModelIsoCheckGrid"></table>
+    <div id="ModelIsoCheckPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+        </span>
+        @*&nbsp;&nbsp;<span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>&nbsp;&nbsp;&nbsp;*@
+      
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'CheckItem', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            @BaseData.getBases(
+           new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{ Key:'PhaseID', Contract:'in',filedType:'Int'}", })
+
+            @BaseData.getBases(
+           new Params() { isMult = true, engName = "Special", queryOptions = "{ Key:'SpecialID', Contract:'in',filedType:'Int'}", })
+
+            @*@BaseData.getBaseDataSystem(
+                    new Params() { isMult = true, engName = "NodeType", isfilter = 1, queryOptions = "{ Key:'CheckType', Contract:'in',filedType:'Int'}", })*@
+            <select id="isStartSearch" class="easyui-combobox" jqwhereoptions="[{ Key:'DeleterEmpId', Contract:'=',filedType:'Int'}]">
+                <option value="">所有状态</option>
+                <option value="0" selected="selected">启用</option>
+                <option value="1">停用</option>
+            </select>&nbsp;
+        </div>
+    </div>
+}
+

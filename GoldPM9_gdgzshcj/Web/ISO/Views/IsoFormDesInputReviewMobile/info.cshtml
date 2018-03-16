@@ -1,0 +1,511 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.IsoForm
+
+@section head {
+    <style type="text/css">
+    .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+
+    .p-15 {
+        padding: 15px;
+    }
+
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+    .error {
+        color: red;
+        font-size: 14px;
+        display: inline-block;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+        #dialog .checkbox {
+            margin: 0;
+        }
+</style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="IsoFormDesInputReviewMobileForm" class="aui-form">
+            <div class="p-15">
+                <b class="aui-input-addon aui-text-danger">*</b>
+                编号<input id="Number" name="Number" type="text" class="aui-input" style="display:inline-block;width: 50%;text-overflow:ellipsis;border: 1px solid #dbdbdb; border-radius: 6px;padding: 3px 6px;margin:0 3px;text-align:center;"  validType="length[0,200]" value="@ViewData["Number"]" />
+            </div>
+            <div class="aui-input-row">
+                <input type="hidden" id="ProjID" name="ProjID" />
+                <input type="hidden" id="FormID" name="FormID" value="@(Model.FormID)" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目名称</label>
+                <input id="ProjID" name="ProjID" data-options="required:true,multiple:false" type="hidden" style="width:98%;height:26px;" value="@(@Model.ProjID==0 ? "" :@Model.ProjID.ToString())" />
+                @*<div class="aui-input-block" id="ProjectNameText" style="width: 60%;display:inline-block;" >@ViewBag.ProjectName</div>*@
+                <textarea rows="1" name="ProjectName" id="ProjectName" style="width:98%;overflow:auto" class="aui-input">@ViewBag.ProjectName</textarea>
+                @*<input name="ProjectName" id="ProjectName" type="hidden" class="aui-input" value="@ViewBag.ProjectName" />*@
+               @* <input type="button" id="selectProjNameBtn" namne="selectProjNameBtn" class="aui-btn aui-btn-block aui-btn-success p-0" style="width:32%;display:inline-block;float:right;margin-right:10px;" onclick="SetProjectSelectBegin();" value="项目选择" />*@
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;设计阶段</label>
+                <input name="PhaseName" id="PhaseName" type="text" class="aui-input" value="@ViewBag.Phase" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目编号</label>
+                <input name="ProjNum" id="ProjNum" type="text" class="aui-input" value="@ViewBag.ProjNumber" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;评审人</label>
+                <input name="ReviewName" id="ReviewName" type="text" class="aui-input" value='@ViewData["ReviewName"]' />
+            </div>
+            <div class="aui-input-row">
+                <b class="aui-input-addon aui-text-danger">*</b>
+                <label class="aui-input-addon">&nbsp;&nbsp;资料名称</label>
+                @*<div class="aui-input-block">@ViewData["MaterialName"]</div>*@
+                <textarea rows="1" name="MaterialName" id="MaterialName" style="width:98%;" class="aui-input">@ViewData["MaterialName"]</textarea>
+                @*<input name="MaterialName" id="MaterialName" type="hidden" class="aui-input" value="@ViewData["MaterialName"]" />*@
+            </div>
+            <div class="aui-input-row">
+
+                <label class="aui-input-addon">&nbsp;&nbsp;资料来源</label>
+                <input name="MaterialSourceID_i" id="MaterialSourceID_i" type="hidden" class="aui-input" value="@ViewBag.MaterialSourceID" />
+                @BaseData.getBaseSelect(new Params()
+               {
+                   controlName = "MaterialSourceID",
+                   engName = "MaterialSourceID",
+                   isRequired = true,
+                   width = "98%",
+                   ids = ViewData["MaterialSourceID"].ToString()
+               })
+                <input type="hidden" name="MaterialSourecName" value="@ViewBag.MaterialNames" />
+            </div>
+            <div class="aui-input-row">
+                <b class="aui-input-addon aui-text-danger">*</b>
+                <label class="aui-input-addon">&nbsp;&nbsp;部门名称</label>
+                
+                <input name="DeptID_i" id="DeptID_i" type="hidden" class="aui-input" value="@ViewBag.DeptID" />
+              
+                @BaseData.getBaseSelect(new Params()
+               {
+                   controlName = "DeptID",
+                   engName = "department",
+                   isRequired = true,
+                   width = "98%",
+                   ids = ViewData["DeptID"].ToString()
+               })
+                <input type="hidden" name="DeptName" value="@ViewBag.DeptName" />
+            </div>
+            <div class="aui-input-row">
+                <b class="aui-input-addon aui-text-danger">*</b>
+                <label class="aui-input-addon">&nbsp;&nbsp;专业</label>
+                <input name="SpeIDs" id="SpeIDs" type="hidden" class="aui-input" value="@ViewBag.SpeIDs" />
+                <div class="aui-input-block" id="SpeIDsNames" style="width: 60%;display:inline-block;"></div>
+                <input type="button" id="selectSpeNameBtn" namne="selectSpeNameBtn" class="aui-btn aui-btn-block aui-btn-success p-0" style="width:32%;display:inline-block;float:right;margin-right:10px;" onclick="SetSpeSelectBegin();" value="专业选择" />
+                @BaseData.getBaseSelect(new Params()
+               {
+                   controlName = "SpeIDs_cn",
+                   engName = "Special",
+                   isRequired = true,
+                   width = "98%",
+                   ids = ViewData["SpeIDs"].ToString()
+               })
+                <input type="hidden" name="SpecName" value="@ViewBag.SpecName" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;登记人</label>
+                <input name="EmpName" id="EmpName" type="text" class="aui-input" value="@ViewData["EmpName"]" />
+                <input type="hidden" name="CreatePerson" id="CreatePerson" value="@ViewData["EmpName"]" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;登记时间</label>
+                <input name="FormDate" id="FormDate" type="date" class="aui-input" value="@Model.FormDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;资料内容说明</label>
+                <textarea rows="6" name="FormReason" id="FormReason" style="width:98%;" class="aui-input">@Model.FormReason</textarea>
+            </div>
+
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+        <div class="aui-dialog aui-hidden" id="dialog" style="top:50%;">
+            <div class="aui-dialog-header">选择专业</div>
+            <div class="aui-dialog-body aui-text-left">
+                <div class="aui-card aui-noborder">
+                    
+                    <div class="table-responsive"style="max-height:230px;overflow-y:auto;margin-bottom:0;">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <div class="checkAll">
+                                            <input type="checkbox" name="name" value="" />
+                                        </div>
+                                    </th>
+                                    <th>专业名称</th>
+
+                                </tr>
+                            </thead>
+                            <tbody id="gridList" style="max-height:230px;overflow-y:auto;margin-bottom:0;"></tbody>
+                        </table>
+                    </div>
+
+
+                    <!--模板-->
+                    <script id="listTpl" type="text/x-dot-template">
+                        {{~it:appendInfoData:index}}
+
+                        <tr id="tr_{{=index}}">
+
+                            <td>
+                                <div class="checkbox">
+                                    <input type="checkbox" name="subBox" value="" />
+                                </div>
+                            </td>
+                            <td>
+                                {{=appendInfoData.text}}
+                            </td>
+                            <td class="hidden">{{=appendInfoData.id}}</td>
+
+
+                        </tr>
+                        {{~}}
+                    </script>
+                </div>
+            </div>
+            <div class="aui-dialog-footer">
+                <div class="aui-dialog-btn aui-text-danger" tapmode onclick="cancel()">取消</div>
+                <div class="aui-dialog-btn aui-text-info" tapmode onclick="confirm()">确定</div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                //initFormBegin(JSON.stringify({
+                //    "Result": true,
+                //    "Message": null,
+                //    "NodeName": null,
+                //    "AllowEditControls": "ProjIDName;btnChooseProject;Number;ProjID;MaterialName;DeptID;SpeIDs;ReviewName;FormDate;uploadfile1;MaterialSourceID;ColAttVal1;ColAttVal2;ColAttVal3;ColAttVal4;ColAttVal5;ColAttVal6;ColAttVal7;ColAttVal8",
+                //    "SignControls": "DesignName(签名)",
+                //    "SignControls": null,
+                //    //"AllowEditControls":""
+
+                //}));
+            //initFormBegin();
+            }
+
+        })
+
+         var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+        };
+
+
+        //页面初始化
+        function initFormBegin(params) {
+
+            //alert(params)
+            // 资料来源
+            $('#MaterialSourceID').val($('#MaterialSourceID_i').val())
+            //部门名称
+            $('#DeptID').val($('#DeptID_i').val())
+            //专业
+            //$('#SpeIDs').val($('#SpeIDs_i').val())
+
+            //清除时间，默认为1900-01-01改为空
+            var FormDate = $('#FormDate').val(); //登记时间
+            if ((FormDate == '1900-01-01')) {
+                $('#FormDate').val('');
+            }
+
+            //设置多选显示名称问题
+            $('#SpeIDs_cn').css('display', 'none')
+            var depArr = $('#SpeIDs').val().split(',')
+            var SpeIDsString = [];
+            for (var i = 0; i < depArr.length; i++) {
+                // console.log(depArr[i]);
+                $('#SpeIDs_cn').val(depArr[i]);
+                SpeIDsString.push($('#SpeIDs_cn option:selected').text())
+            }
+            $('#SpeIDsNames').text(SpeIDsString.toString())
+
+            //去除换行
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls.replace("ProjID", "selectProjNameBtn").replace('SpeIDs','selectSpeNameBtn');
+            //paramsObj.AllowEditControls = paramsObj.AllowEditControls.replace("ProjIDName", "selectProjIDNameBtn");
+
+            //资金内容说明
+            var FormReasonValue = $('#FormReason').val();
+            FormReasonValue = FormReasonValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#FormReason').val(FormReasonValue);
+
+
+            //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('IsoFormDesInputReviewMobileForm'));
+
+            if (((paramsObj.AllowEditControls).indexOf('FormReason')) != -1) {
+                $('#FormReason').removeClass('jq-text-disabled')
+                $("#FormReason").css({
+                    overflow: 'auto',
+
+                })
+            }
+            else {
+                $('#FormReason,#MaterialName').removeClass('jq-text-disabled').attr("readonly", "readonly")
+                $("#FormReason,#MaterialName").css({
+                    overflow: 'auto',
+                    background: '#efefef',
+                    color: '#898787'
+                })
+
+            }
+
+
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#IsoFormDesInputReviewMobileForm').validate({
+                rules: {
+                    ProjectName: 'required',//项目名称
+                    Number: 'required',//编号
+                    MaterialName: 'required',//资料名称
+                    DeptID: 'required',//部门名称
+                    SpeIDs: 'required',// 专业
+
+
+                    FormReason: {
+                        required: false,
+                        maxlength: 500
+                    }
+
+                },
+                messages: {
+                    ProjectName: '请输入项目名称',
+                    Number: '请输入编号',
+                    MaterialName: '请输入资料名称',
+                    DeptID: '请输入部门名称',
+                    SpeIDs: '请输入专业',
+                    FormReason: {
+                        maxlength: '内容长度必须介于0-500之间'
+                    }
+                }
+            });
+            if ($('#ProjectName').val() == '') {
+                $.alert('请选择项目！')
+                return false;
+            }
+            isValidate = formVali.form();
+            if (isValidate) {
+                var formData = DomUtil.serialize(document.getElementById('IsoFormDesInputReviewMobileForm'));//json or =&
+                console.log(formData)
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+            var formData = DomUtil.serialize(document.getElementById('IsoFormDesInputReviewMobileForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+        function SetProjectSelectBegin() {
+            var selemp = {
+                ProjID: $('#ProjID').val(),
+                ProjName: $('#ProjectName').val()
+            }
+            if (window.JinQuMobile) {
+                window.JinQuMobile.ProjectSelectBegin(JSON.stringify(selemp), 'SetProjectSelectEnd');
+            }
+        }
+        function SetProjectSelectEnd(emp) {
+            alert(emp)
+            emp = JSON.parse(emp);
+
+            $('#ProjectName').val(emp.ProjName);
+            $('#PhaseName').val(emp.ProjPhaseName)
+            $('#ProjNum').val(emp.ProjNumber)
+            $('#ProjID').val(emp.ProjPhaseId);
+            $('#ProjectNameText').text(emp.ProjName);
+        }
+
+        //选择专业
+        function SetSpeSelectBegin() {
+            var url = _webconfig.serverUrl + 'Core/basedata/treejson?engName=Special';
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: '',
+                success: function (data) {
+                    console.log(data)
+                    var appendInfoData = data;
+                    if (appendInfoData.length > 0) {
+                        var interText = doT.template($("#listTpl").text())
+                        $("#gridList").html(interText(appendInfoData));
+                        $('body').append('<div class="aui-mask"></div>');
+                        $(".aui-dialog.aui-hidden").removeClass('aui-hidden');
+
+
+                        $('#gridList tr').each(function (index, value) {
+                            var trID = '#tr_' + index;
+                            $('.checkAll input[type="checkbox"]').click(function () {
+                                $(trID).find('.checkbox input[name="subBox"]').prop("checked", this.checked)
+                            })
+                            var allLen = $('.checkbox input[name="subBox"]').length;
+                            $('.checkbox input[name="subBox"]').each(function (index, value) {
+                                $(this).bind('click', function (i) {
+                                    var selectedLen = $('.checkbox input[name="subBox"]:checked').length;
+                                    if (selectedLen == allLen) {
+                                        $('.checkAll input[type="checkbox"]').prop("checked", true)
+                                    }
+                                    else {
+                                        $('.checkAll input[type="checkbox"]').prop("checked", false)
+                                    }
+                                })
+                            })
+                        })
+                    }
+                }
+            })
+        }
+
+
+        //信息弹出框-----------------------------------------------------------------------
+        function cancel() {
+            $('div').removeClass("aui-mask")
+            $('.aui-dialog').addClass("aui-hidden")
+        }
+        function confirm() {
+            var CheckValueLength = $(".checkbox input[name='subBox']:checked").length;
+            //console.log(CheckValueLength)
+            if (CheckValueLength > 0) {
+                $('div').removeClass('aui-mask');
+                $('.aui-dialog').addClass("aui-hidden");
+                var selectArray = [], selectIdArr = [];
+                $(".checkbox input[name='subBox']:checked").closest("tr").each(function (i, e) {
+                    // var radioValue = $(".checkbox input[name='subBox']:checked").val();
+                    // console.log(radioValue)
+                    var selectString = $(this).children().text().trim();
+                    var selectid = $(this).children().val();
+                    console.log(selectid)
+                    // console.log(selectString)
+                    var arr = selectString.split(/[ |,]/)
+                    console.log(arr)
+                    for (var i = 0; i < arr.length; i++) {
+                        if (arr[i].length === 0) {
+                            arr.splice(i, 1)
+                        }
+                    }
+                    // console.log(arr)
+                    selectArray.push(arr[0]);
+                    selectIdArr.push(arr[1])
+                })
+                //console.log(selectArray)
+                $('#SpeIDsNames').text(selectArray)
+                $('#SpeIDs').val(selectIdArr)
+            }
+            else {
+                $.alert('请选择一项专业');
+            }
+
+        }
+
+
+    </script>
+}

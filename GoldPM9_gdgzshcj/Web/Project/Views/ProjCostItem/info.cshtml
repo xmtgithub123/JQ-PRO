@@ -1,0 +1,121 @@
+﻿@model DataModel.Models.ProjCostItem
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'ProjCostItemForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.treegrid.autoReftreegrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }
+        });
+    });
+</script>
+@using (Html.BeginForm("save", "ProjCostItem", FormMethod.Post, new { @area = "Project", @id = "ProjCostItemForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+	 
+                        <tr>
+                        <th width="10%">项目成本Id</th>
+                        <td width="40%">
+						  @BaseData.getBase(new Params()
+           {
+               controlName = "CostID",
+               isRequired = true,
+               engName = "department",
+               width = "98%",
+               ids = Model.CostID.ToString()
+           })
+                        </td>
+                        <th width="10%">实际金额</th>
+                        <td width="40%">
+						<input name="FactFee" style="width:98%;" class="easyui-numberspinner"   validType="length[0,18]" value="@Model.FactFee" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">创建人ID</th>
+                        <td width="40%">
+						<input name="CreatorEmpId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,19]" value="@Model.CreatorEmpId" />
+                        </td>
+                        <th width="10%">创建人姓名</th>
+                        <td width="40%">
+						<input name="CreatorEmpName" style="width:98%;" class="easyui-textbox"  data-options="required:true"  validType="length[0,50]" value="@Model.CreatorEmpName" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">最后修改时间</th>
+                        <td width="40%">
+						<input name="LastModificationTime" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.LastModificationTime" />
+                        </td>
+                        <th width="10%">最后修改人ID</th>
+                        <td width="40%">
+						<input name="LastModifierEmpId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,19]" value="@Model.LastModifierEmpId" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">最后修改人姓名</th>
+                        <td width="40%">
+						<input name="LastModifierEmpName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.LastModifierEmpName" />
+                        </td>
+                        <th width="10%">创建时间</th>
+                        <td width="40%">
+						<input name="CreationTime" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.CreationTime" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">流程ID</th>
+                        <td width="40%">
+						<input name="FlowID" style="width:98%;" class="easyui-numberspinner"   validType="length[0,19]" value="@Model.FlowID" />
+                        </td>
+                        <th width="10%">审批结束时间</th>
+                        <td width="40%">
+						<input name="FlowTime" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.FlowTime" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">代理人ID</th>
+                        <td width="40%">
+						<input name="AgenEmpId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,19]" value="@Model.AgenEmpId" />
+                        </td>
+                        <th width="10%">代理人姓名</th>
+                        <td width="40%">
+						<input name="AgenEmpName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.AgenEmpName" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">创建部门</th>
+                        <td width="40%">
+						<input name="CreatorDepId" style="width:98%;" class="easyui-numberspinner"   validType="length[0,19]" value="@Model.CreatorDepId" />
+                        </td>
+                        <th width="10%">创建部门姓名</th>
+                        <td width="40%">
+						<input name="CreatorDepName" style="width:98%;" class="easyui-textbox"   validType="length[0,50]" value="@Model.CreatorDepName" />
+                        </td>
+                        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @Html.Action("uploadFile", "usercontrol", new
+           {
+               @area = "Core",
+               AttachRefID = Model.Id,
+               AttachRefTable = "ProjCostItem"
+           })
+            </td>
+        </tr>
+    </table>
+	
+}
+
+
+

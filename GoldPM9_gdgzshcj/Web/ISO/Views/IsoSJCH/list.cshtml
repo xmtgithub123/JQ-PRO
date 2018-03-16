@@ -1,0 +1,171 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoSJCH",new { @area="Iso"})',
+               addUrl = '@Url.Action("add","IsoSJCH",new {@area="Iso" })',
+               editUrl = '@Url.Action("edit", "IsoSJCH",new {@area="Iso" })',
+               delUrl = '@Url.Action("del", "IsoSJCH", new { @area = "Iso" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'IsoSJCHGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '项目编号，项目名称',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: false,
+                JQExcludeCol: [1, 13, 14, 15],//导出execl排除的列
+                nowrap: false,
+                toolbar: '#IsoSJCHPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true },
+                    { title: '项目名称', field: 'ProjName', width: 300, align: 'center', sortable: true },
+                    {
+                        title: '项目阶段', field: 'ProjPhaseNameShow', width: 150, align: 'center', sortable: true, formatter: function (val, data) {
+                            re = new RegExp("_","g"); //定义正则表达式 第一个参数是要替换掉的内容，第二个参数"g"表示替换全部（global）
+                            data.ProjPhaseNameShow = data.ProjPhaseName.replace(re, ","); //第一个参数是正则表达式,第二个参数是要替换的字符串
+                            return data.ProjPhaseNameShow;
+                        }
+                    },
+                    {
+                        title: '参与专业', field: 'JoinSpecNameShow', width: 100, align: 'center', sortable: true, formatter: function (val, data) {
+                            re = new RegExp("_","g");
+                            data.JoinSpecNameShow = data.JoinSpecName.replace(re, ",");
+                            return data.JoinSpecNameShow;
+                        }
+                    },
+                    { title: '合作设计', field: 'CooperativeDesignShow', width: 100, align: 'center', sortable: true },
+                    { title: '创优目标', field: 'MeritGoalShow', width: 100, align: 'center', sortable: true },
+                    { title: '计划完成时间', field: 'PlanFinishTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    {
+                        title: '是否评审', field: 'IsReviewShow', width: 100, align: 'center', sortable: true, formatter: function (val, data) {
+                            switch (data.IsReview) {
+                                case 1:
+                                    data.IsReviewShow = "是";
+                                    break;
+                                case 2:
+                                    data.IsReviewShow = "否";
+                                    break;
+                                default:
+                                    data.IsReviewShow = "";
+                                    break;
+                            }
+                            return data.IsReviewShow;
+                        }
+                    },
+                    { title: '评审时机', field: 'ReviewTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    {
+                        title: '评审方式', field: 'ReviewTypeShow', width: 100, align: 'center', sortable: true, formatter: function (val, data) {
+                            switch (data.ReviewType) {
+                                case 1:
+                                    data.ReviewTypeShow = "专业委员会会议";
+                                    break;
+                                case 2:
+                                    data.ReviewTypeShow = "其他会议";
+                                    break;
+                                default:
+                                    data.ReviewTypeShow = "";
+                                    break;
+                            }
+                            return data.ReviewTypeShow;
+                        }
+                    },
+                    {
+                        title: '是否需要编制设计策划报告', field: 'PlanReportShow', width: 100, align: 'center', sortable: true, formatter: function (val, data) {
+                            switch (data.PlanReport) {
+                                case 1:
+                                    data.PlanReportShow = "是";
+                                    break;
+                                case 2:
+                                    data.PlanReportShow = "否";
+                                    break;
+                                default:
+                                    data.PlanReportShow = "";
+                                    break;
+                            }
+                            return data.PlanReportShow;
+                        }
+                    },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrEmpID)")
+                    },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'IsoSJCH' },
+                    {
+                        field: 'opt', title: '操作', width: "40", align: 'center', JQIsExclude: true,
+                        formatter: function (value, row, index) {
+                            var title = "查看";
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                            }
+                            return "<a class='easyui-linkbutton' onclick='Look(" + row.Id + ")'>" + title + "</a>";
+                        }
+                    }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#IsoSJCHGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+        });
+
+        function Look(val) {
+            JQ.dialog.dialog({
+                title: "设计策划单",
+                url: editUrl + "?Id=" + val,
+                width: '1000',
+                height: '100%',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-search',
+                onClose: function () {
+                    $("#IsoSJCHGrid").datagrid("reload");
+                }
+
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoSJCHGrid"></table>
+    <div id="IsoSJCHPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'ProjNumber,ProjName', 'Contract': 'like' }" />
+
+    </div>
+}
+

@@ -1,0 +1,158 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<style type="text/css">
+    .yc_inlinetable {
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+        .yc_inlinetable th {
+            background-color: #F2F2F2;
+            text-align: center;
+            height: 32px;
+            border: 1px solid #999999;
+            outline: none;
+        }
+
+        .yc_inlinetable td {
+            height: 40px;
+            border: 1px solid #999999;
+            outline: none;
+        }
+
+    .yc_inlinetable_toolbar {
+        height: 32px;
+        background-color: #F2F2F2;
+        border-top: 1px solid #999999;
+        border-left: 1px solid #999999;
+        border-right: 1px solid #999999;
+        overflow: hidden;
+    }
+
+    .yc_inlinetable_toolbar_btn {
+        cursor: pointer;
+        float: left;
+        padding: 0px 5px 0px 5px;
+        height: 24px;
+        line-height: 24px;
+        margin: 3px 0px 0px 5px;
+        border: 1px solid transparent;
+        border-radius: 2px;
+        -webkit-user-select: none;
+    }
+
+        .yc_inlinetable_toolbar_btn:hover {
+            border: 1px solid #BBBBBB;
+            background-color: #FBFBFB;
+        }
+
+    .yc_control_allmap {
+        height: 460px;
+        width: 100%;
+        margin-top: 5px;
+    }
+</style>
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+</div>
+<div id="divcontent" class="bodycontent" style="background-color:#DFDFDF">@(Html.Raw(ViewBag.Html))</div>
+<div id="_yc_divXmlContent" style="display:none">@(ViewBag.Content)</div>
+<link href="@(Url.Content("~/Content/chart/chart.datebox.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.datebox.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.formgenerater.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<script type="text/javascript">
+    var formGenerator;
+    function loadData() {
+        var _content = document.getElementById("divcontent");
+        if (_content.childNodes.length==0) {
+            return;
+        }
+        var marginLeft = (_content.clientWidth - _content.childNodes[0].clientWidth) / 2;
+        if (marginLeft < 5) {
+            marginLeft = 5;
+        }
+        _content.childNodes[0].style.marginLeft = marginLeft + "px";
+        //获取出数据
+        var data = {
+            container: _content,
+            toolbar: document.getElementById("divtoolbar"),
+            currentDate: YChart.parseDate("@(ViewBag.CurrentDate)"),
+            currentUserName: "@(ViewBag.CurrentUserName)",
+            currentDepartmentName: "@(ViewBag.CurrentDepartmentName)",
+            properties: [],
+            offical: true,
+            dataValues: [],
+            urls: {
+                save: "@(Url.Action("Save", "Manage",new { @area="Form" }))?formTemplateID=@(Request.QueryString["formTemplateID"])&id=@(ViewBag.DataID)",
+                print: "@(Url.Action("Print","Manage", new { @area = "Form" }))",
+                process: {
+                    height: 310,
+                    width: 400,
+                    url: "@(Url.Action("Process","Widget", new { @area = "Process" }))",
+                    icon: "fa-flag"
+                },
+                progress: {
+                    width: 800,
+                    height: 600,
+                    urlPrefix: "@(Url.Action("Progress", "Widget", new { @area="Process" }))",
+                    icon: "fa-th-list"
+                }
+            },
+            formID: "@(ViewBag.DataID)",
+            formTemplateID: "@(Request.QueryString["formTemplateID"])",
+            referenceField: "@(Request.QueryString["referenceField"]??"")",
+            referenceID:"@(Request.QueryString["referenceID"] ??"")"
+        };
+        var xml = document.getElementById("_yc_divXmlContent").textContent;
+        YChart.remove(document.getElementById("_yc_divXmlContent"));
+        var isLoadMapJs = false;
+        if (xml) {
+            xml = YChart.loadXml(xml);
+            data.allowEdit = xml.documentElement.getAttribute("allowEdit");
+            var xProperties = YChart.selectNodes(xml, "Root/Properties/Property");
+            for (var i = 0; i < xProperties.length; i++) {
+                var property = {};
+                YChart.parseToObject(property, xProperties[i]);
+                property.element = document.getElementById(property.elementName);
+                if (!property.element) {
+                    continue;
+                }
+                if (property.type == "map" && !isLoadMapJs) {
+                    isLoadMapJs = true;
+                    document.head.appendChild(YChart.createElement("link", { rel: "stylesheet", src: "http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.css" }));
+                    document.head.appendChild(YChart.createElement("script", { type: "text/javascript", src: "http://api.map.baidu.com/api?v=2.0&ak=3uTjQV5cdGbZlngI7Q8m3ijpoW4zgYfO" }));
+                    document.head.appendChild(YChart.createElement("script", { rel: "text/javascript", src: "http://api.map.baidu.com/library/DrawingManager/1.4/src/DrawingManager_min.js" }));
+                }
+                data.properties.push(property);
+            }
+            data.hiddens = [];
+            var xHiddens = YChart.selectNodes(xml, "Root/Hiddens/Hidden");
+            for (var i = 0; i < xHiddens.length; i++) {
+                var hidden = {};
+                YChart.parseToObject(hidden, xHiddens[i]);
+                data.hiddens.push(hidden);
+            }
+            data.dataValue = YChart.selectSingleNode(xml, "Root/DataValues");
+            //获取出流程信息
+            var xProcess = YChart.selectSingleNode(xml, "Root/Process");
+            if (xProcess) {
+                data.process = {};
+                YChart.parseToObject(data.process, xProcess);
+            }
+            data.steps = YChart.selectNodes(xml, "Root/Steps/Step");
+        }
+        if (isLoadMapJs) {
+            YChart.attachEvent(window, "load", function () {
+                formGenerater = new YChart.FormGenerater(data);
+            });
+        }
+        else {
+            formGenerater = new YChart.FormGenerater(data);
+        }
+    }
+
+    loadData();
+</script>

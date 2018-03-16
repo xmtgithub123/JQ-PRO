@@ -1,0 +1,35 @@
+﻿@using JQ.Web;
+
+<script type="text/javascript">
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'UsageListGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '1000',//弹出窗体宽
+            JQHeight: '800',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQFields: ["Id"],//追加的字段名
+            url: '@Url.Action("GetUsageList", "OaEquipment", new { @area="Oa"})?EquId=@Request.QueryString["EquId"]',//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#UsageListPanel',//工具栏的容器ID
+            columns: [[
+                { title: '使用人', field: 'UseEmpName', width: "10%", align: 'center', sortable: true },
+                { title: '办公用品编号', field: 'EquNumber', width: "25%", align: 'center', sortable: true },
+                { title: '办公用品名称', field: 'EquName', width: "25%", align: 'center', sortable: true },
+                { title: '规格', field: 'EquModel', width: "15%", align: 'center', sortable: true },
+                { title: '领用时间', field: 'UseTime', width: "10%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '数量', field: 'Count', width: "10%", align: 'center', sortable: true }
+            ]]
+        });
+    });
+</script>
+
+<table id="UsageListGrid"></table>
+<div id="UsageListPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+
+    </span>
+</div>
+
+

@@ -1,0 +1,145 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")?CompanyType=GC',//添加的路径
+                JQEditUrl: '@Url.Action("edit")?CompanyType=GC',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'ProjSubGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                singleSelect: false,
+                JQExcludeCol: [1,12,13,14],//导出execl排除的列
+                url: '@Url.Action("json","ProjSub",new { @area="Project"})?CompanyType=GC',//请求的地址
+                checkOnSelect: true,//是否包含check
+                queryParams: { IsAudit: "0" },
+                toolbar: '#ProjSubPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                  { title: '项目编号', field: 'ProjNumber', width: "8%", align: 'left', sortable: true },
+                  { title: '项目名称', field: 'ProjName', width: "12%", align: 'left', sortable: true },
+                  { title: '外委项目编号', field: 'SubNumber', width: "8%", align: 'left', sortable: true },
+                  { title: '外委项目名称', field: 'SubName', width: "12%", align: 'left', sortable: true },
+                  { title: '外委性质', field: 'SubTypeName', width: "80", align: 'center', sortable: true },
+                  {
+                      title: '合同是否签订', field: 'ConSubID', width: "80", align: 'center', sortable: true, formatter: function (value, row) {
+                          if (row.ConSubID > 0) {
+                              row.ConSubID = "是";
+                          } else {
+                              row.ConSubID = "否";
+                          }
+                          return row.ConSubID;
+                      }
+                  },
+                  { title: '外委负责人', field: 'SubEmpName', width: "80", align: 'center', sortable: true },
+                  { title: '外委时间', field: 'ColAttDate1', width: "80", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                  { title: '登记时间', field: 'CreationTime', width: "80", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                  { title: '外委单位', field: 'CustName', width: "12%", align: 'left', sortable: true }, {
+                      field: 'JQFiles', title: '附件', align: 'center', width: "40px", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'ProjSub', formatter: function (value, row) {
+                          return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                      }
+                  },
+                   {
+                       field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrentEmpID)")
+                  },
+                  {
+                      field: "opt", title: "操作", align: "center", halign: "center", width: "40",
+                      formatter: function (value, row, index) {
+                          var title = "查看";
+                          if (row._EditStatus == 1) {
+                              title = "修改";
+                          }
+                          else if (row._EditStatus == 2) {
+                              title = "处理";
+                          }
+                          return '<a class="easyui-linkbutton" onclick="ShowDetailsinfoDialogue(' + row.Id + ')">' + title + '</a>';
+                      }
+                  }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#ProjSubGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号,项目名称,外委项目编号,外委项目名称,外委单位',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ProjSubGrid',
+                            loadingType: 'datagrid'
+                        });
+                }
+            });
+        });
+
+        function ShowDetailsinfoDialogue(id) {
+            JQ.dialog.dialog({
+                title: "查看项目外委明细",
+                url: '@Url.Action("edit", "ProjSub", new { @area = "Project" })?CompanyType=GC&id=' + id,
+                width: '768',
+                height: '100%',
+                JQID: 'TendersInfoCost',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus',
+
+            });
+        }
+
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+    </script>
+
+}
+
+@section Body_Content{
+    <table id="ProjSubGrid"></table>
+    <div id="ProjSubPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjSubType", queryOptions = "{ Key:'ProjSubTypeState', Contract:'in',filedType:'Int'}" })
+        </span>
+
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key: 'txtLike', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            <span style="padding-left:10px;">
+                外委时间
+                <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'ColAttDate1S', Contract:'>=',filedType:'Date' }">
+                至
+                <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'ColAttDate1E', Contract:'<=',filedType:'Date' }">&nbsp;
+            </span>
+            <span style="padding-left:10px;">
+                登记时间
+                <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'CreationTimeS', Contract:'>=',filedType:'Date' }">
+                至
+                <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'CreationTimeE', Contract:'<=',filedType:'Date' }">&nbsp;
+            </span>
+        </div>
+    </div>
+}
+

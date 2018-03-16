@@ -1,0 +1,91 @@
+﻿@model DataModel.Models.IsoFormNode
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: ''IsoFormNodeform',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.treegrid.autoReftreegrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "IsoFormNode", FormMethod.Post, new { @area = "Iso", @id = "IsoFormNodeForm" }))
+{
+    @Html.HiddenFor(m => m.FormID)
+    <table class="table table-bordered">
+	 
+                        <tr>
+                        <th width="10%">扩展类别</th>
+                        <td width="40%">
+						<input name="ColAttType1" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.ColAttType1" />
+                        </td>
+                        <th width="10%">扩展类别</th>
+                        <td width="40%">
+						<input name="ColAttType2" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.ColAttType2" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">扩展值</th>
+                        <td width="40%">
+						<input name="ColAttVal1" style="width:98%;" class="easyui-textbox"  data-options="required:true"  validType="length[0,100]" value="@Model.ColAttVal1" />
+                        </td>
+                        <th width="10%">扩展值2</th>
+                        <td width="40%">
+						<input name="ColAttVal2" style="width:98%;" class="easyui-textbox"   validType="length[0,100]" value="@Model.ColAttVal2" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">扩展值</th>
+                        <td width="40%">
+						<input name="ColAttVal3" style="width:98%;" class="easyui-textbox"   validType="length[0,100]" value="@Model.ColAttVal3" />
+                        </td>
+                        <th width="10%">扩展值</th>
+                        <td width="40%">
+						<input name="ColAttVal4" style="width:98%;" class="easyui-textbox"   validType="length[0,100]" value="@Model.ColAttVal4" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">扩展值</th>
+                        <td width="40%">
+						<input name="ColAttVal5" style="width:98%;" class="easyui-textbox"   validType="length[0,100]" value="@Model.ColAttVal5" />
+                        </td>
+                        <th width="10%">扩展时间1</th>
+                        <td width="40%">
+						<input name="ColAttDate1" style="width:98%;" class="easyui-datebox"   validType="length[0,16]" value="@Model.ColAttDate1" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">扩展时间2</th>
+                        <td width="40%">
+						<input name="ColAttDate2" style="width:98%;" class="easyui-datebox"   validType="length[0,16]" value="@Model.ColAttDate2" />
+                        </td>
+                        <th width="10%">扩展时间3</th>
+                        <td width="40%">
+						<input name="ColAttDate3" style="width:98%;" class="easyui-datebox"   validType="length[0,16]" value="@Model.ColAttDate3" />
+                        </td>
+                        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.FormID;
+                    uploader.RefTable = "IsoFormNode";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+	
+}
+
+
+

@@ -1,0 +1,81 @@
+﻿
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.datagrid.datagrid({
+        JQPrimaryID: 'Id',//主键的字段
+        JQID: 'OaEquipmentGrid01',//数据表格ID
+        JQDialogTitle: '领用单选择',//弹出窗体标题
+        JQWidth: '800',//弹出窗体宽
+        JQHeight: '600',//弹出窗体高
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+        url: '@Url.Action("choosejson", "OaEquipReturn", new { @area = "Oa" })' + '?EquIds=@Request.QueryString["EquIds"]&EquipOrOffice=@Request.QueryString["EquipOrOffice"]',//请求的地址
+        checkOnSelect: true,//是否包含check
+        toolbar: '#OaEquipmentPanel',//工具栏的容器ID
+        columns: [[
+            { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+            { title: '领导单ID', field: 'Id',hidden:true, width: 100, align: 'center', sortable: true },
+            { title: '领用时间', field: 'EquipLendDate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		    { title: '领用备注', field: 'EquipLendNote', width: 250, align: 'center', sortable: true },
+		    { title: '预计归还时间', field: 'EquipBackDate', width: 250, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT }
+        ]],
+        onBeforeCheck: function (rowIndex, rowData) {
+            $(this).datagrid('uncheckAll');
+            //return rowData._AllowCheck;
+        },
+        onClickRow: function (rowIndex, rowData) {
+            if (!rowData._AllowCheck) {
+                $(this).datagrid('unselectRow', rowIndex);
+            }
+        },
+        onLoadSuccess: function (data) {
+            $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+            var rowViews = $("#OaEquipReturnGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+            for (var i = 0; i < data.rows.length; i++) {
+                if (!data.rows[i]._AllowCheck) {
+                    rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                }
+            }
+        }
+    });
+
+    $("#JQSearch").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '备注',
+        queryOptions: { Key: 'EquipLendNote', Contract: 'like' },
+        onClickButton: function () {
+            JQ.datagrid.searchGrid(
+                {
+                    dgID: 'OaEquipmentGrid01',
+                    loadingType: 'datagrid',
+                    queryParams: null
+                });
+        }
+    });
+
+    function selectReivew() {
+        var rows = $('#OaEquipmentGrid01').datagrid('getSelections');
+        if (rows.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        for (var rowindex = 0; rowindex < rows.length; rowindex++) {
+            insert1(rows[rowindex]);
+        }
+        JQ.dialog.dialogClose();
+    }
+</script>
+
+
+
+<table id="OaEquipmentGrid01"></table>
+<div id="OaEquipmentPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+
+    </span>
+    <a id="btn" href="javascript:void(0);" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'" onclick="selectReivew()">确定</a>
+    <input id="JQSearch" style="width:250px;" jqwhereoptions="{ 'Key': 'EquipLendNote', 'Contract': 'like' }" />
+</div>
+
+

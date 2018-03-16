@@ -1,0 +1,84 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("AgingJson", "IsoAging", new { @area="ISO"})';
+
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'IsoAgingGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#IsoAgingPanel',//工具栏的容器ID
+
+                JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+                columns: [[
+                  { title: '部门', field: 'DeptName', width: 120, align: 'left', sortable: true },
+                  { title: '姓名', field: 'EmpName', width: 120, align: 'left', sortable: true },
+                  {
+                      title: '任务总数', field: 'SpecialName', width: 120, align: 'left', exportfield: "Num", sortable: true, formatter: function (value, row, index) {
+                          return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"ListInfo('" + row.Ids + "')\">" + row.Num + "</>";
+                      }
+                  },
+                  { title: '按时完成数', field: 'Normals', width: 100, align: 'center', sortable: true },
+                  { title: '超期完成数', field: 'NormalPercent', width: 100, align: 'center', sortable: true },
+                  { title: '按时完成率%', field: 'OverTimes', width: 100, align: 'center', sortable: true },
+                  { title: '超期完成率%', field: 'OverTimePercent', width: 100, align: 'center', sortable: true }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '姓名',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'IsoAgingGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+
+
+        function ListInfo(id) {
+            $("#TaskIds").val(id);
+            JQ.dialog.dialog({
+                title: "查看明细",
+                url: '@Url.Action("infoList", "IsoAging", new { @area = "Iso" })',
+                width: '1024',
+                height: '100%',
+                JQID: 'IsoAgingListGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus',
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoAgingGrid"></table>
+    <div id="IsoAgingPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+        </span>
+        @BaseData.getBases(new Params() { isMult = true, engName = "department", queryOptions = "{ Key:'DeptId', Contract:'in',filedType:'Int'}" })
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'TextCondtion', 'Contract': 'like' }" />
+        <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+
+    </div>
+    <input type="hidden" id="TaskIds" name="TaskIds" value="1" />
+}
+

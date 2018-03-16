@@ -1,0 +1,97 @@
+﻿@model DataModel.Models.OaMail
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'OaMailForm',//formid提交需要用到
+        buttonTypes: ['close'],//默认按钮
+    });
+
+    function delMailDetail() {
+
+        var Url = "";
+        if(@ViewBag.ReceiveFlag == 0)
+        {
+            Url = '@Url.Action("del", "OaMail", new { @area = "Oa" })';
+        }
+        else
+        {
+            Url = '@Url.Action("del", "OaMailRead", new { @area = "Oa" })';
+        }
+        JQ.tools.ajax({
+            doBackResult: true,
+            url: Url,
+            data: "Id=" + "@Model.Id"
+        });
+
+        JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+        JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+    }
+</script>
+@using (Html.BeginForm("save1", "OaMail", FormMethod.Post, new { @area = "Oa", @id = "OaMailForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <div JQPanel='dialogButtonPanel'>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-remove (alias)'" onclick="delMailDetail()">删除</a>
+    </div>
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">
+                发件人
+            </th>
+            <td>
+                @{
+                    if (Model.MailIsBBC==1)
+                    {
+                        <span>******</span>
+                    }
+                    else
+                    {
+                        <span>
+                            @(Model.CreatorEmpName)
+                        </span>
+                    }
+                }
+            </td>
+        </tr>
+        <tr>
+            <th>
+                收件人
+            </th>
+            <td>
+                @(ViewBag.SendEmp)
+            </td>
+        </tr>
+        <tr>
+            <th>
+                时间
+            </th>
+            <td>
+                @(Model.CreationTime.ToString("yyyy-MM-dd HH:mm:ss"))
+            </td>
+        </tr>
+        <tr>
+            <th>
+                内容
+            </th>
+            <td style="font-family:'Microsoft YaHei';font-size:16px;cursor:default">
+                <div style="min-height:100px">
+                    @(Html.Raw(Model.MailNote))
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th>附件</th>
+            <td>
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "OaMail";
+                    uploader.Name = "UploadFile1";
+                    uploader.AllowUpload = false;
+                    uploader.AllowDelete = false;
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+                    }

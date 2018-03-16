@@ -1,0 +1,140 @@
+﻿@model DataModel.Models.IsoConstructionSet
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoConstructionSetForm',//formid提交需要用到
+        buttonTypes: ['close', 'exportForm'],//默认按钮
+        docName: 'IsoConstructionSet',
+        ExportName: '施工交底记录单',
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }, flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "ISO,ISO.FlowProcessor.IsoConstructionSetFlow",
+            refID: "@(Model.Id)",
+            refTable: "IsoConstructionSet",
+            dataCreator: "@(ViewBag.CreateEmpId )"
+        },
+        onBefore: function (resultArr) {
+            resultArr.push({ Key: "Permission", Value: '@ViewBag.Permission' });
+        }
+    });
+
+    //确定选择回调
+    var _ProjMainBack = function (projId, row) {
+        var data = row[0];
+        $("#ProjId").val(data.Id);
+        $("#ProjName").textbox("setValue", data.ProjName);
+        $("#ProjNumber").textbox("setValue", data.ProjNumber);
+        $("#ProjPhaseName").val(data.ProjPhaseName);
+        $("#ProjPhaseId").val(data.ProjPhaseId);
+    }
+
+    //选择项目
+    function SelectMainProject() {
+        JQ.dialog.dialog({
+            title: "选择项目",
+            url: '@Url.Action("ChooseProjectList1", "EmpManage", new { @area = "Engineering" })?CompanyType=&TaskGroupId=' + $("#ProjId").val(),
+            width: '1024',
+            height: '100%',
+            JQID: 'ProjTable',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-list',
+        });
+    }
+</script>
+@using (Html.BeginForm("save", "IsoConstructionSet", FormMethod.Post, new { @area = "Iso", @id = "IsoConstructionSetForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <div style="width:100%;text-align:center;font-size:20px;font-weight:bold;margin-top:10px;">
+            <a>施工交底记录单</a>
+        </div>
+        <div style="float:left;margin-left:20px;margin-top:10px;">
+            表<label>@Model.TableNumber</label><input type="hidden" name="TableNumber" value="@Model.TableNumber" />
+        </div>
+        <div style="float:right;margin-right:20px;margin-top:10px;margin-bottom:10px;">
+            编号：<input id="Number" name="Number" style="width:140px;" class="easyui-textbox"  validtype="length[0,50]" value="@Model.Number" />
+        </div>
+        <tr>
+            <th width="10%">项目编号</th>
+            <td width="40%">
+                <input name="ProjNumber" id="ProjNumber" style="width:60%;" class="easyui-textbox" data-options="required:true,editable:false" validType="length[0,50]" value="@Model.ProjNumber" />
+                <a class="easyui-linkbutton" name="btnChoice" id="btnChoice" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="SelectMainProject()" style="display:none;">选择项目</a>
+                <input type="hidden" name="ProjPhaseId" id="ProjPhaseId" value="@Model.ProjPhaseId" />
+                <input type="hidden" name="ProjPhaseName" id="ProjPhaseName" value="@Model.ProjPhaseName" />
+            </td>
+            <th width="10%">项目名称</th>
+            <td width="40%">
+                <input type="hidden" id="ProjId" name="ProjId" value="@Model.ProjId" />
+                <input type="hidden" id="CheckValue" name="CheckValue" />
+                <input type="hidden" id="CheckValue1" name="CheckValue1" />
+                <input id="ProjName" name="ProjName" style="width:98%;" class="easyui-textbox" data-options="required:true,editable:false" validtype="length[0,50]" value="@Model.ProjName" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">施工单位</th>
+            <td width="40%">
+                <input name="ConstructionCompany" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.ConstructionCompany" />
+            </td>
+            <th width="10%">施工技术负责人</th>
+            <td width="40%">
+                <input name="ConstructionResponsibility" style="width:98%;" class="easyui-textbox" validType="length[0,50]" value="@Model.ConstructionResponsibility" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">建设单位</th>
+            <td width="40%">
+                <input name="OrganizationCompany" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.OrganizationCompany" />
+            </td>
+            <th width="10%">建设联系人</th>
+            <td width="40%">
+                <input name="OrganizationContacts" style="width:98%;" class="easyui-textbox" validType="length[0,50]" value="@Model.OrganizationContacts" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">交底地点</th>
+            <td width="40%">
+                <input name="SetPosition" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.SetPosition" />
+            </td>
+            <th width="10%">交底时间</th>
+            <td width="40%">
+                <input name="SetDate" style="width:98%;" class="easyui-datebox" validType="length[0,23]" value="@Model.SetDate" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">交底内容</th>
+            <td width="40%" colspan="3">
+                <input name="SetValue" style="width:98%;height:80px" data-options="multiline:true" class="easyui-textbox" validType="length[0,500]" value="@Model.SetValue" />
+            </td>
+        </tr>
+        <tr id="SignTd">
+            <th width="10%"></th>
+            <td width="40%" colspan="3">
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "IsoConstructionSet";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+
+                    }

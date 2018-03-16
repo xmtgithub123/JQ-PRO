@@ -1,0 +1,400 @@
+﻿
+
+@toolbarbgcolor: #F5F5F5;
+@tabbtncolor: #EFEFEF;
+@linecolor: #E5E5E5;
+@normalcolor: #438EB9;
+
+body {
+    margin: 0px;
+    padding: 0px;
+}
+
+.yc_mask {
+    height: 100%;
+    width: 100%;
+    position: absolute;
+    z-index: 8899;
+    background-color: #000000;
+    opacity: 0.5;
+}
+
+//左侧工具栏
+.yc_toolbar_l {
+    width: 50px;
+    background-color: @toolbarbgcolor;
+    height: 100%;
+    float: left;
+}
+
+//右侧绘图区域
+.yc_canvas {
+    float: left;
+    cursor: default;
+    position: relative;
+    box-shadow: 0 0 15px 15px lighten(@normalcolor,25%);
+}
+
+.yc_canvas_grid {
+    background: transparent url(images/grid.gif) repeat;
+}
+
+.yc_canvas_nogrid {
+    background: #F5F5F5;
+}
+
+//左侧工具栏按钮
+.yc_toolbar_btn {
+    width:50px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 24px;
+    vertical-align: middle;
+    text-align: center;
+    color: #606060;
+}
+
+//左侧工具栏固定按钮
+.yc_toolbar_btn1 {
+    background-color: @normalcolor;
+    color: #F5F5F5;
+    height: 28px;
+    line-height: 28px;
+    font-size: 16px;
+    width: 50px;
+}
+
+.yc_toolbar_btn_active {
+    background-color: lighten(@normalcolor,10%);
+    color: #FFFFFF;
+}
+
+.yc_toolbar_btn:not(.yc_toolbar_btn_active):hover {
+    color: #C7C832;
+}
+
+
+//右上侧工具栏
+.yc_rtoolbar {
+    height: 28px;
+    background-color: @toolbarbgcolor;
+    float: left;
+    line-height: 28px;
+    vertical-align: middle;
+}
+
+.yc_viewport {
+    background: transparent url( images/canvas_bg.jpg) repeat;
+    float: left;
+}
+
+//右上边工具栏样式
+.yc_rtoolbar_poslabel {
+    display: inline-block;
+    width: 30px;
+    text-align: left;
+    margin-left: 2px;
+}
+
+//右上侧工具栏按钮
+.yc_rtoolbar_btn {
+    height: 28px;
+    width: 50px;
+    color: #787878;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 28px;
+    display: inline;
+    float: left;
+    font-size: 20px;
+}
+
+.yc_rtoolbar_btn:hover {
+    background-color: lighten(@normalcolor,10%);
+    color: #FFFFFF;
+}
+
+.yc_r_content {
+    height: 200px;
+    background-color: @toolbarbgcolor;
+    border-left: 1px solid @linecolor;
+    border-top: 1px solid @linecolor;
+    float: left;
+}
+
+//tab的切换容器
+.yc_tab_tbtnc {
+    width: 100%;
+    height: 30px;
+    background-color: #EFEFEF;
+}
+
+//tab按钮
+.yc_tab_tbtn {
+    width: 33px;
+    float: left;
+    line-height: 30px;
+    vertical-align: middle;
+    text-align: center;
+    color: #444444;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+//处于选中状态下的TAB标签样式
+.yc_tab_tbtn_act {
+    background-color: #FCFCFC;
+    color: @normalcolor;
+}
+
+.yc_tab_tbtn:not(.yc_tab_tbtn_act):hover {
+    background-color: darken(@tabbtncolor,10%);
+}
+
+//tab的内容页
+.yc_tab_cotent {
+    width: 100%;
+    background-color: #FCFCFC;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+//输出工具栏
+.yc_log_toolbar {
+    height: 28px;
+    width: 100%;
+    border-bottom: 1px solid @linecolor;
+    background-color: @toolbarbgcolor;
+}
+
+//开始
+.yc_start {
+    fill: #68f57d;
+    stroke: #666666;
+    stroke-width: 2px;
+    fill-opacity: 0.8;
+}
+
+.yc_start_moving {
+    fill: lighten(color(#8EF19D),10%);
+    fill-opacity: 0.6;
+    stroke-width: 2px;
+    stroke: lighten(color(#787878),10%);
+}
+
+//结束
+.yc_end {
+    fill: #ff5151;
+    stroke: #666666;
+    stroke-width: 2px;
+    fill-opacity: 0.8;
+}
+
+.yc_end_moving {
+    fill: lighten(color(#FEA9A9),10%);
+    fill-opacity: 0.6;
+    stroke-width: 2px;
+    stroke: lighten(color(#787878),10%);
+}
+
+//输出工具栏按钮样式
+.yc_log_toolbar_btn {
+    height: 28px;
+    width: 24px;
+    line-height: 28px;
+    font-size: 18px;
+    vertical-align: middle;
+    text-align: center;
+    color: #606060;
+    cursor: pointer;
+}
+
+.yc_log_toolbar_btn::before {
+    content: attr(data_icon);
+}
+
+.yc_log_toolbar_btn:hover {
+    color: @normalcolor;
+}
+
+.yc_log_content {
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.yc_log_normal {
+    color: #4D4D4D;
+    margin: 1px 0px 2px 3px;
+    font-size: 12px;
+    word-break: break-all;
+    cursor: default;
+}
+
+.yc_rect {
+    fill: lighten(@normalcolor,46%);
+    //stroke: darken( @normalcolor,10%);
+    stroke: #666666;
+    stroke-width: 2;
+    rx: 3;
+    ry: 3;
+    //fill-opacity: 0.8;
+}
+
+.yc_rect_moving {
+    fill: lighten(@normalcolor,80%);
+    stroke: lighten( @normalcolor,10%);
+    stroke-width: 1;
+    fill-opacity: 0.6;
+}
+
+.yc_rect_act {
+    stroke: darken( @normalcolor,40%);
+}
+
+.yc_rect_point {
+    stroke: #000000;
+    stroke-width: 1;
+    fill: #FFFFFF;
+}
+
+.yc_rect_point_over {
+    fill: yellow;
+}
+
+.yc_t_point {
+    stroke: #000000;
+    stroke-width: 2;
+    //fill: lighten(@normalcolor,36%);
+    fill: #FFFFFF;
+}
+
+.yc_t_point_act {
+    //fill: lighten( @normalcolor,20%);
+    box-shadow: 0 0 3px 3px lighten(@normalcolor,25%);
+}
+
+.yc_t_point_moving {
+    stroke: #828282;
+    stroke-width: 1;
+    fill: lighten(@normalcolor,46%);
+}
+
+.yc_transation {
+    stroke: #7A7A7A;
+    stroke-width: 2;
+}
+
+.yc_t_line {
+    stroke: #000000;
+    stroke-width: 2;
+}
+
+.yc_transation_moving {
+    stroke: #B6B6B6;
+    stroke-width: 2;
+}
+
+.yc_msg_container {
+    height: 150px;
+    width: 280px;
+    z-index: 9900;
+    position: absolute;
+}
+
+.yc_msg_btn {
+    height: 30px;
+    width: 80px;
+    background-color: #EFEFEF;
+    text-align: center;
+    line-height: 30px;
+    color: #444444;
+    float: left;
+    cursor: pointer;
+}
+
+.yc_msg_btn:hover {
+    background-color: darken(color(#EFEFEF),20%);
+}
+
+.yc_textbox {
+    height: 26px;
+    width: 60px;
+    margin: 1px 0px 0px 0px;
+    text-align: right;
+}
+
+.yc_grid_head_container {
+    width: 100%;
+    height: 22px;
+    background-color: @toolbarbgcolor;
+}
+
+.yc_grid {
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.yc_grid td {
+    border: 1px solid darken(@toolbarbgcolor,10%);
+    font-size: 12px;
+    text-align: center;
+    color: #444444;
+    height: 22px;
+}
+
+.yc_editor_textbox {
+    border: 1px solid #FFFFFF;
+    font-size: 12px;
+}
+
+.yc_text_name {
+    font-size: 13px;
+    fill: #535353;
+}
+
+.yc_grid_btn {
+    width: 30px;
+    float: left;
+    height: 26px;
+    line-height: 26px;
+    text-align: center;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.yc_grid_btn:hover {
+    background-color: @normalcolor;
+    color: #FFFFFF;
+}
+
+.yc_tb_default {
+    border-collapse: collapse;
+}
+
+.yc_tb_default td {
+    border: none;
+}
+
+.yc_btn1 {
+    color: #787878;
+}
+
+.yc_btn1:hover {
+    color: #e13131;
+    cursor: pointer;
+}
+
+.yc_btn2 {
+    border: 1px solid #DADADA;
+    line-height: 28px;
+    float: left;
+    text-align: center;
+    margin-top: 5px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.yc_btn2:hover {
+    background-color: #EFEFEF;
+}

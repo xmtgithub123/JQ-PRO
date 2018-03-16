@@ -1,0 +1,211 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+
+        var requestUrl = '@Url.Action("json", "PayBalanceSum", new { @area = "Pay" })';
+        $(function () {
+
+            $("#Dept").combobox({
+                prompt: '下拉选择部门',
+                valueField: 'id',
+                textField: 'text',
+                url: ' @Url.Action("treejson", "basedata", new { @area = "Core" })?engName=department',
+                onChange: function (newVal, oldVal) {
+                    if (newVal != "0") {
+                        $("#leftGrid").datagrid('reload', '@Url.Action("json", "PayBalanceSum", new { @area = "Pay" })?EmpDeptID=' + newVal);
+                    }
+
+                },
+                onLoadSuccess:function(data)
+                {
+                    var permit=@ViewBag.Permit;
+                    if(permit==16||permit==32)
+                    {
+                        var DeptId='@ViewBag.DeptId';
+                        $("#Dept").combobox('setValue',DeptId);
+                    }
+                }
+            });
+            //数据表格
+            JQ.datagrid.datagrid({
+                JQPrimaryID: 'EmpID',//主键的字段
+                JQID: 'leftGrid',//数据表格ID
+                JQDialogTitle: '用户信息',//弹出窗体标题
+                JQWidth: '240',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: requestUrl,//请求的地址
+                checkOnSelect: false,//是否包含check
+                singleSelect: true,
+                JQFields: ["EmpID,EmpDepID"],//追加的字段名
+                //JQMergeCells: { fields: ['DepartmentName'] },//当字段值相同时会自动的跨行(只对相邻有效)
+                columns: [[
+                    {
+                        title: '所属部门', field: 'DepartmentName', width: "32%", align: 'left', sortable: true
+
+                    },
+                  {
+                      title: '姓名', field: 'EmpName', width: "26%", align: 'left', sortable: true,
+                      formatter: function (val, row) {
+                          return '<a class="easyui-linkbutton" href="#" onclick="Select(' + row.EmpID + ')">' + row.EmpName + '</a>'
+                      }
+
+                  },
+                  {
+                      title: '金额', field: 'BalanceMoney', width: "34%", align: 'right',
+                  }
+                ]],
+                onLoadSuccess: function (row) {
+                    //var westRegionCount = $("#westRegion").find("div[class='pagination-info']").text();
+                    //var countInfo = westRegionCount.split(',');
+                    //$("#westRegion").find("div[class='pagination-info']").text(countInfo[1]);
+                }
+
+            });
+
+            setTextAlign("DepartmentName", "text-align:center;")
+            setTextAlign("EmpName", "text-align:center;")
+            setTextAlign("BalanceMoney", "text-align:center;")
+            var permit=@ViewBag.Permit;
+            if(permit==16||permit==32)
+            {
+                $("#Dept").combobox({disabled:true});
+            }
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '批次名称',
+                //queryOptions: { 'Key': 'LotName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'rightGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                KeyJQSearch: $("#JQSearch").val(),
+                                startTime: $("#startTime").textbox('getValue'),
+                                endTime: $("#endTime").textbox('getValue'),
+                            }
+                        });
+                }
+
+            });
+
+            //$("#westRegion").find("div[class='datagrid-view']").next().find('a').eq(0).hide();
+            //$("#westRegion").find("div[class='datagrid-view']").next().find('a').eq(3).hide();
+            $("#westRegion").find("select[class='pagination-page-list']").hide();
+            $("#westRegion").find("div[class='pagination-info']").hide();
+
+
+            JQ.datagrid.datagrid({
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'rightGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '960',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: '@Url.Action("Sumjson", "PayBalanceSum", new { @area = "Pay" })',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#PaySumPanel',//工具栏的容器ID
+                singleSelect: true,
+                frozenColumns: [[{ title: '结算批次名称', field: 'BalanceLotName', width: "15%", align: 'center', sortable: true },
+                { title: '结算日期', field: 'BalanceDate', width: "10%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT }
+                ]],
+                JQMergeCells: { fields: ['BalanceLotName', 'BalanceDate'] },//当字段值相同时会自动的跨行(只对相邻有效)
+                columns: [[
+
+	{ title: '项目编号', field: 'ProjNumber', width: "12%", align: 'left', sortable: true },
+		{ title: '项目名称', field: 'ProjName', width: "25%", align: 'left', sortable: true },
+{ title: '人员', field: 'TechEmpName', width: "8%", align: 'center', sortable: true },
+        { title: '来源', field: 'BalanceReason', width: "8%", align: 'coneter', sortable: true },
+        { title: '产值', field: 'BalanceAmount', width: "10%", align: 'right', sortable: true },
+        { title: '金额', field: 'BalanceMoney', width: "10%", align: 'right', sortable: true }
+                ]],
+                onHeaderContextMenu: function (e, field) {
+                    e.preventDefault();
+                    if (!cmenu) {
+                        createColumnMenu();
+                    }
+                    cmenu.menu('show', {
+                        left: e.pageX,
+                        top: e.pageY
+                    });
+                }
+            });
+
+
+        });
+        var cmenu;
+        function createColumnMenu() {
+            cmenu = $('<div/>').appendTo('body');
+            cmenu.menu({
+                onClick: function (item) {
+                    if (item.iconCls == 'fa fa-check') {
+                        $('#rightGrid').datagrid('hideColumn', item.name);
+                        //$(this).find('input[type="checkbox"]').attr("checked",false);
+                        cmenu.menu('setIcon', {
+                            target: item.target,
+                            iconCls: 'fa fa-square-o'
+                        });
+                    } else {
+                        $('#rightGrid').datagrid('showColumn', item.name);
+                        cmenu.menu('setIcon', {
+                            target: item.target,
+                            iconCls: 'fa fa-check'
+                        });
+                    }
+                }
+            });
+            var fields = $('#rightGrid').datagrid('getColumnFields');
+            for (var i = 0; i < fields.length; i++) {
+                var field = fields[i];
+                var col = $('#rightGrid').datagrid('getColumnOption', field);
+                cmenu.menu('appendItem', {
+                    text: col.title,
+                    name: field,
+                    iconCls: 'fa fa-check'
+                });
+            }
+        }
+        function Select(EmpID) {
+            $("#rightGrid").datagrid('reload', '@Url.Action("Sumjson", "PayBalanceSum", new { @area = "Pay" })?EmpID=' + EmpID);
+        }
+        @*function SelectDept(DeptID) {
+            $("#rightGrid").datagrid('reload', '@Url.Action("Sumjson", "PayBalanceSum", new { @area = "Pay" })?EmpDeptID=' + DeptID);
+        }*@
+
+        function setTextAlign(filed, align) {
+            $("tr[class='datagrid-header-row']").find("td[field='" + filed + "']").children().removeAttr("style").attr("style", align);
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <div id="cc" class="easyui-layout" style="overflow: hidden" fit="true">
+        <div data-options="region:'north'" style="height:40px;line-height:40px;">
+            <span style="margin-left:20px;font-size:13px;">部门:</span>
+            <select id="Dept" class="easyui-combobox" style="width:200px;"></select>
+            <span style="margin-left:20px;font-size:13px;">筛选条件:</span>
+            <input id="JQSearch" style="width:200px;" />
+            <span style="margin-left:20px;font-size:13px;">结算日期:</span>
+            <input id="startTime" type="text" class="easyui-datebox" style="width:100px" data-options="prompt: '结算开始时间'">
+            --
+            <input id="endTime" type="text" class="easyui-datebox" style="width:100px" data-options="prompt: '结算结束时间'">&nbsp;
+            <div id="PayLotPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+            </div>
+        </div>
+
+        <div id="westRegion" data-options="region:'west'" style="width:320px;">
+            <table id="leftGrid"></table>
+        </div>
+        <div data-options="region:'center'" style="background:#eee;">
+            <table id="rightGrid"></table>
+        </div>
+    </div>
+}
+

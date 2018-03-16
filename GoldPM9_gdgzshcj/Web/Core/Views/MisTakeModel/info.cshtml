@@ -1,0 +1,71 @@
+﻿@model DataModel.Models.BaseLog
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'BaseLogForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }
+        });
+    });
+</script>
+@using (Html.BeginForm("save", "BaseLog", FormMethod.Post, new { @area = "Core", @id = "BaseLogForm" }))
+{
+    @Html.HiddenFor(m => m.BaseLogID)
+<table class="table table-bordered">
+
+    <tr>
+        <th width="10%">人员ID</th>
+        <td width="40%">
+            @BaseData.getBase(new Params()
+            {
+            controlName = "BaseLogEmpID",
+            isRequired = true,
+            engName = "department",
+            width = "98%",
+            ids = Model.BaseLogEmpID.ToString()
+            })
+        </td>
+        <th width="10%">日志日期</th>
+        <td width="40%">
+            <input name="BaseLogDate" style="width:98%;" class="easyui-datebox" validType="length[0,23]" value="@Model.BaseLogDate" />
+        </td>
+    </tr>
+
+    <tr>
+        <th width="10%">记录IP</th>
+        <td width="40%">
+            <input name="BaseLogIP" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,100]" value="@Model.BaseLogIP" />
+        </td>
+        <th width="10%">日志类别</th>
+        <td width="40%">
+            <input name="BaseLogTypeID" style="width:98%;" class="easyui-numberspinner" validType="length[0,10]" value="@Model.BaseLogTypeID" />
+        </td>
+    </tr>
+
+    <tr>
+        <th width="10%">引用表名称</th>
+        <td width="40%">
+            <input name="BaseLogRefTable" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@Model.BaseLogRefTable" />
+        </td>
+        <th width="10%">引用表ID</th>
+        <td width="40%">
+            <input name="BaseLogRefID" style="width:98%;" class="easyui-numberspinner" validType="length[0,10]" value="@Model.BaseLogRefID" />
+        </td>
+    </tr>
+
+    <tr>
+        <th width="10%">日志内容</th>
+        <td width="40%">
+            <input name="BaseLogRefHTML" style="width:98%;" class="easyui-textbox" validType="length[0,1073741823]" value="@Model.BaseLogRefHTML" />
+        </td>
+    </tr> 
+</table>
+
+}
+
+
+

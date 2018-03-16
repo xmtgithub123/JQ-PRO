@@ -1,0 +1,66 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+
+@section head {
+<script type="text/javascript" src="@Url.Content("~/Scripts/jquery.pivotgrid.js")"></script>
+<script type="text/javascript" src="@Url.Content("~/Scripts/JSTableToExcel.js")"></script>
+    <script type="text/javascript">
+        $(function () {
+            Load();
+        });
+        function Load() {
+            $('#ProjectStatistic').pivotgrid({
+                url:'@Url.Action("StatisticsListJson", "ProjectStatistics")',
+                method: 'post',
+                async: false,  
+                pivot: {
+                    rows: ['年份', '月份'],
+                    columns: ['公司', '项目类型'],
+                    values: [
+                        { field: '项目个数', op: 'sum' },
+						{ field: '合同金额', op: 'sum' },
+                    ]
+                },
+                forzenColumnTitle: '<span style="font-weight:bold;">项目统计表</span>',
+                valuePrecision: 4,
+                valueFieldWidth: 85,
+                i18n: {
+                    fields: '字段',
+                    filters: '筛选条件',
+                    rows: '行',
+                    columns: '列',
+                    values: '统计数据列',
+                    ok: '确定',
+                    cancel: '取消'
+                },
+                valueFormatter:function(val)
+                {
+                    if (this.field.indexOf("项目个数") >= 0)
+                    {
+                        return parseInt(val);//将项目的个数设置成整数
+                    }
+                    if (this.field.indexOf("额") >= 0) {
+                        return parseFloat(val).toFixed(2);//将合同的个数设置成整数
+                    }
+                    return val;
+                }
+            })
+        }
+        //function SetLayOut()
+        //{
+        //    $('#ProjectStatistic').pivotgrid('layout');
+        //}
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <span style="margin-left:10px;line-height:35px;">
+        @*<a class="easyui-linkbutton" data-options="iconCls:'fa fa-cogs'" onclick="SetLayOut();">高级查询</a>*@
+        <a class="easyui-linkbutton" data-options="iconCls:'fa fa-file-o'" onclick="Export('ProjectStatistic', '项目统计');">导出</a>
+    </span>
+    <table id="ProjectStatistic" style="height:auto;width:100%;"></table>
+}
+

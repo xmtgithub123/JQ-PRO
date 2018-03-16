@@ -1,0 +1,240 @@
+﻿@model DataModel.Models.OaMeetingUse
+@using JQ.Web;
+
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'OaMeetingUseForm',//formid提交需要用到
+        buttonTypes: ['submit','close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        
+        beforeFormSubmit: function () {
+            var startDate = StrToDate(getStartDate());
+            var endDate = StrToDate(getEndDate());
+            if (startDate > endDate) {
+                JQ.dialog.warning("开始时间不能大于结束时间");
+                return false;
+            }
+            var MeetingID = $("#MeetingID").val();
+            var result = true;
+            var StartDate = getStartDate();
+            var EndDate = getEndDate();
+
+            $.ajax({
+                url: '@Url.Action("checkConflict","OaMeetingUse",new { @area="Oa"})',
+                data: "MeetingID=" + MeetingID + "&startDate=" + StartDate + "&endDate=" + EndDate + "&Id=@Model.Id",
+                async: false,
+                success: function (data) {
+                    if (data != "0") {
+                        result = false;
+                        JQ.dialog.info("会议室存在冲突");
+                    }
+                }
+            });
+            return result;
+
+        }
+    });
+    $("#MeetingLeader").combobox({
+        required: true,
+        value: '@Model.MeetingLeader',
+        prompt: ' 下拉选择人员',
+        width: '400',
+        valueField: 'EmpID',
+        textField: 'EmpName',
+        groupField: 'EmpDepName',
+        validType: 'comboboxVali[true]',//是否做完整性验证
+        url: JQ.tools.getRootPath() + '/Core/usercontrol/employeeJson',
+        groupFormatter: function (group) {
+            return '<b style="color:black">' + group + '</b>';
+        },
+        onLoadSuccess: function () {
+            if ($(this).combobox('getValue') == "0") {
+                $(this).combobox('setValue', '');
+            }
+        }
+    });
+    $("#startHour").combobox({
+        editable: false,
+        value: '@ViewBag.bindstartHour'
+    });
+    $("#startMinu").combobox({
+        editable: false,
+        value: '@ViewBag.bindstartMinu'
+    });
+    $("#endHour").combobox({
+        editable: false,
+        value: '@ViewBag.bindendHour'
+    });
+    $("#endMinu").combobox({
+        editable: false,
+        value: '@ViewBag.bindendMinu'
+    });
+    function openDialog() {
+        JQ.dialog.dialog({
+            title: '选择会议室',
+            width: '1100',
+            height: '600',
+            url: '@Url.Action("selectReview")'//弹出对话框选择信息
+        });
+    }
+    var selectRoom = function (data)//点击选择会议室时执行此回调函数
+    {
+        $("#MeetingID").val(data.Id);
+        $("#meetingRoom").textbox("setValue", data.RoomName);
+    }
+    // 获取开始时间
+    function getStartDate() {
+        var startDate = $("#StartDate").datebox("getValue");
+        if (startDate == undefined)
+        {
+            startDate = $("#StartDate").val();
+        }
+        var startHour = $("#startHour").combobox("getValue");
+        var startMinu = $("#startMinu").combobox("getValue");
+        startDate = startDate + " " + startHour + ":" + startMinu + ":00";//开始时间
+        return startDate;
+    }
+    //获取结束时间
+    function getEndDate() {
+        var endDate = $("#EndDate").datebox("getValue");
+        if (endDate == undefined)
+        {
+            endDate = $("#EndDate").val();
+        }
+        var endHour = $("#endHour").combobox("getValue");
+        var endMinu = $("#endMinu").combobox("getValue");
+        endDate = endDate + " " + endHour + ":" + endMinu + ":00";//结束时间
+        return endDate;
+    }
+    //检测冲突
+    function checkConflict() {
+        var MeetingID = $("#MeetingID").val();
+        var startDate = getStartDate();
+        var endDate = getEndDate();
+        $.post('@Url.Action("checkConflict","OaMeetingUse",new { @area="Oa"})',
+            { MeetingID: MeetingID, startDate: startDate, endDate: endDate, Id: '@Model.Id' },
+            function (data) {
+                if (data != "0") {
+                    JQ.dialog.warning("存在冲突");
+                }
+                else {
+                    JQ.dialog.info("不存在冲突");
+                }
+            });
+    }
+    // 将特定格式的字符串转化成Date
+    function StrToDate(dateStr) {
+        var st = dateStr;
+        var split = st.split(" ");
+        var b = split[0].split("-");
+        var c = split[1].split(":");
+        var date = new Date(b[0], b[1], b[2], c[0], c[1], c[2]);
+        return date;
+    }
+</script>
+@using (Html.BeginForm("save", "OaMeetingUse", FormMethod.Post, new { @area = "Oa", @id = "OaMeetingUseForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th width="12%">
+                申请入
+            </th>
+            <td width="38%">
+                <label>
+                    @ViewBag.ApplyPerson
+                </label>
+            </td>
+            <th width="12%">
+                申请时间
+            </th>
+            <td width="38%">
+                <label>
+                    @ViewBag.ApplyDate
+                </label>
+            </td>
+        </tr>
+        <tr>
+            <th width="12%">开始时间</th>
+            <td colspan="3">
+                <span style="margin-right:10px;">
+                    <input id="StartDate" name="StartDate" style="width:120px;" class="easyui-datebox" data-options="required:true" validType="dateISO" value="@ViewBag.StartDate" />
+                </span>
+                @Html.DropDownList("startHour", (IEnumerable<SelectListItem>)@ViewBag.StartHour, new { @class = "easyui-combobox", style = "width:50px" })
+                <span>时</span>
+                @Html.DropDownList("startMinu", (IEnumerable<SelectListItem>)@ViewBag.StartMinu, new { @class = "easyui-combobox", style = "width:50px" })
+                <span>分</span>
+
+            </td>
+        </tr>
+        <tr>
+            <th width="12%">结束时间</th>
+            <td colspan="3">
+                <span style="margin-right:10px;">
+                    <input id="EndDate" name="EndDate" style="width:120px;" class="easyui-datebox" data-options="required:true" validType="dateISO" value="@ViewBag.EndDate" />
+                </span>
+                @Html.DropDownList("endHour", (IEnumerable<SelectListItem>)@ViewBag.EndHour, new { @class = "easyui-combobox", style = "width:50px" })
+                <span>时</span>
+                @Html.DropDownList("endMinu", (IEnumerable<SelectListItem>)@ViewBag.EndMinu, new { @class = "easyui-combobox", style = "width:50px" })
+                <span>分</span>
+            </td>
+
+        </tr>
+        <tr>
+            <th>
+                会议室
+            </th>
+            <td colspan="3">
+                @Html.HiddenFor(m=>m.MeetingID)
+                <input id="meetingRoom" class="easyui-textbox" style="width:200px" data-options="required:true,readonly:true" value="@ViewBag.meetingRoom" />
+                <a class="easyui-linkbutton" name="SelectMeeting"  onclick="openDialog();">选择会议室</a>@*data-options="plain:true,iconCls:'fa fa-plus'"*@
+                <a class="easyui-linkbutton"  name="conflict" onclick="checkConflict();">检测冲突</a>@*data-options="plain:true,iconCls:'fa fa-refresh'"*@
+            </td>
+        </tr>
+        <tr>
+            <th width="12%">
+                会议负责人
+            </th>
+            <td colspan="3">
+                <select id="MeetingLeader" name="MeetingLeader" class="easyui-combobox" style="width:400px;"></select>
+            </td>
+        </tr>
+        <tr>
+            <th width="12%">用途</th>
+            <td colspan="3">
+                <input name="MeetingUseConent" style="width:98%;height:60px" class="easyui-textbox" data-options="required:true,multiline:true" validType="length[0,500]" value="@Model.MeetingUseConent" />
+            </td>
+        </tr>
+        <tr>
+            <th width="12%">参与人数</th>
+            <td colspan="3">
+                <input name="MeetingJoinPeo" style="width:200px;" class="easyui-numberspinner" data-options="min:0" validType="length[0,10]" value="@Model.MeetingJoinPeo" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="12%">备注</th>
+            <td colspan="3">
+                <input name="MeetingNote" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,500]" value="@Model.MeetingNote" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "OaMeetingUse";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+
+                    }

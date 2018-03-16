@@ -1,0 +1,330 @@
+﻿@model DataModel.Models.IsoDWGZLXD
+@using JQ.Web;
+<script type="text/javascript">
+    var btnPer =@Html.Raw(ViewBag.permission);
+
+    var old_originalSteps = new Array();
+
+    JQ.form.submitInit({
+        formid: 'IsoDWGZLXDForm',//formid提交需要用到
+        buttonTypes: ['close','exportForm'],//默认按钮
+        docName: 'IsoDWGZLXD',
+        ExportName: '对外工作联系单',
+        beforeFormSubmit: function () {
+        },
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            var _tempFrame = window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+            if (_tempFrame) {
+                _tempFrame.contentWindow.refreshGrid();
+            }
+            _flowInstance.$form.parent().dialog("close");
+        },
+        flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "ISO,ISO.FlowProcessor.IsoDWGZLXDFlow",
+            refID: "@(Model.Id)",
+            refTable: "IsoDWGZLXD",
+            dataCreator: "@(ViewBag.CurrEmpID)",
+            getStepUsers: function (step, action) {
+
+
+            }, filterSteps: function (originalSteps) {
+                debugger;
+                var json;
+                old_originalSteps = originalSteps.concat();
+                var nOrder = 0;
+                if (this.stepOrder == 1) {
+                    var url = window.top.rootPath;
+                    var _mainProjId = $("#mainProjId").val();
+                    var _projId = $("#projId").val();
+                    var _projPhaseId = $("#projPhaseId").val();
+                    var _desTaskGroupId = $("#desTaskGroupId").val();
+                    $.ajax({
+                        doBackResult: false,
+                        url: url + 'Design/DesTask/jsonByArrange',
+                        data: { mainProjId: _mainProjId, projId: _projId, projPhaseId: _projPhaseId, desTaskGroupId: _desTaskGroupId, type: 1 },
+                        async: false,
+                        success: function (result) {
+                            result = JSON.parse(result);
+                            if (result.Result == true) {
+                                json = JSON.parse(result.Info);
+                            }
+                        }
+                    });
+                }
+                else if (this.stepOrder == 2) {
+                    var url = window.top.rootPath;
+                    var _mainProjId = $("#mainProjId").val();
+                    var _projId = $("#projId").val();
+                    var _projPhaseId = $("#projPhaseId").val();
+                    var _desTaskGroupId = $("#desTaskGroupId").val();
+                    $.ajax({
+                        doBackResult: false,
+                        url: url + 'Design/DesTask/jsonByArrange',
+                        data: { mainProjId: _mainProjId, projId: _projId, projPhaseId: _projPhaseId, desTaskGroupId: _desTaskGroupId, type: 2 },
+                        async: false,
+                        success: function (result) {
+                            result = JSON.parse(result);
+                            if (result.Result == true) {
+                                json = JSON.parse(result.Info);
+                            }
+                        }
+                    })
+                }
+                else if (this.stepOrder == 3) {
+                    var url = window.top.rootPath;
+                    var _mainProjId = $("#mainProjId").val();
+                    var _projId = $("#projId").val();
+                    var _projPhaseId = $("#projPhaseId").val();
+                    var _desTaskGroupId = $("#desTaskGroupId").val();
+                    $.ajax({
+                        doBackResult: false,
+                        url: url + 'Design/DesTask/jsonByArrange',
+                        data: { mainProjId: _mainProjId, projId: _projId, projPhaseId: _projPhaseId, desTaskGroupId: _desTaskGroupId, type: 3 },
+                        async: false,
+                        success: function (result) {
+                            result = JSON.parse(result);
+                            if (result.Result == true) {
+                                json = JSON.parse(result.Info);
+                            }
+                        }
+                    })
+                }
+                else if (this.stepOrder == 4) {
+
+                    var empId = $("#FProjEmpId").val();
+                    var empName = $("#FProjEmpName").textbox('getValue');
+                    if (empId == "0") {
+                        empId = $("#ProjEmpId").val();
+                        empName = $("#ProjPhaseEmpName").textbox('getValue');
+                        nOrder = 6;
+                    }
+                    json = { defaultChoosedUser: empId, users: [{ id: empId, name: empName }] };
+                }
+                else if (this.stepOrder == 5) {
+                    var empId = $("#ProjEmpId").val();
+                    var empName = $("#ProjPhaseEmpName").textbox('getValue');
+                    json = { defaultChoosedUser: empId, users: [{ id: empId, name: empName }] };
+
+                }
+                debugger;
+                if (nOrder == 0) {
+                    nOrder = this.stepOrder + 1;
+                }
+
+                var steps = Enumerable.From(old_originalSteps).Where("x => x.Order == " + nOrder + "").FirstOrDefault();
+                if (steps != undefined) {
+                    originalSteps.splice(0, originalSteps.length);
+                    if (json != undefined) {
+                        if (json.defaultChoosedUser != undefined) {
+                            steps.DefaultChoosedUser = json.defaultChoosedUser;
+                            for (var i = 0; i < json.users.length; i++) {
+                                steps.Users.push({ ID: json.users[i].id, Name: json.users[i].name });
+                            }
+                        } else {
+                            steps.Users = new Array();
+                            var userName = json.choosedUserNames.split(",");
+                            var userId = json.choosedUsers.split(",");
+                            var users = Array();
+                            for (var i = 0; i < userName.length; i++) {
+                                steps.Users.push({ ID: userId[i], Name: userName[i] });
+                            }
+                        }
+                    }
+                    originalSteps.push(steps);
+                }
+            },
+            onLoaded: function () {
+                $("#stepOrder").val(this.stepOrder);
+            }
+        },
+        onBefore: function (resultArr) {
+            var bit="0";
+            if($.inArray("allDown", btnPer)!=-1){
+                bit="1";
+            }
+            resultArr.push({ Key: "Permission", Value: bit});
+        }
+    });
+    function SelectProjectInfo() {
+        JQ.dialog.dialog({
+            title: "选择项目信息",
+            url: '@Url.Action("ChooseProjectList1", "EmpManage", new { @area = "Engineering" })?CompanyType=FGS&TaskGroupId=0',
+            width: '1024',
+            height: '100%',
+            JQID: 'ShowProjectTreeGridList',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-plus',
+        });
+    }
+    var _ProjCallBack = function (param) {
+        $("#mainProjId").val(param[0].ParentId);
+        $("#projId").val(param[0].Id);
+        $("#projPhaseId").val(param[0].ProjPhaseId);
+        $("#desTaskGroupId").val(param[0].TaskGroupId);
+        $("#CompanyID").val(param[0].CompanyID);
+
+        $("#ProjNumber").textbox('setValue', param[0].ProjNumber);
+        $("#ProjName").textbox('setValue', param[0].ProjName);
+        $("#ProjPhaseName").textbox('setValue', param[0].ProjPhaseName);
+        $("#ProjPhaseEmpName").textbox('setValue', param[0].ProjPhaseEmpName);
+        $("#FProjEmpName").textbox('setValue', param[0].FProjEmpName);
+        $("#AcceptUnit").textbox('setValue', param[0].CustName);
+    }
+
+    $(function () {
+        if(@(Model.Id)>0)
+        {
+
+            $("#mainProjId").val(@(ViewBag.MainProjId ));
+            $("#projId").val(@Model.ProjID);
+            $("#projPhaseId").val(@Model.ProjPhaseId);
+            $("#desTaskGroupId").val(@Model.DesTaskGroupId);
+            $("#CompanyID").val(@Model.CompanyID);
+
+            $("#ProjEmpId").val(@(ViewBag.ProjEmpId ));
+            $("#FProjEmpId").val(@(ViewBag.FProjEmpId));
+        }
+    })
+
+</script>
+@using (Html.BeginForm("save", "IsoDWGZLXD", FormMethod.Post, new { @area = "Iso", @id = "IsoDWGZLXDForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <div style="width:100%;text-align:center;font-size:20px;font-weight:bold;margin-top:10px;">
+            <a>对外工作联系单</a>
+        </div>
+        <div style="float:left;margin-left:20px;margin-top:10px;">
+            表<label>@Model.TableNumber</label> <input name="TableNumber" type="hidden" value="@Model.TableNumber" />
+        </div>
+        <div style="float:right;margin-right:20px;margin-top:10px;margin-bottom:10px;">
+            编号<input name="Number" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@Model.Number" />
+        </div>
+        <tr>
+            <th width="10%">
+                项目编号
+            </th>
+            <td width="40%">
+                <input name="ProjNumber" id="ProjNumber" style="width:60%;" class="easyui-textbox" validType="length[0,500]" value="@Model.ProjNumber" data-options="required:true,readonly:true" />
+                <a class="easyui-linkbutton" name="btnChoiceProject" data-options="plain:true,iconCls:'fa fa-plus'" onclick="SelectProjectInfo()" style="display:none;">选择项目信息</a>
+            </td>
+            <th width="10%">项目名称</th>
+            <td width="40%">
+                <input name="ProjName" id="ProjName" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@Model.ProjName" data-options="required:true,readonly:true" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">阶段</th>
+            <td width="40%">
+                <input name="ProjPhaseName" id="ProjPhaseName" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@Model.ProjPhaseName" data-options="required:true,readonly:true" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">主题</th>
+            <td colspan="3">
+                <textarea name="ZhuTi" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.ZhuTi</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">发文单位</th>
+            <td width="40%">
+                <input name="CompanyName" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@ViewBag.CompanyName" />
+            </td>
+            <th width="10%">电  话</th>
+            <td width="40%">
+                <input name="CompanyTel" style="width:98%;" class="easyui-textbox" validType="length[0,500]" value="@ViewBag.CompanyTel" data-options="readonly:true" />
+            </td>
+        </tr>
+
+
+        <tr>
+            <th width="10%">主送</th>
+            <td width="40%">
+                <input name="ZhuSong" style="width:98%;" class="easyui-textbox" validType="length[0,1000]" value="@Model.ZhuSong" />
+            </td>
+            <th width="10%">拟稿人</th>
+            <td width="40%">
+                <input name="DrafterName" style="width:98%;" class="easyui-textbox" validType="length[0,1000]" value="@ViewBag.DrafterName" data-options="readonly:true" />
+            </td>
+        </tr>
+
+        <Tr>
+            <th width="10%" rowspan="3">抄送</th>
+            <td width="40%" rowspan="3">
+                <textarea name="ChaoSong" style="width:99%;height:120px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.ChaoSong</textarea>
+            </td>
+            <th width="10%">项目负责人</th>
+            <td width="40%">
+                <input name="ProjPhaseEmpName" id="ProjPhaseEmpName" style="width:98%;" class="easyui-textbox" validType="length[0,1000]" value="@ViewBag.ProjPhaseEmpName" data-options="readonly:true" />
+            </td>
+        </Tr>
+        <tr>
+            <th width="10%">副项目负责人</th>
+            <td width="40%">
+                <input name="FProjEmpName" id="FProjEmpName" style="width:98%;" class="easyui-textbox" validType="length[0,1000]" value="@ViewBag.FProjEmpName" data-options="readonly:true" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">签发时间</th>
+            <td width="40%">
+                <input name="SignTime" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.SignTime" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">内容及附件名称</th>
+            <td width="40%" colspan="3">
+                <textarea name="Contents" style="width:99%;height:120px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.Contents</textarea>
+            </td>
+
+        </tr>
+        <tr>
+            <th width="10%">接受单位</th>
+            <td colspan="3">
+                <input name="AcceptUnit" id="AcceptUnit" style="width:98%;" class="easyui-textbox" value="@Model.AcceptUnit" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">接收人</th>
+            <td width="40%">
+                <input name="AcceptPerson" style="width:98%;" class="easyui-textbox" validType="length[0,50]" value="@Model.AcceptPerson" />
+            </td>
+            <th width="10%">接收时间</th>
+            <td width="40%">
+                <input name="AcceptTime" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.AcceptTime" />
+            </td>
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "IsoDWGZLXD";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <input type="hidden" id="mainProjId" name="mainProjId" value="@ViewBag.MainProjId" />
+    <input type="hidden" id="projId" name="projId" value="@Model.ProjID" />
+    <input type="hidden" id="projPhaseId" name="projPhaseId" value="@Model.ProjPhaseId" />
+    <input type="hidden" id="desTaskGroupId" name="desTaskGroupId" value="@Request.Params["taskGroupId"]" />
+    <input type="hidden" id="CompanyID" name="CompanyID" value="0" />
+    <input type="hidden" id="stepOrder" name="stepOrder" value="0" />
+    <input type="hidden" id="ProjEmpId" name="ProjEmpId" value="@ViewBag.ProjEmpId" />
+    <input type="hidden" id="FProjEmpId" name="FProjEmpId" value="@ViewBag.FProjEmpName" />
+    <input type="hidden" id="IsMultiSelect" name="IsMultiSelect" value="1" />
+
+                    }

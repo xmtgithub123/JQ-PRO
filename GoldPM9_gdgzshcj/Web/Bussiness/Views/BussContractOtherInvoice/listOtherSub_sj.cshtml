@@ -1,0 +1,87 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+            JQAddUrl: '@Url.Action("addInvoice")?CompanyType=SJ',//添加的路径
+            JQEditUrl: '@Url.Action("editInvoice")?CompanyType=SJ',//编辑的路径
+            JQDelUrl: '@Url.Action("del")',//删除的路径
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'BussContractOtherInvoiceGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            //JQCustomSearch: [  //自定义搜索的字段
+            //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+            //],
+            JQExcludeCol: [1],//导出execl排除的列
+            //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+            //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+            //JQFields: ["", ""],//追加的字段名
+            url: '@Url.Action("json", "BussContractOtherInvoice", new { @area = "Bussiness", @ConOtherTypeID = 1 })&CompanyType=SJ',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussContractOtherInvoicePanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+        	{ title: '合同编号', field: 'ConNumber', width: "15%", align: 'left', sortable: false },
+		{ title: '合同名称', field: 'ConrName', width: "15%", align: 'left', sortable: false },
+		{ title: '客户单位', field: 'CustName', width: "14%", align: 'left', sortable: false },
+		{ title: '合同金额(元)', field: 'ConFee', width: "8%", align: 'right', sortable: false },
+        { title: '已收票金额(元)', field: 'InvoiceMoneySum', width: "9%", align: 'right', sortable: false },
+		{ title: '本次收票金额(元)', field: 'InvoiceMoney', width: "10%", align: 'right', sortable: false },
+		{
+		    title: '未收票金额(元)', field: 'NoInvoiceMoney', width: "9%", align: 'right', sortable: false
+            , formatter: function (value, row, index) {
+                var value = row.NoInvoiceMoney;
+                    if (value <= 0) {
+                        value = 0;
+                    }
+                    row.NoInvoiceMoney = value;//更新数据行数据
+                    return value;
+                }
+		},
+        { title: '本次收票日期', field: 'InvoiceDate', width: "8%", align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '累计收票比例', field: 'Scale', width: "8%", align: 'center', sortable: false }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '合同编号、合同名称、客户单位',
+                queryOptions: { 'Key': 'FK_BussContractOtherInvoice_RefID.ConrName,FK_BussContractOtherInvoice_RefID.ConNumber,FK_BussContractOtherInvoice_RefID.CustName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BussContractOtherInvoiceGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="BussContractOtherInvoiceGrid"></table>
+    <div id="BussContractOtherInvoicePanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key:'FK_BussContractOtherInvoice_RefID.ConrName,FK_BussContractOtherInvoice_RefID.ConNumber,FK_BussContractOtherInvoice_RefID.CustName', Contract:'like'}" />
+        <div class="moreSearchPanel">
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '收票日期开始'" jqwhereoptions="{ Key:'InvoiceDate', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '收票日期结束'" jqwhereoptions="{ Key:'InvoiceDate', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>
+    </div>
+}
+

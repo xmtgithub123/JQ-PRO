@@ -1,0 +1,152 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="manager.ttinclude"#>
+<# var manager = Manager.Create(Host, GenerationEnvironment); #>
+<#
+	List<V_SystemTableStructure> arr = DbHelper.GetV_SystemTableStructure(config.ConnectionString);
+	var FKey = DbHelper.GetV_SystemTableFKey(config.ConnectionString);
+	var dataList = DbHelper.GetBaseData(config.ConnectionString);
+
+	var SwitchArr = "<script> $(function () { {0} }); </script>" ;
+	var SwitchString = "" ;
+	foreach(BaseNameSpace item in DbHelper.GetBaseNameSpaceTables(config.ConnectionString, config.TableNames))
+	{
+		string ClassName = item.TableNames ;
+		string WebNameSpace =  "PMWeb." + item.WebNameSpace.Replace("/",".").Trim(','); 
+		string DirPath = "tt/Web/" + item.DBSqlNameSpace + "/View/"+ item.TableNames ;
+
+		string First = DbHelper.GetFirstString(arr,item.TableNames);
+		string PKCol = DbHelper.GetPKColumn(arr,item.TableNames);
+		string FirstDate = DbHelper.GetFirstDateColNote(arr,item.TableNames);
+		List<V_SystemTableFKey> RefFkey = DbHelper.GetFKeyColumn(FKey,item.TableNames);
+
+		List<V_SystemTableStructure> TableStructure = arr.Where(p => p.TableName == item.TableNames && p.IsPK=="").ToList();
+#>
+<# manager.StartNewFile("info.cshtml",DirPath); #>
+@model DataModel.Models.<#=ClassName#>
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: '<#=ClassName#>Form',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "<#=ClassName#>", FormMethod.Post, new { @area = "<#=item.DBSqlNameSpace#>", @id = "<#=ClassName#>Form" }))
+{
+    @Html.HiddenFor(m => m.<#=PKCol#>)
+    <table class="table table-bordered">
+	<#
+ for (int i = 0; i < TableStructure.Count; i++)
+   {
+	   string FK = DbHelper.GetSortField(arr,FKey,item.TableNames,TableStructure[i].ColName);
+	   //判断时间字段
+	   string ColType = "easyui-textbox" ;
+	   string ColAtt1  = string.Format("validType=\"length[0,{0}]\"",TableStructure[i].ColLen);
+	   string ColAtt = "" ;
+	   //长度
+	   if(TableStructure[i].ColType == "datetime" || TableStructure[i].ColType == "smalldatetime") 
+	   {
+			ColType = "easyui-datebox";
+		    ColAtt  = "";
+       }
+	   else if(TableStructure[i].ColType == "int" || TableStructure[i].ColType == "bigint") 
+	   {
+			ColType = "easyui-numberspinner";
+       }
+	   else if(TableStructure[i].ColType == "decimal") 
+	   {
+		   ColType = "easyui-numberspinner";
+	   }
+	   else if(TableStructure[i].ColType == "bit") 
+	   {
+			ColType = "CheckBox";
+		    ColAtt  = "";
+       }
+	   //判断是否是必填字段
+	   if(First == TableStructure[i].ColName) ColAtt += " data-options=\"required:true\"" ;
+	   //外键用户控件字段
+	   string RefEngName =  DbHelper.GetEngNameField(dataList,arr,FKey,TableStructure[i].TableName,TableStructure[i].ColName);
+	   //默认增加附件上传
+#>
+<# if (i % 2 == 0) 
+   { 
+#> 
+                        <tr>
+<#
+   }
+#>
+                        <th width="10%"><#=TableStructure[i].ColNote#></th>
+                        <td width="40%">
+<#
+	   if(FK == "")
+	   {
+#>
+						<input name="<#=TableStructure[i].ColName#>" style="width:98%;" class="<#=ColType#>" <#=ColAtt#>  <#=ColAtt1#> value="@Model.<#=TableStructure[i].ColName#>" />
+<#
+	   }
+	   else
+	   {
+#>
+						  @BaseData.getBase(new Params()
+           {
+               controlName = "<#=TableStructure[i].ColName#>",
+               isRequired = true,
+               engName = "department",
+               width = "98%",
+               ids = Model.<#=TableStructure[i].ColName#>.ToString()
+           })
+<#
+	   }
+#>
+                        </td>
+<#
+	   if (i % 2 != 0)
+       {
+#>
+                        </tr>
+<#
+	   }
+	   if(i % 2 == 0 && i==TableStructure.Count-1)
+       {
+#>
+                        </tr>
+<#
+	   }
+#>
+<#
+    }
+#>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.<#=PKCol#>;
+                    uploader.RefTable = "<#=ClassName#>";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+	
+}
+
+
+
+<# manager.EndBlock(); #>
+<#}#>
+<# manager.Process(true); #>
+<#+
+	public class config
+	{
+		public static readonly string ConnectionString="Initial Catalog=JQPM9_gdgzshcj;Data Source=192.168.0.8\\j9SQL2008R2;user id=sa;password=j9;";
+	
+		public static readonly string TableNames="";
+	}
+#>

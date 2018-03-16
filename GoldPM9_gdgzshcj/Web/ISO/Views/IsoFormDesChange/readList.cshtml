@@ -1,0 +1,106 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var editUrl = '@Url.Action("edit")';
+        var requestUrl = '@Url.Action("json", "IsoFormDesChange", new { @area="ISO"})';
+
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'IsoFormDesChangeGid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '960',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                JQExcludeCol: [1, 9],//导出execl排除的列
+                toolbar: '#IsoFormDesChangePanel',//工具栏的容器ID
+                singleSelect: false,
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    {
+                        title: '编号', field: 'Number', width: "8%", align: 'left', sortable: true
+                    },
+                  {
+                      title: '项目编号', field: 'ProjNumber', width: "10%", align: 'left', sortable: true
+                  },
+                  {
+                      title: '项目名称', field: 'ProjName', width: "20%", align: 'left', sortable: true
+                  },
+                  {
+                      title: '发起人', field: 'CreatorEmpName', width: "6%", align: 'center', sortable: true
+                  },
+                  {
+                      title: '变更性质', field: 'DesignChange', width: "14%", align: 'center', sortable: true
+                  },
+
+                {
+                    title: '变更日期', field: 'FormDate', width: "8%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT
+                },
+                {
+                    title: '变更原因', field: 'DesignReason', width: "22%", align: 'left', sortable: true
+                },
+                  {
+                      field: "read", title: "操作", align: "center", halign: "center", width: "8%",
+                      formatter: function (val, row) {
+                          return '<a class="easyui-linkbutton" href="#" onclick="DesignChangeInfo(' + row.FormID + ')">查看</a>'
+                      }
+                  }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号、项目名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'IsoFormDesChangeGid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                Keys: $("#JQSearch").val(),
+                                startDate: $("#startDate").datebox('getValue'),
+                                endDate: $("#endDate").datebox('getValue')
+                            }
+                        });
+                }
+            });
+        });
+
+        function DesignChangeInfo(FormID) {
+            JQ.dialog.dialog({
+                title: "设计变更",
+                url: editUrl + '?id=' + FormID+'&Read=1',
+                width: '1024',
+                height: '100%',
+                JQID: 'IsoFormDesChangeGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-edit'
+            });
+        }
+    </script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="IsoFormDesChangeGid"></table>
+    <div id="IsoFormDesChangePanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" />
+        <span style="margin-left:20px;">变更时间：</span>
+        <input class="easyui-datebox" id="startDate" name="startDate" style="width:120px;" prompt="开始时间" />
+        ---
+        <input class="easyui-datebox" id="endDate" name="endDate" style="width:120px;" prompt="结束时间" />
+
+    </div>
+}
+

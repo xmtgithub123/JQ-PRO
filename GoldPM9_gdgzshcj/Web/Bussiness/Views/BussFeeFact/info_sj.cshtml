@@ -1,0 +1,243 @@
+﻿@model DataModel.Models.BussFeeFact
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'BussFeeFactForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.treegrid.autoReftreegrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }
+        });
+
+
+        $.extend($.fn.datagrid.defaults.editors, {
+            span: {
+                init: function(container, options){
+                    var input = $('<span></span>').appendTo(container);
+                    return input;
+                },
+                destroy: function(target){
+                    //$(target).text('destroy');
+                },
+                getValue: function(target){
+                    return $(target).text();
+                },
+                setValue: function(target, value){
+                    $(target).text(value);
+                },
+                resize: function(target, width){
+                    //$(target).textbox('resize',width);
+                }
+            }
+        });
+    });
+</script>
+@using (Html.BeginForm("save", "BussFeeFact", FormMethod.Post, new { @area = "Bussiness", @id = "BussFeeFactForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <input type="hidden" id="CompanyType" name="CompanyType" value="SJ" />
+    <table class="table table-bordered">
+        <tr>
+            <td colspan="4" align="center" style="border:none;">收款合同登记</td>
+        </tr>
+        <tr>
+            <td colspan="4">
+                <table id="FeeGrid"></table>
+                <div id="FeeGridPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+                    <span JQPanel="toolbarPanel">
+                        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="Add()">新增</a>
+                        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="FactDel()">删除</a>
+                    </span>
+                </div>
+                <script type="text/javascript">
+                    var CurrentRow;
+                    $(function () {
+                        $("#FeeGrid").datagrid({
+                            idField: 'Id',//主键的字段
+                            singleSelect: false,
+                            pagination: false,
+                            url: '@Url.Action("json", "BussFeeFact", new { @area = "Bussiness" })?CompanyType=SJ',//请求的地址
+                            queryParams: {ConID:@Model.Id},
+                            rownumbers: true,
+                            toolbar: '#FeeGridPanel',//工具栏的容器ID
+                            columns: [[
+                                { title: '合同名称', field: 'ConID', width: 180, align: 'center',
+                                    formatter: function (value, row) {
+                                        return row.ConName;
+                                    },
+                                    editor:{
+                                        type:"combogrid",
+                                        options: {
+                                            panelWidth: 650,
+                                            idField: 'Id',
+                                            textField: 'ConName',
+                                            url: '@Url.Action("json","BussContract")?CompanyType=SJ&FatherID=0',
+                                            queryParams:{FatherID:'0'},
+                                            pagination: true,
+                                            nowrap:false,//是否换行
+                                            striped: true,
+                                            method: 'post',
+                                            singleSelect:true,
+                                            required: true,
+                                            columns: [[
+                                                        { field: 'Id', title: '合同编号', width: 100 ,hidden:true,halign:'center'},
+                                                        { field: 'ConNumber', title: '合同编号', width: 100,halign:'center' },
+                                                        { field: 'ConName', title: '合同名称', width: 150,halign:'center' },
+                                                        { field: 'CustName', title: '客户单位', width: 100,halign:'center' },
+                                                        { field: 'ConFee', title: '合同金额', width: 100,halign:'center',align:'right',formatter:function (value, row, index) {
+                                                            if (row.ConFulfilType == '@((int)DataModel.ConDealWays.开口)') {
+                                                                return "<div title=\"开口合同、红色金额为主合同金额\"><span>" + row.SumConFee + "</span><span style=\"color:red;\">（" + row.ConFee + "）</span></div>";
+                                                            } else {
+                                                                return "<div title=\"闭口合同、红色金额为主合同金额\"><span>" + row.SumConBalanceFee + "</span><span style=\"color:red;\">（" + row.ConBalanceFee + "）</span></div>";
+                                                            }
+                                                        } },
+                                            ]],
+                                            keyHandler: {query: function (keyword) {
+                                                var  _params= $(this).combogrid("grid").datagrid("options").queryParams;
+                                                _params.Filter=keyword;
+                                                $(this).combogrid("grid").datagrid('load',_params);
+                                                $(this).combogrid("setValue", keyword);
+                                            }},
+                                            onSelect:function (rowIndex, rowData) {
+                                                var _row=$(this).attr("_row");
+                                                //debugger;
+                                                var EditorArray=$('#FeeGrid').datagrid('getEditors',_row);
+                                                $(EditorArray[1].target).combogrid("grid").datagrid("load",{ConID:rowData.Id,Filter:''});
+                                                var ConFeeToop="";
+                                                var ConFeeHtml="";
+                                                var CurrentConFee=0;//合同金额
+                                                if (rowData.ConFulfilType == '@((int)DataModel.ConDealWays.开口)') {
+                                                    ConFeeHtml= rowData.SumConFee+"（" + rowData.ConFee + "）";
+                                                    ConFeeToop="开口合同、括号中主合同金额";
+                                                    CurrentConFee=rowData.SumConFee;
+                                                } else {
+                                                    ConFeeHtml=rowData.SumConBalanceFee+"（" + rowData.ConBalanceFee + "）";
+                                                    ConFeeToop="闭口合同(结算金额)、括号中主合同金额";
+                                                    CurrentConFee=rowData.SumConBalanceFee;
+                                                }
+                                                $(EditorArray[2].target).text(ConFeeHtml);
+                                                $(EditorArray[2].target).attr("title",ConFeeToop);
+                                                $(EditorArray[2].target).attr("CurrentConFee",CurrentConFee);//设置合同金额
+                                                $(EditorArray[3].target).text(rowData.FeeFact==null?0:rowData.FeeFact);
+                                                $(EditorArray[4].target).attr("_row",_row);
+
+                                                GetPercent(_row);
+                                            }
+                                        }
+                                    }
+                                },
+                                { title: '项目名称', field: 'ProjNumber', width: 180, align: 'center', JQIsExclude: true,
+                                    formatter: function (value, row) {
+                                        return row.ProjName;
+                                    },
+                                    editor:{
+                                        type:"combogrid",
+                                        options: {
+                                            panelWidth: 650,
+                                            idField: 'ProjID',
+                                            textField: 'ProjName',
+                                            url: '@Url.Action("JsonProject", "BussFeeFact", new { @area = "Bussiness" })?CompanyType=SJ',
+                                            queryParams:{ConID:'0'},
+                                            pagination: true,
+                                            nowrap:false,//是否换行
+                                            striped: true,
+                                            method: 'post',
+                                            required: true,
+                                            singleSelect:true,
+                                            columns: [[
+                                                        { field: 'ProjID', title: '主键ID', width: 100 ,hidden:true,},
+                                                        { field: 'ProjNumber', title: '项目编号', width: 100 },
+                                                        { field: 'ProjName', title: '项目名称', width: 150 },
+                                                        { field: 'Customer', title: '客户单位', width: 100 },
+                                                        { field: 'ConFee', title: '金额', width: 100 },
+                                            ]],
+                                            keyHandler: {query: function (keyword) {
+                                                $(this).combogrid("grid").datagrid('load',{Filter:keyword,FatherID:'0'});
+                                                $(this).combogrid("setValue", keyword);
+                                            }},
+                                        }
+                                    }
+                                },
+                                { title: '合同金额', field: 'ConFee', width: 100, align: 'right',editor:'span'},
+                                { title: '已收款金额', field: 'SumFeeMoney', width: 100, align: 'right',editor:'span'},
+                                { title: '本次收款金额', field: 'FeeMoney', width: 100, align: 'right',editor:{type:'numberbox',options: {  precision: 2,  required: true,onChange:function (_new,_old) {
+                                    if ($(this).attr("_row")!=undefined) {
+                                        GetPercent($(this).attr("_row"));
+                                    }
+                                } }}},
+                                { title: '本次收款日期', field: 'FeeData', width: 100, align: 'center',  editor: { type: 'datebox',   options: { validType: ['dateISO'],required: true } }  },
+                                { title: '累计比例', field: 'Persent', width: 80, align: 'center', JQIsExclude: true,editor:'span' },
+                                { title: '是否结清', field: 'IsSettle', width: 100, align: 'center', JQIsExclude: true },
+                            ]],
+                            onEndEdit:function (rowIndex, rowData) {
+                                alert(JSON.stringify(rowData));
+                                //var ed = $('#FeeGrid').datagrid('getEditors', rowIndex)[0];
+                                //$(ed.target).combogrid('setValue',rowData.Id);
+                            }
+                        });
+                    });
+
+                    function Add() {
+                        var rowlength=typeof($('#FeeGrid').datagrid("getRows"))=="undefined"?0:$('#FeeGrid').datagrid("getRows").length;
+                        $('#FeeGrid').datagrid('appendRow', {});
+                        $('#FeeGrid').datagrid('beginEdit', rowlength);
+
+                        var ed = $('#FeeGrid').datagrid('getEditors', rowlength)[0];
+                        $(ed.target).combogrid('grid').attr("_row",rowlength);
+                    }
+
+                    function GetPercent(rowIndex) {
+                        var EditorArray=$('#FeeGrid').datagrid('getEditors',rowIndex);
+                        //获取合同金额
+                        var CurrentConFee=isNaN(parseFloat($(EditorArray[2].target).attr("CurrentConFee")))?0:parseFloat($(EditorArray[2].target).attr("CurrentConFee"));
+                        //获取已收款
+                        var HasFee=isNaN(parseFloat($(EditorArray[3].target).text()))?0:parseFloat($(EditorArray[3].target).text());
+                        //获取本次收款金额
+                        var getNum= isNaN(parseFloat($(EditorArray[4].target).numberbox('getValue')))?0:parseFloat($(EditorArray[4].target).numberbox('getValue'));
+                        if (CurrentConFee==0) {
+                            $(EditorArray[6].target).text("0%");
+                        }
+                        else {
+                            $(EditorArray[6].target).text(((HasFee+getNum)/CurrentConFee*100).toFixed(2)+"%");
+                            if ((CurrentConFee-HasFee)>0) {
+                                $(EditorArray[4].target).numberbox({prompt:(CurrentConFee-HasFee)});
+                            }
+                        }
+
+                        $(EditorArray[6].target).attr("title","(已收款金额+本次收款金额)/合同金额");
+                    }
+                </script>
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">备注说明</th>
+            <td width="40%">
+                <input name="FeeNote" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,200]" value="@Model.FeeNote" />
+            </td>
+            <th width="10%">经办人</th>
+            <td width="40%">
+                <input name="EmpId" style="width:98%;" class="easyui-numberspinner" validType="length[0,19]" value="@Model.EmpId" />
+            </td>
+        </tr>
+
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @Html.Action("uploadFile", "usercontrol", new
+           {
+               @area = "Core",
+               AttachRefID = Model.Id,
+               AttachRefTable = "BussFeeFact"
+           })
+            </td>
+        </tr>
+    </table>
+}
+
+
+

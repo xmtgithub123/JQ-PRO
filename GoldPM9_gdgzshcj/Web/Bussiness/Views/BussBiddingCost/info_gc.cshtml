@@ -1,0 +1,181 @@
+﻿@model DataModel.Models.BussBiddingCost
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'BussBiddingCostForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                var _tempFrame=window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+                if(_tempFrame){
+                    _tempFrame.contentWindow.refreshGrid();
+                }
+                //JQ.datagrid.autoRefdatagrid;//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }
+        });
+
+        $("#BiddingBatch").attr('readonly', true);
+        $("#BiddingNumber").attr('readonly', true);
+        $("#PackageNumber").attr('readonly', true);
+        $("#ProgressName").attr('readonly', true);
+        $("#WinTime").attr('readonly', true);
+
+        if(@Model.Id>0)
+        {
+            $("#BiddingBatch").val('@ViewBag.BiddingBatch');
+            $("#BiddingNumber").val('@ViewBag.BiddingNumber');
+
+            $("#BiddingId").val(@Model.BussBiddingInfoID);
+        }
+    });
+
+    function SelectBiddingInfoPackage() {
+        JQ.dialog.dialog({
+            title: "选择投标项目",
+            url: '@Url.Action("ListInfo", "BussBiddingInfo", new { @area = "Bussiness" })?CompanyType=GC&IsFilter=1',
+            width: '1024',
+            height: '100%',
+            JQID: 'BiddingInfoInfoGrid',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-plus',
+        });
+    }
+
+    var _BussBiddingPackageBack = function (row) {
+        debugger;
+        $("#BiddingId").val(row.Id);
+        $("#EngineeringName").textbox('setText', row.EngineeringName);
+        $("#BiddingNumber").textbox('setText', row.BiddingNumber);
+        debugger;
+        if (row.BidStatus != 0) {
+            $("#ProgressName").combotree("setValue", row.BidStatus);
+        }
+        $("#WinTime").datebox("setValue", row.BidStatusTime);
+    }
+</script>
+@using (Html.BeginForm("save", "BussBiddingCost", FormMethod.Post, new { @area = "Bussiness", @id = "BussBiddingCostForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">投标编号</th>
+            <td width="40%">
+                <input id="BiddingNumber" name="BiddingNumber" style="width:98%;" class="easyui-textbox" data-options="required:true" />
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="SelectBiddingInfoPackage()">选择投标项目</a>
+            </td>
+            <th width="10%">项目名称</th>
+            <td width="40%">
+                <input id="EngineeringName" name="EngineeringName" style="width:98%;" class="easyui-textbox" data-options="required:true" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">投标状态</th>
+            <td width="40%">
+                @*<input id="ProgressName" name="ProgressName" style="width:98%;" class="easyui-textbox" validType="length[0,10]" />*@
+            @BaseData.getBase(new Params()
+           {
+               controlName = "ProgressName",
+               isMult = false,
+               isRequired = false,
+               engName = "BiddingProgress",
+               width = "98%"
+           })
+            </td>
+            <th width="10%">中标时间</th>
+            <td width="40%">
+                <input id="WinTime" name="WinTime" style="width:98%;" class="easyui-datebox" validType="length[0,23]" />
+            </td>
+
+        </tr>
+
+        <tr>
+            <th width="10%">标书费</th>
+            <td width="40%">
+                <input name="TenderFee" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" value="@Model.TenderFee" />
+            </td>
+            <th width="10%">标书费缴纳时间</th>
+            <td width="40%">
+                <input name="TenderFeePayTime" style="width:98%;" class="easyui-datebox" validType="length[0,23]" value="@Model.TenderFeePayTime" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">招标代理费</th>
+            <td width="40%">
+                <input name="TenderAgentFee" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" value="@Model.TenderAgentFee" />
+            </td>
+            <th width="10%">招标代理费缴纳时间</th>
+            <td width="40%">
+                <input name="TenderAgentFeePayTime" style="width:98%;" class="easyui-datebox" validType="length[0,23]" value="@Model.TenderAgentFeePayTime" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">投标保证金缴纳金额</th>
+            <td width="40%">
+                <input name="BidBondPay" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" value="@Model.BidBondPay" />
+            </td>
+            <th width="10%">投标保证金缴纳时间</th>
+            <td width="40%">
+                <input name="BidBondPayTime" style="width:98%;" class="easyui-datebox" validType="length[0,23]" value="@Model.BidBondPayTime" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">投标保证金退还金额</th>
+            <td width="40%">
+                <input name="BidBondBack" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" value="@Model.BidBondBack" />
+            </td>
+            <th width="10%">投标保证金退还时间</th>
+            <td width="40%">
+                <input name="BidBondBackTime" style="width:98%;" class="easyui-datebox" validType="length[0,23]" value="@Model.BidBondBackTime" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">履约保证金缴纳金额</th>
+            <td width="40%">
+                <input name="PerformanceBondPay" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" value="@Model.PerformanceBondPay" />
+            </td>
+            <th width="10%">履约保证金缴纳时间</th>
+            <td width="40%">
+                <input name="PerformanceBondPayTime" style="width:98%;" class="easyui-datebox" validType="length[0,23]" value="@Model.PerformanceBondPayTime" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">履约保证金退还金额</th>
+            <td width="40%">
+                <input name="PerformanceBondBack" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" value="@Model.PerformanceBondBack" />
+            </td>
+            <th width="10%">履约保证金退还时间</th>
+            <td width="40%">
+                <input name="PerformanceBondBackTime" style="width:98%;" class="easyui-datebox" validType="length[0,23]" value="@Model.PerformanceBondBackTime" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">备注说明</th>
+            <td colspan="3">
+                @Html.TextAreaFor(model => Model.CostNote, new { @style = "width:98%;height:80px" })
+            </td>
+        </tr>
+
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "BussBiddingCost";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <input type="hidden" id="BiddingId" name="BiddingId" />
+                    }

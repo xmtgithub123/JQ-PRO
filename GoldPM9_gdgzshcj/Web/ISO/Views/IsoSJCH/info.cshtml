@@ -1,0 +1,506 @@
+﻿@model DataModel.Models.IsoSJCH
+@using JQ.Web;
+
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoSJCHForm',//formid提交需要用到
+        docName: 'IsoSJCHD',
+        ExportName: '设计策划单',
+        buttonTypes: ['close', 'exportForm'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }, flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "ISO,ISO.FlowProcessor.IsoSJCHFlow",
+            refID: "@(Model.Id)",
+            refTable: "IsoSJCH",
+            dataCreator: "@(ViewBag.CurrEmpID)"
+            ,beforeFormSubmit:function(){
+                debugger
+                if($('#IsCHBG1').attr('checked'))
+                {
+                    var f = $('#file')[0].innerHTML;
+                    if(f.indexOf('设计策划报告') < 0)
+                    {
+                        $.messager.alert('提示','请提交设计策划报告');
+                        return false;
+                    }
+                }
+            }
+        },
+        onBefore: function (resultArr) {
+            resultArr.push({ Key: "Permission", Value: @ViewBag.Permission });
+        }
+    });
+
+    $(function () {
+        GetBaseData("XMJD", "ProjectPhase", '@Model.ProjPhaseId', false);
+        GetBaseData("SJZY", "Special", '@Model.JoinSpecIds', false);
+        GetBaseData("CYBM", "department", '@Model.JoinDepIds', false);
+        GetBaseData("HZSJ", "HZSJ", '@Model.CooperativeDesign', true);
+        GetBaseData("CYMB", "CYMB", '@Model.MeritGoal', true);
+        GetBaseData("TSZY", "TSZY", '@Model.ProjResources', false);
+        SetCheck("IsPS", '@Model.IsReview');
+        SetCheck("PSType", '@Model.ReviewType');
+        SetCheck("FJ", '@Model.Attachment');
+        SetCheck("IsCHBG", '@Model.PlanReport');
+    });
+
+    //容器ID,BaseNameEng
+    function GetBaseData(groupId, BaseNameEng, paras, isOnly) {
+        $.ajax({
+            type: "POST",
+            async: false,
+            url: '@Url.Action("GetBasdByBaseNameEng", "BaseData", new { @area = "Core" })?baseNameEng=' + BaseNameEng + '',
+            dataType: "json",
+            success: function (msg) {
+                var html = "";
+                var paraArr = Enumerable.From(paras.split(',')).Where("x=>x!=''").Select("x=>x").ToArray();
+                var ex = "";
+                $.each(msg, function (index, data) {
+                    if (isOnly) {
+                        html += '<span style="display:block;width:130px;float:left;margin-bottom:10px;"><input type="checkbox" name="' + groupId + '" id="' + groupId + data.BaseID + '" style="vertical-align:middle;" onclick="Checked(this.id,\'' + groupId + '\',\'' + data.BaseID + '\',\'' + data.BaseName + '\',\'' + groupId + '\')"';
+                    } else {
+                        html += '<span style="display:block;width:130px;float:left;margin-bottom:10px;"><input type="checkbox" id="' + groupId + data.BaseID + '" style="vertical-align:middle;" onclick="Checked(this.id,\'' + groupId + '\',\'' + data.BaseID + '\',\'' + data.BaseName + '\')"';
+                    }
+
+                    if (paraArr.indexOf(data.BaseID) > -1) {
+                        html += "checked='checked'";
+                        ex += "☑" + data.BaseName + " ";
+                    } else {
+                        ex += "□" + data.BaseName + " ";
+                    }
+                    html += ' /><label for="' + groupId + data.BaseID + '" style="vertical-align:middle;">' + data.BaseName + '</label></span>';
+                });
+                $("#" + groupId + "").html(html);
+
+                $("#" + groupId + "_Ex").val(ex);
+            }
+        });
+    }
+
+    function SetCheck(contId, paras) {
+        $(':checkbox[name=' + contId + ']').removeAttr('checked');
+        var paraArr = Enumerable.From(paras.split(',')).Where("x=>x!=''").Select("x=>x").ToArray();
+        $.each(paraArr, function (index, data) {
+            $("#" + contId + paraArr[index]).attr("checked", "checked");
+        })
+
+        var val = "0";
+        if (paraArr.length == 0) {
+            val = "0";
+        } else {
+            val = paraArr[0];
+        }
+        switch (contId) {
+            case "FJ":
+                switch (val) {
+                    case "1":
+                        $("#" + contId + "_Ex").val("☑拟报出的文件册总目录  □进度计划表  □策划调整说明");
+                        break;
+                    case "2":
+                        $("#" + contId + "_Ex").val("□拟报出的文件册总目录  ☑进度计划表  □策划调整说明");
+                        break;
+                    case "3":
+                        $("#" + contId + "_Ex").val("□拟报出的文件册总目录  □进度计划表  ☑策划调整说明");
+                        break;
+                    default:
+                        $("#" + contId + "_Ex").val("□拟报出的文件册总目录  □进度计划表  □策划调整说明");
+                        break;
+                }
+                break;
+            case "IsPS":
+                switch (val) {
+                    case "1":
+                        $("#" + contId + "_Ex").val("☑要求评审  □不要求评审");
+                        break;
+                    case "2":
+                        $("#" + contId + "_Ex").val("□要求评审  ☑不要求评审");
+                        break;
+                    default:
+                        $("#" + contId + "_Ex").val("□要求评审  □不要求评审");
+                        break;
+                }
+                break;
+            default:
+                switch (val) {
+                    case "1":
+                        $("#" + contId + "_Ex").val("☑是  □否");
+                        break;
+                    case "2":
+                        $("#" + contId + "_Ex").val("□是  ☑否");
+                        break;
+                    default:
+                        $("#" + contId + "_Ex").val("□是  □否");
+                        break;
+                }
+                break;
+        }
+    }
+
+    //选中控件，隐藏控件，id，name，是否单选
+    function Checked(ckControl, hidCon, value, valName, isOnlyName) {
+        if ($("#" + ckControl).attr("checked")) {
+            if (isOnlyName != undefined) {
+                $(':checkbox[name=' + isOnlyName + ']').removeAttr('checked');
+                $("#" + ckControl).attr('checked', 'checked');
+            }
+            switch (hidCon) {
+                case "XMJD":
+                    var ProjPhaseId = $("#ProjPhaseId").val().split(",");
+                    var ProjPhaseName = $("#ProjPhaseName").val().split(",");
+                    if (ProjPhaseName[0] == "") {
+                        $("#ProjPhaseName").val(valName);
+                        $("#ProjPhaseId").val(value);
+                    } else {
+                        var index = $.inArray(value, ProjPhaseId);
+                        if (index == -1) {
+                            $("#ProjPhaseName").val(ProjPhaseName.join(",") + "," + valName);
+                            $("#ProjPhaseId").val(ProjPhaseId.join(",") + "," + value);
+                           
+                        }
+                    }
+                    break;
+                case "SJZY":
+                    var JoinSpecIds = $("#JoinSpecIds").val().split(",");
+                    var JoinSpecName = $("#JoinSpecName").val().split(",");
+                    if (JoinSpecName[0] == "") {
+                        $("#JoinSpecIds").val(value);
+                        $("#JoinSpecName").val(valName);
+                    } else {
+                        var index = $.inArray(value, JoinSpecIds);
+                        if (index == -1) {
+                            $("#JoinSpecIds").val(JoinSpecIds.join(",") + "," + value);
+                            $("#JoinSpecName").val(JoinSpecName.join(",") + "," + valName);
+                        }
+                    }
+                    break;
+                case "CYBM":
+                    var JoinDepIds = $("#JoinDepIds").val().split(",");
+                    var JoinDepName = $("#JoinDepName").val().split(",");
+                    if (JoinDepName[0] == "") {
+                        $("#JoinDepIds").val(value);
+                        $("#JoinDepName").val(valName);
+                    } else {
+                        var index = $.inArray(value, JoinDepIds);
+                        if (index == -1) {
+                            $("#JoinDepIds").val(JoinDepIds.join(",") + "," + value);
+                            $("#JoinDepName").val(JoinDepName.join(",") + "," + valName);
+                        }
+                    }
+                    break;
+                case "TSZY":
+                    var ProjResources = $("#ProjResources").val().split(",");
+                    if (ProjResources[0] == "" || ProjResources[0] == "0") {
+                        $("#ProjResources").val(value);
+                    } else {
+                        var index = $.inArray(value, ProjResources);
+                        if (index == -1) {
+                            $("#ProjResources").val(ProjResources.join(",") + "," + value);
+                        }
+                    }
+                    break;
+                case "HZSJ":
+                    $("#CooperativeDesign").val(value);
+                    break;
+                case "CYMB":
+                    $("#MeritGoal").val(value);
+                    break;
+                default:
+                    $("#" + hidCon).val(value);
+                    break;
+            }
+        } else {
+            switch (hidCon) {
+                case "XMJD":
+                    var ProjPhaseId = $("#ProjPhaseId").val().split(",");
+                    var ProjPhaseName = $("#ProjPhaseName").val().split(",");
+                    var index = $.inArray(value, ProjPhaseId);
+                    if (index != -1) {
+                        ProjPhaseId.splice(index, 1);
+                        ProjPhaseName.splice(index, 1);
+                        $("#ProjPhaseId").val(ProjPhaseId.join(","));
+                        $("#ProjPhaseName").val(ProjPhaseName.join(","));
+                    }
+                    break;
+                case "SJZY":
+                    var JoinSpecIds = $("#JoinSpecIds").val().split(",");
+                    var JoinSpecName = $("#JoinSpecName").val().split(",");
+                    var index = $.inArray(value, JoinSpecIds);
+                    if (index != -1) {
+                        JoinSpecIds.splice(index, 1);
+                        JoinSpecName.splice(index, 1);
+                        $("#JoinSpecIds").val(JoinSpecIds.join(","));
+                        $("#JoinSpecName").val(JoinSpecName.join(","));
+                    }
+                    break;
+                case "CYBM":
+                    var JoinDepIds = $("#JoinDepIds").val().split(",");
+                    var JoinDepName = $("#JoinDepName").val().split(",");
+                    var index = $.inArray(value, JoinDepIds);
+                    if (index != -1) {
+                        JoinDepIds.splice(index, 1);
+                        JoinDepName.splice(index, 1);
+                        $("#JoinDepIds").val(JoinDepIds.join(","));
+                        $("#JoinDepName").val(JoinDepName.join(","));
+                    }
+                    break;
+                case "TSZY":
+                    var ProjResources = $("#ProjResources").val().split(",");
+                    var index = $.inArray(value, ProjResources);
+                    if (index != -1) {
+                        ProjResources.splice(index, 1);
+                        $("#ProjResources").val(ProjResources.join(","));
+                    }
+                    break;
+                case "HZSJ":
+                    $("#CooperativeDesign").val("");
+                    break;
+                case "CYMB":
+                    $("#MeritGoal").val("");
+                    break;
+                default:
+                    $("#" + hidCon).val("");
+                    break;
+            }
+        }
+    }
+
+    //选择项目
+    function SelectMainProject() {
+        JQ.dialog.dialog({
+            title: "选择项目",
+            url: '@Url.Action("ChooseProjectList1", "EmpManage", new { @area = "Engineering" })?CompanyType=&TaskGroupId=' + $("#ProjID").val(),
+            width: '1024',
+            height: '100%',
+            JQID: 'ProjTable',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-list',
+        });
+    }
+
+    //确定选择回调
+    var _ProjCallBack = function (row) {
+        var data = row[0];
+        $("#ProjID").val(data.Id);
+        $("#ProjName").textbox("setValue", data.ProjName);
+        $("#ProjNumber").textbox("setValue", data.ProjNumber);
+        $("#ProjPhaseName").val(JQ.tools.trimSplitChar(data.ProjPhaseName, ','));
+        $("#ProjPhaseId").val(data.ProjPhaseId);
+        GetBaseData("XMJD", "ProjectPhase", data.ProjPhaseId+",", false);
+    }
+</script>
+
+@using (Html.BeginForm("save", "IsoSJCH", FormMethod.Post, new { @area = "Iso", @id = "IsoSJCHForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <div style="width:100%;text-align:center;font-size:20px;font-weight:bold;margin-top:10px;">
+            <a>设计策划单</a>
+        </div>
+        <div style="float:left;margin-left:20px;margin-top:10px;">
+            表<label>@Model.TableNumber</label><input type="hidden" name="TableNumber" value="@Model.TableNumber" />
+        </div>
+        <div style="float:right;margin-right:20px;margin-top:10px;margin-bottom:10px;">
+            编号<input id="Number" name="Number" style="width:140px;" class="easyui-textbox" validtype="length[0,50]" value="@Model.Number" />
+        </div>
+        <tr>
+            <th width="10%">项目编号</th>
+            <td width="40%">
+                <input id="ProjNumber" name="ProjNumber" style="width:60%;" class="easyui-textbox" data-options="required:true,editable:false" validType="length[0,50]" value="@Model.ProjNumber" />
+                <a class="easyui-linkbutton" name="btnChoice" id="btnChoice" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="SelectMainProject()" style="display:none;">选择项目</a>
+            </td>
+            <th width="10%">项目名称</th>
+            <td width="40%">
+                <input type="hidden" id="ProjID" name="ProjID" value="@Model.ProjID" />
+                <input id="ProjName" name="ProjName" style="width:98%;" class="easyui-textbox" data-options="required:true,editable:false" validType="length[0,50]" value="@Model.ProjName" />
+            </td>
+        </tr>
+
+        <tr>
+
+            <th width="10%">项目阶段</th>
+            <td colspan="3">
+                <div id="XMJD">
+
+                </div>
+                <input type="hidden" id="ProjPhaseName" name="ProjPhaseName" value="@Model.ProjPhaseName" />
+                <input type="hidden" id="ProjPhaseId" name="ProjPhaseId" value="@Model.ProjPhaseId" />
+                <input type="hidden" id="XMJD_Ex" name="XMJD_Ex" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">涉及专业</th>
+            <td colspan="3">
+                <div id="SJZY">
+
+                </div>
+                <input type="hidden" id="JoinSpecIds" name="JoinSpecIds" value="@Model.JoinSpecIds" />
+                <input type="hidden" id="JoinSpecName" name="JoinSpecName" value="@Model.JoinSpecName" />
+                <input type="hidden" id="SJZY_Ex" name="SJZY_Ex" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">参加部门</th>
+            <td colspan="3">
+                <div id="CYBM">
+
+                </div>
+                <input type="hidden" id="JoinDepIds" name="JoinDepIds" value="@Model.JoinDepIds" />
+                <input type="hidden" id="JoinDepName" name="JoinDepName" value="@Model.JoinDepName" />
+                <input type="hidden" id="CYBM_Ex" name="CYBM_Ex" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">合作设计</th>
+            <td colspan="3">
+                <div id="HZSJ">
+
+                </div>
+                <input type="hidden" id="CooperativeDesign" name="CooperativeDesign" value="@Model.CooperativeDesign" />
+                <input type="hidden" id="HZSJ_Ex" name="HZSJ_Ex" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">创优目标</th>
+            <td colspan="3">
+                <div id="CYMB">
+
+                </div>
+                <input type="hidden" id="MeritGoal" name="MeritGoal" value="@Model.MeritGoal" />
+                <input type="hidden" id="CYMB_Ex" name="CYMB_Ex" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">项目概况及总体要求</th>
+            <td colspan="3">
+                <input class="easyui-textbox" id="ProjNote" name="ProjNote" data-options="multiline:true" style="width:98%;height:80px;" value="@Model.ProjNote" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">计划完成时间</th>
+            <td colspan="3">
+                <input class="easyui-datebox" id="PlanFinishTime" name="PlanFinishTime" value="@Model.PlanFinishTime" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">设计评审</th>
+            <td colspan="3">
+                <span style="display:block;width:150px;float:left;">
+                    <input type="checkbox" id="IsPS1" style="vertical-align:middle;" name="IsPS" onclick="Checked(this.id,'IsReview','1','','IsPS')" />
+                    <label for="IsPS1" style="vertical-align:middle;">要求评审</label>
+                </span>
+                <span style="display:block;width:100px;float:left;">
+                    <input type="checkbox" id="IsPS2" style="vertical-align:middle;" name="IsPS" onclick="Checked(this.id,'IsReview','2','','IsPS')" />
+                    <label for="IsPS2" style="vertical-align:middle;">不要求评审</label>
+                </span>
+                <input type="hidden" id="IsReview" name="IsReview" value="@Model.IsReview" />
+                <input type="hidden" id="IsPS_Ex" name="IsPS_Ex" />
+                <div style="clear:both;"></div>
+                <span style="margin-left:5px;">设计评审时机：<input class="easyui-datebox" id="ReviewTime" name="ReviewTime" value="@Model.ReviewTime" /></span>
+                <div style="clear:both;"></div>
+                <span style="display:block;float:left;margin-left:5px;">设计评审方式：</span>
+                <span style="display:block;width:150px;float:left;">
+                    <input type="checkbox" id="PSType1" style="vertical-align:middle;" name="PSType" onclick="Checked(this.id,'ReviewType','1','','PSType')" />
+                    <label for="PSType1" style="vertical-align:middle;">专业委员会会议</label>
+                </span>
+                <span style="display:block;width:150px;float:left;">
+                    <input type="checkbox" id="PSType2" style="vertical-align:middle;" name="PSType" onclick="Checked(this.id,'ReviewType','1','','PSType')" />
+                    <label for="PSType2" style="vertical-align:middle;">其它会议</label>
+                </span>
+                <input type="hidden" id="ReviewType" name="ReviewType" value="@Model.ReviewType" />
+                <input type="hidden" id="PSType_Ex" name="PSType_Ex" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">项目所需特殊资源</th>
+            <td colspan="3">
+                <div id="TSZY">
+
+                </div>
+                <input type="hidden" id="ProjResources" name="ProjResources" value="@Model.ProjResources" />
+                <input type="hidden" id="TSZY_Ex" name="TSZY_Ex" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">附件</th>
+            <td colspan="3">
+                <span style="display:block;width:150px;float:left;">
+                    <input type="checkbox" id="FJ1" name="FJ" style="vertical-align:middle;" onclick="Checked(this.id,'Attachment','1','','FJ')" />
+                    <label for="FJ1" style="vertical-align:middle;">拟报出的文件册总目录</label>
+                </span>
+                <span style="display:block;width:150px;float:left;">
+                    <input type="checkbox" id="FJ2" name="FJ" style="vertical-align:middle;" onclick="Checked(this.id,'Attachment','2','','FJ')" />
+                    <label for="FJ2" style="vertical-align:middle;">进度计划表</label>
+                </span>
+                <span style="display:block;width:150px;float:left;">
+                    <input type="checkbox" id="FJ3" name="FJ" style="vertical-align:middle;" onclick="Checked(this.id,'Attachment','3','','FJ')" />
+                    <label for="FJ3" style="vertical-align:middle;">策划调整说明</label>
+                </span>
+                <input type="hidden" id="Attachment" name="Attachment" value="@Model.Attachment" />
+                <input type="hidden" id="FJ_Ex" name="FJ_Ex" />
+                <div style="clear:both;"></div>
+                <span style="display:block;float:left;margin-left:5px;">是否需要编制设计策划报告？</span>
+                <span style="display:block;width:150px;float:left;">
+                    <input type="checkbox" id="IsCHBG1" style="vertical-align:middle;" name="IsCHBG" onclick="Checked(this.id,'PlanReport','1','','IsCHBG')" />
+                    <label for="IsCHBG1" style="vertical-align:middle;">是</label>
+                </span>
+                <span style="display:block;width:150px;float:left;">
+                    <input type="checkbox" id="IsCHBG2" style="vertical-align:middle;" name="IsCHBG" onclick="Checked(this.id,'PlanReport','2','','IsCHBG')" />
+                    <label for="IsCHBG2" style="vertical-align:middle;">否</label>
+                </span>
+                <input type="hidden" id="PlanReport" name="PlanReport" value="@Model.PlanReport" />
+                <input type="hidden" id="IsCHBG_Ex" name="IsCHBG_Ex" />
+            </td>
+        </tr>
+        @*<tr>
+            <th width="10%">项目负责人</th>
+            <td width="40%"></td>
+            <th width="10%">设计部门负责人</th>
+            <td width="40%"></td>
+        </tr>*@
+        <tr>
+            <th width="10%">
+                策划调整内容及说明
+            </th>
+            <td colspan="3">
+                <input class="easyui-textbox" id="ChangePlanNote" name="ChangePlanNote" data-options="multiline:true" style="width:98%;height:80px;" value="@Model.ChangePlanNote" />
+            </td>
+        </tr>
+        @*<tr>
+            <th width="10%">项目负责人</th>
+            <td width="40%"></td>
+            <th width="10%">设计部门负责人</th>
+            <td width="40%"></td>
+        </tr>*@
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3" id="file">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "IsoSJCH";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+                    }

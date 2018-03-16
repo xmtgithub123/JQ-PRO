@@ -1,0 +1,585 @@
+﻿
+<link href="@(Url.Content("~/Scripts/uploader/jq.upload.css"))" rel="stylesheet" />
+
+<style type="text/css">
+    #TaskInfoApproveDiv .tree-title {
+        height: auto;
+    }
+
+    .FlowNodeClass td {
+        font-size: 12px !important;
+        height: 20px !important;
+        border: 1px solid #D3D3D3;
+    }
+</style>
+<style type="text/css">
+    .jq-panel .list-group-item {
+        border-bottom: 1px solid #dbdbdb;
+        padding: 10px 15px;
+    }
+
+    .jq-panel-heading {
+        font-weight: bold;
+    }
+
+    .jq-btn-block {
+        width: auto;
+    }
+
+    .jq-btn {
+        padding: 2px 12px;
+    }
+
+    .jq-panel .list-group-item span.item-title {
+        display: inline-block;
+        float: left;
+        width: 60px;
+        text-align: left;
+        margin-right: 5px;
+    }
+
+    .jq-panel .list-group-item p.item-text {
+        padding-left: 70px;
+        /* margin: -15px 0; */
+        text-indent: -0px;
+        color: #848484;
+    }
+</style>
+
+<div id="TaskInfoApproveDiv" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'center',border:false">
+        <div class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'north',border:false" style="border-bottom-width:1px;overflow:hidden">
+                <div style="height:30px;padding:5px 0px;">
+                    <div style="float:left;margin-left:5px;">
+                        <a id="createFolder" data-options="plain:true,iconCls:'fa fa-folder-open fa-lg'">创建文件夹</a>
+                        <a id="upFile" data-options="plain:true,iconCls:'fa fa-upload fa-lg'">上传</a>
+                        <a id="downFile" data-options="plain:true,iconCls:'fa fa-download fa-lg'">下载</a>
+                        <a id="delFile" data-options="plain:true,iconCls:'fa fa-trash fa-lg'">删除</a>
+                        <a id="reloadFiles" data-options="iconCls:'fa fa-repeat fa-lg',plain:true">刷新</a>
+                    </div>
+                    <div style="float:right;margin-right:5px">
+                        <a id="BtnAdvice" data-options="plain:true,iconCls:'fa fa fa-shield fa-lg'"><strong>添加校审意见</strong></a>
+                        <span class="datagrid-btn-separator" style="vertical-align: middle; height: 22px;display:inline-block;float:none;padding-right:5px;"></span>
+                        <a class="jq-btn-danger" id="BtnBack" data-options="plain:true,iconCls:'fa fa-times-circle-o fa-lg'"> <strong>校审回退</strong></a>
+                        <a class="jq-btn-success" id="BtnPass" data-options="plain:true,iconCls:'fa fa-check-circle-o fa-lg'"><strong>校审通过</strong></a>
+                    </div>
+                </div>
+            </div>
+            <div data-options="region:'center',border:false">
+                <span id="_desupload_$_1_temp"></span>
+                <table id="TaskInfoApprove_files"></table>
+                <div id="TaskInfoApprove_rigthMenu" data-options="onClick:TaskInfoApprove_rigthMenuHandler" class="easyui-menu" style="width:100px;display: none;">
+                    <div id="showAttachSplitFiles" data-options="iconCls:'fa fa-object-ungroup'">拆图文件</div>
+                    <div id="showAttachHistory" data-options="iconCls:'fa fa-history'">历史版本</div>
+                    <div id="showAttachInfo" data-options="iconCls:'fa fa-info-circle'">文件属性</div>
+                </div>
+            </div>
+            <div data-options="region:'south',border:false,split:true,title:'工具面板',collapsible:true" style="height:350px">
+                <div id="TaskTab" class="easyui-tabs" data-options="fit:true">
+                    <div title="校审意见" url="@Url.Action("TaskCheckList","DesTaskCheck")?taskId=@ViewBag.TaskModel.Id&divid=@ViewBag._DialogId" data-options="selected:true"></div>
+                    <div title="差错排查" url="@Url.Action("MisTakeList","DesTaskCheck")?taskId=@ViewBag.TaskModel.Id&divid=@ViewBag._DialogId&from=TaskInfoApprove"></div>
+                    <div title="会签记录" url="@Url.Action("DesMutiSignList","DesMutiSign")?taskId=@ViewBag.TaskModel.Id&divid=@ViewBag._DialogId"></div>
+                    <div title="提资记录" url="@Url.Action("DesSpecExchList", "DesExch")?taskId=@ViewBag.TaskModel.Id&divid=@ViewBag._DialogId"></div>
+                    <div title="备注" url="@ViewBag.AltHtml"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'east',border:false,split:true,title:'详情面板',collapsible:true" style="width:300px">
+        <div style="margin:10px 10px ">
+            <div class="jq-panel jq-panel-default">
+                <div class="jq-panel-heading">任务详情</div>
+                <ul class="list-group">
+                    <li class="list-group-item clearfix"><span class="item-title">任务编号:</span><p class="item-text">@Html.Raw(ViewBag.TaskModel.TaskNumber)</p></li>
+                    <li class="list-group-item clearfix"><span class="item-title">任务名称:</span><p class="item-text">@Html.Raw(ViewBag.TaskModel.TaskName)</p></li>
+                    <li class="list-group-item clearfix"><span class="item-title">所属专业:</span><p class="item-text">@(ViewBag.TaskSpecName)</p></li>
+                    <li class="list-group-item clearfix"><span class="item-title">执行人员:</span><p class="item-text">@(ViewBag.TaskModel.TaskEmpName)</p></li>
+                    <li class="list-group-item clearfix"><span class="item-title">计划开始:</span><p class="item-text"> @(ViewBag.TaskModel.DatePlanStart.Year == 1900 ? "" : ViewBag.TaskModel.DatePlanStart.ToString("yyyy-MM-dd"))</p></li>
+                    <li class="list-group-item clearfix"><span class="item-title">计划完成:</span><p class="item-text">@(ViewBag.TaskModel.DatePlanFinish.Year == 1900 ? "" : ViewBag.TaskModel.DatePlanFinish.ToString("yyyy-MM-dd"))</p></li>
+                </ul>
+            </div>
+            <div class="jq-panel jq-panel-default">
+                <div class="jq-panel-heading">项目详情</div>
+                <ul class="list-group">
+                    <li class="list-group-item clearfix"><span class="item-title">项目编号:</span><p class="item-text">@Html.Raw(ViewBag.ProjModel.ProjNumber)</p></li>
+                    <li class="list-group-item clearfix"><span class="item-title">项目名称:</span><p class="item-text">@Html.Raw(ViewBag.ProjModel.ProjName)</p></li>
+                    <li class="list-group-item clearfix"><span class="item-title">项目阶段:</span><p class="item-text">@(ViewBag.TaskPhaseName)</p></li>
+                    <li class="list-group-item clearfix"><span class="item-title">负责人员:</span><p class="item-text">@ViewBag.ProjModel.ProjEmpName</p></li>
+                    <li class="list-group-item clearfix"><span class="item-title">计划开始:</span><p class="item-text">@(ViewBag.ProjModel.DatePlanStart.Year == 1900 ? "" : ViewBag.ProjModel.DatePlanStart.ToString("yyyy-MM-dd"))</p></li>
+                    <li class="list-group-item clearfix"><span class="item-title">计划结束:</span><p class="item-text">@(ViewBag.ProjModel.DatePlanFinish.Year == 1900 ? "" : ViewBag.ProjModel.DatePlanFinish.ToString("yyyy-MM-dd"))</p></li>
+                    <li class="list-group-item clearfix">
+                        <a class="jq-btn jq-btn-info jq-btn-block" id="BtnShowProjectProgressInfo"><i class="fa fa-sitemap fa-lg"></i> <strong>查看项目进度</strong></a>
+                        <a class="jq-btn jq-btn-info jq-btn-block" id="BtnShowProjectEvent"><i class="fa fa-edit fa-lg"></i> <strong>查看项目记事</strong></a>
+                        <a class="jq-btn jq-btn-info jq-btn-block" id="BtnShowProjectReceive"><i class="fa fa-paste fa-lg"></i> <strong>查看项目收资</strong></a>
+                        <a class="jq-btn jq-btn-info jq-btn-block" id="BtnShowProjectDiscuss"><i class="fa fa-comments fa-lg"></i> <strong>查看项目讨论</strong></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="@(Url.Content("~/Scripts/uploader/upload.js"))" type="text/javascript"></script>
+<script src="@(Url.Content("~/Scripts/uploader/jq.taskUpload.js"))" type="text/javascript"></script>
+<script src="@(Url.Content("~/Scripts/JQ/DesFlow.js"))" type="text/javascript"></script>
+
+<script type="text/javascript">
+    var _TaskInfoApproveDesignUpload = new JQ.taskUpload();
+    var _TaskInfoApproveTaskStatus = '@ViewBag.TaskModel.TaskStatus';
+    var _TaskInfoApproveTaskEmpId = '@ViewBag.TaskModel.TaskEmpID';
+    var _TaskInfoApproveCurrentUserId = '@ViewBag.EmpID';
+    var _TaskInfoApproveDesTaskApproveMode = '@ViewBag._DesTaskApproveMode';
+
+    // 打开模态对话框
+    function TaskInfoApprove_showModelDialog(title, url, width, height) {
+        var _TaskInfoApprove_DialogdivId = JQ.dialog.dialog({
+            title: decodeURIComponent(title),
+            url: url,
+            width: width,
+            height: height,
+            JQID: "",
+            JQLoadingType: "",
+            iconCls: "fa fa-table",
+            //onClose: function () {
+            //$("#TaskInfoApprove_files").treegrid("reload");
+            //$("#TaskInfoApprove_files").treegrid("unselectAll");
+            //}
+        });
+        JQ.Flow.stopBubble();
+
+        // 刷新列表
+        window.top["_DialogCallback_" +_TaskInfoApprove_DialogdivId] = function () {
+            $("#TaskInfoApprove_files", $("#TaskInfoApproveDiv")).treegrid("clearSelections");
+            $("#TaskInfoApprove_files", $("#TaskInfoApproveDiv")).treegrid("clearChecked");
+            $("#TaskInfoApprove_files", $("#TaskInfoApproveDiv")).treegrid("reload");
+        }
+    }
+
+    // 校审通过
+    $("#BtnPass", $("#TaskInfoApproveDiv")).click(function () {
+        var getChecks= $('#TaskInfoApprove_files').treegrid("getChecked");
+        if (getChecks.length==0) {
+            JQ.dialog.warning("请在列表中勾选要处理的项！！！");
+            return false;
+        }
+        var _idSet = Enumerable.From(getChecks).Select("x=>x.AttachID").ToArray();
+
+        //判断校审是否通过
+        if (typeof(window.NextDesignValid_@(ViewBag._DialogId))=="function") {
+            if(!window.NextDesignValid_@(ViewBag._DialogId)(_idSet)) {
+                $("#TaskTab", $("#TaskInfoApproveDiv")).tabs("select",0);
+                return false;
+            }
+        }
+        if (typeof(window.NextXiaoValid_@(ViewBag._DialogId))=="function") {
+            if(!window.NextXiaoValid_@(ViewBag._DialogId)(_idSet)) {
+                $("#TaskTab", $("#TaskInfoApproveDiv")).tabs("select",0);
+                return false;
+            }
+        }
+
+        TaskInfoApprove_showModelDialog(
+            "校审通过确认",
+            '@Url.Action("TaskInfoApprovePostPass")?Id=@ViewBag.TaskModel.Id&AttachIds='+_idSet,
+            '1000',
+            '600'
+        );
+    });
+    // 校审回退
+    $("#BtnBack", $("#TaskInfoApproveDiv")).click(function () {
+        var getChecks= $('#TaskInfoApprove_files').treegrid("getChecked");
+
+        if (getChecks.length==0) {
+            JQ.dialog.warning("请在列表中勾选要处理的项！！！");
+            return false;
+        }
+
+
+        var _idSet = Enumerable.From(getChecks).Select("x=>x.AttachID").ToArray();
+        TaskInfoApprove_showModelDialog(
+            "校审回退确认",
+            '@Url.Action("TaskInfoApprovePostBack")?Id=@ViewBag.TaskModel.Id&AttachIds='+_idSet,
+            '1000',
+            '600'
+        );
+    });
+    // 添加校审建议
+    $("#BtnAdvice", $("#TaskInfoApproveDiv")).click(function () {
+        TabSelect_@(ViewBag._DialogId)("校审意见");
+
+        var getChecks= $('#TaskInfoApprove_files').treegrid("getChecked");
+        var _idSet = Enumerable.From(getChecks).Select("x=>x.AttachID").ToArray();
+
+        TaskInfoApprove_showModelDialog(
+            '添加校审意见',
+            '@Url.Action("DesTaskCheckInfo", "DesTaskCheck")?taskId=@ViewBag.TaskModel.Id&fileIds='+_idSet,
+            1000,
+            800
+        );
+    });
+
+    // 查看项目进度
+    $("#BtnShowProjectProgressInfo", $("#TaskInfoApproveDiv")).click(function(){
+          JQ.dialog.dialogIframe({
+              title: "项目进度：[{0}]{1} ＞ {2}".format('@Html.Raw(ViewBag.ProjModel.ProjNumber)', '@Html.Raw(ViewBag.ProjModel.ProjName)', '@(ViewBag.TaskPhaseName)'),
+            url: '@Url.Action("ProjectProgressInfo")?projID=@(ViewBag.ProjModel.Id)&taskGroupId=@(ViewBag.TaskModel.TaskGroupId)',
+            width: 1200,
+            height: 800
+        });
+    });
+
+    //查看项目记事
+    $("#BtnShowProjectEvent", $("#TaskInfoApproveDiv")).click(function(){
+        JQ.dialog.dialogIframe({
+            title:"项目记事：[{0}]{1} ＞ {2}".format('@Html.Raw(ViewBag.ProjModel.ProjNumber)', '@Html.Raw(ViewBag.ProjModel.ProjName)', '@(ViewBag.TaskPhaseName)'),
+            url:  '@Url.Action("ProjEventList", "DesEvent")?projID=@(ViewBag.ProjModel.Id)&taskGroupId=@(ViewBag.TaskModel.TaskGroupId)',
+            width: 1200,
+            height: 800,
+            onClose: function () {
+
+            }
+        });
+    });
+
+    //查看项目收资
+    $("#BtnShowProjectReceive", $("#TaskInfoApproveDiv")).click(function(){
+        TaskInfoApprove_showModelDialog(
+            "项目收资：[{0}]{1} ＞ {2}".format('@Html.Raw(ViewBag.ProjModel.ProjNumber)', '@Html.Raw(ViewBag.ProjModel.ProjName)', '@(ViewBag.TaskPhaseName)'),
+            '@Url.Action("ProjDesReceiveList", "DesReceive")?projID=@(ViewBag.ProjModel.Id)&taskGroupId=@(ViewBag.TaskModel.TaskGroupId)',
+            1200,
+            800
+        );
+
+    });
+
+    //查看项目讨论
+    $("#BtnShowProjectDiscuss", $("#TaskInfoApproveDiv")).click(function(){
+        JQ.dialog.dialogIframe({
+            title:"项目讨论：[{0}]{1} ＞ {2}".format('@Html.Raw(ViewBag.ProjModel.ProjNumber)', '@Html.Raw(ViewBag.ProjModel.ProjName)', '@(ViewBag.TaskPhaseName)'),
+            url:  '@Url.Action("ProjDiscussList", "DesDiscuss")?projID=@(ViewBag.ProjModel.Id)&taskGroupId=@(ViewBag.TaskModel.TaskGroupId)',
+            width: 1200,
+            height: 800,
+            onClose: function () {
+
+            }
+        });
+    });
+
+    // 上传文件
+    $("#upFile", $("#TaskInfoApproveDiv")).click(function () {
+        _TaskInfoApproveDesignUpload.open("@(ViewBag.TaskModel.Id)", "DesTaskAttach");
+    });
+
+    // 下载文件
+    $("#downFile", $("#TaskInfoApproveDiv")).click(function () {
+        TaskInfoApprove_showModelDialog(
+            "批量下载",
+            '@Url.Action("TaskAttachApprove", "DesTask")?TaskId=@(ViewBag.TaskModel.Id)',
+            1200,
+            800
+        );
+    });
+
+    // 创建文件夹
+    $("#createFolder", $("#TaskInfoApproveDiv")).click(function () {
+        _TaskInfoApproveDesignUpload.CreateFolder("@(ViewBag.TaskModel.Id)", "DesTaskAttach");
+    });
+
+    // 删除文件
+    $("#delFile", $("#TaskInfoApproveDiv")).click(function () {
+        _TaskInfoApproveDesignUpload.DeleteFiles(0);
+    });
+
+    // 刷新文件列表
+    $("#reloadFiles", $("#TaskInfoApproveDiv")).click(function () {
+        _dialogClose = false;
+        $("#TaskInfoApprove_files", $("#TaskInfoApproveDiv")).treegrid("clearSelections");
+        $("#TaskInfoApprove_files", $("#TaskInfoApproveDiv")).treegrid("clearChecked");
+        $("#TaskInfoApprove_files", $("#TaskInfoApproveDiv")).treegrid("reload");
+    });
+
+    //任务界面tab切换
+    TabSelect_@(ViewBag._DialogId)=function (title) {
+        $("#TaskTab", $("#TaskInfoApproveDiv")).tabs("select",title);
+    }
+
+</script>
+
+
+<script type="text/javascript">
+
+    var _dialogClose = false;
+
+    // 获取状态图标
+    function GetTaskStatusIconCls(status) {
+        var icon = "";
+        switch (status) {
+            case 0:
+                icon = "fa fa-circle-o";
+                break;
+            case 1:
+                icon = "fa fa-dot-circle-o";
+                break;
+            case 2:
+                icon = "fa fa-play-circle";
+                break;
+            case 3:
+                icon = "fa fa-check-circle";
+                break;
+            case 4:
+                icon = "fa fa-minus-circle";
+                break;
+        }
+        return icon;
+    }
+
+    // 页面初始化
+    function TaskInfoApprovePageInit(canApprove) {
+        $("#downFile", $("#TaskInfoApproveDiv")).linkbutton();
+        $("#reloadFiles", $("#TaskInfoApproveDiv")).linkbutton();
+
+        $("#BtnAdvice", $("#TaskInfoApproveDiv")).linkbutton();
+        $("#BtnBack", $("#TaskInfoApproveDiv")).linkbutton();
+        $("#BtnPass", $("#TaskInfoApproveDiv")).linkbutton();
+
+        $("#BtnShowProjectProgressInfo", $("#TaskInfoApproveDiv")).linkbutton();
+        $("#BtnShowProjectEvent", $("#TaskInfoApproveDiv")).linkbutton();
+        $("#BtnShowProjectReceive", $("#TaskInfoApproveDiv")).linkbutton();
+        $("#BtnShowProjectDiscuss", $("#TaskInfoApproveDiv")).linkbutton();
+
+        // 权限控制
+        $("#upFile", $("#TaskInfoApproveDiv")).hide();
+        //$("#downFile", $("#TaskInfoApproveDiv")).hide();
+        $("#createFolder", $("#TaskInfoApproveDiv")).hide();
+        $("#delFile", $("#TaskInfoApproveDiv")).hide();
+        //$("#upFile_toggle", $("#TaskInfoApproveDiv")).hide();
+
+        if (_TaskInfoApproveTaskStatus == '@((int)DBSql.Design.TaskStatus.进行中)') {
+            $("#BtnAdvice", $("#TaskInfoApproveDiv")).linkbutton("enable");
+            $("#BtnBack", $("#TaskInfoApproveDiv")).linkbutton("enable");
+            $("#BtnPass", $("#TaskInfoApproveDiv")).linkbutton("enable");
+        } else {
+            $("#BtnAdvice", $("#TaskInfoApproveDiv")).linkbutton("disable");
+            $("#BtnBack", $("#TaskInfoApproveDiv")).linkbutton("disable");
+            $("#BtnPass", $("#TaskInfoApproveDiv")).linkbutton("disable");
+        }
+    }
+
+    // 初始化底部选项卡
+    function TaskInfoApproveTabInit() {
+        $("#TaskTab", $("#TaskInfoApproveDiv")).tabs({
+            onSelect: function (title, index) {
+                //加载页面
+                var selectTab = $("#TaskTab", $("#TaskInfoApproveDiv")).tabs("getTab", index);
+                var isRefresh = true;
+                if (selectTab.find("div[id='TaskCheckListDiv']").length > 0) {
+                    isRefresh = false;//校审建议
+                }
+                if (selectTab.find("form[id='DesignInfoForm']").length > 0) {
+                    isRefresh = false;//备注
+                }
+                if (isRefresh) {
+                    $('#TaskTab').tabs('update', {
+                        tab: selectTab,
+                        options: {
+                            href: $(selectTab).attr("url"),  // 新内容的URL
+                        }
+                    });
+                }
+            }
+        });
+        $("#TaskTab", $("#TaskInfoApproveDiv")).tabs("select", 0);
+    }
+
+    // 初始化附件列表
+    function TaskInfoApproveAttachInit() {
+        //if ('@(ViewBag.RequestForm)' == "SummaryTask") {
+        // 显示自己需要或已审批的附件
+        _TaskInfoApproveDesignUpload.requireurl = '@Url.Action("TaskInfoApproveGetDesTaskApproveAllAttachDataJson")?TaskId=@ViewBag.TaskModel.Id&ViewEmpID=@ViewBag.ViewEmpID';
+        //} else {
+        // 只显示自己需要审批的附件
+        //_TaskInfoApproveDesignUpload.requireurl = '@Url.Action("TaskInfoApproveGetDesTaskApproveNowAttachDataJson")?TaskId=@ViewBag.TaskModel.Id&ViewEmpID=@ViewBag.ViewEmpID';
+        //}
+
+        _TaskInfoApproveDesignUpload.CreateFolderUrl = '@Url.Action("TaskCreateFolder", "ProcessFile", new {  @area= "Core" })?AttchId=0';
+        _TaskInfoApproveDesignUpload.DeleteFileUrl = '@(Url.Action("Delete","ProcessFile",new { @area = "Core" }))';
+        _TaskInfoApproveDesignUpload.uploadurl = "@(Url.Action("Upload", "ProcessFile", new { @area = "Core" }))";
+        _TaskInfoApproveDesignUpload.downloadUrl = "@(Url.Action("Download", "ProcessFile", new { @area = "Core" }))";
+        _TaskInfoApproveDesignUpload.cancelUrl = "@(Url.Action("CancelUpload", "ProcessFile", new { @area = "Core" }))";
+        _TaskInfoApproveDesignUpload.flash_swf_url = "@(Url.Content("~/Scripts/uploader/upload.swf"))";
+        _TaskInfoApproveDesignUpload.silverlight_xap_url = "@(Url.Content("~/Scripts/uploader/upload.xap"))";
+        _TaskInfoApproveDesignUpload.init($("#TaskInfoApprove_files", $("#TaskInfoApproveDiv")), {
+            frozenColumns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                {
+                    title: '附件信息', field: 'AttachName', width: 400, align: 'left', halign: 'center', formatter: function (value, row, index) {
+                        var FileName = "";
+                        if (row.AttachExt == ".") {
+                            FileName = "<div style=\"float:left;cursor:pointer\"  onclick=\"expandFun(" + row.AttachID + ")\" ><strong>" + row.AttachName + "</strong></div>";
+                        } else {
+                            FileName = "<div><a href=\"" + _TaskInfoApproveDesignUpload.buildDownloadUrl(row.AttachID, { type: 'attach' }) + "\" target='_blank' >" + value + "</a>";
+                            if (row.AttachID <= 0) {
+                                FileName += "<div class=\"jq_upfile_s\" style=\"float:right\"><div id=\"p_" + row.FileID + "\" class=\"jq_upfile_s1\"><div class=\"jq_upfile_s2\"></div><div class=\"jq_upfile_s3\">0%</div></div><div id=\"r_" + row.FileID + "\" class=\"fa fa-times-circle jq_upfile_s4\" title=\"取消\"></div></div>"
+                            }
+                            FileName += "</div>";
+                        }
+                        return FileName;
+                    }
+                },
+            ]],
+            columns: [[
+                {
+                    title: '校审流程', field: '12', width: 600, align: 'left', formatter: function (value, row, index) {
+                        return "<div id=\"FlowNode_" + row.AttachID + "\" class=\"approve-progress\"></div>"
+                    }
+                },
+                {
+                    title: "版本", field: "AttachVer", width: 50, align: "center", halign: "center", formatter: function (value, row, index) {
+                        if (row.AttachExt == ".") {
+                            return "";
+                        } else {
+
+                            return value;
+                        }
+                    }
+                },
+                {
+                    title: "大小", field: "AttachSize", width: 76, align: "center", halign: "center", formatter: function (value, row, index) {
+                        if (row.AttachExt == ".") {
+                            return "";
+                        } else {
+                            return JQ.tools.getFileSizeText(value);
+                        }
+                    }
+                },
+                {
+                    title: "修改时间", field: "AttachDateChange", width: 120, align: "center", halign: "center", formatter: function (value, rowData, index) {
+                        if (rowData.AttachID <= 0) {
+                            return value;
+                        }
+                        else if (rowData.UploadStatus) {
+                            return JQ.tools.DateTimeFormatterByT(rowData.AttachDateChange);
+                        }
+                        else {
+                            return JQ.tools.DateTimeFormatterByT(rowData.AttachDateChange);
+                        }
+                    }
+                },
+                {
+                    title: "上传日期", field: "AttachDateUpload", width: 90, align: "center", halign: "center", formatter: function (value, rowData, index) {
+                        if (rowData.AttachID <= 0) {
+                            return "";
+                        }
+                        else if (rowData.UploadStatus) {
+                            return JQ.tools.DateTimeFormatterByT(rowData.AttachDateUpload);
+                        }
+                        else {
+                            return JQ.tools.DateTimeFormatterByT(rowData.AttachDateUpload);
+                        }
+                    }
+                }
+            ]],
+            onLoadSuccess: function (row, data) {
+                if (data.total > 0) {
+                    $.each(data.rows, function (i, e) {
+                        e.__checkbox = true;
+                        if (e.AttachFlowNodeJson != "") {
+                            var jsonNode = JSON.parse(e.AttachFlowNodeJson).root.item;
+
+                            var CheckB = $("#TaskInfoApprove_files", $("#TaskInfoApproveDiv")).datagrid("getPanel").find("tr[node-id='" + e.AttachID + "'] input[type='checkbox']");
+                            var needDesignNodes = Enumerable.From(jsonNode).Where("x => x.FlowNodeTypeID == '@(DataModel.NodeType.设计.ToString("D"))' && x.FlowNodeStatus != '@(DBSql.Design.FlowNodeStatus.已完成.ToString("D"))' && x.FlowNodeEmpID == " + _TaskInfoApproveCurrentUserId).OrderBy("x=>x.rownum").ToArray();
+                            var needApproveNodes = _TaskInfoApproveDesTaskApproveMode == "0"
+                                ? Enumerable.From(jsonNode).Where("x => x.FlowNodeTypeID != '@(DataModel.NodeType.设计.ToString("D"))' && (x.FlowNodeStatus == '@(DBSql.Design.FlowNodeStatus.进行中.ToString("D"))')&&x.FlowNodeEmpID == " + _TaskInfoApproveCurrentUserId).OrderBy("x=>x.rownum").ToArray()
+                                : Enumerable.From(jsonNode).Where("x => x.FlowNodeTypeID != '@(DataModel.NodeType.设计.ToString("D"))' && (x.FlowNodeStatus == '@(DBSql.Design.FlowNodeStatus.已安排.ToString("D"))' || x.FlowNodeStatus == '@(DBSql.Design.FlowNodeStatus.进行中.ToString("D"))')&&x.FlowNodeEmpID == " + _TaskInfoApproveCurrentUserId).OrderBy("x=>x.rownum").ToArray();
+
+                            if (needDesignNodes != null && needDesignNodes.length > 0) {
+                                // 如果设计节点没有完成，那么隐藏checkbox
+                                CheckB.hide();
+                                e.__checkbox = false;
+                            } else if (needApproveNodes != null && needApproveNodes.length == 0) {
+                                // 如果没有需要我审批的节点，那么隐藏checkbox
+                                CheckB.hide();
+                                e.__checkbox = false;
+                            }
+
+                            if (e.AttachExt != ".") {
+                                var $table = $("div[id='FlowNode_" + e.AttachID + "']", $("#TaskInfoApproveDiv"));
+                                if (e.AttachFlowNodeJson != "") {
+                                    JQ.DesFlow.show({
+                                        Ctl: $table,
+                                        FlowData: jsonNode,
+                                    });
+                                }
+                            }
+                        }
+                    });
+                } else {
+                    // 没有数据时，自动关闭对话框
+                    if (_dialogClose) {
+                        JQ.dialog.dialogClose();
+                    }
+                }
+                _dialogClose = true;
+            },
+            onContextMenu: function (e, row) {
+                if (row == null) return;
+                if (row.AttachExt == ".") return;
+                $.data(document.body, "selectTempData", row);//把临时数据存在缓存中
+                // 显示右键菜单
+                var $m = $('#TaskInfoApprove_rigthMenu');
+                $m.menu('show', {
+                    left: e.pageX,
+                    top: e.pageY
+                });
+                e.preventDefault();
+            }
+        });
+    }
+
+    function TaskInfoApprove_rigthMenuHandler(item) {
+        var data = $.data(document.body, "selectTempData");//获取临时数据
+        //var data = $("#TaskInfo_files", $("#TaskInfoDiv")).treegrid("getSelected");
+        if (JQ.tools.isJson(data)) {
+            switch (item.id) {
+                case "showAttachSplitFiles":
+                    TaskInfoApprove_showModelDialog(
+                        "拆图文件：{0}".format(data.AttachName),
+                        '@Url.Action("TaskAttachSplitFilesList")?AttachID=' + data.AttachID + '&AttachVer=' + data.AttachVer,
+                        800,
+                        700
+                    );
+                    break;
+                case "showAttachHistory":
+                    TaskInfoApprove_showModelDialog(
+                        "历史版本：{0}".format(data.AttachName),
+                        '@Url.Action("AttachHistory", "BaseAttach", new { @area = "Core" })?AttachID=' + data.AttachID,
+                        600,
+                        600
+                    );
+                    break;
+                case "showAttachInfo":
+                    TaskInfoApprove_showModelDialog(
+                        "文件属性：{0}".format(data.AttachName),
+                        '@Url.Action("AttachInfo", "BaseAttach", new { @area = "Core" })?AttachID=' + data.AttachID,
+                        500,
+                        500
+                    );
+                    break;
+            }
+        }
+        $.data(document.body, "selectTempData", null);//清空临时数据
+        return false;
+    }
+
+    $(function () {
+        // 初始化页面
+        TaskInfoApprovePageInit();
+
+        // 初始化底部选项卡
+        TaskInfoApproveTabInit();
+
+        // 初始化附件列表
+        TaskInfoApproveAttachInit();
+    });
+</script>

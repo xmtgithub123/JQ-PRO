@@ -1,0 +1,119 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "ArchElecProject",new { @area="Archive"})';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export', 'moreSearch'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'ArchElecProjectGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id", "ProjectId"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                JQIsSearch: true,
+                fitColumns: true,
+                nowrap: false,
+                JQExcludeCol: [9],
+                toolbar: '#ArchElecProjectPanel',//工具栏的容器ID
+                columns: [[
+		            { title: '项目编号', field: 'ElecNumber', width: 100, align: 'center', sortable: true },
+		            { title: '项目名称', field: 'ElecName', width: 100, align: 'center', sortable: true },
+		            { title: '立项时间', field: 'DateCreate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '顾客名称', field: 'CustName', width: 100, align: 'center', sortable: true },
+		            { title: '项目经理', field: 'ProjEmpName', width: 100, align: 'center', sortable: true },
+		            { title: '项目阶段', field: 'PhaseName', width: 100, align: 'center', sortable: true },
+                    { title: '类别', field: 'AttTypeName2', JQfield: 'FK_ArchElecProject_AttTypeID2.BaseName as AttTypeName2', width: 100, align: 'center', sortable: true },
+                    { title: '性质', field: 'AttTypeName3', JQfield: 'FK_ArchElecProject_AttTypeID3.BaseName as AttTypeName3', width: 100, align: 'center', sortable: true },
+                     {
+                         field: 'ProjectId', title: '操作', width: 100, align: 'center', JQIsExclude: true,
+                         formatter: function (value, row, index) {
+                             var html = "<a href=\"javascript:Handler(" + row.Id + "," + row.ProjectId + ")\">归档</a>";
+                             html += "&nbsp;&nbsp;<a href=\"javascript:GCHandler(" + row.Id + "," + row.ProjectId + ")\">过程归档</a>";
+                             return html;
+                         }
+                     }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号、项目名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ArchElecProjectGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+
+        function Handler(ArchProjId, ProjID) {
+            JQ.dialog.dialog({
+                title: "归档",
+                url: '@Url.Action("treelist", "ArchElecProject",new { @area="Archive"})' + '?IsRead=1&Id=' + ArchProjId + '&ProjID=' + ProjID,
+                width: '1200',
+                height: '600',
+                JQID: 'ArchElecProjectGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+        //过程归档
+        function GCHandler(ArchProjId, ProjID) {
+            JQ.dialog.dialogIframe({
+                title: "过程归档",
+                url: '@Url.Action("list", "ArchProjectFolder", new { @area="Archive"})' + '?IsRead=1&Id=' + ArchProjId + '&ProjID=' + ProjID,
+                width: '1200',
+                height: '600',
+                iconCls: 'fa fa-plus'
+            });
+        }
+
+        //设置目录模板
+        function SetProjectTemplate() {
+            var rows = $("#ArchElecProjectGrid").datagrid("getSelections");
+            if (rows.length == 0) {
+                JQ.dialog.info("请选择项目！");
+                return;
+            }
+            var ProjID = rows[0].ProjectId;
+            JQ.dialog.dialog({
+                title: "过程归档目录模板设置",
+                url: '@Url.Action("settemplate", "ArchProjectFolder", new { @area="Archive"})' + '?ProjID=' + ProjID,
+                width: '800',
+                height: '600',
+                iconCls: 'fa fa-plus'
+            });
+        }
+
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="ArchElecProjectGrid"></table>
+    <div id="ArchElecProjectPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a id="setdirtemp_a" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="SetProjectTemplate()">设置模板</a>
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'ElecNumber,ElecName', 'Contract': 'like' }"  JQPermissionName="CanEdit" />
+
+        <div class="moreSearchPanel">
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjectType", queryOptions = "{ Key:'AttTypeID2', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjProperty", queryOptions = "{ Key:'AttTypeID3', Contract:'in',filedType:'Int'}" })
+            <input type="hidden" id="hide" value="114" JQWhereOptions="{ Key: 'ElecType', 'Contract':'=',filedType:'Int' }" />
+        </div>
+    </div>
+}
+

@@ -1,0 +1,321 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.IsoSJBGD
+
+@section head {
+    <style type="text/css">
+    .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+    .p-15{
+        padding:15px;
+    }
+
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+    .aui-input-check-disable {
+        font-size: 12px !important;
+        font-weight: normal !important;
+    }
+
+    .aui-input-check-disable label {
+        line-height: 45px;
+        margin-right: 15px;
+    }
+
+        .aui-input-check-disable input[type="checkbox"], .aui-input-check-disable input[type="radio"] {
+            width: auto;
+            margin: 0 5px 0 0;
+            line-height: 45px;
+        }
+</style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="IsoSJBGDForm" class="aui-form">
+            <div class="p-15">
+               表 <label>@Model.TableNumber</label><input type="hidden" name="TableNumber" value="@Model.TableNumber" />
+                <br />编号 <input id="Number" name="Number" type="text" class="aui-input" style="display:inline;min-width: 60px;max-width: 60%;border: 1px solid #dbdbdb; border-radius: 6px;padding: 3px 6px;margin:0 3px;text-align:center;" class="form-control" validType="length[0,200]" value="@Model.Number" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目编号</label>
+                <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+                <div class="aui-input-block">@Model.ProjNumber</div>
+                <input name="ProjNumber" id="ProjNumber" type="hidden" class="aui-input" value="@Model.ProjNumber" style="width:60%;margin-right:15px;text-overflow: ellipsis;" />
+                <input type="hidden" name="ProjPhaseId" id="ProjPhaseId" value="@Model.ProjPhaseId" />
+                <input type="hidden" name="ProjPhaseName" id="ProjPhaseName" value="@Model.ProjPhaseName" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目名称</label>
+                <input type="hidden" id="ProjID" name="ProjID" value="@Model.ProjID" />
+                <input name="ProjName" id="ProjName" type="hidden" class="aui-input" value="@Model.ProjName" />
+                <div class="aui-input-block">@Model.ProjName</div>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;日期</label>
+                <input type="date" id="BGRQ" name="BGRQ" class="aui-input" value="@Model.BGRQ.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="ProjPhaseGrid" style="font-size:12px;">
+                    <thead>
+                        <tr>
+                            <th>任务册名</th>
+                            <th>项目名称</th>
+
+                        </tr>
+                    </thead>
+                    <tbody id="gridList" style="font-size:12px;"></tbody>
+                </table>
+            </div>
+
+            <script id="listTpl" type="text/x-dot-template">
+                {{~it:appendInfoData:index}}
+                <tr id="tr_{{=index}}">
+                    <td>
+                        {{=appendInfoData.TaskName}}
+                    </td>
+                    <td>
+                        {{=appendInfoData.ProjName}}
+                    </td>
+                </tr>
+                {{~}}
+            </script>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;变更原因</label>
+                <textarea rows="6" name="BGYY" id="BGYY" style="width:98%;overflow:auto;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.BGYY</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;变更依据</label>
+                <textarea rows="6" name="BGYJ" id="BGYJ" style="width:98%;overflow:auto;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.BGYJ</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;变更内容</label>
+                <textarea rows="6" name="BGNR" id="BGNR" style="width:98%;overflow:auto;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.BGNR</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;变更涉及<br/>&nbsp;&nbsp;的原设计<br />&nbsp;&nbsp;文件册号</label>
+                <textarea rows="6" name="BGJC" id="BGJC" style="width:98%;overflow:auto;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.BGJC</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;变更涉及<br />&nbsp;&nbsp;的其他专业<br />&nbsp;&nbsp;及专业负<br />&nbsp;&nbsp;责人签署</label>
+                <textarea rows="6" name="XGZYFZR" id="XGZYFZR" style="width:98%;overflow:auto;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.XGZYFZR</textarea>
+                <input type="hidden" name="XGZYFZRID" id="XGZYFZRID" value="@Model.XGZYFZRID" />
+            </div>
+
+
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+    </div>
+    <script type="text/javascript">
+
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                initFormBegin(JSON.stringify({
+                    "Result": true,
+                    "Message": null,
+                    "NodeName": null,
+                    "AllowEditControls": "ColAttVal1;btnChooseProject;ProjIDName;Number;ProjID;Words;ConstructUnit;SupplyUnit;FormDate;ColAttVal2;ModifyContent;DesignName;FormNote;DesChangeUpload;ColAttVal3;ProjName;DesignReason;ColAttVal4",
+                    "SignControls": "DesignName(签名)",
+                    "SignControls": null,
+                    //"AllowEditControls":""
+
+                }));
+                //initFormBegin();
+            }
+
+        })
+        //页面初始化
+        function initFormBegin(params) {
+
+            //获取数据
+            $.post('@Url.Action("getJCs", "ISOBCD", new { @area= "ISO" })' + "?fromType=1&Id=" +  @Model.Id  + "", function (_rData) {
+                console.log(JSON.parse(_rData))
+                //datas = JSON.parse(_rData)
+                var appendInfoData = JSON.parse(_rData).rows
+                if (appendInfoData.length > 0) {
+                    var interText = doT.template($("#listTpl").text())
+                    $("#gridList").html(interText(appendInfoData));
+                }
+                else {
+                    console.log('暂无数据')
+                }
+            })
+
+            //去除换行
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+
+
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+
+            //清除时间审批时，默认为1900-01-01改为空
+            var BGRQ = $('#BGRQ').val();;
+            if ((BGRQ == '1900-01-01')) {
+                $('#BGRQ').val('');
+            }
+          
+
+             //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('IsoSJBGDForm'));
+
+            //变更原因，替换换行符
+            var BGYYValue = $('#BGYY').val();
+            BGYYValue = BGYYValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#BGYY').val(BGYYValue);
+
+            //变更依据，替换换行符
+            var BGYJValue = $('#BGYJ').val();
+            BGYJValue = BGYJValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#BGYJ').val(BGYJValue);
+
+            //变更内容，替换换行符
+            var BGNRValue = $('#BGNR').val();
+            BGNRValue = BGNRValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#BGNR').val(BGNRValue);
+
+            //变更涉及的原设计文件册号，替换换行符
+            var BGJCValue = $('#BGJC').val();
+            BGJCValue = BGJCValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#BGJC').val(BGJCValue);
+
+            //变更涉及的其他专业及专业负责人签署，替换换行符
+            var XGZYFZRValue = $('#XGZYFZR').val();
+            XGZYFZRValue = XGZYFZRValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#XGZYFZR').val(XGZYFZRValue);
+
+           
+            //$('input[type="checkbox"]').attr("disabled", "disabled");
+            //$('input[type="radio"]').attr("disabled", "disabled");
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#IsoSJBGDForm').validate({
+                rules: {
+                    BGRQ: 'required',//日期
+                    
+                },
+                messages: {
+                    BGRQ:'请输入日期',
+                    
+                }
+            });
+            //if ($('#ProjName').val() == '') {
+            //    $.alert('请选择项目！')
+            //    return false;
+            //}
+            isValidate = formVali.form();
+            if (isValidate) {
+                var formData = DomUtil.serialize(document.getElementById('IsoSJBGDForm'));//json or =&
+                console.log(formData)
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+            var formData = DomUtil.serialize(document.getElementById('IsoSJBGDForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+    </script>
+}

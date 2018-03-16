@@ -1,0 +1,77 @@
+﻿@model DataModel.Models.OaMess
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: "messagediplay",
+        buttonTypes: ["close"],//默认按钮
+        succesCollBack: function (data) {
+            var _tempFrame=window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+            if(_tempFrame){
+                _tempFrame.contentWindow.refreshGrid();
+            }
+            JQ.datagrid.autoRefdatagrid();
+            _flowInstance.$form.parent().dialog("close");
+        }
+    });
+</script>
+<form name="messagediplay">
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">消息标题</th>
+            <td width="90%" colspan="3">
+                @(Model.MessTitle)
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">消息链接</th>
+            <td width="40%">
+                @{
+                    if (!string.IsNullOrEmpty(Model.MessLinkTitle) && !string.IsNullOrEmpty(Model.MessLinkUrl))
+                    {
+                        <a href="javascript:void(0)" onclick="showDialog()">@(Model.MessLinkTitle)</a>
+                        <script type="text/javascript">
+                            function showDialog() {
+                                var url="@(ViewBag.sitePath)" + "@(Html.Raw(Model.MessLinkUrl))";
+                                if(url.indexOf("?")>-1)
+                                {
+                                    url=url+"&from=message";
+                                }
+                                else
+                                {
+                                    url=url+"?from=message";
+                                }
+                                JQ.dialog.dialog({
+                                    title: "@( Model.MessLinkTitle)",
+                                    url: url,
+                                    width: @(Model.MessDialogWidth==0?800:Model.MessDialogWidth),
+                                    height: @(Model.MessDialogHeight==0?600:Model.MessDialogHeight),
+                                    iconCls: "fa fa-table"
+                                });
+                            }
+                        </script>
+                    }
+                }
+            </td>
+            <th width="10%">自动发送</th>
+            <td width="40%">@(Model.MessIsSystem ? "是" : "否")</td>
+        </tr>
+        <tr>
+            <th width="10%">发送时间</th>
+            <td width="40%">
+                @(Model.MessDate.ToString("yyyy-MM-dd HH:mm:ss"))
+            </td>
+            <th width="10%">发送人</th>
+            <td width="40%">
+                @(Model.MessEmpName)
+            </td>
+        </tr>
+        <tr>
+            <th>消息备注</th>
+            <td colspan="3">
+                <div style="min-height:320px">
+                    @(Html.Raw(Model.MessNote))
+                </div>
+            </td>
+        </tr>
+    </table>
+</form>

@@ -1,0 +1,156 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@model DataModel.Models.BaseEmployee
+
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("addSub")' + '?CompanyType=GC&ConTypeID=1',//添加的路径
+                JQEditUrl: '@Url.Action("editSub")?CompanyType=GC',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussContractOtherSubGrid',//数据表格ID
+                JQDialogTitle: '其它付款合同信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                //JQCustomSearch: [  //自定义搜索的字段
+                //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+                //],
+                 JQExcludeCol: [1, 9, 11],//导出execl排除的列
+                //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+                //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+                //JQFields: ["", ""],//追加的字段名
+                 url: '@Url.Action("json", "BussContractOther", new { @area = "Bussiness", @ConTypeID = 1 })&CompanyType=GC&Footer=true',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussContractOtherPanel',//工具栏的容器ID
+                showFooter: true,
+                columns: [[
+        { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+        { title: '合同编号', field: 'ConNumber', width: "10%", align: 'left', sortable: true },
+        { title: '合同名称', field: 'ConrName', width: "14%", align: 'left', sortable: true },
+        { title: '客户单位', field: 'CustName', width: "14%", align: 'left', sortable: true },
+        { title: '合同金额（元）', field: 'ConFee', width: "8%", align: 'right', sortable: true },
+        { title: '已付款（元）', field: 'SumFeeMoney', width: "8%", align: 'right', sortable: false },
+        { title: '未付款（元）', field: 'NoFeeMoney', width: "8%", align: 'right', sortable: false },
+        { title: '已收票（元）', field: 'SumInvoiceMoney', width: "8%", align: 'right', sortable: false },
+        { field: 'JQFiles', title: '附件', align: 'center', width: "6%", JQIsExclude: true, JQRefTable: 'BussContractOther' },
+          {
+              title: '是否结清', field: 'ConIsFeeFinished', width: "8%", align: 'center', formatter: function (val, row) {
+                  if (row.Footer) {
+                      return "";
+                  }
+                  return val == "已结清" ? "<span style='color:green'>已结清</span>" : "<span style='color:red'>未结清</span>";
+              }
+          },
+        ////{ title: '审批进度', field: '', width: 100, align: 'center', sortable: true },
+                    {
+                        field: 'opt', title: '操作', width: "12%", align: 'center',
+                        formatter: function (value, row, index) {
+                            if (row.Footer) {
+                                return "";
+                            }
+                            return "<a href=\"javascript:void(0)\"  JQPermissionName=\"add\" id=\"mb" + index + "\" dataid=\"" + row.Id + "\" flag=\"menubutton\"   >操作</a>";
+                        }
+                    },
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '合同名称，合同编号，客户单位',
+                //queryOptions: { 'Key': 'ConNumber,ConrName,CustName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BussContractOtherSubGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                KeyJQSearch: $("#JQSearch").val(),
+                            }
+                        });
+                }
+            });
+        });
+
+        $.extend($.fn.datagrid.defaults.view, {
+            onAfterRender: function () {
+                $("a[flag='menubutton']").mouseover(function () {
+                    document.getElementById("mm3").setAttribute("rowid", this.getAttribute("dataid"));
+                }).menubutton({
+                    iconCls: 'fa fa-edit',
+                    menu: '#mm3'
+                });
+            }
+        });
+
+        function menuHandler(item) {
+            var key = $("#mm3").attr("rowid");
+            switch (item.text) {
+                case "付款":
+                    JQ.dialog.dialog({
+                        title: "查看其他付款合同信息",
+                        url: '@Url.Action("AddConOtherFee")' + '?CompanyType=GC&Id=' + key,
+                        width: '1024',
+                        height: '100%',
+                        JQID: 'BussContractOtherSubGrid',
+                        JQLoadingType: 'datagrid',
+                        iconCls: 'fa fa-plus'
+                    });
+                    break;
+                case "查看":
+                    JQ.dialog.dialog({
+                        title: "查看信息",
+                        url: '@Url.Action("editSub")' + '?CompanyType=GC&Id=' + key,
+                        width: '1024',
+                        height: '100%',
+                        JQID: 'BussContractOtherSubGrid',
+                        JQLoadingType: 'datagrid',
+                        iconCls: 'fa fa-plus'
+                    });
+                    break;
+                default:
+                    break;
+            }
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="BussContractOtherSubGrid"></table>
+    <div id="BussContractOtherPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+
+        </span>
+
+        &nbsp;
+        @*<select id="isStartSearch" class="easyui-combobox" jqwhereoptions="[{ Key:'IsFeeFinished', Contract:'=',filedType:'Bool'},{ Key:'EmpIsDeleted', Contract:'=',filedType:'Bool'}]">
+                <option value="">是否结清</option>
+                <option value="0">未结清</option>
+                <option value="1">已结清</option>
+            </select>&nbsp;*@
+
+        @BaseData.getBases(
+                          new Params() { isMult = false, engName = "ConStatus", queryOptions = "{ Key:'ConOtherStatus', Contract:'in',filedType:'Int'}" },
+                                      new Params() { isMult = false, engName = "ContractType", queryOptions = "{ Key:'ConOtherType', Contract:'in',filedType:'Int'}" }
+                                )
+        <input id="JQSearch" style="width:250px;" />
+
+        <div class="moreSearchPanel">
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '登记日期开始'" jqwhereoptions="{ Key:'CreationTime', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '登记日期结束'" jqwhereoptions="{ Key:'CreationTime', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>
+    </div>
+    <div id="mm3" class="easyui-menu" style="width:80px;" data-options="onClick:menuHandler">
+        <div id="div1">付款</div>
+        <div id="div2">查看</div>
+    </div>
+}
+

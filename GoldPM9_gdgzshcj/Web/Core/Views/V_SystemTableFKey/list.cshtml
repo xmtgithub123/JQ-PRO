@@ -1,0 +1,52 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "V_SystemTableFKey",new { @area= "Core" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'FKName',//主键的字段
+                JQID: 'V_SystemTableFKeyGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["FKName"],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '外键名称',
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: true,
+                toolbar: '#V_SystemTableFKeyPanel',//工具栏的容器ID
+                columns: [[
+				  		{ title: '外键名称', field: 'FKName', width: 100, align: 'center', sortable: true },
+		                { title: '表名', field: 'TableName', width: 100, align: 'center', sortable: true },
+		                { title: '列名', field: 'ColName', width: 100, align: 'center', sortable: true },
+		                { title: '外键表名', field: 'RefTableName', width: 100, align: 'center', sortable: true },
+		                { title: '外键列名', field: 'RefColName', width: 100, align: 'center', sortable: true },
+		                { title: '约束', field: 'CnstIsNotRepl', width: 100, align: 'center', sortable: true },
+		                { title: '级联更新', field: 'CnstIsUpdateCascade', width: 100, align: 'center', sortable: true },
+		                { title: '级联删除', field: 'CnstIsDeleteCascade', width: 100, align: 'center', sortable: true },
+                ]]
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="V_SystemTableFKeyGrid"></table>
+    <div id="V_SystemTableFKeyPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;"  JQWhereOptions="{ 'Key': 'FKName', 'Contract': 'like' }"/>
+
+    </div>
+}
+

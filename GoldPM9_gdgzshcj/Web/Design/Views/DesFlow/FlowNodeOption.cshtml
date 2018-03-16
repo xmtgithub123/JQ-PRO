@@ -1,0 +1,161 @@
+﻿@model DataModel.Models.DesFlowNode
+@using JQ.Web;
+<script type="text/javascript">
+    $("#DesFlowNodeForm select[value]").each(function () {
+        $(this).val(this.getAttribute("value"));
+    });
+    JQ.form.submitInit({
+        formid: 'DesFlowNodeform',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            onAfterSave();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("SaveNode", "DesFlow", FormMethod.Post, new { @area = "Design", @id = "DesFlowNodeform", @name = "DesFlowNodeform" }))
+{
+    @Html.HiddenFor(m => m.ID)
+    <table class="table table-bordered">
+        <tr>
+            <th width="15%">节点名称</th>
+            <td width="35%">
+                <input name="FlowNodeName" style="width:98%;" class="easyui-textbox" validType="length[0,200]" data-options="required:true" value="@Model.FlowNodeName" />
+            </td>
+            <th width="15%">
+                节点类型
+            </th>
+            <td width="35%">
+                <select id="FlowNodeTypeID" name="FlowNodeTypeID" class="easyui-combobox" data-options="panelHeight:250,editable:false">
+                    @{
+                        foreach (var item in ViewBag.NodeTypes)
+                        {
+                            <option value="@(item.BaseID)">@(item.BaseName)</option>
+                        }
+                    }
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">回退节点</th>
+            <td width="85%" colspan="3">
+                <select id="FlowNodeBackIDs" name="FlowNodeBackIDs" class="easyui-combobox" style="width:250px">
+                    @{
+                        foreach (var item in ViewBag.PreviousNodes)
+                        {
+                            <option value="@(item.Key)">@(item.Value)</option>
+                        }
+                    }
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">节点人员类型</th>
+            <td width="85%" colspan="3">
+                <select id="FlowNodeEmpType" name="FlowNodeEmpType">
+                    <option value="0">资格人员</option>
+                    <option value="1">任意选人</option>
+                    <option value="2">指定人员</option>
+                    <option value="3">类型人员</option>
+                    <option value="4">节点人员</option>
+                </select>
+            </td>
+        </tr>
+        <tr id="option1">
+            <th>指定人员</th>
+            <td colspan="3">
+                <input name="FlowNodeEmpType2" id="FlowNodeEmpType2" type="hidden" />
+                <input id="appointEmp" style="width:98%;" class="easyui-textbox" validType="length[0,1000]" value="@(ViewBag.EmpNames)" />
+            </td>
+        </tr>
+        <tr id="option2">
+            <th>类型人员</th>
+            <td colspan="3">
+                <select id="FlowNodeEmpType3" name="FlowNodeEmpType3" class="easyui-combobox" data-options="panelHeight:'auto',editable:false">
+                    <option value="1">工程负责人</option>
+                    <option value="2">专业负责人</option>
+                    <option value="3">设计人员</option>
+                </select>
+            </td>
+        </tr>
+        <tr id="option3">
+            <th>节点人员</th>
+            <td colspan="3">
+                <select id="FlowNodeEmpType4" name="FlowNodeEmpType4" class="easyui-combobox">
+                    @{
+                        foreach (var item in ViewBag.PreviousNodes)
+                        {
+                            <option value="@(item.Key)">@(item.Value)</option>
+                        }
+                    }
+                </select>
+            </td>
+        </tr>
+    </table>
+                        }
+
+<script type="text/javascript">
+    var _empValue = "@(Model.FlowNodeEmpType)";
+    $("#FlowNodeEmpType").combobox({
+        panelHeight: "auto",
+        editable: false,
+        onSelect: function (data) {
+            onEmpTypeChange(data.value);
+        },
+        value: _empValue
+    });
+    $("#FlowNodeBackIDs").combobox({
+        panelHeight: 'auto',
+        editable: false,
+        multiple: true,
+        value: "@(Model.FlowNodeBackIDs)"
+    });
+    $("#FlowNodeTypeID").combobox({
+        panelHeight: 'auto',
+        editable: false,
+        value: "@(Model.FlowNodeTypeID)"
+    });
+    $("#FlowNodeEmpType3").combobox({
+        panelHeight: 'auto',
+        editable: false,
+        value: (_empValue == "3" ? "@(Model.FlowNodeEmpIDs)" : "")
+    });
+    $("#FlowNodeEmpType4").combobox({
+        panelHeight: 'auto',
+        editable: false,
+        value: (_empValue == "4" ? "@(Model.FlowNodeEmpIDs)" : "")
+    });
+    function onEmpTypeChange(value) {
+        if (value == "0") {
+            document.getElementById("option1").style.display = "none";
+            document.getElementById("option2").style.display = "none";
+            document.getElementById("option3").style.display = "none";
+        }
+        else if (value == "1") {
+            document.getElementById("option1").style.display = "none";
+            document.getElementById("option2").style.display = "none";
+            document.getElementById("option3").style.display = "none";
+        }
+        else if (value == "2") {
+            document.getElementById("option1").style.display = "";
+            document.getElementById("option2").style.display = "none";
+            document.getElementById("option3").style.display = "none";
+        }
+        else if (value == "3") {
+            document.getElementById("option1").style.display = "none";
+            document.getElementById("option2").style.display = "";
+            document.getElementById("option3").style.display = "none";
+        }
+        else if (value == "4") {
+            document.getElementById("option1").style.display = "none";
+            document.getElementById("option2").style.display = "none";
+            document.getElementById("option3").style.display = "";
+        }
+    }
+    onEmpTypeChange($("#FlowNodeEmpType").combobox("getValue"));
+    JQ.textbox.selEmp({
+        id: "appointEmp",
+        setID: "FlowNodeEmpType2",
+        width: 270
+    });
+</script>

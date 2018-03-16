@@ -1,0 +1,193 @@
+﻿@using JQ.Web;
+
+<script type="text/javascript">
+    var requestUrl = '@Url.Action("InHandExchTaskList", "DesExch",new { @area="Design"})?projID=@Request.Params["projID"]&taskGroupId=@Request.Params["taskGroupId"]&IsProcess=1';
+    JQ.datagrid.datagrid({
+        JQPrimaryID: 'Id',//主键的字段
+        JQID: "DesExchGrid",//数据表格ID
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+        checkOnSelect: false,
+        selectOnCheck: false,
+        fit: true,
+        pagination: true,
+        collapsible: true,
+        JQMergeCells: { fields: ['Id', 'ExchTitle', 'ExchSpecName', 'ExchEmpName', 'SpecIdent', 'EmpIdent', 'dateIdent', 'NumberIdent', 'projIdent', 'process'] },
+        url: requestUrl,
+        columns: [[
+            {
+                title: '项目名称', field: 'NumberIdent', width: '240', halign: 'center', align: 'left',
+                formatter: function (val, row) {
+                    if (row.ExchIsInvalid == false) {
+                        return '<span style="color:red;">' + row.ProjName + '</span>'
+                    }
+                    else {
+                        return row.ProjName;
+                    }
+
+                }
+            },
+            {
+                title: '项目阶段', field: 'projIdent', width: '100', halign: 'center', align: 'center',
+                formatter: function (val, row) {
+                    if (row.ExchIsInvalid == false) {
+                        return '<span style="color:red;">' + row.Phasename + '</span>'
+                    }
+                    else {
+                        return row.Phasename;
+                    }
+
+                }
+            },
+            {
+                title: '资料名称', field: 'ExchTitle', width: 220, align: 'left', halign: 'center',
+                formatter: function (val, row) {
+                    if (row.ExchIsInvalid == false) {
+                        return '<span style="font-weight:600;color:red;">' + row.ExchTitle + '</span>'
+                    }
+                    else {
+                        return '<span style="font-weight:600;">' + row.ExchTitle + '</span>';
+                    }
+                    //'<b>'+row.ExchTitle+'</b>';
+                }
+            },
+            {
+                title: '提资专业', field: 'SpecIdent', width: 120, align: 'center', halign: 'center',
+                formatter: function (val, row, index) {
+                    return row.ExchSpecName;
+                }
+            },
+            {
+                title: '提资人', field: 'EmpIdent', width: 80, align: 'center', halign: 'center',
+                formatter: function (val, row) {
+                    return row.ExchEmpName;
+                }
+            },
+            { title: '收资专业', field: 'RecSpecName', width: 120, align: 'left', halign: 'center' },
+            { title: '收资人', field: 'RecEmpName', width: 80, align: 'left', halign: 'center' },
+            {
+                title: '提资期限', field: 'dateIdent', width: 100, align: 'center', halign: 'center',
+                formatter: function (val, row)//JQ.tools.DateTimeFormatterByT
+                {
+                    var value = "";
+                    if (JQ.tools.isNotEmpty(row.ExcLastPutTime)) {
+                        value = row.ExcLastPutTime.replace("T", " ").substring(0, 10);
+
+                        if (row.ExcLastPutTime.substring(0, 4) <= 1900)
+                            value = "";
+                    }
+                    return value;
+                }
+            },
+
+        {
+            title: '发起时间', field: 'CreationTime', width: 100, align: 'center', halign: 'center',
+            formatter: JQ.tools.DateTimeFormatterByT
+        },
+
+        {
+            title: '接收时间', field: 'RecTime', width: 100, align: 'center', halign: 'center',
+            formatter: JQ.tools.DateTimeFormatterByT
+        },
+        {
+            title: '接收状态', field: 'State', width: 100, align: 'center', halign: 'center',
+            formatter: function (val, row) {
+                if (row.State == '通过') {
+                    return '<span style="color:green;">' + row.State + '</span>'
+                }
+                else {
+                    if (row.State == "回退") {
+                        return '<span style="color:red;">' + row.State + '</span>'
+                    }
+                    else {
+                        return row.State;
+                    }
+                }
+            }
+        },
+
+        {
+            title: '处理意见', field: 'RecContent', width: 120, align: 'center', halign: 'center'
+        },
+            {
+                field: "process", title: "流程进度", align: "center", halign: "center", width: 90,
+                formatter: JQ.Flow.showFlowProgress("DesExchGrid", "DesExch", "Id")
+            }
+
+        ]]
+    })
+
+
+
+    function getProgress(grid, refTable, refID, url) {
+        if (!JQ.Flow._progress) {
+            JQ.Flow._progress = {
+            };
+        }
+        JQ.Flow._progress["$flow" + grid] = {
+            url: url, refTable: refTable, ids: []
+        };
+        return JQ.Flow._progress["$flow" + grid];
+    }
+
+
+
+    //提资审批页面信息
+    function ExchApprove(ExchId) {
+        JQ.dialog.dialog({
+            title: '待办提资详细信息',
+            width: '1200',
+            height: '700',
+            url: '@Url.Action("ExchInfoApprove","DesExch",new { @area="Design"})?Id=' + ExchId + '&taskId=@Request.Params["taskId"]',
+            onClose: function () {
+                $("#DesExchGrid").datagrid("reload");
+            }
+        });
+    }
+
+
+    // 更换标题
+
+    function ChangeTitle() {
+        var $obj = $('div[class="datagrid-body"]').find('td[field="process"]').children('div').children('span');
+        for (var index = 0; index < ($obj).length; index++) {
+            var $target = $obj.eq(index);
+            if ($target.text() != "未审批" && $target.text() != "") {
+
+                $target.text("查看流程");
+            }
+        }
+
+
+
+    }
+    // 添加提资计划
+    function AddSpecExchPlan() {
+        JQ.dialog.dialog({
+            title: '添加提资',
+            height: '800',
+            width: '1200',
+            url: '@Url.Action("AddExchPlan","DesExch",new { @area="Design"})?taskId=@Request.Params["taskId"]',
+            onClose: function () {
+                $("#DesExchGrid").datagrid("reload");
+            }
+        });
+    }
+
+    JQ.Flow.onLoadFlowProgress = function () {
+        ChangeTitle();
+    }
+
+    function ClosePage() {
+        var info = JQ.tools.findDialogInfo();
+        if (typeof (window["FormExchRefresh_" + info.parentid]) == "function") {
+            window["FormExchRefresh_" + info.parentid]();
+            window.top.$("#" + info.divid).dialog('close');
+            window.top.$("div.panel-tool").show();
+        }
+
+    }
+</script>
+
+
+<table id="DesExchGrid"></table>
+

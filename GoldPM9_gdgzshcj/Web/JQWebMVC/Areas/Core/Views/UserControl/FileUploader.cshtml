@@ -1,0 +1,139 @@
+﻿@model DataModel.FileUploader
+@{
+    var uploaderID = Guid.NewGuid().ToString("N");
+    string unqiueID = null;
+    if (Html.ViewContext.Controller.ViewData["UploadFileUnqiueID"] == null)
+    {
+        unqiueID = Guid.NewGuid().ToString("N");
+        Html.ViewContext.Controller.ViewData["UploadFileUnqiueID"] = unqiueID;
+        <link href="@(Url.Content("~/Scripts/uploader/jq.upload.css"))" rel="stylesheet" />
+        <script src="@(Url.Content("~/Scripts/uploader/upload.js"))" type="text/javascript"></script>
+        <script src="@(Url.Content("~/Scripts/uploader/jq.upload.js"))" type="text/javascript"></script>
+        <div id="uploader_@(unqiueID)"></div>
+        <script type="text/javascript">
+            var _uploader_unique_id = "uploader_@(unqiueID)";
+            var uploader_@(unqiueID) = new JQ.Upload.init({
+                flash_swf_url: "@(Url.Content("~/Scripts/uploader/upload.swf"))",
+                silverlight_xap_url: "@(Url.Content("~/Scripts/uploader/upload.xap"))",
+                url: "@(Url.Action("Upload", "ProcessFile", new { @area = "Core" }))",
+                cancelUrl: "@(Url.Action("CancelUpload", "ProcessFile", new { @area = "Core" }))",
+                container: document.getElementById("uploader_@(unqiueID)"),
+                downloadUrl: "@(Url.Action("Download", "ProcessFile", new { @area = "Core" }))",
+                batchDownloadUrl: "@(Url.Action("BatchDownload", "ProcessFile", new { @area = "Core" }))",
+                deleteTempUrl: "@(Url.Action("DeleteTemp","ProcessFile",new { @area = "Core" }))",
+                deleteUrl: "@(Url.Action("Delete","ProcessFile",new { @area = "Core" }))",
+                cacheID: "$uplohad$_cache_y12$t1m"
+            });
+        </script>
+    }
+    else
+    {
+        unqiueID = Html.ViewContext.Controller.ViewData["UploadFileUnqiueID"].ToString();
+    }
+}
+<span id="@(uploaderID)_bookmark" bookmark="@(Model.Name)" style="display:none"></span>
+<div id="container_@(uploaderID)" fileuploader="@(Model.Name)" uniqueid="@(uploaderID)" style="height:250px;width:100%;">
+    <div id="toolbar_@(uploaderID)" style="float:left;width:100%">
+        <div style="float:left">
+            @{
+                if (Model.AllowUpload)
+                {
+                    <a href="javascript:void(0)" id="upload_@(uploaderID)" onclick="javascript:uploader_@(unqiueID).open('@(uploaderID)');" class="easyui-linkbutton" data-options="iconCls:'fa fa-upload',plain:true">上传</a>
+                }
+                if (Model.AllowDownload)
+                {
+                    <a href="javascript:void(0)" id="download_@(uploaderID)" class="easyui-linkbutton" data-options="iconCls:'fa fa-download',plain:true" onclick="javascript:uploader_@(unqiueID).download('@(uploaderID)')">下载</a>
+                }
+                if (Model.AllowDelete)
+                {
+                    <a href="javascript:void(0)" id="delete_@(uploaderID)" class="easyui-linkbutton" data-options="iconCls:'fa fa-minus-circle',plain:true" onclick="javascript:uploader_@(unqiueID).delete('@(uploaderID)');">删除</a>
+                }
+            }
+        </div>
+        @{
+            if (Model.RefID > 0)
+            {
+                <div style="float:right">
+                    <a href="javascript:void(0)" id="toggle_@(uploaderID)" class="easyui-linkbutton" data-options="iconCls:'fa fa-repeat',plain:true" mode="0" onclick="javascript:uploader_@(unqiueID).toggleVersion(this,'@(uploaderID)');">显示所有版本</a>
+                </div>
+            }
+        }
+    </div>
+    <table id="files_@(uploaderID)"></table>
+</div>
+<script type="text/javascript">
+    uploader_@(unqiueID).register("@(uploaderID)", "@(Model.RefID)", "@(Model.RefTable)", 0);
+    $("#files_@(uploaderID)").datagrid({
+        rownumbers: true,
+        toolbar: "#toolbar_@(uploaderID)",
+        idField: "ID",
+        method: "POST",
+        url: "@(Url.Action("GetAttachFiles", "ProcessFile", new { @area = "Core" }))",
+        columns: [[
+            { field: "ck", align: "center", halign: "center", checkbox: true },
+            {
+                title: "名称", field: "Name", width: 218, align: "left", halign: "center", formatter: function (value, rowData) {
+                    if (rowData.ID <= 0) {
+                        return JQ.Flow.createElement("span", { id: "f_" + rowData.FileID }, null, value).outerHTML;
+                    }
+                    else {
+                        return JQ.Flow.createElement("a", { href: JQ.Upload.Tools.buildDownloadUrl(uploader_@(unqiueID).downloadUrl, rowData.ID, { type: rowData.Type }) }, null, value).outerHTML;
+                    }
+                }
+            }, { title: "版本", field: "Version", width: 30, align: "right", halign: "center" },
+            {
+                title: "大小", field: "Size", width: 76, align: "right", halign: "center", formatter: function (value, rowData) {
+                    return JQ.Upload.getFileSizeText(value);
+                }
+            },
+            {
+                title: "修改时间", field: "LastModifyDate", width: 120, align: "center", halign: "center", formatter: function (value, rowData) {
+                    if (rowData.UploadStatus == 1) {
+                        return value;
+                    }
+                    else if (rowData.UploadStatus == 2) {
+                        return value;
+                    }
+                    else {
+                        return JQ.Flow.parseDateTimeText(value);
+                    }
+                }
+            },
+            {
+                title: "上传日期", field: "UploadDate", width: 90, align: "center", halign: "center", formatter: function (value, rowData) {
+                    if (rowData.UploadStatus == 1) {
+                        return "<div class=\"jq_upfile_s\"><div id=\"p_" + rowData.FileID + "\" class=\"jq_upfile_s1\"><div class=\"jq_upfile_s2\"></div><div class=\"jq_upfile_s3\">0%</div></div><div id=\"r_" + rowData.FileID + "\" class=\"fa fa-times-circle jq_upfile_s4\" title=\"取消\"></div></div>";
+                    }
+                    else if (rowData.UploadStatus == 2) {
+                        return value;
+                    }
+                    else {
+                        return JQ.Flow.parseDateText(value);
+                    }
+                }
+            },
+            {
+                title: "上传人", field: "EmpName", width: 56, align: "center", halign: "center", formatter: function (value, rowData) {
+                    if (rowData.UploadStatus == 1) {
+                        return "<span id=\"e_" + rowData.FileID + "\"></span>";
+                    }
+                    else {
+                        return value;
+                    }
+                }
+            }
+        ]],
+        queryParams: { refID: "@(Model.RefID)", refTable: "@(Model.RefTable)", mode: (document.getElementById("toggler_@(uploaderID)") ? document.getElementById("toggler_@(uploaderID)").getAttribute("mode") : 0) },
+        fit: true,
+        onBeforeCheck: function (index, rowData) {
+            if (rowData.UploadStatus == 1) {
+                return false;
+            }
+        }, onLoadSuccess: function () {
+            if (window.afterFileUploaderLoad) {
+                window.afterFileUploaderLoad($("#files_@(uploaderID)"), "@(Model.RefTable)");
+            }
+            uploader_@(unqiueID).setUploadFilesHTML("@(uploaderID)");
+        }
+    })
+</script>

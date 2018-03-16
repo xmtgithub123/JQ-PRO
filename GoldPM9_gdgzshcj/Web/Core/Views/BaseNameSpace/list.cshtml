@@ -1,0 +1,56 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "BaseNameSpace",new { @area="Core"})';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'TableNames',//主键的字段
+                JQID: 'BaseNameSpaceGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: requestUrl,//请求的地址
+                fitColumns : true,
+                toolbar: '#BaseNameSpacePanel',//工具栏的容器ID
+                columns: [[
+				  		{ title: '表名称', field: 'TableNames', width: 100, align: 'center', sortable: true },
+		                { title: '逻辑层命名空间', field: 'DBSqlNameSpace', width: 100, align: 'center', sortable: true },
+		                { title: '显示层命名空间', field: 'WebNameSpace', width: 100, align: 'center', sortable: true },
+		                { title: '备注', field: 'Remark', width: 100, align: 'center', sortable: true }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '表名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BaseNameSpaceGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="BaseNameSpaceGrid"></table>
+    <div id="BaseNameSpacePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'TableNames', 'Contract': 'like' }"/>
+
+    </div>
+}
+

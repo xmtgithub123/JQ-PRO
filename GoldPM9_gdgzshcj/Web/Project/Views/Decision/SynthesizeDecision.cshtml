@@ -1,0 +1,109 @@
+﻿@{
+    Layout = null;
+}
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <link href="@(Url.Content("~/Content/fontawesome/css/font-awesome.min.css"))" rel="stylesheet" />
+    <link rel="stylesheet" href="@(Url.Content("~/Content/projhome.css"))" />
+    <title></title>
+</head>
+<body class="easyui-layout">
+    <div data-options="region:'north',border:false" style="height: 40px; background-color: #F8F8F8; position: relative; overflow: hidden; border-bottom: 1px solid #D2D2D2;">
+
+        <div style="position: absolute; bottom: 0px;">
+            <ul id="divTabHead" class="jq_tab_header"></ul>
+        </div>
+    </div>
+
+    <div id="divTabContent" data-options="region:'center',border:false" style="border-bottom: 1px solid #D2D2D2;"></div>
+    <script src="@(Url.Content("~/Scripts/jquery.min.js"))"></script>
+    <script type="text/javascript" src="@(Url.Content("~/Scripts/jquery.easyui.min.js"))"></script>
+    <link href="@(Url.Content("~/Content/themes/base/easyui.css"))" rel="stylesheet" />
+    <script src="@(Url.Content("~/Scripts/JQ/tab.js"))"></script>
+    <link rel="stylesheet" href="@(Url.Content("~/Scripts/dhtmlx/dhtmlx.css"))" />
+    <script type="text/javascript" src="@(Url.Content("~/Scripts/dhtmlx/dhtmlx.js"))"></script>
+
+
+</body>
+</html>
+<script type="text/javascript">
+
+    window.tabID = "@(Request.QueryString["a1b2c3wjpid"] ?? "")";
+    window.top.updateTitleByID(window.tabID, "合同分析");
+    $.parser.onComplete = function () {
+        debugger;
+        var tabs = [{ name: "contractAmount", title: "合同大小数量月度分析", baseUrl: "@(Url.Action("ContractDecision", "Decision", new { @area = "Project" }))" }];
+         tabs.push({ name: "subcontract", title: "合同收费付款分析", baseUrl: "@(Url.Action("ContractFeeDecision", "Decision", new { @area = "Project" }))" });
+        // tabs.push({ name: "contract", title: "合同总额分类比例分析", baseUrl: "@(Url.Action("list", "busscontract", new { @area = "bussiness" }))" });
+         tabs.push({ name: "design", title: "合同分类分析", baseUrl: "@(Url.Action("ContractTypeDecision", "Decision", new { @area = "Project" }))" });
+      
+         var cTab = new Tab({
+             head: document.getElementById("divTabHead"),
+             body: document.getElementById("divTabContent"),
+             tabs: tabs,
+             onSelected: function (tab) {
+                 debugger;
+                 reloadTab(cTab, tab);
+             }
+         });
+         var toSelect;
+         var lastChoosed = null;
+     }
+
+     function reloadTab(cTab, tab) {
+         var url = getTablUrl(tab, { projID: 1 });
+         //switch (tab.name) {
+         //    case "contractAmount":
+         //        url = getTablUrl(tab, { projID: 1 });
+         //        break;
+         //    case "subcontract":
+         //        url = getTablUrl(tab, { projID: 1 });
+         //        break;
+
+         //}
+         if (url && url != tab.url) {
+             tab.url = url;
+             cTab.refreshSelected();
+         }
+     }
+
+     function getTablUrl(tab, params) {
+         var str = "";
+         var index = 0;
+         params.from = "projectcenter";
+         for (var i in params) {
+             if (index == 0 && (tab.baseUrl && tab.baseUrl.indexOf("?") == -1)) {
+                 str += "?";
+             }
+             else {
+                 str += "&";
+             }
+             index++;
+             str += i + "=" + params[i];
+         }
+         switch (tab.name) {
+             case "contractAmount":
+             case "contract":
+             case "subcontract":
+             case "design":
+             case "quality":
+             case "event":
+             case "archive":
+             case "gantt":
+             case "progress":
+                 //case "info":
+                 return tab.baseUrl + str;
+                 break;
+         }
+     }
+
+     window.redirect = function (projectID, taskGroupID) {
+         //var data=$("#
+     }
+</script>

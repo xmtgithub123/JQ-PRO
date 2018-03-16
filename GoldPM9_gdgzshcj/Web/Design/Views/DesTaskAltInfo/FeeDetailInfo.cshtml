@@ -1,0 +1,110 @@
+﻿@model DataModel.Models.DesTaskFeeDetails
+<style type="text/css">
+    #DesignInfo th {
+        text-align: center;
+    }
+
+    #DesignInfo td {
+        text-align: center;
+    }
+</style>
+<script>
+    var IsView = '@ViewBag.IsView';
+    $(function () {
+        $("input", "#DesignInfoForm_@ViewBag._DialogId").each(function (i, e) {
+            if (IsView == "1") {
+                var t = $(e).textbox({ editable: false }).next().css({
+                    border: "none", boxShadow: "none", backgroundColor: "transparent"
+                });
+                t.children().eq(0).css({
+                    backgroundColor: "transparent"
+                })
+            }
+            else {
+                $(e).textbox();
+            }
+        })
+        //保存方法
+        window.DesignInfoSave_@ViewBag._DialogId = function () {
+            var result = true;
+            if (!$("#DesignInfoForm_@ViewBag._DialogId").form("validate")) {
+                result = false;
+                return result;
+            }
+
+            JQ.tools.ajax({
+                async: false,//同步操作
+                url: '@Url.Action("FeeDesignSave")?taskId=@ViewBag.taskId',
+                data: $("#DesignInfoForm_@ViewBag._DialogId").serialize(),
+                succesCollBack: function (param) {
+                    if (param.stateValue > 0) {
+                        resutl = true;
+                    } else {
+                        resutl = false;
+                    }
+                }
+            });
+
+            return resutl;
+        }
+
+        window.DesignInfoValid_@ViewBag._DialogId = function () {
+            return $("#DesignInfoForm_@ViewBag._DialogId").form("validate");
+        }
+
+    })
+
+
+</script>
+
+<form id="DesignInfoForm_@ViewBag._DialogId">
+    <table id="DesignInfo" class="table table-bordered" style="table-layout:fixed;">
+        <tr>
+            <th width="16%">招标费(元)</th>
+            <td width="34%">
+                <input class="easyui-textbox" name="FeeZBF" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeZBF" />
+            </td>
+            <th width="16%">项目前期工作费(元)</th>
+            <td>
+                <input class="easyui-textbox" name="FeeXMQQF" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeXMQQF" />
+            </td>
+        </tr>
+        <tr>
+            <th width="16%">设计费(元)</th>
+            <td>
+                <input class="easyui-textbox" name="FeeSJF" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeSJF" />
+            </td>
+            <th width="16%">预算编制费(元)</th>
+            <td>
+                <input class="easyui-textbox" name="FeeYSBZF" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeYSBZF" />
+            </td>
+        </tr>
+        <tr>
+            <th width="16%">竣工图编制费(元)</th>
+            <td>
+                <input class="easyui-textbox" name="FeeJGTBZF" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeJGTBZF" />
+            </td>
+            <th width="16%">工程勘察费(元)</th>
+            <td>
+                <input class="easyui-textbox" name="FeeKCF" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeKCF" />
+            </td>
+        </tr>
+        <tr>
+
+            <th width="16%">总投资额(元)</th>
+            <td>
+                <input class="easyui-textbox" name="FeeZTZ" data-options="validType:'intOrFloat'," style="width:100%" value="@Model.FeeZTZ" />
+            </td>
+            <th width="16%">编辑人</th>
+            <td>
+                <span>
+                    @Model.CreatorEmpName 
+                </span>
+            </td>
+        </tr>
+
+    </table>
+</form>
+
+
+

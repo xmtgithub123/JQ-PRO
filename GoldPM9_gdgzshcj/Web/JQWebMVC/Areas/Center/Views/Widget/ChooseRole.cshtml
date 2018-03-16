@@ -1,0 +1,58 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <table id="grid"></table>
+</div>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript">
+    window.onLoaded = function () {
+        var lastChecked = ",@(Request.QueryString["ids"]??""),";
+        $("#grid").datagrid({
+            fit: true,
+            rownumbers: true,
+            border: false,
+            idField: "ID",
+            columns: [[
+                { field: "ck", checkbox: true, align: "left", halign: "center" },
+                { field: "Name", title: "名称", width: 330, align: "left", halign: "center" },
+            ]],
+            url: "@(Url.Action("GetList","Role",new { @area="Center" }))",
+            method: "POST",
+            onLoadSuccess: function (data) {
+                var $grid = $("#grid");
+                for (var i = 0; i < data.rows.length; i++) {
+                    if (lastChecked.indexOf("," + data.rows[i].ID + ",") > -1) {
+                        $grid.datagrid("checkRow", $grid.datagrid("getRowIndex", data.rows[i].ID));
+                    }
+                }
+            }
+        }).datagrid("getPager").pagination({
+            pageSize: 20,
+            pageList: [10, 15, 20, 25, 30, 50],
+            beforePageText: '第',
+            afterPageText: '页    共 {pages} 页',
+            displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录'
+        });
+    }
+
+    function sure() {
+        var rows = $("#grid").datagrid("getChecked");
+        if (rows.length == 0) {
+            return;
+        }
+        frameElement.api.afterChoosed(rows);
+        frameElement.closeDialog();
+    }
+</script>

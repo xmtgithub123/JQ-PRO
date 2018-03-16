@@ -1,0 +1,115 @@
+﻿
+@using JQ.Web;
+<style type="text/css">
+    .rwpdialogdiv {
+        padding: 0px;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        $(".dialog-toolbar :last").hide();
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'OaMeetingRoomGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '550',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQFields: ["Id"],//追加的字段名
+            JQSearch: {
+                id: 'JQSearch',
+                prompt: '会议名称',
+                loadingType: 'datagrid',//默认值为datagrid可以不传
+            },
+            url: '@Url.Action("SelectRoom", "OaMeetingRoom",new { @area="Oa"})',//请求的地址
+            JQMergeCells: { fields: ['Id', 'RoomName', 'PeoIdent', 'StateIdent', 'ProcessId'] },
+            checkOnSelect: true,//是否包含check
+            fitColumns: false,
+            singleSelect: true,
+            nowrap: false,
+            toolbar: '#OaMeetingRoomPanel',//工具栏的容器ID
+            columns: [[
+              { field: 'Id', align: 'center', checkbox: true, JQIsExclude: true },
+    { title: '会议室名称', field: 'RoomName', width: '20%', align: 'center', sortable: true },
+    {
+        title: '会议室容纳人数', field: 'PeoIdent', width: '13%', align: 'center', sortable: true,
+        formatter:function(val,row)
+        {
+            return row.RoomPeoLength;
+        }
+    },
+    {
+        title: '会议室状态', field: 'StateIdent', width: '10%', align: 'center', sortable: true,
+        formatter: function (val, row) {
+            if (row.RoomStatus == "1466") {
+                return '<span style="color:blue;">' + row.RoomStatusName + '</span>';
+            }
+            else {
+                if (row.RoomStatus == "1467") {
+                    return '<span style="color:red;">' + row.RoomStatusName + '</span>'
+                }
+                else {
+                    return row.RoomStatusName;
+                }
+            }
+        }
+    },
+        { title: '开始时间', field: 'StartDate', width: '14%', align: 'center', sortable: true },
+        { title: '结束时间', field: 'EndDate', width: '14%', align: 'center', sortable: true },
+    { title: '会议室用途', field: 'MeetingUseConent', width: '20%', align: 'center', sortable: true },
+        //{
+        //    field: "FlowProgress", title: "流程进度", align: "center", halign: "center", width: "5%", formatter: JQ.Flow.showFlowProgress("OaMeetingRoomGrid", "OaMeetingUse", "MeetingId")
+        //}
+
+            ]]
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '会议室名称',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+            {
+                dgID: 'OaMeetingRoomGrid',
+                loadingType: 'datagrid',
+                queryParams: { text: $("#JQSearch").textbox('getValue') }
+            });
+            }
+        });
+    });
+
+    function selectReivew() {
+        var rows = $('#OaMeetingRoomGrid').datagrid('getSelections');
+        if (rows.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        if (rows[0].RoomStatus == "1466")
+        {
+            window.top.JQ.dialog.info('当前会议室在维护中！！！');
+            return;
+        }
+        if (rows[0].RoomStatus == "1467") {
+            window.top.JQ.dialog.info('当前会议室废弃！！！');
+            return;
+        }
+        selectRoom(rows[0]);
+        JQ.dialog.dialogClose();
+    }
+
+</script>
+
+<table id="OaMeetingRoomGrid"></table>
+<div id="OaMeetingRoomPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectReivew()">确定选择</a>
+    </span>
+    @*分割号*@
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'RoomName', Contract:'like'}" />
+</div>
+
+
+

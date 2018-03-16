@@ -1,0 +1,119 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+    var requestUrl = '@Url.Action("json", "Vacation",new { @area="Hr"})',
+           addUrl = '@Url.Action("add","Vacation",new {@area="Hr" })',
+           editUrl = '@Url.Action("edit", "Vacation",new {@area="Hr" })',
+           delUrl = '@Url.Action("del", "Vacation", new { @area = "Hr" })';
+        var isExport; 
+    $(function () {
+        var btnPer=@Html.Raw(ViewBag.permission);
+        JQ.datagrid.datagrid({
+            JQButtonTypes: ['add', 'edit','del', 'export'],//需要显示的按钮
+            JQAddUrl: addUrl, //添加的路径
+            JQEditUrl: editUrl,//编辑的路径
+            JQDelUrl: delUrl, //删除的路径
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'VacationGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '768',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQExcludeCol: [1,12,10,11],//导出execl排除的列
+            JQFields: ["Id"],//追加的字段名
+            JQSearch: {
+                id: 'JQSearch',
+                prompt: '姓名',
+                loadingType: 'datagrid',//默认值为datagrid可以不传
+            },
+            url: requestUrl,//请求的地址
+            checkOnSelect: true,//是否包含check
+            fitColumns: false,
+            nowrap: false,
+            toolbar: '#VacationPanel',//工具栏的容器ID
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '--请假表--', field: 'Id', width: 100,hidden:true, align: 'center', sortable: true  },
+                { title: '请假人姓名', field: 'EmpName', width: 100, align: 'center', sortable: true  },
+                { title: '请假起始日期', field: 'StartDate', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '请假结束日期', field: 'EndDate', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '请假天数', field: 'Days', width: 100, align: 'center', sortable: true  },
+                { title: '请假原因', field: 'VacationReason', width: 100, align: 'center', sortable: true  },
+                { title: '请假人部门', field: 'DepName', width: 100, align: 'center', sortable: true  },
+                { title: '请假类型', field: 'VacationType', width: 100, align: 'center', sortable: true  },
+                { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'Vacation' }
+                ,
+                {
+                    field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", @ViewBag.CurrentEmpID)
+                    },
+                    {
+                        field: "opt", title: "操作", align: "center", halign: "center", width: 40,
+                        formatter: function (value, row, index) {
+                            var title = "查看";
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                            }
+
+                            if($.inArray("edit", btnPer)!=-1||$.inArray("alledit", btnPer)!=-1){
+                                return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"ShowOaFileSendDialogue('" + row.Id + "')\">" + title + "</>";
+                            }
+                        }
+                    }
+
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#VacationGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                    debugger;
+                    isExport = data.isExport;
+                }
+            });
+        });
+
+        function ShowOaFileSendDialogue(Id) {
+            JQ.dialog.dialog({
+                title: "编辑请假单",
+                url: '@Url.Action("edit")?Id=' + Id +"&isExport="+isExport,
+            width: '800',
+            height: '600',
+            onClose: function () {
+                $("#VacationGrid").datagrid("reload");
+            }
+        });
+    }
+    </script>
+
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="VacationGrid"></table>
+    <div id="VacationPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ 'Key': 'EmpName', 'Contract': 'like' }" />
+
+    </div>
+}
+

@@ -1,0 +1,258 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("ExchRecJsonList", "DesReceive", new { @area="Design"})?RecStatus=0&Type=@ViewBag.TypeKind';
+        var EmpId = '@ViewBag.EmpId';
+
+        $(function () {
+            var addPermission = '@ViewBag.addPermission';
+            if (addPermission != '1') {
+                $("#DesExchPanel").children().eq(0).children().hide();
+            }
+
+            $("#RecState").combobox({
+                editable: false,
+                valueField: 'Value',
+                textField: 'Text',
+                value: '0',
+                url: '@Url.Action("getRecStateList", "DesExch",new { @area="Design"})',
+                onChange: function (newVal, oldVal) {
+                    var val = newVal;
+                    if (newVal == "-1") {
+                        val = "";
+                    }
+
+                    $("#DesExchRecGrid").datagrid("reload", '@Url.Action("ExchRecJsonList", "DesReceive",new { @area="Design"})?RecStatus=' + val + '&Type=@ViewBag.TypeKind');
+                }
+            });
+
+            JQ.datagrid.datagrid({
+                toolbar: '#DesExchPanel',
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: "DesExchRecGrid",//数据表格ID
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                checkOnSelect: false,
+                selectOnCheck: false,
+                fit: true,
+                JQMergeCells: { fields: ['ExchId'] },
+                pagination: true,
+                collapsible: false,
+                //JQMergeCells: { fields: ['Id', 'ExchTitle', 'ExchSpecName', 'ExchEmpName', 'SpecIdent', 'EmpIdent', 'dateIdent', 'NumberIdent', 'projIdent', 'process'] },
+                url: requestUrl,
+                columns: [[
+                    {
+                        title: '项目名称', field: 'NumberIdent', width: '240', halign: 'center', align: 'left',
+                        formatter: function (val, row) {
+                            return row.ProjName;
+                        }
+                    },
+
+                    {
+                        title: '资料名称', field: 'ExchTitle', width: 220, align: 'left', halign: 'center'
+                    },
+                    {
+                        title: '提资专业', field: 'ExchSpecName', width: 120, align: 'center', halign: 'center'
+                    },
+                    {
+                        title: '提资人', field: 'ExchEmpName', width: 80, align: 'center', halign: 'center'
+                    },
+                    { title: '收资专业', field: 'RecSpecName', width: 120, align: 'left', halign: 'center' },
+                    { title: '收资人', field: 'RecEmpName', width: 80, align: 'left', halign: 'center' },
+                    {
+                        title: '接收时间', field: 'RecTime', width: 100, align: 'center', halign: 'center',
+                        formatter: JQ.tools.DateTimeFormatterByT
+
+                    },
+                   { title: '处理意见', field: 'RecContent', width: 120, align: 'left', halign: 'center' },
+
+                   {
+                       title: '接收状态', field: 'State', width: 90, align: 'center', halign: 'center',
+                       formatter: function (val, row) {
+                           if (row.State == '通过') {
+                               return '<span style="color:green;">' + row.State + '</span>'
+                           }
+                           else {
+                               if (row.State == "回退") {
+                                   return '<span style="color:red;">' + row.State + '</span>'
+                               }
+                               else {
+                                   return row.State;
+                               }
+                           }
+                       }
+
+                   },
+                   {
+                       field: "ExchId", title: "流程审批进度", align: "center", halign: "center", width: 90,
+                       formatter: JQ.Flow.showFlowProgress("DesExchRecGrid", "DesExch", "ExchId")
+
+                   },
+                {
+                    title: '操作', field: 'Id', width: 220, align: 'center', halign: 'center',
+                    formatter: function (val, row) {
+                        var url = '&nbsp;<a btn class="easyui-linkbutton" onclick="ReverseExch(' + row.ExchId + ',' + row.Id + ')">反提</a>';// +
+                         //   '&nbsp;<a btn class="easyui-linkbutton" onclick="UrgenExch(' + row.ExchId + ',' + row.flowNodeId + ')">催资</a>';//表示反提
+                        var urgenUrl = '<a btn class="easyui-linkbutton" onclick="UrgenExch(' + row.ExchId + ',' + row.flowNodeId + ')">催资</a>';
+                        if (row.FlowStatusID == 3) {//审批完成的情况
+                            if (row.RecEmpId == EmpId || row.RecEmpId == "0") {
+                                if (row.IdentId == 1) {
+                                    if (row.RecStatus == 0) {
+                                        return '<a btn class="easyui-linkbutton" onclick="RecApprove(' + row.Id + ')">处理</a>' + url;
+                                    }
+                                    else {
+                                        return '<a btn class="easyui-linkbutton" onclick="RecApprove(' + row.Id + ')">查看</a>' + url;
+                                    }
+                                }
+                                else {
+                                    return '<a btn class="easyui-linkbutton" onclick="Accept(' + row.Id + ')">接收</a>' + url;
+                                }
+                            }
+                            else {
+                                return '<a btn class="easyui-linkbutton" onclick="RecApprove(' + row.Id + ')">查看</a>' + url;
+                            }
+                        }
+                        else {
+                            //退回的情况，收资人可以下载附件，但是不能进行其他操作
+                            if (row.FlowStatusID == 2 && row.FlowStatusName.indexOf("退回") >= 0) {
+                                return '<a btn class="easyui-linkbutton" onclick="RecApprove(' + row.Id + ')">查看</a>' + urgenUrl;
+                            }
+                            else {
+                                return urgenUrl;
+                            }
+
+                        }
+
+                    }
+                }
+
+                ]],
+                onLoadSuccess: function (row) {
+
+                    $("a[btn]").linkbutton({ iconCls: 'fa fa-edit' });
+
+                }
+            })
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '资料名称、资料内容',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'DesExchRecGrid',
+                            loadingType: 'datagrid',
+                            queryParams:
+                                {
+                                    KeyText: $("#JQSearch").textbox('getValue'),
+                                    startTime: $("#startTime").datebox('getValue'),
+                                    endTime: $("#endTime").datebox('getValue')
+                                }
+                        });
+                }
+            });
+
+
+        });
+        // 接收
+        function Accept(id) {
+            JQ.tools.ajax({
+                url: '@Url.Action("RecExchange", "DesReceive")?Id=' + id,
+                succesCollBack: function (data) {
+                    $("#DesExchRecGrid").datagrid("reload");
+                }
+            });
+        }
+
+
+        function closeDialog() {
+            JQ.dialog.dialogClose();
+        }
+
+        //收资审批页面信息
+        function RecApprove(RecId) {
+            JQ.dialog.dialog({
+                title: '收资详细信息',
+                width: '1200',
+                height: '700',
+                url: '@Url.Action("RecInfoApprove", "DesReceive", new { @area="Design"})?Id=' + RecId,
+                onClose: function () {
+                    $("#DesExchRecGrid").datagrid("reload");
+                }
+            });
+        }
+
+        function ReverseExch(ExchId, RecId) {
+            JQ.dialog.dialog({
+                title: '反提资页面信息',
+                width: '1200',
+                height: '700',
+                url: '@Url.Action("ReverseExch","DesExch",new { @area="Design"})?ExchId=' + ExchId + '&RecId=' + RecId + '&ReverseIdent=2',
+                onClose: function () {
+                    $("#DesExchRecGrid").datagrid("reload");
+                }
+            });
+        }
+        //催资
+        function UrgenExch(ExchId, flowNodeId) {
+            JQ.tools.ajax({
+                url: '@Url.Action("UrgenExch", "DesExch",new { @area="Design"})?ExchId=' + ExchId + '&flowNodeId=' + flowNodeId,
+                succesCollBack: function (data) {
+                    $("#DesExchRecGrid").datagrid("reload");
+                }
+            });
+        }
+        //索资
+        function AskingExch() {
+            JQ.dialog.dialog({
+                title: '索资',
+                width: '800',
+                height: '400',
+                url: '@Url.Action("AskingExch","DesExch",new { @area="design"})'
+            });
+        }
+
+        function ChangeTitle() {
+            var $obj = $('div[class="datagrid-body"]').find('td[field="process"]').children('div').children('span');
+            for (var index = 0; index < ($obj).length; index++) {
+                var $target = $obj.eq(index);
+                if ($target.text() != "未审批" && $target.text() != "") {
+
+                    $target.text("查看流程");
+                }
+            }
+
+
+
+        }
+        JQ.Flow.onLoadFlowProgress = function () {
+            //ChangeTitle();
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="DesExchRecGrid"></table>
+    <div id="DesExchPanel" JQPanel="searchPanel" style="padding:5px;height:auto;border:none;">
+        <div JQPanel="toolbarPanel">
+            <a id="AskingExch" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="AskingExch()">索资</a>
+        </div>
+        <div style="margin-left:20px;float:left;padding-bottom:5px;">
+            接收状态：<select id="RecState" class="easyui-combobox" style="width:100px;"></select>
+        </div>
+       
+        <div style="margin-left:20px;float:left;padding-bottom:5px;">筛选条件：<input id="JQSearch" style="width:250px;" /></div>
+        
+        <div style="margin-left:40px;float:left;padding-bottom:5px;">接收时间：<span>
+    <input type="text" id="startTime" class="easyui-datebox" style="width:120px;" prompt="开始时间" />
+    --
+    <input type="text" id="endTime" class="easyui-datebox" style="width:120px;" prompt="结束时间" />
+</span> </div>
+        
+    </div>
+}
+

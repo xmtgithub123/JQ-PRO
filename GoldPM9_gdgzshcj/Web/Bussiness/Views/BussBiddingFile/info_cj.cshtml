@@ -1,0 +1,239 @@
+﻿@model DataModel.Models.Project
+@using JQ.Web;
+<script src="@(Url.Content("~/Scripts/jQueryGantt/libs/i18nJs.js"))"></script>
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'BussBiddingFileForm',//formid提交需要用到
+            buttonTypes: ['close'],//默认按钮
+            beforeFormSubmit: function () {
+
+                var _Id = $("#Id").val();
+                var _ProjName = $("#ProjName").val();
+
+                var dt1 = $("#DatePlanStart").datebox("getValue");
+                var dt2 = $("#DatePlanFinish").datebox("getValue");
+                var t1 = strparser(dt1);
+                var t2 = strparser(dt2);
+                if (t1 <= t2) {
+                    var result = calculateDays(dt1, dt2);
+                    $("#Duration").val(result);
+                }
+                else {
+                    JQ.dialog.error("开始时间不能大于完成时间！");
+                }
+            },
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                var _tempFrame=window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+                if(_tempFrame){
+                    _tempFrame.contentWindow.refreshGrid();
+                }
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            },flow:{
+                flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+                flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+                url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+                instance: "_flowInstance",
+                processor: "Bussiness,Bussiness.FlowProcessor.BussBiddingFile",
+                onInit: function () {
+                    _flowInstance = this;
+                },
+                refID: "@(Model.Id)",
+                refTable: "BussBiddingFile_CJ",
+                dataCreator: "@(ViewBag.CreatorEmpId)",
+                getStepUsers: function (step, action) {
+                    if (step.Order == 2) {
+                        var swlxrId = $("#BusinessEmpId").combotree("getValue");
+                        var swlxr = $("#BusinessEmpId").combotree("getText");
+                        var jslxrId = $("#ProjEmpId").combotree("getValue");
+                        var jslxr = $("#ProjEmpId").combotree("getText");
+                        var usersId = "";
+                        var usersName = "";
+                        if (swlxrId != "") {
+                            usersId += swlxrId.split('-')[0] + ",";
+                            usersName += swlxr + ",";
+                        }
+                        if (jslxrId != "") {
+                            usersId += jslxrId.split('-')[0];
+                            usersName += jslxr;
+                        }
+
+                        if (usersId!="") {
+                            return { choosedUserNames: usersName, choosedUsers: usersId };
+                        }
+                    }
+                }
+            }
+        });
+
+
+        if(@Model.Id>0)
+        {
+            $("#BiddingBatch").val('@ViewBag.BiddingBatch');
+            $("#BiddingNumber").val('@ViewBag.BiddingNumber');
+            $("#PackageNumber").val('@ViewBag.PackageNumber');
+            $("#EngineeringName").val('@ViewBag.EngineeringName');
+            $("#BiddingId").val(@Model.ColAttType7);
+            $("#BiddingInfoID").val(@Model.ColAttType8);
+            $("#Duration").val(@Model.ColAttType11);
+        }
+    });
+
+    function SelectBiddingInfoPackage() {
+        JQ.dialog.dialog({
+            title: "选择投标信息",
+            url: '@Url.Action("ListInfo", "BussBiddingInfo", new { @area = "Bussiness" })?CompanyType=CJ&IsFilter=0',
+            width: '1024',
+            height: '100%',
+            JQID: 'BiddingInfoInfoGrid',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-plus',
+        });
+    }
+
+    var _BussBiddingPackageBack = function (row) {
+        debugger;
+        $("#BiddingId").val(row.Id);
+        $("#EngineeringName").textbox('setText', row.EngineeringName);
+        $("#BiddingNumber").textbox('setText', row.BiddingNumber);
+        $("#ProjEmpId").combotree("setValue",row.BiddingManageID+"-"+row.BiddingManageDeptId);
+        $("#BusinessEmpId").combotree("setValue",row.Delegator+"-"+row.DelegatorDeptId);
+    }
+    JQ.combotree.selEmp({ id: 'ProjEmpId',width:"98%" });
+    JQ.combotree.selEmp({ id: 'BusinessEmpId',width:"98%" });
+    JQ.combotree.selEmp({ id: 'TechnologyEmpId',width:"98%" });
+
+
+    if(@ViewData["ProjEmpId1"]!=0&&@ViewData["ProjEmpId2"]!=0)
+    {
+        debugger;
+        $("#ProjEmpId").combotree('setValue',@ViewData["ProjEmpId1"]+"-"+ @ViewData["ProjEmpId2"]);
+    }
+    if(@ViewData["BusinessEmpId1"]!=0&&@ViewData["BusinessEmpId2"]!=0)
+    {
+        $("#BusinessEmpId").combotree('setValue',@ViewData["BusinessEmpId1"]+"-"+ @ViewData["BusinessEmpId2"]);
+    }
+    if(@ViewData["TechnologyEmpId1"]!=0&&@ViewData["TechnologyEmpId2"]!=0)
+    {
+        $("#TechnologyEmpId").combotree('setValue',@ViewData["TechnologyEmpId1"]+"-"+ @ViewData["TechnologyEmpId2"]);
+    }
+
+    function onSelect(date) {
+
+        var dt1 = $("#DatePlanStart").datebox("getValue");
+        var dt2 = $("#DatePlanFinish").datebox("getValue");
+        if (dt1 != "" && dt2 != "") {
+            var t1 = strparser(dt1);
+            var t2 = strparser(dt2);
+            if (t1 <= t2) {
+                var result = calculateDays(dt1, dt2);
+                $("#Duration").val(result);
+            }
+            else {
+                JQ.dialog.error("开始时间不能大于完成时间！");
+            }
+        }
+    }
+    function calculateDays(dateBegin, dateEnd) {
+        var sDate = new Date(dateBegin);
+        var eDate = new Date(dateEnd);
+        var distance = sDate.distanceInWorkingDays(eDate);
+        return distance;
+    };
+
+
+    Date.prototype.distanceInWorkingDays = function (toDate) {
+        var pos = new Date(this.getTime());
+        pos.setHours(23, 59, 59, 999);
+        var days = 0;
+        var nd = new Date(toDate.getTime());
+        nd.setHours(23, 59, 59, 999);
+        var end = nd.getTime();
+        while (pos.getTime() <= end) {
+            days = days + (isHoliday(pos) ? 0 : 1);
+            pos.setDate(pos.getDate() + 1);
+        }
+        return days;
+    };
+
+    function strparser(s)
+    {
+        if (!s) return new Date();
+        var ss = s.split('-');
+        var y = parseInt(ss[0], 10);
+        var m = parseInt(ss[1], 10);
+        var d = parseInt(ss[2], 10);
+        if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+            return new Date(y, m - 1, d);
+        } else {
+            return new Date();
+        }
+    }
+</script>
+@using (Html.BeginForm("save", "BussBiddingFile", FormMethod.Post, new { @area = "Bussiness", @id = "BussBiddingFileForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <input type="hidden" id="CompanyType" name="CompanyType" value="CJ" />
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">投标编号</th>
+            <td width="40%">
+                <input id="BiddingNumber" name="BiddingNumber" style="width:50%;" class="easyui-textbox" data-options="required:true,editable:false" />
+                <a id="selectBidding" name="selectBidding" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="SelectBiddingInfoPackage()">选择投标项目</a>
+            </td>
+            <th width="10%">项目名称</th>
+            <td width="40%">
+                <input id="EngineeringName" name="EngineeringName" style="width:98%;" class="easyui-textbox" data-options="required:true,editable:false" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">投标文件名</th>
+            <td colspan="3">
+                <input id="ProjName" name="ProjName" style="width:98%;" class="easyui-textbox" data-options="required:true" value="@Model.ProjName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">技术联系人</th>
+            <td width="40%">
+                <select id="ProjEmpId" name="ProjEmpId" JQvalue="@Model.ProjEmpId" data-options="required:true,editable: false,readonly:true"></select>
+            </td>
+            <th width="10%">商务联系人</th>
+            <td width="40%">
+                <select id="BusinessEmpId" name="BusinessEmpId" JQvalue="@Model.ColAttType9" data-options="required:true,editable: false,readonly:true"></select>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">计划开始时间</th>
+            <td width="40%">
+                <input id="DatePlanStart" name="DatePlanStart" class="easyui-datebox" data-options="required:true" validtype="dateISO" value="@Model.DatePlanStart" />
+            </td>
+            <th width="10%">计划完成时间</th>
+            <td width="40%">
+                <input id="DatePlanFinish" name="DatePlanFinish" class="easyui-datebox" data-options="required:true" validtype="dateISO" value="@Model.DatePlanFinish" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">备注说明</th>
+            <td colspan="3">
+                @Html.TextAreaFor(model => Model.ProjNote, new { @style = "width:98%;height:80px" })
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "Project";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <input type="hidden" id="BiddingId" name="BiddingId" />
+    <input type="hidden" id="BiddingInfoID" name="BiddingInfoID" />
+    <input type="hidden" id="Duration" name="Duration" />
+                    }

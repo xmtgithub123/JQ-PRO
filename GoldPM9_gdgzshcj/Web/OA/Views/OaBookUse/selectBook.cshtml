@@ -1,0 +1,144 @@
+﻿
+@using JQ.Web;
+<style type="text/css">
+    .rwpdialogdiv {
+        padding: 0px;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        $(".dialog-toolbar :last").hide();
+
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '请输入图书名称或编号',
+            onClickButton: function () {
+                refreshGrid();
+            }
+        });
+
+        $.extend($.fn.datagrid.defaults.view, {
+            onAfterRender: function () {
+                $("a[flag='menubutton']").mouseover(function () {
+                    document.getElementById("mm3").setAttribute("rowid", this.getAttribute("dataid"));
+                    document.getElementById("mm3").setAttribute("rowCount", this.getAttribute("dataCount"));
+
+                }).menubutton({
+                    iconCls: 'icon-edit',
+                    menu: '#mm3'
+                });
+            }
+        });
+
+        JQ.datagrid.datagrid({
+            JQButtonTypes: [],//需要显示的按钮
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'OaBookGrid',//数据表格ID
+            JQDialogTitle: '选择图书',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            singleSelect: false,
+            //JQCustomSearch: [  //自定义搜索的字段
+            //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+            //],
+            //JQExcludeCol: [1, 4, 10],//导出execl排除的列
+            //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+            //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+            JQFields: ["Id"],//追加的字段名
+            url: '@Url.Action("json", "OaBook", new { @area = "OA" })',//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#OaBookPanel',//工具栏的容器ID
+            columns: [[
+                  { title: '图书类别', field: 'BookTypeName', width: "10%", align: 'center', sortable: true },
+		            { title: '图书名称', field: 'BookName', width: "20%", align: 'center', sortable: true },
+		            { title: '图书编号', field: 'BookNameNumber', width: "15%", align: 'center', sortable: true },
+                     { title: '出版商', field: 'BookPublisher', width: "15%", align: 'center', sortable: true },
+                      { title: '作者', field: 'BookAuthor', width: "10%", align: 'center', sortable: true },
+                        { title: '图书数量', field: 'BookQuantity', width: "10%", align: 'center', sortable: true },
+                       { title: '可借数量', field: 'Count', width: "10%", align: 'center', sortable: true },
+                       {
+                           field: 'opt', title: '操作', width: "10%", align: 'center', JQIsExclude: true,
+                           formatter: function (value, row, index) {
+                               if (row.Count > 0) {
+                                   return "<a href=\"javascript:void(0)\" id=\"mb" + index + "\" dataid=\"" + row.Id + "\"  dataCount=\"" + row.Count + "\"  flag=\"menubutton\"   >操作</a>";
+                               } else {
+                                   return "无法借阅";
+                               }
+
+                           }
+                       }
+            ]],
+            queryParams: getQueryParameters()
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '图书编号、图书名称',
+            onClickButton: function () {
+                refreshGrid();
+            }
+        });
+
+    });
+
+    window.refreshGrid = function () {
+        var query = getQueryParameters();
+        query.bookType = $("#BookType").combotree("getValues");
+        $("#OaBookGrid").datagrid("load", query);
+    }
+
+    function getQueryParameters() {
+        return { text: $("#JQSearch").textbox("getText") };
+    }
+
+    function selectProj() {
+        debugger;
+        _BookBorrCallBack();
+        JQ.dialog.dialogClose();
+    }
+
+    function menuHandler(item) {
+        var key = $("#mm3").attr("rowid");
+        var rowCount = $("#mm3").attr("rowCount");
+        switch (item.text) {
+            case "借阅":
+                JQ.dialog.dialog({
+                    title: "借阅",
+                    @*url: '@Url.Action("borrBook")' + '?id=' + key + '&empID=@ViewBag.EmpID' + 'EmpName=@ViewBag.EmpName',*@
+                    url: '@Url.Action("borrBook")' + '?id=' + key + '&empID=@ViewBag.EmpID' + '&EmpName=@ViewBag.EmpName' + '&rowCount='+rowCount,
+                    width: '900',
+                    height: '100%',
+                    JQID: 'OaBookGrid',
+                    JQLoadingType: 'datagrid',
+                    iconCls: 'fa fa-plus'
+                });
+                break;
+            default:
+                break;
+        }
+    }
+
+</script>
+
+<table id="OaBookGrid"></table>
+<div id="OaBookPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        @*<a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProj()">确定</a>*@
+    </span>
+    @*分割号*@
+    @*<span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>*@
+
+    @BaseData.getBases(new Params() { isMult = true, engName = "BookType", controlName = "BookType" })
+    <input id="JQSearch" style="width:250px;" />
+
+</div>
+<div id="mm3" class="easyui-menu" style="width:80px;" data-options="onClick:menuHandler">
+    <div id="div1">借阅</div>
+</div>
+
+
+

@@ -1,0 +1,487 @@
+﻿<link rel="stylesheet" href="~/Scripts/jointjs/rappid.min.css" />
+
+<style type="text/css">
+    #paper {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+    }
+
+    .link .link-tools {
+        display: none;
+    }
+
+    .link {
+        pointer-events: none;
+    }
+
+    .element {
+        cursor: initial;
+    }
+
+        .element .btn.des > text {
+            cursor: pointer;
+        }
+
+         .element .btn.prt > text {
+            cursor: pointer;
+        } .element .btn.pub > text {
+            cursor: pointer;
+        }
+</style>
+
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',border:false" style="border-bottom-width:1px;overflow:hidden">
+        <div style="height:30px;padding:5px">
+            <div style="float:left;margin-left:5px;">
+                <a id="btnReloadMember" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-repeat'" onclick="btnReloadMember()">刷新</a>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-search-minus'" onclick="zoom(-0.1)">缩小</a>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-search-plus'" onclick="zoom(0.1)">放大</a>
+                显示方式：
+                <input id="orgchart-direction" style="width:80px;">
+                <span style="margin-right:10px;">&nbsp;</span>
+            </div>
+            <div style="float:right;margin-right:5px;margin-top:7px;">
+                节点状态：
+                <span class="node-example node-status-0-bg">未启动</span>
+                <span class="node-example node-status-1-bg">已安排</span>
+                <span class="node-example node-status-2-bg">进行中</span>
+                <span class="node-example node-status-3-bg">已完成</span>
+                <span class="node-example node-status-4-bg">已停止</span>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'center',border:false">
+        <div id="paper" class="paper"></div>
+    </div>
+</div>
+
+<script src="~/Scripts/jointjs/lodash.min.js"></script>
+<script src="~/Scripts/jointjs/backbone-min.js"></script>
+<script src="~/Scripts/jointjs/rappid.min.js"></script>
+
+<script>
+    var _webconfig = {
+        serverUrl: '@Url.Content("~")'
+    };
+
+    var member = function (name, rank, other, background, prtbg, pubbg, arcbg, _data) {
+        console.log(arguments);
+        var cell = new joint.shapes.org.Member({
+            markup: other == "*" ?
+                [
+                '<g class="rotatable">',
+                    '<g class="scalable">',
+                        '<rect class="card" markupType="' + _data.Type + '" markupId="' + _data.Id + '"/>',
+                    '</g>',
+                    '<text class="nodename" markupType="' + _data.Type + '" markupId="' + _data.Id + '">' + name + '</text>',
+                    '<text class="noderank" markupType="' + _data.Type + '" markupId="' + _data.Id + '">' + rank + '</text>',
+                    '<g class="btn des"><rect class="des" taskId="' + _data.Id + '" /><text class="des" taskId="' + _data.Id + '">校审</text></g>',
+                    '<g class="btn prt"><rect class="prt" taskId="' + _data.Id + '" /><text class="prt" taskId="' + _data.Id + '">出版</text></g>',
+                    '<g class="btn pub" style="display:none;"><rect class="pub" taskId="' + _data.Id + '" /><text class="pub"  taskId="' + _data.Id + '">交付</text></g>',
+                    //'<g class="btn arc"><rect class="arc"/><text class="arc">归档</text></g>',
+                '</g>'
+                ].join('') :
+                [
+                '<g class="rotatable">',
+                    '<g class="scalable">',
+                        '<rect class="card" markupType="' + _data.Type + '" markupId="' + _data.Id + '"/>',
+                    '</g>',
+                    '<text class="nodename" markupType="' + _data.Type + '" markupId="' + _data.Id + '">' + name + '</text>',
+                    '<text class="noderank" markupType="' + _data.Type + '" markupId="' + _data.Id + '">' + rank + '</text>',
+                    '<text class="nodeother" markupType="' + _data.Type + '" markupId="' + _data.Id + '">' + other + '</text>',
+                '</g>'
+                ].join(''),
+            size: { width: 200, height: 72 },
+            attrs: {
+                '.card': { fill: background, 'stroke-width': 0 },
+                '.nodename': { fill: "#000", 'font-size': 16, 'font-weight': 600, x: 5, y: 20 },
+                '.noderank': { fill: "#000", 'font-size': 12, x: 5, y: 40 },
+                '.nodeother': { fill: "#000", 'font-size': 12, x: 5, y: 60 },
+                '.btn>rect': { height: 20, width: 40, rx: 2, ry: 2, fill: 'transparent', stroke: '#333', 'stroke-width': 1 },
+                '.btn.des': { 'ref-x': 5, 'ref-y': 46, 'ref': '.card' },
+                '.btn.des>rect': { fill: background },
+                '.btn.des>text': { fill: "#000", 'font-size': 12, 'font-weight': 200, stroke: "#000", x: 9, y: 15 },
+                '.btn.prt': { 'ref-x': 55, 'ref-y': 46, 'ref': '.card' },
+                '.btn.prt>rect': { fill: prtbg },
+                '.btn.prt>text': { fill: "#000", 'font-size': 12, 'font-weight': 0, stroke: "#000", x: 9, y: 15 },
+                '.btn.pub': { 'ref-x': 105, 'ref-y': 46, 'ref': '.card' },
+                '.btn.pub>rect': { fill: pubbg },
+                '.btn.pub>text': { fill: "#000", 'font-size': 12, 'font-weight': 0, stroke: "#000", x: 9, y: 15 },
+                '.btn.arc': { 'ref-x': 155, 'ref-y': 46, 'ref': '.card' },
+                '.btn.arc>rect': { fill: arcbg },
+                '.btn.arc>text': { fill: "#000", 'font-size': 12, 'font-weight': 0, stroke: "#000", x: 9, y: 15 },
+            }
+        });
+
+
+        return cell;
+    };
+
+    function link(source, target) {
+
+        //var cell = new joint.shapes.org.Arrow({
+        var cell = new joint.dia.Link({
+            source: { id: source.id },
+            target: { id: target.id }
+        });
+
+        return cell;
+    }
+
+    var graph = new joint.dia.Graph();
+
+    var paper = new joint.dia.Paper({
+        //el: $('#paper'),
+        width: 1000,
+        height: 1000,
+        gridSize: 1,
+        model: graph,
+        interactive: false,
+        defaultLink: new joint.shapes.org.Arrow()
+    });
+
+    var paperScroller = new joint.ui.PaperScroller({
+        paper: paper,
+        autoResizePaper: true
+    });
+
+    paper.on('blank:pointerdown', paperScroller.startPanning);
+    paperScroller.$el.css({ width: '100%', height: '100%' }).appendTo('#paper');
+    paperScroller.zoom(0);
+
+    var _zoom = 0.0;
+    function zoom(n) {
+        _zoom += (n);
+        if (_zoom < -0.5) {
+            _zoom = -0.5;
+            return;
+        } else if (_zoom > 2) {
+            _zoom = 2;
+            return;
+        }
+        //console.log(_zoom.toFixed(1));
+        paperScroller.zoom(n);
+    }
+
+    var graphLayout = new joint.layout.TreeLayout({
+        graph: graph,
+        direction: 'R',
+        //gap: 80,
+        //siblingGap: 40
+    });
+
+    paper.on('cell:pointerup', function (cellView, evt, x, y) {
+        if (V(evt.target).hasClass('des')) {
+            // 点击校审按钮
+            var taskId = V(evt.target).attr("taskId");
+            JQ.dialog.dialog({
+                //title: "查看设计任务：[{0}]".format(""),
+                title: "查看设计任务",
+                url: '@Url.Action("TaskAttachProgress", "DesTask")?Id=' + taskId,
+                width: 1200,
+                height: 800,
+                onClose: function () {
+
+                }
+            });
+        } else if (V(evt.target).hasClass('prt')) {
+            // 点击出版按钮
+            var taskId = V(evt.target).attr("taskId");
+            JQ.dialog.dialog({
+                //title: "查看设计任务：[{0}]".format(""),
+                title: "查看出版",
+                url: '@Url.Action("infoForPrint", "IsoFormProjectPublish", new { @area = "iso" })?Id=' + taskId,
+                width: 240,
+                height: 200,
+                onClose: function () {
+
+                }
+            });
+
+        } else if (V(evt.target).hasClass('pub')) {
+            // 点击交付按钮
+            var taskId = V(evt.target).attr("taskId");
+            JQ.dialog.dialog({
+                //title: "查看设计任务：[{0}]".format(""),
+                title: "查看交付",
+                url: '@Url.Action("infoForPublish", "IsoFormProjectDeliver", new { @area = "iso" })?Id=' + taskId,
+                width: 240,
+                height: 200,
+                onClose: function () {
+
+                }
+            });
+        } else if (V(evt.target).hasClass('arc')) {
+            // 点击归档按钮
+
+        } else if (V(evt.target).node.nodeName == 'text') {
+            // 点击节点
+            var markupType = V(evt.target).attr("markupType");
+            var markupId = V(evt.target).attr("markupId");
+            //clickMember(markupType, markupId);
+        } else if (V(evt.target).node.nodeName == 'rect') {
+            // 点击节点
+            var markupType = V(evt.target).attr("markupType");
+            var markupId = V(evt.target).attr("markupId");
+            //clickMember(markupType, markupId);
+        }
+    });
+
+    $('#orgchart-direction').combobox({
+        valueField: 'value',
+        textField: 'content',
+        data: [
+            { value: 'R', content: '从左到右' },
+            { value: 'B', content: '从上到下' },
+        ],
+        onSelect: function (option) {
+            //console.log(option);
+            _.invoke(graph.getElements(), 'set', 'direction', option.value);
+            graphLayout.layout();
+            paperScroller.centerContent();
+        }
+    });
+    $('#orgchart-direction').combobox('setValue', 'R');
+
+
+    var bgcolor = [
+        "#d8d8d8",
+        "#f3d963",
+        "#5adcbb",
+        "#6fc0e8",
+        "#ea8a8a"
+    ];
+
+    var members = [];
+
+    var connections = [];
+
+    var ii = 0;
+
+    function reloadMember() {
+
+        $("#btnReloadMember").linkbutton().linkbutton("disable");
+
+        members = [];
+        connections = [];
+        ii = 0;
+
+        $.ajax({
+            url: '@Url.Action("ProjectProgressInfoOrgGetListJson", "DesTask", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId',
+            type: "POST",
+            data: {},
+            success: function (result) {
+                var rows = JSON.parse(result).rows;
+                if (rows.length > 0) {
+                    //console.log(rows);
+                    var row = Enumerable.From(rows).Where("x => x.ParentId == 'P0'").FirstOrDefault();
+                    //console.log(row);
+                    members.push(member(GetMemberName(row), GetFinishDate(row), GetMemberOther(row), GetMemberColor(row), GetMemberPrtbg(row), GetMemberPubbg(row), GetMemberArcbg(row), row).position(100, 350))
+                    CreateMemberLink(rows, row, ii);
+                }
+
+                graph.resetCells(members.concat(connections));
+                _.invoke(graph.getElements(), 'set', 'direction', $('#orgchart-direction').combobox('getValue'));
+                graphLayout.layout();
+                paperScroller.centerContent();
+
+                setTimeout(function () {
+                    $("#btnReloadMember").linkbutton("enable");
+                }, 500);
+            }
+        });
+    }
+
+    function CreateMemberLink(rows, root, fi) {
+        Enumerable.From(rows).Where(function (x) { return x.ParentId == root.RefId }).OrderBy("x => x.Order1").ThenBy("x => x.Order2")
+            .ForEach(function (row, index) {
+                ii++;
+                members.push(member(GetMemberName(row), GetFinishDate(row), GetMemberOther(row), GetMemberColor(row), GetMemberPrtbg(row), GetMemberPubbg(row), GetMemberArcbg(row), row));
+                connections.push(link(members[fi], members[ii]));
+                CreateMemberLink(rows, row, ii);
+            }
+        );
+    }
+
+    function GetMemberName(row) {
+        if (row.Type == "Project") {
+            return "{0}".format("项目");
+        } else {
+            return "{0}".format(row.Name);
+        }
+    }
+
+    function GetFinishDate(row) {
+        var rd = "";
+        var DatePlanFinish = Date.jsonStringToDate(row.DatePlanFinish);
+        var DateActualFinish = Date.jsonStringToDate(row.DateActualFinish);
+        if (DateActualFinish.getFullYear() > 1900) {
+            rd = (row.EmpId == 0 ? "" : row.EmpName + " | ") + "实际完成：{0}".format(DateActualFinish.format("yyyy-MM-dd"));
+        } else if (DatePlanFinish.getFullYear() > 1900) {
+            rd = (row.EmpId == 0 ? "" : row.EmpName + " | ") + "计划完成：{0}".format(DatePlanFinish.format("yyyy-MM-dd"));
+        } else {
+            rd = (row.EmpId == 0 ? "" : row.EmpName + " | ");
+        }
+        return rd;
+    }
+
+    function GetMemberOther(row) {
+        if (row.Type == "Project") {
+            return row.Name.getByteLengthString(24, "...");
+        } else if (row.Type == "TaskPath" || row.Type == "Task") {
+            return "*"
+        } else {
+            return "";
+        }
+    }
+
+    function GetMemberColor(row) {
+        var rd = "";
+        var DatePlanFinish = Date.jsonStringToDate(row.DatePlanFinish);
+        var DateActualFinish = Date.jsonStringToDate(row.DateActualFinish);
+        switch (row.Status) {
+            case 0:
+                rd = bgcolor[row.Status];
+                break;
+            case 1:
+                rd = bgcolor[row.Status];
+                break;
+            case 2:
+                rd = bgcolor[row.Status];
+                break;
+            case 3:
+                rd = bgcolor[row.Status];
+                break;
+            case 4:
+                rd = bgcolor[row.Status];
+                break;
+        }
+        //}
+        return rd;
+    }
+
+    function GetMemberPrtbg(row) {
+        var rd = "";
+        var DateForPrint = Date.jsonStringToDate(row.DateForPrint);
+        if (DateForPrint.getFullYear() == 1900) {
+            rd = bgcolor[0];
+        } else {
+            rd = bgcolor[3];
+        }
+        return rd;
+    }
+
+    function GetMemberPubbg(row) {
+        var rd = "";
+        var DateForPublish = Date.jsonStringToDate(row.DateForPublish);
+        if (DateForPublish.getFullYear() == 1900) {
+            rd = bgcolor[0];
+        } else {
+            rd = bgcolor[3];
+        }
+        return rd;
+    }
+
+    function GetMemberArcbg(row) {
+        var rd = "";
+        var DateForArchive = Date.jsonStringToDate(row.DateForArchive);
+        if (DateForArchive.getFullYear() == 1900) {
+            rd = bgcolor[0];
+        } else {
+            rd = bgcolor[3];
+        }
+        return rd;
+    }
+
+    function btnReloadMember() {
+        reloadMember();
+    }
+
+    $(function () {
+        reloadMember();
+    });
+
+    function clickMember(active, id) {
+        var text = "节点详情";
+        var url = "";
+        switch (active) {
+            case "Project":
+                //  项目查看页面
+                url = _webconfig.serverUrl + 'Project/Project/ProjInfoOnlyRead?id=' + id;
+                JQ.dialog.dialog({
+                    title: '{0}'.format(text),
+                    url: url,
+                    width: 1024,
+                    height: 900,
+                    onClose: function () {
+                    }
+                });
+                break;
+            case "ProjPhase":
+                //  阶段查看页面
+                url = _webconfig.serverUrl + 'Design/DesTask/TaskPhaseInfo?id=' + id;
+                JQ.dialog.dialog({
+                    title: '{0}'.format(text),
+                    url: url,
+                    width: 500,
+                    height: 500,
+                    onClose: function () {
+                    }
+                });
+                break;
+            case "TaskGroup":
+                //  分组查看页面
+                url = _webconfig.serverUrl + 'Design/DesTask/TaskGroupInfo?id=' + id;
+                JQ.dialog.dialog({
+                    title: '{0}'.format(text),
+                    url: url,
+                    width: 500,
+                    height: 500,
+                    onClose: function () {
+                    }
+                });
+                break;
+            case "TaskSpec":
+                //  专业查看页面
+                url = _webconfig.serverUrl + 'Design/DesTask/TaskSpecInfo?id=' + id;
+                JQ.dialog.dialog({
+                    title: '{0}'.format(text),
+                    url: url,
+                    width: 500,
+                    height: 500,
+                    onClose: function () {
+                    }
+                });
+                break;
+            case "TaskPath":
+            case "Task":
+                //  任务查看页面
+                url = _webconfig.serverUrl + 'Design/DesTask/TaskInfo?from=Remind&Id=' + id;
+                JQ.dialog.dialog({
+                    title: '{0}'.format(text),
+                    url: url,
+                    width: 1200,
+                    height: 900,
+                    onClose: function () {
+                    }
+                });
+                break;
+            case "MutiSign":
+                //  会签查看页面
+                url = _webconfig.serverUrl + 'Design/DesMutiSign/Edit?from=Remind&Id=' + id;
+                JQ.dialog.dialog({
+                    title: '{0}'.format(text),
+                    url: url,
+                    width: 800,
+                    height: 800,
+                    onClose: function () {
+                    }
+                });
+                break;
+        }
+        return btn;
+    }
+
+</script>

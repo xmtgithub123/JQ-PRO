@@ -1,0 +1,141 @@
+﻿@using JQ.Web;
+
+<script type="text/javascript">
+    $(function () {
+        JQ.treegrid.treegrid({
+            pagination: true,
+            JQButtonTypes: [],//需要显示的按钮
+            JQPrimaryID: 'Id',//主键的字段
+            idField: 'Id',
+            treeField: 'ProjName',
+            JQID: 'ProjectTreeGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'treegrid',//数据表格类型 [datagrid,treegrid]
+            singleSelect: true,
+            url: '@Url.Action("GetJsonList", "Project",new { @area="Project"})?Company=@Request.Params["CompanyType"].ToString()',//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#ProjectTreePanel',//工具栏的容器ID
+            columns: [[
+              { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+              { title: '项目名称', field: 'ProjName', width: "28%", halign: 'center', align: 'left', sortable: true },
+              { title: '设总', field: 'ProjEmpName', width: "8%", halign: 'center', align: 'center', sortable: true },
+              { title: '项目阶段', field: 'PhaseNames', width: "20%", halign: 'center', align: 'left', sortable: true },
+              { title: '项目类别', field: 'ProjTypeName', width: "8%", halign: 'center', align: 'center', sortable: true },
+              { title: '建设性质', field: 'ProjPropertyName', width: "8%", halign: 'center', align: 'center', sortable: true },
+              { title: '电压级别', field: 'ProjVoltName', width: "8%", halign: 'center', align: 'center', sortable: true },
+              { title: '立项时间', field: 'DateCreate', width: "8%", halign: 'center', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+              { title: '计划完成时间', field: 'DatePlanFinish', width: "8%", halign: 'center', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT }
+            ]],
+            onLoadSuccess: function (row, data) {
+                if (data.total) {
+                    $.each(data.rows, function (index, item) {
+                        $("input[type='checkbox']")[index + 2].style.display = "none";
+                        var number = item.row_number;
+                        $("tr[node-id='" + item.Id + "']").find("div.datagrid-cell-rownumber").text(number);
+                    });
+                } else {
+                    var gridRoots = $("#ProjectTreeGrid").treegrid("getRoots");
+                    var First = 0;
+                    $.each(gridRoots, function (i, n) {
+                        var num = n.row_number;
+                        var rowChildren = $("#ProjectTreeGrid").treegrid("getChildren", n.Id);
+                        if (rowChildren.length > 0) {
+                            First += rowChildren.length;
+                            $("tr[node-id='" + n.Id + "']").find("div.datagrid-cell-rownumber").text(num);
+
+                            $.each(rowChildren, function (y, k) {
+                                var tNum = y + num + 1;
+                                //$("tr[node-id='" + k.Id + "']").find("div.datagrid-cell-rownumber").text(num + '-' + (y + 1));
+                                $("tr[node-id='" + k.Id + "']").find("div.datagrid-cell-rownumber").text("");
+                            })
+                        }
+                        else {
+                            var RowNum = num + First;
+                            $("tr[node-id='" + n.Id + "']").find("div.datagrid-cell-rownumber").text(num);
+                        }
+                    });
+                }
+            },
+            onCheck: function (rowIndex, rowData) {
+                if (rowIndex.ParentId == 0) {
+                    return false;
+                }
+                else {
+                    $("#choiceIds").val(JSON.stringify(rowIndex));
+                }
+            },
+            onBeforeLoad: function (row, param) {
+                if ($("#category").val() == "0") {
+                    $("#ProjectTreeGrid").treegrid('options').url = '@Url.Action("GetJsonList", "Project",new { @area="Project"})?category=0&CompanyType=@Request.Params["CompanyType"].ToString()';
+                }
+                $("#category").val("0");
+            },
+            onBeforeExpand: function (row) {
+                $("#category").val("1");
+                $(this).treegrid('options').url = '@Url.Action("GetJsonList", "Project",new { @area="Project"})?category=1&CompanyType=@Request.Params["CompanyType"].ToString()';
+            }
+        });
+
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '项目名称',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+                    {
+                        dgID: 'ProjectTreeGrid',
+                        loadingType: 'treegrid',
+                    });
+            }
+        });
+    });
+    function selectProj() {
+        var Id = $("#choiceIds").val();
+        if (Id == "") {
+            JQ.dialog.warning("请选择具体的项目信息!!!");
+        }
+        else {
+            _ProjSubBack(Id);
+            JQ.dialog.dialogClose();
+        }
+    }
+
+    function closedialog() {
+        JQ.dialog.dialogClose();
+    }
+
+    //$.extend($.fn.treegrid.defaults.view, {
+    //    onAfterRender: function (target) {
+    //        var gridRoots = $(target).treegrid("getRoots");
+    //        debugger;
+    //        $.each(gridRoots, function (i, n) {
+    //            debugger;
+    //            var num = n.row_number;
+    //            var rowChildren = $(target).treegrid("getChildren", n.Id);
+    //            var rowNum = num + rowChildren.length;
+    //            $("tr[node-id='" + n.Id + "']").find("div.datagrid-cell-rownumber").text(1111);
+    //        });
+    //    }
+    //});
+</script>
+
+
+
+
+<table id="ProjectTreeGrid"></table>
+<div id="ProjectTreePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProj()">确定选择</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="closedialog()">关闭</a>
+    </span>
+    @*分割号*@
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'txtLike', Contract:'like'}" />
+
+</div>
+
+<input type="hidden" id="choiceIds" name="choiceIds" />
+<input type="hidden" id="category" name="category" value="0" />

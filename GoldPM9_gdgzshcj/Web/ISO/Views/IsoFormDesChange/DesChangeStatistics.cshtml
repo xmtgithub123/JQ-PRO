@@ -1,0 +1,191 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        //var requestUrl = '@Url.Action("json", "user", new { @area = "Core" })';
+        var requestUrl = '@Url.Action("empJson")';
+        var editUrl = '@Url.Action("edit")';
+        var detailUrl = '@Url.Action("json", "IsoFormDesChange", new { @area = "ISO" })';
+        $(function () {
+            $("#Dept").combobox({
+                prompt: '下拉选择部门',
+                valueField: 'id',
+                textField: 'text',
+                url: ' @Url.Action("treejson", "basedata", new { @area = "Core" })?engName=department',
+                onChange: function (newVal, oldVal) {
+                    if (newVal != "0") {
+                        $("#leftGrid").datagrid("reload", '@Url.Action("empJson", "IsoFormDesChange", new { @area = "Iso" })?DeptID=' + newVal);
+                    }
+
+                },
+                onLoadSuccess: function (data) {
+                    var permit = '@ViewBag.Permit';
+                    if (permit == '16' || permit == '32')//个人权或者部门权
+                    {
+                        var deptId = '@ViewBag.DeptId';
+                        $("#Dept").combobox('setValue', deptId);
+                    }
+                }
+            });
+
+            if ('@ViewBag.Permit' == '32') {
+                detailUrl = detailUrl + "?EmpDeptID=@ViewBag.DeptId";
+            } else if ('@ViewBag.Permit' == '16') {
+                detailUrl = detailUrl + "?EmpID=@ViewBag.EmpID";
+            }
+
+            //数据表格
+            JQ.datagrid.datagrid({
+                JQPrimaryID: 'EmpID',//主键的字段
+                JQID: 'leftGrid',//数据表格ID
+                JQDialogTitle: '用户信息',//弹出窗体标题
+                JQWidth: '260',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: requestUrl,//请求的地址
+                checkOnSelect: false,//是否包含check
+                singleSelect: true,
+                JQFields: ["EmpID,EmpDepID"],//追加的字段名
+                columns: [[
+                    {
+                        title: '所属部门', field: 'DepartmentName', width: "45%", align: 'center', sortable: true,
+                        formatter: function (val, row) {
+                            return '<a class="easyui-linkbutton" href="#" onclick="SelectDept(' + row.EmpDepID + ')">' + row.DepartmentName + '</a>'
+                        }
+                    },
+                  {
+                      title: '姓名', field: 'EmpName', width: "45%", align: 'center', sortable: true,
+                      formatter: function (val, row) {
+                          return '<a class="easyui-linkbutton" href="#" onclick="Select(' + row.EmpID + ')">' + row.EmpName + '</a>'
+                      }
+
+                  }
+                ]]
+
+            });
+
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'rightGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '960',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: detailUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                JQExcludeCol: [8],//导出execl排除的列
+                toolbar: '#IsoFormDesChangePanel',//工具栏的容器ID
+                singleSelect: false,
+                columns: [[
+                    {
+                        title: '编号', field: 'Number', width: "10%", align: 'left', sortable: true
+                    },
+                  {
+                      title: '项目编号', field: 'ProjNumber', width: "12%", align: 'left', sortable: true
+                  },
+                  {
+                      title: '项目名称', field: 'ProjName', width: "20%", align: 'left', sortable: true
+                  },
+                  {
+                      title: '发起人', field: 'CreatorEmpName', width: "6%", align: 'center', sortable: true
+                  },
+                  {
+                      title: '变更性质', field: 'DesignChange', width: "18%", align: 'center', sortable: true
+                  },
+
+                {
+                    title: '变更日期', field: 'FormDate', width: "9%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT
+                },
+                {
+                    title: '变更原因', field: 'DesignReason', width: "18%", align: 'left', sortable: true
+                },
+                  {
+                      field: "read", title: "查看", align: "center", halign: "center", width: "6%",
+                      formatter: function (val, row) {
+                          return '<a class="easyui-linkbutton" href="#" onclick="DesignChangeInfo(' + row.FormID + ')">查看</a>'
+                      }
+                  }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号、项目名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'rightGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                Keys: $("#JQSearch").val(),
+                                startDate: $("#startDate").datebox('getValue'),
+                                endDate: $("#endDate").datebox('getValue')
+                            }
+                        });
+                }
+            });
+            $("#westRegion").find("div[class='datagrid-view']").next().find('a').eq(0).hide();
+            $("#westRegion").find("div[class='datagrid-view']").next().find('a').eq(3).hide();
+            $("#westRegion").find("select[class='pagination-page-list']").hide();
+            $("#westRegion").find("div[class='pagination-info']").hide();
+
+            var permit = '@ViewBag.Permit';
+            if (permit == '16' || permit == '32')//个人权或者部门权
+            {
+                $("#Dept").combobox({ disabled: true });
+            }
+
+
+        });
+        function Select(EmpID) {
+            $("#rightGrid").datagrid('reload', '@Url.Action("json", "IsoFormDesChange", new { @area="ISO"})?EmpID=' + EmpID);
+        }
+        function SelectDept(DeptID) {
+            $("#rightGrid").datagrid('reload', '@Url.Action("json", "IsoFormDesChange", new { @area="ISO"})?EmpDeptID=' + DeptID);
+        }
+        function DesignChangeInfo(FormID) {
+            JQ.dialog.dialog({
+                title: "设计变更",
+                url: editUrl + '?id=' + FormID + '&Read=1',
+                width: '1024',
+                height: '100%',
+                JQID: 'IsoFormDesChangeGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-edit'
+            });
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+}
+
+@section Body_Content{
+    <div id="cc" class="easyui-layout" style="overflow: hidden" fit="true">
+        <div data-options="region:'north'" style="height:40px;line-height:40px;overflow:hidden;">
+            <div style="float:left;border:none;">
+                <span style="margin-left:20px;">部门：</span><select id="Dept" class="easyui-combobox" style="width:180px;"></select>
+            </div>
+            
+            <div jqpanel="toolbarPanel" style="float:left;padding-left:5px;">
+                <input id="JQSearch" style="width:250px;" />
+            </div>
+            <div style="float:left;border:none;">
+                <span style="margin-left:20px;">变更时间：</span>
+                <input class="easyui-datebox" id="startDate" name="startDate" style="width:120px;" prompt="开始时间" />
+                ---
+                <input class="easyui-datebox" id="endDate" name="endDate" style="width:120px;" prompt="结束时间" />
+            </div>
+        </div>
+        <div id="westRegion" data-options="region:'west'" style="width:240px;">
+            <table id="leftGrid"></table>
+        </div>
+        <div data-options="region:'center'" style="background:#eee;">
+            <table id="rightGrid"></table>
+        </div>
+    </div>
+}
+

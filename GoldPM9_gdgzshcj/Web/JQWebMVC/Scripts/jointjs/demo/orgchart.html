@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf8"/>
+        <title>Orgchart, Tree Layout and Interaction</title>
+		<!-- <link rel="stylesheet" href="joint.min.css" /> -->
+		<link rel="stylesheet" href="rappid.min.css" />
+		<style type="text/css">
+		#paper {
+			position: relative;
+			width: 100%;
+			height: 600px;
+			overflow: auto;
+			background: #f4f4f4;
+			outline: 1px solid #f2f2f2;
+			border: 1px solid #fff;
+		}
+		.link .link-tools {
+			display: none;
+		}
+		.link {
+			pointer-events: none;
+		}
+		/*.element {*/
+			/*pointer-events: none;*/
+		/*}*/
+		</style>
+    </head>
+<body>
+
+
+    <div classs="example">
+        <div id="paper" class="paper"></div>
+        <p>Show the ORG Chart in  <span id="orgchart-direction"></span> direction.</<p>
+    </div>
+
+    <script src="jquery.min.js"></script>
+    <script src="lodash.min.js"></script>
+    <script src="backbone-min.js"></script>
+	<!-- <script src="joint.min.js"></script> -->
+	<script src="rappid.min.js"></script>
+    <script src="orgchart.js"></script>
+
+</body>
+</html>

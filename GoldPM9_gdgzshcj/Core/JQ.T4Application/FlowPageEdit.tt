@@ -1,0 +1,158 @@
+﻿<#@ template debug="true" hostspecific="true" language="C#" #>
+<#@ include file="manager.ttinclude"#>
+<# var manager = Manager.Create(Host, GenerationEnvironment); #>
+<#
+	List<V_SystemTableStructure> arr = DbHelper.GetV_SystemTableStructure(config.ConnectionString);
+	var FKey = DbHelper.GetV_SystemTableFKey(config.ConnectionString);
+	var dataList = DbHelper.GetBaseData(config.ConnectionString);
+	foreach(BaseNameSpace item in DbHelper.GetBaseNameSpaceTables(config.ConnectionString, config.TableNames))
+	{
+		string ClassName = "Flow" + item.TableNames + "Edit";
+		string WebNameSpace =  "PMWeb." + item.WebNameSpace.Replace("/",".").Trim(','); 
+		string DirPath = "tt/Web/" + item.DBSqlNameSpace +  "/View/Flow"+ item.TableNames ;
+
+		string First = DbHelper.GetFirstString(arr,item.TableNames);
+		string PKCol = DbHelper.GetPKColumn(arr,item.TableNames);
+		string FirstDate = DbHelper.GetFirstDateColNote(arr,item.TableNames);
+		List<V_SystemTableFKey> RefFkey = DbHelper.GetFKeyColumn(FKey,item.TableNames);
+
+		List<V_SystemTableStructure> TableStructure = arr.Where(p => p.TableName == item.TableNames && p.IsPK=="").ToList();
+#>
+<# manager.StartNewFile(ClassName+".aspx",DirPath); #>
+<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="<#=ClassName#>.aspx.cs" Inherits="<#=WebNameSpace#><#=ClassName#>" %>
+<%@ Register Src="~/UserControl/PropertyList.ascx" TagPrefix="uc1" TagName="PropertyList" %>
+<%@ Register Src="~/UserControl/UploadFile.ascx" TagPrefix="uc1" TagName="UploadFile" %>
+<%@ Register Src="~/UserControl/FlowControl.ascx" TagPrefix="uc1" TagName="FlowControl" %>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8" />
+    <title></title>
+</head>
+<body>
+    <form id="form1" runat="server">
+        <f:PageManager ID="XManager" AutoSizePanelID="PanelMain" runat="server" />
+        <f:Panel ID="PanelMain" runat="server" Layout="Fit" ShowBorder="False" ShowHeader="false" BodyPadding="1px">
+            <Toolbars>
+                <f:Toolbar ID="ToolbarBtn" runat="server">
+                    <Items>
+                        <f:UserControlConnector ID="UserControlConnector1" runat="server">
+                            <uc1:FlowControl ID="ucFlowControl1" runat="server" />
+                        </f:UserControlConnector>
+                    </Items>
+                </f:Toolbar>
+            </Toolbars>
+            <Items>
+                <f:Panel ID="PanelContent" runat="server" ShowBorder="false" ShowHeader="false" AutoScroll="true">
+                    <Items>
+                        <f:Form ID="FormContent" BodyPadding="1px" ShowHeader="false" runat="server">
+						<Rows>
+<#
+ for (int i = 0; i < TableStructure.Count; i++)
+   {
+	   string FK = DbHelper.GetSortField(arr,FKey,item.TableNames,TableStructure[i].ColName);
+	   //判断时间字段
+	   string ColType = "TextBox" ;
+	   string ColAtt  = string.Format("MinLength=\"0\" MaxLength=\"{0}\"",TableStructure[i].ColLen);
+	   //长度
+	   if(TableStructure[i].ColType == "datetime" || TableStructure[i].ColType == "smalldatetime") 
+	   {
+			ColType = "DatePicker";
+		    ColAtt  = "";
+       }
+	   else if(TableStructure[i].ColType == "int" || TableStructure[i].ColType == "bigint") 
+	   {
+			ColType = "NumberBox";
+		    ColAtt  = string.Format("MinValue=\"0\" MaxValue=\"{0}\" NoDecimal=\"True\" NoNegative=\"True\"",int.MaxValue.ToString());
+       }
+	   else if(TableStructure[i].ColType == "decimal") 
+	   {
+		   ColType = "NumberBox";
+		   ColAtt  = string.Format("MinValue=\"0\" MaxValue=\"{0}\" DecimalPrecision=\"2\" NoNegative=\"True\"",int.MaxValue.ToString());
+	   }
+	   else if(TableStructure[i].ColType == "bit") 
+	   {
+			ColType = "CheckBox";
+		    ColAtt  = "";
+       }
+	   //判断是否是必填字段
+	   if(First == TableStructure[i].ColName) ColAtt += " Required=\"true\" ShowRedStar=\"true\"" ;
+	   //外键用户控件字段
+	   string RefEngName =  DbHelper.GetEngNameField(dataList,arr,FKey,TableStructure[i].TableName,TableStructure[i].ColName);
+	   //默认增加附件上传
+       if (i % 2 == 0)
+       {
+#>
+								<f:FormRow ID="FormRow<#=(i/2).ToString()#>" runat="server">
+								<Items>
+<#
+       }
+		   //每行显示二个控件
+		   //判断最后一行控件
+		   //基础类别选择用户控件  人员选择用户控件
+	   if(FK == "")
+	   {
+#>
+								<f:<#=ColType#> ID="<#=TableStructure[i].ColName#>" runat="server" Label="<#=TableStructure[i].ColNote#>" <#=ColAtt#>/>
+<#
+	   }
+	   else
+	   {
+#>
+								<f:SimpleForm runat="server" ID="Panel<#=TableStructure[i].ColName#>"  ShowHeader="false" ShowBorder="false">
+								<Items>
+									<f:UserControlConnector ID="<#=TableStructure[i].ColName#>" runat="server">
+										<uc1:PropertyList runat="server" ID="Att<#=TableStructure[i].ColName#>" PropertyName=<#=RefEngName#> />
+									</f:UserControlConnector>
+								</Items>
+								</f:SimpleForm>
+<#
+	   }
+	   if (i % 2 != 0)
+       {
+#>
+								</Items>
+								</f:FormRow>
+<#
+	   }
+	   if(i % 2 == 0 && i==TableStructure.Count-1)
+       {
+#>
+								</Items>
+								</f:FormRow>
+<#
+	   }
+#>
+<#
+    }
+#>
+								<f:FormRow ID="FormRow" runat="server">
+								<Items>
+									<f:SimpleForm ID="PanelUploadFile" runat="server" ShowHeader="false" ShowBorder="false">
+									<Items>
+										<f:UserControlConnector ID="UserControlConnector" runat="server">
+											<uc1:UploadFile runat="server" ID="UploadFile" AttachRefTable="<#=item.TableNames#>" />
+										</f:UserControlConnector>
+									</Items>
+									</f:SimpleForm>
+								</Items>
+								</f:FormRow>
+                            </Rows>
+                        </f:Form>
+                    </Items>
+                </f:Panel>
+            </Items>
+        </f:Panel>
+    </form>
+</body>
+</html>
+<# manager.EndBlock(); #>
+<#}#>
+<# manager.Process(true); #>
+<#+
+	public class config
+	{
+		public static readonly string ConnectionString="Data Source=192.168.0.8\\j9SQL2008R2;Initial Catalog=JQPM9_gdgzshcj;User ID=sa;Password=j9;";
+		public static readonly string TableNames="";
+	}
+#>

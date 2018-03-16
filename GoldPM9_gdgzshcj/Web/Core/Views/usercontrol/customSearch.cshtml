@@ -1,0 +1,385 @@
+﻿
+<style>
+    .cByCS {
+        cursor: pointer;
+    }
+</style>
+<script type="text/javascript">
+    var urlTreeJson = "@Url.Action("treejson", "basedata",new { @area="Core"})";
+    var urlCSD = '@Url.Action("customSearchDialog")';
+    var JQCS = {
+        changes: function (target) {
+            var $tr = $(target).parent().parent(),
+                $td = $tr.find("td:eq(4)"),
+                val = $tr.find("select[name='zdn']").val();
+            JQCS.genderVal($td, val, 'jgz');
+        },
+        insertRow: function (target) {
+            var $tr = $(target).parent().parent(),
+                ljfval = $tr.find("select[name='ljf']").val(),
+                zdnval = $tr.find("select[name='zdn']").val(),
+                ysfval = $tr.find("select[name='ysf']").val(),
+                json = JQCS.getJson(zdnval),
+                zdntext = json.key,
+                jgzval = JQCS.getJGZVal($tr);
+            if (!JQ.tools.isJson(jgzval) || !JQ.tools.isNotEmpty(jgzval.val) || !JQ.tools.isNotEmpty(jgzval.text)) {
+                JQ.dialog.info("请输入结果值!!!");
+                return;
+            }
+            JQCS.removeVal($tr);
+            var str = "<tr style='text-align:center;'>"
+                    + "<td><input name='ck' type='checkbox' name='ck'></td>"
+                    + "<td>" + ljfval + "</td>"
+                    + "<td>" + zdntext + "</td>"
+                    + "<td>" + ysfval + "</td>"
+                    + "<td>" + jgzval.text + "</td>"
+                    + "<td>未分组</td>"
+                    + "<td>"
+                    + "<input type='hidden' name='lfjval' value='" + ljfval + "' />"
+                    + "<input type='hidden' name='zdntext' value='" + zdntext + "' />"
+                    + "<input type='hidden' name='zdnval' value='" + zdnval + "' />"
+                    + "<input type='hidden' name='ysfval' value='" + ysfval + "' />"
+                    + "<input type='hidden' name='jgztext' value='" + jgzval.text + "' />"
+                    + "<input type='hidden' name='jgzval' value='" + jgzval.val + "' />"
+                    + "<input type='hidden' name='filedType' value='" + json.type + "' />"
+                    + "<span class='fa fa-trash cByCS' onclick='JQCS.delRow(this)' />&nbsp;&nbsp;&nbsp;"
+                    + "<span class='fa fa-pencil cByCS' onclick='JQCS.dialogEdit(this)' />"
+                    + "</td>"
+                    + "</tr>"
+            $("#customTable tr:eq(0)").after(str);
+
+        },
+        editRow: function (index, json) {
+            var str = "<td><input name='ck' type='checkbox' name='ck'></td>"
+                    + "<td>" + json.ljfval + "</td>"
+                    + "<td>" + json.zdntext + "</td>"
+                    + "<td>" + json.ysfval + "</td>"
+                    + "<td>" + json.jgztext + "</td>"
+                    + "<td>未分组</td>"
+                    + "<td>"
+                    + "<input type='hidden' name='lfjval' value='" + json.ljfval + "' />"
+                    + "<input type='hidden' name='zdntext' value='" + json.zdntext + "' />"
+                    + "<input type='hidden' name='zdnval' value='" + json.zdnval + "' />"
+                    + "<input type='hidden' name='ysfval' value='" + json.ysfval + "' />"
+                    + "<input type='hidden' name='jgztext' value='" + json.jgztext + "' />"
+                    + "<input type='hidden' name='jgzval' value='" + json.jgzval + "' />"
+                    + "<input type='hidden' name='filedType' value='" + json.filedType + "' />"
+                    + "<span class='fa fa-trash cByCS' onclick='JQCS.delRow(this)' />&nbsp;&nbsp;&nbsp;"
+                    + "<span class='fa fa-pencil cByCS' onclick='JQCS.dialogEdit(this)' />"
+                    + "</td>";
+            $("#customTable tr:eq(" + index + ")").html(str);
+        },
+        delRow: function (target) {
+            $(target).parent().parent().remove();
+        },
+        dialogEdit: function (target) {
+            var j = JQCS.getValues($(target).parent().parent());
+            JQ.dialog.dialog({
+                width: 450,
+                height: '60%',
+                url: urlCSD + '?ljf=' + j.ljfval + '&zdn=' + j.zdnval + '&ysf=' + j.ysfval + '&jgz=' + j.jgzval + '&index=' + $(target).parent().parent().index(),
+                iconCls: 'fa fa-pencil',
+                title: '编辑自定义搜索'
+
+            });
+        },
+        getValues: function ($tr) {
+            var ljfval = $tr.find("input[name='lfjval']").val();
+            var zdntext = $tr.find("input[name='zdntext']").val();
+            var zdnval = $tr.find("input[name='zdnval']").val();
+            var jgztext = $tr.find("input[name='jgztext']").val();
+            var jgzval = $tr.find("input[name='jgzval']").val();
+            var ysfval = $tr.find("input[name='ysfval']").val();
+
+            return { ljfval: ljfval, zdntext: zdntext, zdnval: zdnval, jgztext: jgztext, jgzval: jgzval, ysfval: ysfval }
+        },
+        genderVal: function ($td, val) {
+            var json = JQCS.getJson(val),
+                control;
+            switch (json.type) {
+                case "datetime":
+                    control = $("<input>", {
+                        'id': 'jgz',
+                        'name': 'jgz',
+                        'type': 'text',
+                        'width': '98%',
+                        'height': '30',
+                        'class': 'easyui-datebox'
+                    });
+                    break;
+                case "combox":
+                    var url = urlTreeJson + "?engName=" + json.engname;
+                    control = $("<select>", {
+                        'id': 'jgz',
+                        'name': 'jgz',
+                        'width': '98%',
+                        'height': '30',
+                        'class': 'easyui-combotree',
+                        'data-options': "valueField:'id',textField:'text',url:'" + url + "',multiple:true"
+                    });
+                    break;
+                default:
+                    control = $("<input>", {
+                        'id': 'jgz',
+                        'name': 'jgz',
+                        'width': '98%',
+                        'height': '30',
+                        'type': 'text',
+                        'class': 'easyui-textbox'
+                    });
+                    break;
+            }
+            $td.html("");
+            control.prependTo($td);
+            $.parser.parse($td);
+        },
+        getArr: function () {
+            return eval("(" + $("#customerSearchHidden").val() + ")");
+        },
+        getJson: function (val) {
+            var arr = JQCS.getArr();
+            for (var i = 0; i < arr.length; i++) {
+                if (arr[i].value == val) {
+                    return arr[i];
+                }
+            }
+            return null;
+        },
+        getJGZVal: function ($t) {
+            var json = JQCS.getJson($t.find("select[name='zdn']").val()),
+                $jgz = $t.find("#jgz");
+            switch (json.type) {
+                case "combox":
+                    return {
+                        text: JQ.combotree.geCheckedTexts({ $tree: $jgz }),
+                        val: JQ.combotree.geCheckedVals({ $tree: $jgz })
+                    };
+                    break;
+                case "datetime":
+                    return {
+                        text: $jgz.textbox("options").value,
+                        val: $jgz.textbox("options").value
+                    };
+                    break;
+                default:
+                    return {
+                        text: $jgz.textbox("options").value,
+                        val: $jgz.textbox("options").value
+                    };
+                    break;
+            }
+        },
+        removeVal: function ($t) {
+            var json = JQCS.getJson($t.find("select[name='zdn']").val()),
+               $jgz = $t.find("#jgz");
+            switch (json.type) {
+                case "combox":
+                    $jgz.combotree('clear');
+                    break;
+                case "datetime":
+                    $jgz.datebox('setValue', '');
+                    break;
+                default:
+                    $jgz.textbox("setValue", '')
+                    break;
+            }
+        },
+        groupRow: function () {
+            var maxNums = parseInt(JQCS.getMaxGroup(), 10) + 1;
+            $(":checkbox[name='ck']:checked").each(function () {
+                var $tr = $(this).parent().parent();
+                $tr.addClass("info");
+                $tr.find("td").eq(5).text("组" + maxNums);
+                $(this).removeAttr("checked");
+            });
+
+        },
+        cancelRroupRow: function () {
+            $(":checkbox[name='ck']:checked").each(function () {
+                var $tr = $(this).parent().parent();
+                $tr.removeClass("info");
+                $tr.find("td").eq(5).text("未分组");
+                $(this).removeAttr("checked");
+            });
+        },
+        getMaxGroup: function () {
+            var nums = 0;
+            $("#customTable").find("tr:gt(0)").each(function () {
+                var v = $(this).find("td:eq(5)").text();
+                if (JQ.tools.isNotEmpty(v) && v != '未分组') {
+                    v = v.substring(1, v.length);
+                    if (!isNaN(v) && v > nums) {
+                        nums = v;
+                    }
+                }
+            });
+            return nums;
+        },
+        parseType: function (str) {
+            var result = '';
+            switch (str) {
+                case "datetime":
+                    result = "Date";
+                    break;
+                case "combox":
+                    result = "Int";
+                    break;
+                default:
+                    result = "String";
+                    break;
+            }
+            return result;
+        },
+        customerSearch: function () {
+            var result = [], groupArr = [], arr = [];;
+            $("#customTable :checkbox[name='ck']").each(function () {
+                var $tr = $(this).parent().parent()
+                lfjval = $tr.find("input[name='lfjval']").val(),
+                zdnval = $tr.find("input[name='zdnval']").val(),
+                ysfval = $tr.find("input[name='ysfval']").val(),
+                jgzval = $tr.find("input[name='jgzval']").val(),
+                filedType = $tr.find("input[name='filedType']").val();;
+                arr.push({
+                    lfjval: lfjval,
+                    zdnval: zdnval,
+                    ysfval: ysfval,
+                    jgzval: jgzval,
+                    group: $tr.find("td:eq(5)").text(),
+                    filedType: filedType
+                });
+            });
+            if (JQ.tools.isArray(arr)) {
+                for (var i = 0; i < arr.length; i++) {
+                    if (arr[i].group == '未分组') {
+                        result.push({
+                            isGroup: false, list: [{
+                                Key: arr[i].zdnval,
+                                Contract: arr[i].ysfval,
+                                ljf: arr[i].lfjval,
+                                filedType: JQCS.parseType(arr[i].filedType),
+                                Value: arr[i].jgzval
+                            }]
+                        });
+                    }
+                    else {
+                        if (groupArr.indexOf(arr[i].group) <= -1) {
+                            groupArr.push(arr[i].group);
+                        }
+                    }
+                }
+                if (JQ.tools.isArray(groupArr)) {
+                    for (var i = 0; i < groupArr.length; i++) {
+                        var newArr = JQ.tools.arrFind(arr, "group", groupArr[i]);
+                        if (JQ.tools.isArray(newArr)) {
+                            var newArr1 = [], groupLJF = newArr[0].lfjval;
+                            for (var j = 0; j < newArr.length; j++) {
+                                newArr1.push({
+                                    Key: newArr[j].zdnval,
+                                    Contract: newArr[j].ysfval,
+                                    ljf: (j <= 0 ? "" : newArr[j].lfjval),
+                                    filedType: JQCS.parseType(newArr[i][filedType]),
+                                    Value: newArr[j].jgzval
+                                });
+                            }
+                            result.push({ isGroup: true, ljf: groupLJF, list: newArr1 });
+                        }
+                    }
+                }
+            }
+            var parames = JQ.tools.findDialogInfo(),
+                $dg;
+            if (JQ.tools.isNotEmpty(parames.iframeID)) {
+                $dg = window.top.document.getElementById(parames.iframeID).contentWindow.$('#' + parames.dgID);
+            }
+            else if (JQ.tools.isNotEmpty(parames.parentid)) {
+                $dg = window.top.$("#" + parames.parentid).find('#' + parames.dgID);
+            }
+            else {
+                $dg = window.top.$('#' + parames.dgID);
+            }
+            if ($dg && $dg != null && $dg.size() == 1) {
+                switch (parames.loadingType) {
+                    case 'datagrid':
+                        $dg.datagrid('load', { queryInfo: JSON.stringify(result) });
+                        break;
+                    case 'treegrid':
+                        $dg.treegrid('load', { queryInfo: JSON.stringify(result) });
+                        break;
+                }
+                JQ.dialog.dialogClose();
+            }
+            else {
+                alert('无法获取刷新源!!!');
+            }
+        }
+    };
+    $('select[name="zdn"]').each(function (index) {
+        var arr = JQCS.getArr()
+        for (var i = 0; i < arr.length; i++) {
+            $(this).append("<option value='" + arr[i].value + "'>" + arr[i].key + "</option>");
+        }
+    });
+    var $tr = $("#customTable").find("tr:last"),
+        $td = $tr.find("td:eq(4)");
+    val = $tr.find("select[name='zdn']").val();
+    JQCS.genderVal($td, val);
+</script>
+<div id="tbcustomerSearch" style="padding-bottom:3px; padding-top:3px;">
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-magic'" onclick="JQCS.groupRow()">组合</a>
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-gavel'" onclick="JQCS.cancelRroupRow()">取消组合</a>
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-search'" onclick="JQCS.customerSearch()">搜索</a>
+</div>
+<table id="customTable" class="table table-bordered">
+    <tr style="text-align:center; background-color:#eaeaea;height:20px; border-color:#808080;font-weight:bolder;">
+        <td style="width:30px;">
+            选择
+        </td>
+        <td style="width:60px;">
+            链接符
+        </td>
+        <td style="width:70px;">
+            字段名
+        </td>
+        <td style="width:60px;">
+            运处符
+        </td>
+        <td>
+            结果值
+        </td>
+        <td style="width:70px;">
+            分组
+        </td>
+        <td style="width:65px;">
+            操作
+        </td>
+    </tr>
+    <tr style="text-align:center;">
+        <td></td>
+        <td>
+            <select name="ljf">
+                <option value="and">and</option>
+                <option value="or">or</option>
+            </select>
+        </td>
+        <td>
+            <select name="zdn" onchange="JQCS.changes(this)"></select>
+        </td>
+        <td>
+            <select name="ysf">
+                <option value="=">=</option>
+                <option value=">=">>=</option>
+                <option value=">">></option>
+                <option value="<="><=</option>
+                <option value="<"><</option>
+                <option value="like">like</option>
+                <option value="in">in</option>
+            </select>
+        </td>
+        <td></td>
+        <td></td>
+        <td>
+            <span class='fa fa-save cByCS' onclick='JQCS.insertRow(this,0)' />
+        </td>
+    </tr>
+</table>
+<input type="hidden" id="customerSearchHidden" value="@ViewBag.parames" />

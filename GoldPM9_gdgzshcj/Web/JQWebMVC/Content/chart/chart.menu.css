@@ -1,0 +1,19 @@
+﻿.yc_menu {
+    background-color: #FEFEFE;
+    position: absolute;
+    font-size: 13px;
+    width: 120px;
+    color: #444;
+    box-shadow: 0 0 10px 3px #E3E3E3;
+}
+
+.yc_menu_item {
+    text-indent: 20px;
+    height: 26px;
+    line-height: 26px;
+    cursor: default;
+}
+
+    .yc_menu_item:hover {
+        background-color: #87dcd9;
+    }

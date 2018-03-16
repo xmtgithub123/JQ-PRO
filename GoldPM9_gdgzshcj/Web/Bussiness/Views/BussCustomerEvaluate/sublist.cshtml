@@ -1,0 +1,68 @@
+﻿
+@using JQ.Web;
+
+<script type="text/javascript">
+    JQ.datagrid.datagrid({
+        JQButtonTypes: ['add', 'edit', 'del','export'],//需要显示的按钮
+        JQAddUrl: '@Url.Action("addsub")',//添加的路径
+        JQEditUrl: '@Url.Action("editsub")',//编辑的路径
+        JQDelUrl: '@Url.Action("del")',//删除的路径
+        JQPrimaryID: 'Id',//主键的字段
+        JQID: 'BussCustomerEvaluateGrid',//数据表格ID
+        JQDialogTitle: '信息',//弹出窗体标题
+        JQWidth: '1000',//弹出窗体宽
+        JQHeight: '100%',//弹出窗体高
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+        url: '@Url.Action("subjson", "BussCustomerEvaluate",new { @area="Bussiness"})?CustID=@Request.QueryString["CustID"]',//请求的地址
+        checkOnSelect: true,//是否包含check
+        JQExcludeCol: [1,9],//导出execl排除的列
+        toolbar: '#BussCustomerEvaluatePanel',//工具栏的容器ID
+        columns: [[
+          { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+
+
+{ title: '外委单位名称', field: 'CustName', width: '18%', align: 'left', sortable: true },
+{ title: '地址', field: 'CustAddress', width: '12%', align: 'center', sortable: true },
+{ title: '联系人', field: 'CustLinkManName', width: '10%', align: 'center', sortable: true },
+{ title: '职务', field: 'CustLinkManJob', width: '18%', align: 'center', sortable: true },
+{ title: '联系方式', field: 'CustLinkManTel', width: '10%', align: 'left', sortable: true },
+{ title: '备注', field: 'EvaluaterNote', width: '14%', align: 'center', sortable: true },
+{ title: '首次合作时间', field: 'CustBusinessCreateDate', width: '6%', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+{
+    field: 'JQFiles', title: '附件', align: 'center', width: "8%", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'BussCustSubEvaluate',
+    formatter: function (value, row) {
+        return "<span id=\"grid_files_" + row.Id + "\"></span>"
+    }
+}]]
+    });
+    $("#JQSearch").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '备注信息',
+        queryOptions: { Key: 'EvaluaterNote', Contract: 'like' },
+        onClickButton: function () {
+            JQ.datagrid.searchGrid(
+                {
+                    dgID: 'BussCustomerEvaluateGrid',
+                    loadingType: 'datagrid',
+                    queryParams: null
+                });
+        }
+    });
+</script>
+
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+
+<table id="BussCustomerEvaluateGrid"></table>
+<div id="BussCustomerEvaluatePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+
+    </span>
+
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'EvaluaterNote', 'Contract': 'like' }" />
+
+</div>
+
+

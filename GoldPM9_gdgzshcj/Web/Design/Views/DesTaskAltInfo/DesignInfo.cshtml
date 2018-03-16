@@ -1,0 +1,129 @@
+﻿
+<style type="text/css">
+    #DesignInfo th {
+        text-align: center;
+    }
+
+    #DesignInfo td {
+        text-align: center;
+    }
+</style>
+<script>
+    var IsView = '@ViewBag.IsView';
+    $(function () {
+        $("input", "#DesignInfoForm_@ViewBag._DialogId").each(function (i, e) {
+            if (IsView == "1") {
+                var t = $(e).textbox({ editable: false }).next().css({
+                    border: "none", boxShadow: "none", backgroundColor: "transparent"
+                });
+                t.children().eq(0).css({
+                    backgroundColor: "transparent"
+                })
+            }
+            else {
+                $(e).textbox();
+            }
+        })
+
+
+        //保存方法
+        window.DesignInfoSave_@ViewBag._DialogId = function () {
+            var result = true;
+            if (!$("#DesignInfoForm_@ViewBag._DialogId").form("validate")) {
+                result = false;
+                return result;
+            }
+
+            JQ.tools.ajax({
+                async: false,//同步操作
+                url: '@Url.Action("DesignSave")?taskId=@ViewBag.taskId',
+                data: $("#DesignInfoForm_@ViewBag._DialogId").serialize(),
+                succesCollBack: function (param) {
+                    if (param.stateValue > 0) {
+                        resutl = true;
+                    } else {
+                        resutl = false;
+                    }
+                }
+            });
+
+            return resutl;
+        }
+
+        window.DesignInfoValid_@ViewBag._DialogId = function () {
+            return $("#DesignInfoForm_@ViewBag._DialogId").form("validate");
+        }
+    });
+
+    function save_@(ViewBag._DialogId)() {
+        var PostResult = true;
+        if (typeof (window["DesignInfoSave_@(ViewBag._DialogId)"]) == "function") {
+            PostResult = window["DesignInfoSave_@(ViewBag._DialogId)"]();
+        }
+        return PostResult;
+    }
+</script>
+
+<form id="DesignInfoForm_@ViewBag._DialogId">
+    @*<a onclick="window.DesignInfoSave()">保存</a>*@
+    <table id="DesignInfo" class="table table-bordered" style="table-layout:fixed;">
+        <tr>
+            <td colspan="4" align="left" style="text-align:left">
+                <a class="easyui-linkbutton" name="SelectProjSub" data-options="plain:true,iconCls:'fa fa-save'" onclick="save_@(ViewBag._DialogId)()">保存</a>
+            </td>
+        </tr>
+        <tr>
+            <th width="16%">卷/本 </th>
+            <th width="16%">共计(张) </th>
+            <th width="17%">说明书(页)</th>
+            <th width="17%">计算书(页) </th>
+            <th width="17%">概算书(本) </th>
+            <th width="17%">其它 </th>
+        </tr>
+        <tr>
+            <td>
+                <input name="JuanOrBen" data-options="validType:'intOrFloat'," style="width:100%" value="@ViewData["JuanOrBen"]" />
+            </td>
+            <td>
+                <input name="Totel" data-options="validType:'intOrFloat'," style="width:100%" value="@ViewData["Totel"]" />
+            </td>
+            <td>
+                <input name="Direction" data-options="validType:'intOrFloat'," style="width:100%" value="@ViewData["Direction"]" />
+            </td>
+            <td>
+                <input name="DirectionDesign" data-options="validType:'intOrFloat'," style="width:100%" value="@ViewData["DirectionDesign"]" />
+            </td>
+            <td>
+                <input name="DirectionJJ" data-options="validType:'intOrFloat'," style="width:100%" value="@ViewData["DirectionJJ"]" />
+            </td>
+            <td>
+                <input name="DirectionOhter" data-options="validType:'intOrFloat'," style="width:100%" value="@ViewData["DirectionOhter"]" />
+            </td>
+        </tr>
+        <tr>
+            <th>A0(张)</th>
+            <th>A1(张)</th>
+            <th>A2(张)</th>
+            <th>A3(张)</th>
+            <th>A4(张)</th>
+            <th>制图日期</th>
+        </tr>
+        <tr>
+            <td>
+                <input name="Design_A0" data-options="validType:'intOrFloat'," style="width:100%" value="@ViewData["Design_A0"]" />
+            </td>
+            <td>
+                <input name="Design_A1" data-options="validType:'intOrFloat'," style="width:100%" value="@ViewData["Design_A1"]" />
+            </td>
+            <td><input name="Design_A2" data-options="validType:'intOrFloat'," style="width:100%" value="@ViewData["Design_A2"]" /></td>
+            <td><input name="Design_A3" data-options="validType:'intOrFloat'," style="width:100%" value="@ViewData["Design_A3"]" /></td>
+            <td><input name="Design_A4" data-options="validType:'intOrFloat'," style="width:100%" value="@ViewData["Design_A4"]" /></td>
+            <td>
+                <input name="Design_Date" class="easyui-datebox" data-options="validType:['dateISO']" style="width:100%" value="@ViewData["Design_Date"]" />
+            </td>
+        </tr>
+    </table>
+</form>
+
+
+

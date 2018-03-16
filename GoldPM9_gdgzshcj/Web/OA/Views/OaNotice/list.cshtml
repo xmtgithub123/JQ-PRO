@@ -1,0 +1,96 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "OaNotice",new { @area="Oa"})',
+               addUrl = '@Url.Action("add","OaNotice",new {@area="Oa" })',
+               editUrl = '@Url.Action("edit", "OaNotice",new {@area="Oa" })',
+               delUrl = '@Url.Action("del", "OaNotice", new { @area = "Oa" })';
+
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaNoticeGrid',//数据表格ID
+                JQDialogTitle: '公告管理',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQExcludeCol: [1, 7, 8],//导出execl排除的列
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: true,
+                nowrap: false,
+                toolbar: '#OaNoticePanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '公告分类', field: 'NoticeTypeID', width: 100, align: 'center', sortable: true },
+		            { title: '标题', field: 'Title', width: 100, align: 'center', sortable: true },
+		            { title: '发布人', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true },
+		            { title: '发布时间', field: 'CreationTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '阅读量', field: 'ReadCount', width: 100, align: 'center', sortable: true },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'OaNotice' },
+                    {
+                        field: 'opt', title: '操作', width: 100, align: 'center', JQIsExclude: true,
+                        formatter: function (value, row, index) {
+                            return "<a href=\"javascript:void(0)\" onclick=\"openDetailDialog('" + row.Id + "');\">查看</a>";
+                        }
+                    }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '标题',
+                queryOptions: { 'Key': 'Title', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'OaNoticeGrid',
+                            loadingType: 'datagrid',
+                            queryParams: { endDate: $("#endTime").datebox("getValue") }
+                        });
+                }
+            });
+        });
+
+
+        function openDetailDialog(rowID) {
+            JQ.dialog.dialog({
+                title: "查看",
+                url: '@Url.Action("Query")' + '?Id=' + rowID,
+                width: '1024',
+                height: '100%',
+                JQID: 'OaNoticeGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaNoticeGrid"></table>
+    <div id="OaNoticePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'Title', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            @BaseData.getBases(new Params() { isMult = true, engName = "NoticeType", queryOptions = "{ Key:'NoticeTypeID', Contract:'in',filedType:'Int'}" })
+
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '发布开始时间'" JQWhereOptions="{ Key:'CreationTime', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '发布结束时间'">&nbsp;
+        </div>
+    </div>
+}
+

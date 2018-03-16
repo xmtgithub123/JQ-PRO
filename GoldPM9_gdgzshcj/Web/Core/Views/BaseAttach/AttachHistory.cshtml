@@ -1,0 +1,36 @@
+﻿
+<table id="BaseAttachVerGrid"></table>
+
+<script src="~/Scripts/uploader/jq.upload.js"></script>
+
+<script type="text/javascript">
+    var requestUrl = '@Url.Action("GetAttachHistroyListJson", "BaseAttach",new { @area="Core"})?AttachID=@ViewBag.AttachID';
+    var downloadUrl = "@(Url.Action("Download", "ProcessFile", new { @area = "Core" }))";
+
+    $(function () {
+        $('#BaseAttachVerGrid').datagrid({
+            idField: 'AttachVerId',//主键的字段
+            url: requestUrl,//请求的地址
+            fit: true,
+            fitColumns: true,
+            rownumbers: true,
+            columns: [[
+		        { title: '文件版本', field: 'AttachVer', width: 80, align: 'center', sortable: true },
+		        { title: '上传人员', field: 'AttachEmpName', width: 80, align: 'center', sortable: true },
+		        { title: '上传时间', field: 'AttachDateUpload', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		        { title: '修改时间', field: 'AttachDateChange', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		        {
+		            title: '文件大小', field: 'AttachSize', width: 100, align: 'center', sortable: true, formatter: function (val, row) {
+		                return JQ.tools.getFileSizeText(val);
+		            }
+		        },
+                {
+                    title: '操作', field: 'Action', width: 100, align: 'center', formatter: function (val, row) {
+                        return "<a class=\"easyui-linkbutton\" data-options=\"plain:true,iconCls:'fa fa-download'\" href=\"{0}\">下载</a>".format(JQ.Upload.Tools.buildDownloadUrl(downloadUrl, row.AttachVerId, { type: 'attachversion' }));
+                    }
+                },
+            ]]
+        });
+    });
+</script>
+

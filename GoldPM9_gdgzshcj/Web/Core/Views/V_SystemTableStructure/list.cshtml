@@ -1,0 +1,59 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "V_SystemTableStructure",new { @area= "Core" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: '',//主键的字段
+                JQID: 'V_SystemTableStructureGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '500',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: [""],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '表名',
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: true,
+                nowrap: false,
+                JQMergeCells: { fields: ['TableName', "TableNote"], Only: 'TableName' },
+                toolbar: '#V_SystemTableStructurePanel',//工具栏的容器ID
+                columns: [[
+				  		{ title: '表名', field: 'TableName', width: 100, align: 'center', sortable: true },
+		                { title: '表备注', field: 'TableNote', width: 100, align: 'center', sortable: true },
+		                { title: '列序', field: 'ColIndex', width: 100, align: 'center', sortable: true },
+		                { title: '列名', field: 'ColName', width: 100, align: 'center', sortable: true },
+		                { title: '自增', field: 'IsIdentity', width: 100, align: 'center', sortable: true },
+		                { title: '主键', field: 'IsPK', width: 100, align: 'center', sortable: true },
+		                { title: '类型', field: 'ColType', width: 100, align: 'center', sortable: true },
+		                { title: '长度', field: 'ColLength', width: 100, align: 'center', sortable: true },
+		                { title: '长度', field: 'ColLen', width: 100, align: 'center', sortable: true },
+		                { title: '小数', field: 'ColScale', width: 100, align: 'center', sortable: true },
+		                { title: '可空', field: 'IsToNull', width: 100, align: 'center', sortable: true },
+		                { title: '默认', field: 'DefaultText', width: 100, align: 'center', sortable: true },
+		                { title: '列备注', field: 'ColNote', width: 100, align: 'center', sortable: true },
+                ]]
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="V_SystemTableStructureGrid"></table>
+    <div id="V_SystemTableStructurePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;"  JQWhereOptions="{ 'Key': 'TableName', 'Contract': 'like' }"/>
+
+    </div>
+}
+

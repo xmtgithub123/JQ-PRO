@@ -1,0 +1,144 @@
+﻿<style>
+    .datagrid-group input {
+        margin: 0;
+        padding: 0;
+         width: 15px; 
+         height: 18px; 
+    }
+    
+
+    .btn-medium {
+        padding: 5px 15px;
+        color: white !important;
+        width: 100px;
+    }
+
+    .pagefoot {
+        text-align: center;
+        padding:5px;
+        height:auto;
+    }
+
+        .pagefoot .l-btn-text {
+            vertical-align: middle !important;
+            font-size: 14px;
+        }
+
+        .pagefoot .btn-blue {
+            background: -webkit-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+            background: -moz-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+            background: -o-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+            background: linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+            border: none;
+        }
+
+        .pagefoot .btn-green {
+            background: -webkit-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+            background: -moz-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+            background: -o-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+            background: linear-gradient(top,#6cd2b7 0,#69a898 100%);
+            border: none;
+        }
+
+        .pagefoot .btn-gray {
+            background: -webkit-linear-gradient(top,#bebebe 0,#808080 100%);
+            background: -moz-linear-gradient(top,#bebebe 0,#808080 100%);
+            background: -o-linear-gradient(top,#bebebe 0,#808080 100%);
+            background: linear-gradient(top,#bebebe 0,#808080 100%);
+            border: none;
+        }
+
+        .pagefoot .btn-blue:hover {
+            background: #3d93cf;
+        }
+
+        .pagefoot .btn-green:hover {
+            background: #69a898;
+        }
+
+        .pagefoot .btn-gray:hover {
+            background: #808080;
+        }
+</style>
+<script type="text/javascript" src="@Url.Content("~/Scripts/extension/datagrid-groupview.js")"></script>
+
+<div id="TaskInfoSave" class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'center',border:false">
+        <div class="easyui-layout" data-options="fit:true">
+            @*<div data-options="region:'north',border:false" style="border-right-width:1px;border-bottom-width:1px;overflow:hidden">
+                    <div style="height:30px;padding:5px 0px;">
+                        <div style="float:left">
+                            <a class="easyui-linkbutton" id="BtnExchange" data-options="plain:true,iconCls:'fa fa-mail-reply-all'"><strong>反选</strong></a>
+                        </div>
+                        <div style="float:right;margin-right:20px">
+                            <a class="easyui-linkbutton" id="BtnDel" data-options="plain:true,iconCls:'fa fa-minus-circle'"><strong>排除</strong></a>
+                        </div>
+                    </div>
+                </div>*@
+            <div data-options="region:'center',border:false" style="border-right-width:1px;">
+                <table id="TaskInfoPersonApprove"></table>
+                <script type="text/javascript">
+                    var selTaskIds = [@ViewBag.selTaskIds];
+
+                    $(function () {
+                        $('#TaskInfoPersonApprove').datagrid({
+                            border: 0,
+                            idField: 'Id',
+                            fit: true,
+                            rownumbers: true,
+                            checkOnSelect: true,
+                            nowrap: false,
+                            fitColumns: true,
+                            data: {rows:@(Html.Raw(ViewBag.specPlanData))},
+                            columns: [[
+                                { field: 'Id', width: 50, checkbox: true },
+                                { field: 'TaskName', title: '任务名称', width: 200, align: 'left' },
+                                { field: 'TaskEmpName', title: '负责人', width: 80, align: 'left' },
+                                { field: 'DatePlanStart', title: '计划开始', width: 80, align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                                { field: 'DatePlanFinish', title: '计划完成', width: 80, align: 'center', formatter: JQ.tools.DateTimeFormatterByT }
+                            ]],
+                            groupField: 'TaskSpecName',
+                            view: groupview,
+                            groupFormatter: function (value, rows) {
+                                var gh = value + ' - ' + rows.length + ' 项'
+                                return gh;
+                            },
+                            onLoadSuccess:function (row, data) {
+                                for(var i = 0; i < selTaskIds.length; i++) {
+                                    var idex = $('#TaskInfoPersonApprove').datagrid("getRowIndex", selTaskIds[i]);
+                                    $('#TaskInfoPersonApprove').datagrid("checkRow", idex);
+                                }
+                                $('#TaskInfoPersonApprove').datagrid("reload");
+                            }
+                        });
+                    });
+                </script>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'south',border:true" style="overflow:hidden;">
+        <div class="pagefoot">
+            <a href="javascript:void(0);" class="easyui-linkbutton btn-medium btn-gray" id="btnClose">取消</a>&nbsp;&nbsp;&nbsp;&nbsp;
+            <a href="javascript:void(0);" class="easyui-linkbutton btn-medium btn-blue" id="btnNext">确定</a>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+    $("#btnClose").click(function() {
+        $("#@ViewBag._DialogId").dialog("close");
+    });
+
+    $("#btnNext").click(function () {
+        var $grid=$('#TaskInfoPersonApprove');
+        var getChecks=$grid.datagrid("getChecked");
+        //if (getChecks.length==0) {
+        //    JQ.dialog.warning("请在列表中勾选要处理的项！！！");
+        //    return false;
+        //}
+        if (typeof(window["_DialogCallback_@ViewBag._DialogId"])=="function") {
+            window["_DialogCallback_@ViewBag._DialogId"](getChecks);            
+            $("#@ViewBag._DialogId").dialog("close");
+        }
+    })
+</script>

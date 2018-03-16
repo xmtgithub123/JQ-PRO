@@ -1,0 +1,63 @@
+﻿@model DataModel.Models.ModelVolCatalog
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'ModelVolCatalogForm',//formid提交需要用到
+        buttonTypes: @Html.Raw(ViewBag.editPermission),//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "ModelVolCatalog", FormMethod.Post, new { @area = "Core", @id = "ModelVolCatalogForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered"> 
+        <tr> 
+            <th width="10%">编号</th>
+            <td width="40%">
+                <input name="ModelVolNumber" style="width:98%;" data-options="required:true" class="easyui-textbox" validtype="length[0,100]" value="@Model.ModelVolNumber" />
+            </td>
+            <th width="10%">名称</th>
+            <td width="40%">
+                <input name="ModelVolName" style="width:98%;" data-options="required:true" class="easyui-textbox" validtype="length[0,100]" value="@Model.ModelVolName" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">阶段</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+                    {
+                        controlName = "PhaseID",
+                        isRequired = true,
+                        engName = "ProjectPhase",
+                        width = "98%",
+                        ids = Model.PhaseID.ToString()
+                    })
+            </td>
+            <th width="10%">专业</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+                    {
+                        controlName = "SpecialID",
+                        isRequired = true,
+                        engName = "Special",
+                        width = "98%",
+                        ids = Model.SpecialID.ToString()
+                    })
+            </td>
+        </tr> 
+        <tr> 
+            <th width="10%">备注</th>
+            <td colspan="3">
+                <input name="ModelVolNote" style="width:98%;height:80px" class="easyui-textbox" validtype="length[0,500]" data-options="multiline:true" value="@Model.ModelVolNote" />
+            </td>
+        </tr>  
+    </table>
+
+}
+
+
+

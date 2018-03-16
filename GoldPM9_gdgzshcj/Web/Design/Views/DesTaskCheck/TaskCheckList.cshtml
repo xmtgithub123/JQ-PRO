@@ -1,0 +1,592 @@
+﻿
+<link href="@(Url.Content("~/Content/ChatCheck/ChatCheck.css"))" rel="stylesheet" />
+<script src="@(Url.Content("~/Scripts/extension/datagrid-detailview.js"))" type="text/javascript"></script>
+<script src="@Url.Content("~/Scripts/jquery.flex-images.js")" type="text/javascript"></script>
+<link href="@(Url.Content("~/Scripts/picbox/css/picbox.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@Url.Content("~/Scripts/picbox/jquery.mousewheel.js")"></script>
+<script type="text/javascript" src="@Url.Content("~/Scripts/picbox/picbox.js")"></script>
+
+<style type="text/css">
+    .flex-images {
+        overflow: hidden;
+    }
+
+        .flex-images .item {
+            float: left;
+            margin: 4px;
+            border: 1px solid #eee;
+            box-sizing: content-box;
+            overflow: hidden;
+            position: relative;
+        }
+
+            .flex-images .item img {
+                display: block;
+                width: auto;
+                height: 100%;
+                margin-top: 0px;
+            }
+
+        .flex-images .over {
+            position: absolute;
+            text-align: center;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 4px 6px;
+            font-size: 13px;
+            color: #fff;
+            background: #222;
+            background: rgba(0,0,0,.7);
+        }
+
+        .flex-images .del {
+            position: absolute;
+            top: 0;
+            right: 0;
+            margin-top: 5px;
+            margin-right: 5px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+</style>
+
+<div class="easyui-layout" data-options="fit:true">
+    @*<div data-options="region:'north',border:false" style="overflow:hidden">
+                <a class="easyui-linkbutton" data-options="iconCls:'fa fa-plus'" id="CheckAdd">查看历史校审任务</a>
+        </div>*@
+    <div data-options="region:'center',border:false">
+        <div id="TaskCheckListDiv_@ViewBag._DialogId" style="width:100%;height:100%;">
+            <table id="TaskCheckList_@ViewBag._DialogId"></table>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+    var typeData = JSON.parse('@Html.Raw(ViewBag.DesignEditType)');
+    var IsViewer = '@(Request.QueryString["View"] == null)' == 'True' ? 0 : 1;
+    $(function () {
+
+        @*$("#CheckAdd").click(function () {
+            JQ.dialog.dialog({
+                width: 1024,
+                height: 600,
+                iframeID: null,
+                url: '@Url.Action("DesTaskCheckInfo")?taskId=@ViewBag.taskId',
+                title: '添加校审建议',
+            });
+        });*@
+
+        showGrid_@(ViewBag._DialogId)();
+        //刷新校审意见
+        window.FormCheckRefresh_@ViewBag._DialogId = showGrid_@ViewBag._DialogId;
+        //提交下一步时，校审是否通过
+        window.NextDesignValid_@ViewBag._DialogId = NextDesignValid_@ViewBag._DialogId;
+        window.NextXiaoValid_@ViewBag._DialogId = NextXiaoValid_@ViewBag._DialogId;
+        //post  提交数据
+        window.NextDesignPost_@ViewBag._DialogId = NextDesignPost_@ViewBag._DialogId;
+    });
+
+    function showGrid_@(ViewBag._DialogId)() {
+        JQ.datagrid.datagrid({
+            JQPrimaryID:'Id',
+            idField: 'CheckAttachID',//主键的字段
+            JQID: 'TaskCheckList_@ViewBag._DialogId',//数据表格ID
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+            JQFields: ["Id"],//追加的字段名
+            url: '@Url.Action("json")',//请求的地址
+            queryParams: { taskId: '@ViewBag.taskId' },
+            pagination: false,
+            rownumbers: true,
+            fit: true,
+            JQMergeCells: { fields: ['CheckNote', 'CheckErrTypeName', '_expander'], Only: 'Id' },
+            columns: [[
+                {
+                    title: '校审意见', field: 'CheckNote', width: 200, align: 'center', formatter: function (value, row, index) {
+                        var strHtml = "<div style='display:block'>" + value + "</div>";
+                        if (row.ImgCount > 0) {
+                            strHtml += "  <div id=\"showImg_@(ViewBag._DialogId)_" + row.Id + "\" class=\"flex-images\"></div>";
+                        }
+                        return strHtml;
+                    }
+                },
+                { title: '校审建议', field: 'CheckErrTypeName', width: 100, align: 'center', },
+                {
+                    title: '设计文件', field: 'AttachName', width: 200, align: 'left', formatter: function (value, row, index) {
+                        if (row.AttachVer > 0) {
+                            return row.AttachName + "&nbsp;&nbsp;&nbsp;(v" + row.AttachVer + ")";
+                        } else {
+                            return row.AttachName;
+                        }
+                    }
+                },
+                { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'DesTaskCheck' },
+                {
+                    title: '设计修改', field: '12', width: 100, align: 'center', formatter: function (value, row, index) {
+                        if (IsViewer == 1) {
+                            //浏览操作————非设计负责人进行操作
+                            if (row.CheckIsCorrective == true) {
+                                return "<span design CheckAttach='" + row.CheckAttachID + "'>" + row.CheckIsCorrectiveTypeName + "</span>";
+                            }
+                            else {
+                                return "<span design CheckAttach='" + row.CheckAttachID + "'></span>";
+                            }
+                        }
+                        if ('@ViewBag.EmpID' == row.DesignID) {
+                            //设计负责人进行操作
+                            if (row.CheckIsCorrective == true) {
+                                return "<span design CheckAttach='" + row.CheckAttachID + "'>" + row.CheckIsCorrectiveTypeName + "</span>";
+                            }
+                            else {
+                                if ($("#BtnBack", $("#TaskInfoApproveDiv")).length == 0 && row.FlowNodeExXml == "") {
+                                    //return "<input type='checkbox' design CheckAttach='" + row.CheckAttachID + "' attachId='" + row.AttachID + "'  />";
+                                    return "<select design CheckAttach='" + row.CheckAttachID + "' attachId='" + row.AttachID + "' ></select >";
+                                }
+                                var NodeList = $(row.FlowNodeExXml).find("item[FlowNodeStatus = '@(DBSql.Design.FlowNodeStatus.进行中.ToString("D"))'][FlowNodeTypeID='@(DataModel.NodeType.设计.ToString("D"))']");
+                                if (NodeList.length > 0) {
+                                    //return "<input type='checkbox' design CheckAttach='" + row.CheckAttachID + "' attachId='" + row.AttachID + "' />";
+                                    return "<select design CheckAttach='" + row.CheckAttachID + "' attachId='" + row.AttachID + "' ></select >";
+
+                                } else {
+                                    return "<span design CheckAttach='" + row.CheckAttachID + "'>" + row.CheckIsCorrectiveTypeName + "</span>";
+                                }
+                            }
+                        } else {
+                            //非设计负责人进行操作
+                            if (row.CheckIsCorrective == true) {
+                                return "<span design CheckAttach='" + row.CheckAttachID + "'>" + row.CheckIsCorrectiveTypeName + "</span>";
+                            }
+                            else {
+                                return "<span design CheckAttach='" + row.CheckAttachID + "'></span>";
+                            }
+                        }
+                    }
+                },
+                {
+                    title: '修改意见', field: '13', width: 200, align: 'center', formatter: function (value, row, index) {
+                        debugger;
+                        if (IsViewer == 1) {
+                            //浏览操作————非设计负责人进行操作
+                            if (row.CheckIsCorrective == true) {
+                                return "<span design CheckAttach='" + row.CheckAttachID + "'>" + row.HFNote + "</span>";
+                            }
+                            else {
+                                return "<span design CheckAttach='" + row.CheckAttachID + "'></span>";
+                            }
+                        }
+                        if ('@ViewBag.EmpID' == row.DesignID) {
+                            //设计负责人进行操作
+                            if (row.CheckIsCorrective == true) {
+                                return "<span design CheckAttach='" + row.CheckAttachID + "'>" + row.HFNote + "</span>";
+                            }
+                            else {
+                                if ($("#BtnBack", $("#TaskInfoApproveDiv")).length == 0 && row.FlowNodeExXml == "") {
+                                    //return "<input type='checkbox' design CheckAttach='" + row.CheckAttachID + "' attachId='" + row.AttachID + "'  />";
+                                    return "<input design class='easyui-textbox' CheckAttach='" + row.CheckAttachID + "' attachId='" + row.AttachID + "' />";
+                                }
+                                var NodeList = $(row.FlowNodeExXml).find("item[FlowNodeStatus = '@(DBSql.Design.FlowNodeStatus.进行中.ToString("D"))'][FlowNodeTypeID='@(DataModel.NodeType.设计.ToString("D"))']");
+                                if (NodeList.length > 0) {
+                                    //return "<input type='checkbox' design CheckAttach='" + row.CheckAttachID + "' attachId='" + row.AttachID + "' />";
+                                    return "<input design class='easyui-textbox' CheckAttach='" + row.CheckAttachID + "' attachId='" + row.AttachID + "' />";
+
+                                } else {
+                                    return "<span design CheckAttach='" + row.CheckAttachID + "'>" + row.HFNote + "</span>";
+                                }
+                            }
+                        } else {
+                            //非设计负责人进行操作
+                            if (row.CheckIsCorrective == true) {
+                                return "<span design CheckAttach='" + row.CheckAttachID + "'>" + row.HFNote + "</span>";
+                            }
+                            else {
+                                return "<span design CheckAttach='" + row.CheckAttachID + "'></span>";
+                            }
+                        }
+                    }
+                },
+                {
+                    title: '校核通过', field: '22', width: 100, align: 'center', formatter: function (value, row, index) {
+                        if (IsViewer == 1) {
+                            if (row.CheckIsExamine == true) {
+                                return "<span Examine CheckAttach='" + row.CheckAttachID + "'>√</span>";
+                            }
+                            else {
+                                return "<span Examine CheckAttach='" + row.CheckAttachID + "'></span>";
+                            }
+                        }
+                        if ('@ViewBag.EmpID' == row.CheckEmpId) {
+                            if (row.CheckIsExamine == true) {
+                                return "<span Examine CheckAttach='" + row.CheckAttachID + "'>√</span>";
+                            } else {
+                                if (row.FlowNodeExXml == "") {
+                                    return "<input type='checkbox' Examine CheckAttach='" + row.CheckAttachID + "' attachId='" + row.AttachID + "' />";
+                                }
+                                var NodeList = $(row.FlowNodeExXml).find("item[FlowNodeStatus='@(DBSql.Design.FlowNodeStatus.已安排.ToString("D"))'][FlowNodeTypeID!='@(DataModel.NodeType.设计.ToString("D"))'],item[FlowNodeStatus='@(DBSql.Design.FlowNodeStatus.进行中.ToString("D"))'][FlowNodeTypeID!='@(DataModel.NodeType.设计.ToString("D"))']");
+                                if (NodeList.length > 0) {
+                                    return "<input type='checkbox' Examine CheckAttach='" + row.CheckAttachID + "' attachId='" + row.AttachID + "' />";
+                                } else {
+                                    return "<span Examine CheckAttach='" + row.CheckAttachID + "'></span>";
+                                }
+                            }
+                        }
+                        else {
+                            if (row.CheckIsExamine == true) {
+                                return "<span Examine CheckAttach='" + row.CheckAttachID + "'>√</span>";
+                            }
+                            else {
+                                return "<span Examine CheckAttach='" + row.CheckAttachID + "'></span>";
+                            }
+                        }
+                    }
+                },
+                { title: '提出人', field: 'CheckEmpIDName', width: 100, align: 'center', },
+                { title: '提出时间', field: 'CheckDate', width: 100, align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                @{
+                    if (Request.QueryString["View"] == null)
+                    {
+                        <text>
+                        {
+                            title: '操作', field: 'Id', width: 120, align: 'center', formatter: function (value, row, index) {
+                                if ('@ViewBag.EmpID' == row.CheckEmpId) {
+                                    return "<a id=\"btnDel\" lntDel  href=\"#\" rootID=" + row.CheckAttachID + " >删除</a>  ";
+                                }
+                                else {
+                                    return "";
+                                }
+                            }
+                        }
+                        </text>
+                    }
+
+                }
+            ]],
+            onLoadSuccess: function (data) {
+                //删除样式
+                $.each(data.rows, function (i, e) {
+                    //下拉控件绑定
+                    $("select[design][CheckAttach='" + e.CheckAttachID + "']", $("#TaskCheckListDiv_@ViewBag._DialogId")).combobox({
+                        valueField: 'BaseID',
+                        textField: 'BaseName',
+                        data: typeData,
+                        width: 90,
+                        panelHeight: 'auto',
+                        editable: false,
+                        required: true,
+                    });
+                    $("a[lntDel][rootID='" + e.CheckAttachID + "']", $("#TaskCheckListDiv_@ViewBag._DialogId")).linkbutton({
+                        iconCls: 'fa fa-trash',
+                        onClick: function () {
+                            deleteFunc_@(ViewBag._DialogId)(e.CheckAttachID);
+                        }
+                    })
+
+                    $("input[design][CheckAttach='" + e.CheckAttachID + "']", $("#TaskCheckListDiv_@ViewBag._DialogId")).textbox({
+                        type: "text",
+                        multiline: true,
+                        height: 60,
+                    });
+
+                    //显示截图
+                    $.get("@Url.Action("GetImgListById")", { 'Id': e.Id }, function (dataValue) {
+                        if (dataValue.length > 0) {
+                            $("#showImg_@(ViewBag._DialogId)_" + e.Id + "", $("#TaskCheckListDiv_@ViewBag._DialogId")).empty();
+                            $.each(dataValue, function (ic, ec) {
+                                $("<div class=\"item\" data-w=\"45\" data-h=\"45\" rel=\"lightbox-group\" href=\"@Url.Action("GetImg")?Id=" + ec + "\"  ><img src=\"@Url.Action("GetImg")?Id=" + ec + "\" ></div>").appendTo($("#showImg_@(ViewBag._DialogId)_" + e.Id + ""));
+                            })
+                            $("#showImg_@(ViewBag._DialogId)_" + e.Id + "", $("#TaskCheckListDiv_@ViewBag._DialogId")).flexImages({ rowHeight: 45 });
+                            //alert(i);
+
+                            $("#showImg_@(ViewBag._DialogId)_" + e.Id + " div[rel^='lightbox']", $("#TaskCheckListDiv_@ViewBag._DialogId")).picbox({}, null, function (el) {
+                                return (this == el) || (($(this).attr("rel").length > 8) && ($(this).attr("rel") == $(el).attr("rel")));
+                            });
+
+                            $('#TaskCheckList_@ViewBag._DialogId').datagrid('fixRowHeight');
+                        }
+                        //showBigPic();
+                    }, "json")
+
+                });
+
+                //判断重复合并项目--删除合并的隐藏tr
+                expandGrid_@(ViewBag._DialogId)();
+            },
+            view: detailview,
+            detailFormatter: function (index, row) {
+                var panel = "<div id='WordPanel' class=\"easyui-layout\">";
+                @{
+                    if (Request.QueryString["View"] ==null)
+                    {
+                        <text>
+                panel += "<div data-options=\"region:'north',split:true;border:false\" style='border-bottom-width:1px;padding:5px 0px;' ><a id='lntWord_" + index + "' >留言</a><input id='inputWord_" + index + "'  type=\"text\" style=\"width:500px\"></div>";//留言输入
+                </text>
+                    }
+
+                }
+                panel += "<div data-options=\"region:'north',split:true;border:false\" style='border-bottom-width:1px;'><div class='jp-container jspContainer' style=\"width:550px;height: 200px;\"><div id='divWord_" + index + "' class=\"jspPane\" style=\"padding: 0px; width: 483px; top: 0px;\" ></div></div></div>";//留言显示
+                panel += "</div>";
+                return panel;
+            },
+            onExpandRow: function (index, row) {
+                //留言按钮
+                $("#lntWord_" + index, $("#TaskCheckListDiv_@ViewBag._DialogId")).linkbutton({
+                    iconCls: 'fa fa-comments-o',
+                    onClick: function () {
+                        var TalkContent = $("#inputWord_" + index).val();
+                        JQ.tools.ajax({
+                            url: '@Url.Action("CreateWord", "DesTaskCheck")',
+                            data: { 'TalkContent': JQ.Flow.htmlEncode(TalkContent), 'CheckId': row.Id },
+                            succesCollBack: function () {
+                                showWord_@(ViewBag._DialogId)(index);
+                                $("#inputWord_" + index).textbox("setValue", "");
+                                $('#TaskCheckList').datagrid('fixDetailRowHeight', index);
+                            }
+                        })
+                    }
+                });
+                //留言输入
+                $("#inputWord_" + index, $("#TaskCheckListDiv_@ViewBag._DialogId")).textbox({
+
+                });
+                //显示列表
+                showWord_@(ViewBag._DialogId)(index);
+
+                $('#TaskCheckList_@ViewBag._DialogId').datagrid('fixDetailRowHeight', index);
+            }
+        });
+    }
+
+    //显示留言
+    function showWord_@(ViewBag._DialogId)(index) {
+
+        var ChId = $("#TaskCheckList_@ViewBag._DialogId").datagrid("getRows")[index].Id;
+        var $div = $("#divWord_" + index, $("#TaskCheckListDiv_@ViewBag._DialogId"));
+        $div.empty();
+        $.ajax({
+            doBackResult: false,
+            url: '@Url.Action("jsonWord", "DesTaskCheck")',
+            data: { 'CheckId': ChId },
+            async: false,
+            success: function (data) {
+                var _data = JSON.parse(data);
+                if (_data.length > 0) {
+                    $.each(_data, function (i, e) {
+                        if ('@ViewBag.EmpID' == e.CreatorEmpId) {
+                            $("<div class=\"talk_recordbox\"><div class=\"user\"><img src='@(Url.Action("GetAvatar","User",new { @area="Core" }))?id=" + e.CreatorEmpId + "' style='width:45px;height:45px;margin-top: 0px;' >" + e.CreatorEmpName + "</div><div class=\"talk_recordtextbg\">&nbsp;</div><div class=\"talk_recordtext\"><h3>" + e.TalkContent + "</h3><span class=\"talk_time\">" + JQ.Flow.parseDateTimeText(e.CreationTime) + "</span></div></div>").appendTo($div);
+                        } else {
+                            //$("<div style='display:block;padding:5px 5px;'><div style='display:block;padding:2px 0px;'>[" +  + "]&nbsp;&nbsp;" + + "</div>" +  + "</div>")
+                            $("<div class=\"talk_recordboxme\"><div class=\"user\"><img src='@(Url.Action("GetAvatar","User",new { @area="Core" }))?id=" + e.CreatorEmpId + "' style='width:45px;height:45px;margin-top: 0px;' >" + e.CreatorEmpName + "</div><div class=\"talk_recordtextbg\">&nbsp;</div><div class=\"talk_recordtext\"><h3>" + e.TalkContent + "</h3><span class=\"talk_time\">" + JQ.Flow.parseDateTimeText(e.CreationTime) + "</span></div></div>").appendTo($div);
+                        }
+                    })
+                } else {
+                    $("<div style='display:block'>留言版空空如也~~~</div>").appendTo($div);
+                }
+            }
+        })
+    }
+
+
+    function deleteFunc_@(ViewBag._DialogId)(CheckAttachID) {
+        return JQ.dialog.confirm("你确定要删除吗?", function () {
+            JQ.tools.ajax({
+                url: '@Url.Action("del")?id=' + CheckAttachID,
+                succesCollBack: function () {
+                    showGrid_@(ViewBag._DialogId)();
+                }
+            });
+        })
+    }
+
+    //下一步验证
+    function NextDesignValid_@(ViewBag._DialogId)(attachIds) {
+
+        var result = true;
+        //设计已修改
+        var gridHtml = $("#TaskCheckList_@(ViewBag._DialogId)").datagrid("getPanel");
+        var DesginSelect = gridHtml.find("select[design]");
+        $.each(DesginSelect, function (i, e) {
+
+            if ($(e).attr("attachId") == "0") {
+                //针对任务强制选择
+                if (!$(e).combobox("isValid")) {
+                    var keyId = $(e).attr("CheckAttach");
+                    var rowIdex = $("#TaskCheckList_@(ViewBag._DialogId)").datagrid("getRowIndex", keyId);
+                    $("#TaskCheckList_@(ViewBag._DialogId)").datagrid("scrollTo", rowIdex);
+                    JQ.dialog.warning("请确认设计已修改，请在第" + (rowIdex + 1) + "行的“设计修改”一栏进行选择！！！");
+                    result = false;
+                    return false;
+                }
+            } else {
+                //针对任务
+                if (attachIds.indexOf($(e).attr("attachId")) > -1) {
+                    if (!$(e).combobox("isValid")) {
+                        var keyId = $(e).attr("CheckAttach");
+                        var rowIdex = $("#TaskCheckList_@(ViewBag._DialogId)").datagrid("getRowIndex", keyId);
+                        $("#TaskCheckList_@(ViewBag._DialogId)").datagrid("scrollTo", rowIdex);
+                        JQ.dialog.warning("请确认设计已修改，请在第" + (rowIdex + 1) + "行的“设计修改”一栏进行选择！！！");
+                        result = false;
+                        return false;
+                    }
+                }
+            }
+
+        })
+
+        return result;
+    }
+
+    function NextXiaoValid_@(ViewBag._DialogId)(attachIds) {
+        var result = true;
+        //设计已修改
+        var gridHtml = $("#TaskCheckList_@(ViewBag._DialogId)").datagrid("getPanel");
+        var DesginInput = gridHtml.find("input[Examine]");
+        $.each(DesginInput, function (i, e) {
+            if ($(e).attr("attachId") == "0") {
+                if (!$(e).prop("checked")) {
+                    var keyId = $(e).attr("CheckAttach");
+                    var rowIdex = $("#TaskCheckList_@(ViewBag._DialogId)").datagrid("getRowIndex", keyId);
+                    $("#TaskCheckList_@(ViewBag._DialogId)").datagrid("scrollTo", rowIdex);
+                    JQ.dialog.warning("请确认设计已修改，请在第" + (rowIdex + 1) + "行的“校核通过”一栏打√！！！");
+                    result = false;
+                    return false;
+                }
+            }
+            else {
+
+                if (attachIds.indexOf($(e).attr("attachId")) > -1) {
+                    if (!$(e).prop("checked")) {
+                        var keyId = $(e).attr("CheckAttach");
+                        var rowIdex = $("#TaskCheckList_@(ViewBag._DialogId)").datagrid("getRowIndex", keyId);
+                        $("#TaskCheckList_@(ViewBag._DialogId)").datagrid("scrollTo", rowIdex);
+                        JQ.dialog.warning("请确认设计已修改，请在第" + (rowIdex + 1) + "行的“校核通过”一栏打√！！！");
+                        result = false;
+                        return false;
+                    }
+                }
+            }
+        })
+
+        return result;
+    }
+
+    //下一步数据处理
+    function NextDesignPost_@(ViewBag._DialogId)(attachIds) {
+
+        var gridHtml = $("#TaskCheckList_@(ViewBag._DialogId)").datagrid("getPanel");
+        var rowdata = $("#TaskCheckList_@(ViewBag._DialogId)").datagrid("getRows");
+        var updateData = [];
+        $.each(rowdata, function (i, e) {
+            var result = false;
+            var designCk = gridHtml.find("select[design][CheckAttach='" + e.CheckAttachID + "']");
+            if (designCk.length > 0) {
+                e.CheckIsCorrectiveType = designCk.combobox("getValue");
+                e.CheckIsCorrective = "True";
+                result = true;
+            }
+            var XiaoCk = gridHtml.find("input[Examine][CheckAttach='" + e.CheckAttachID + "']");
+            if (XiaoCk.length > 0) {
+                e.CheckIsExamine = "True";
+                result = true;
+            }
+            debugger;
+            var hfNote = gridHtml.find("input[design][CheckAttach='" + e.CheckAttachID + "']");
+            if (hfNote.length > 0) {
+                e.HFNote = hfNote.textbox("getText");
+                result = true;
+            }
+
+            if (result && (("," + attachIds + ",").indexOf("," + e.AttachID + ",") > -1 || e.FlowNodeExXml == "")) {
+                e.Id = e.CheckAttachID;
+                e.FlowNodeExXml = "";
+                e.CheckXml = "";
+                updateData.push(e);
+            }
+        })
+        //post请求
+
+        var resutl = false;
+        if (updateData.length > 0) {
+            JQ.tools.ajax({
+                async: false,//同步操作
+                url: '@Url.Action("Update")',
+                data: { upData: JSON.stringify(updateData) },
+                succesCollBack: function (value) {
+
+                    if (parseInt(value.stateValue) > 0) {
+                        resutl = true;
+                    } else {
+                        resutl = false;
+                    }
+                },
+            });
+        } else {
+            resutl = true;
+        }
+
+        return resutl;
+    }
+
+    //清除隐藏tr
+    function expandGrid_@(ViewBag._DialogId)() {
+        var $dg = $("#TaskCheckList_@(ViewBag._DialogId)"),
+        table1Html = $dg.datagrid("getPanel").find(".datagrid-btable :first"),
+        table2Html = $dg.datagrid("getPanel").find(".datagrid-btable :last"),
+        rows = $dg.datagrid("getRows");
+        if ($dg.datagrid("options").JQMergeCells) {
+            var JQMergeCells = $dg.datagrid("options").JQMergeCells;
+            var keyId = 0;
+            var rowIndex = 0;
+            for (var i = 0; i < rows.length; i++) {
+                if (keyId != rows[i][JQMergeCells.Only]) {
+                    keyId = rows[i][JQMergeCells.Only];
+                    rowIndex = i;
+                } else {
+                    var tr = table2Html.find("tr[datagrid-row-index='" + (i - 1) + "']");
+                    if (tr.next().attr("style") == "display:none;") {
+                        tr.next().remove();
+                    }
+                    //判断下个元素是否存在
+                    if (rows[i + 1]) {
+                        if (keyId != rows[i + 1][JQMergeCells.Only]) {
+                            //此时为最后一个元素
+                            table1Html.find("tr[datagrid-row-index='" + rowIndex + "'] .datagrid-row-expander").attr("last-Node", i);
+                            table1Html.find("tr[datagrid-row-index='" + rowIndex + "'] .datagrid-row-expander").bind('click', function () {
+                                var idx = $(this).attr("last-Node");
+                                var nextHtml = table1Html.find("tr[datagrid-row-index='" + idx + "'] .datagrid-row-expander");
+
+                                //判断符号
+                                if (nextHtml.hasClass('datagrid-row-expand')) {
+                                    $(this).removeClass("datagrid-row-expand");
+                                    $(this).addClass("datagrid-row-collapse");
+                                } else if (nextHtml.hasClass('datagrid-row-collapse')) {
+                                    $(this).removeClass("datagrid-row-collapse");
+                                    $(this).addClass("datagrid-row-expand");
+                                }
+
+                                nextHtml.click();
+                                return false;
+                            })
+                        }
+                    }
+                    else {
+                        table1Html.find("tr[datagrid-row-index='" + rowIndex + "'] .datagrid-row-expander").attr("last-Node", i);
+                        table1Html.find("tr[datagrid-row-index='" + rowIndex + "'] .datagrid-row-expander").bind('click', function () {
+                            var idx = $(this).attr("last-Node");
+                            var nextHtml = table1Html.find("tr[datagrid-row-index='" + idx + "'] .datagrid-row-expander");
+
+                            //判断符号
+                            if (nextHtml.hasClass('datagrid-row-expand')) {
+                                $(this).removeClass("datagrid-row-expand");
+                                $(this).addClass("datagrid-row-collapse");
+                            } else if (nextHtml.hasClass('datagrid-row-collapse')) {
+                                $(this).removeClass("datagrid-row-collapse");
+                                $(this).addClass("datagrid-row-expand");
+                            }
+
+                            nextHtml.click();
+                            return false;
+                        })
+                    }
+                }
+            }
+        }
+    }
+</script>

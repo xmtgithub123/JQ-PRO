@@ -1,0 +1,71 @@
+﻿
+@using JQ.Web;
+
+<script type="text/javascript">
+
+    JQ.datagrid.datagrid({
+        JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+        JQAddUrl: '@Url.Action("add")',//添加的路径
+        JQEditUrl: '@Url.Action("edit")',//编辑的路径
+        JQDelUrl: '@Url.Action("del")',//删除的路径
+        JQPrimaryID: 'Id',//主键的字段
+        JQID: 'BussCustomerEvaluateGrid',//数据表格ID
+        JQDialogTitle: '信息',//弹出窗体标题
+        JQWidth: '1000',//弹出窗体宽
+        JQHeight: '100%',//弹出窗体高
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+        url: '@Url.Action("json","BussCustomerEvaluate",new { @area="Bussiness"})?CustID=@Request.QueryString["CustID"]',//请求的地址
+        checkOnSelect: true,//是否包含check
+        JQExcludeCol: [1, 9],//导出execl排除的列
+        toolbar: '#BussCustomerEvaluatePanel',//工具栏的容器ID
+        columns: [[
+          { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+{ title: '顾客名称', field: 'CustName', width: '15%', align: 'left', sortable: true },
+{ title: '顾客类型', field: 'CustTypeName', width: '10%', align: 'center', sortable: true },
+{ title: '项目编号', field: 'ProjNumber', width: '10%', align: 'center', sortable: true },
+{ title: '项目名称', field: 'ProjName', width: '18%', align: 'center', sortable: true },
+{ title: '评价时间', field: 'EvalateDate', width: '10%', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+{ title: '评价结果', field: 'EvaluateResult', width: '10%', align: 'center', sortable: true },
+{ title: '评价内容', field: 'EvaluaterNote', width: '15%', align: 'center', sortable: true },
+                {
+                    field: 'JQFiles', title: '附件', align: 'center', width: "8%", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'BussCustEvaluate',
+                    formatter: function (value, row) {
+                        return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                    }
+                }]]
+    });
+    $("#JQSearch").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '评价内容',
+        queryOptions: { Key: 'EvaluaterNote', Contract: 'like' },
+        onClickButton: function () {
+            JQ.datagrid.searchGrid(
+                {
+                    dgID: 'BussCustomerEvaluateGrid',
+                    loadingType: 'datagrid',
+                    queryParams: null
+                });
+        }
+    });
+
+</script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+
+
+
+
+
+<table id="BussCustomerEvaluateGrid"></table>
+<div id="BussCustomerEvaluatePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+
+    </span>
+
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'EvaluaterNote', 'Contract': 'like' }" />
+
+</div>
+
+

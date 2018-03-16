@@ -1,0 +1,107 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoFile",new { @area="Iso"})',
+               addUrl = '@Url.Action("addDel","IsoFile",new {@area="Iso" })',
+               editUrl = '@Url.Action("editDel", "IsoFile",new {@area="Iso" })',
+               delUrl = '@Url.Action("del", "IsoFile", new { @area = "Iso" })';
+        var permission = '@ViewBag.permission';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: [ 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'FileID',//主键的字段
+                JQID: 'IsoFileGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["FileID"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#IsoFilePanel',//工具栏的容器ID
+                singleSelect: false,
+                fitColumns: true,
+                nowrap: false,
+                queryParams: { isZF: 1 },
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                  	{ title: '文件编号', field: 'FileNumber', width: "15%", halign: 'center', align: 'left', sortable: true },
+		            { title: '文件名称', field: 'FileName', width: "20%", halign: 'center', align: 'left', sortable: true },
+	                { title: '类别', field: 'FileType', width: "10%", halign: 'center', align: 'left', sortable: true },
+		            { title: '当前版本号', field: 'FileVersion', width: "15%", halign: 'center', align: 'left', sortable: true },
+		            {
+		                title: '作废日期', field: 'FileZFDate', width: "10%", halign: 'center', align: 'center', sortable: true, formatter: function (value,row,index) {
+		                    row.FileZFDate = JQ.tools.DateTimeFormatterByT(value, row,index);
+		                    return row.FileZFDate;
+		                }
+		            },
+                    { title: '状态', field: 'FileIsModules', width: "8%", halign: 'center', align: 'center', sortable: true },
+                  {
+                      field: 'JQFiles', title: '附件', align: 'center', width: "8%", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'IsoFile', formatter: function (value, row) {
+                          return "<span id=\"grid_files_" + row.FileID + "\"></span>"
+                      }
+                  },
+                    {
+                        field: 'opt', title: '操作', width: "8%", align: 'center', JQIsExclude: true,
+                        formatter: function (value, row, index) {
+                            if (permission.indexOf("edit") > -1 || permission.indexOf("alledit") > -1) {
+                                return '<a class="easyui-linkbutton" onclick="Info(' + row.FileID + ')">修改</a>';
+                            }
+                            else {
+                                return '<a class="easyui-linkbutton" onclick="Info(' + row.FileID + ')">查看</a>';
+                            }
+                            //return '<a class="easyui-linkbutton" onclick="Info(' + row.FileID + ')">修改</a>';
+                        }
+                    }
+                ]],
+                JQExcludeCol: [1, 8, 9],//导出execl排除的列
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '文件编号,文件名称,当前版本号',
+                queryOptions: { 'Key': 'FileName,FileNumber,FileVersion', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'IsoFileGrid',
+                            loadingType: 'datagrid',
+                            queryParams: { isZF: 1 }
+                        });
+                }
+            });
+        });
+        function Info(Id) {
+            JQ.dialog.dialog({
+                title: '项目信息备案明细',
+                width: '768',
+                height: '100%',
+                url: '@Url.Action("editDel")?Id=' + Id,
+                onClose: function () {
+                    $("#IsoFileGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoFileGrid"></table>
+    <div id="IsoFilePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key: 'FileName,FileNumber,FileVersion', 'Contract': 'like' }" />
+
+    </div>
+}
+

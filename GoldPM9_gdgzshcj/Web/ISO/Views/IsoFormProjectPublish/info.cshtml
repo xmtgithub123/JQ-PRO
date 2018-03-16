@@ -1,0 +1,1489 @@
+﻿@model DataModel.Models.IsoForm
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoFormProjectPublishForm',//formid提交需要用到
+        docName: 'IsoFormProjectPublish',
+        ExportName: '设计出版交接单',
+        buttonTypes: ['close', 'exportForm'],//默认按钮
+        onBefore: function () {
+            //getTexts();
+            $("#ProjTableGrid").datagrid('hideColumn', "ck");
+        },
+        onAfter: function () {
+            $("#ProjTableGrid").datagrid('showColumn', "ck");
+        },
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        beforeFormSubmit: function () {
+
+            var rows = $("#ProjTableGrid").datagrid("getRows");
+            if (rows.length < 1) {
+                JQ.dialog.warning("请选择要出版登记的卷册信息！！！");
+                return false;
+            }
+
+
+            var result = true;
+
+            if (typeof ($("#ProjTableGrid")[0]) != "undefined") {
+                var _tb = $("#ProjTableGrid").datagrid("getRows");
+                $.each(_tb, function (i, e) {
+                    if (!$("#ProjTableGrid").datagrid("validateRow", i)) {
+                        $("#ProjTableGrid").datagrid("scrollTo", i);
+                        JQ.dialog.warning("数据编辑中！！！");
+                        result = false;
+                        return false;
+                    }
+                });
+            }
+            if (!result) {
+                return result;
+            }
+            //项目任务信息存入
+            Save_Proj();
+
+        }
+        ,
+        flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"] == null ? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow", new { @area = "Core" }))",
+            instance: "_flowInstance",
+            processor: "ISO,ISO.FlowProcessor.IsoFormProjectPublish",
+            refID: "@(Model.FormID)",
+            refTable: "IsoFormProjectPublish",
+
+        }
+    });
+
+
+
+
+    var selectValue = "";
+    var selectText = "";
+    var ProjId = 0;
+    JQ.combobox.common({
+        id: 'ProjID',
+        toolbar: '#tbProj',//工具栏的容器ID
+        url: '@Url.Action("combogridJson", "Project", new { @area = "Project" })',//请求的地址
+        panelWidth: 600,
+        panelHeight: 400,
+        valueField: 'Id',
+        textField: 'ProjName',
+        editable: false,
+        multiple: false,
+        pagination: true,//是否分页
+        queryParams:
+            {
+                projId: '@Model.ProjID',
+                Words: $("#fullNameSearchProj").val()
+            },
+        columns: [[
+            { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true },
+            { title: '项目名称', field: 'ProjName', width: 260, align: 'center', sortable: true },
+            { title: '项目阶段', field: 'PhaseName', width: 140, align: 'center', sortable: true }
+        ]],
+        onSelect: function (val, row) {
+            $("#ProjNumber").text(row.ProjNumber);
+            $("#PhaseID").text(row.ProjPhaseIds);
+            $("#ProjNumberRWD").text(row.ProjNumber);
+            $("#ProjNameRWD").text(row.ProjName);
+
+            selectValue = row.Id;
+            selectText = row.ProjName;
+            ProjId = row.Id;
+        },
+        onLoadSuccess: function () {
+            $("#ProjNumber").text('@ViewBag.ProjNumber');
+            $("#ProjNumberRWD").text('@ViewBag.ProjNumber');
+            $("#ProjNameRWD").text('@ViewBag.ProjName');
+            var selectRow = $(this).combogrid('grid').datagrid('getSelected');
+            if (selectRow != undefined) {
+                selectText = $(this).combogrid('getText');
+            }
+            if (selectRow == undefined) {
+                $(this).combogrid('setText', selectText);
+            }
+        }
+
+    });
+
+    $("#fullNameSearchProj").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '项目名称、项目编号',
+        onClickButton: function () {
+            JQ.datagrid.searchGrid(
+                {
+                    $dg: $("#ProjID").combogrid('grid'),
+                    loadingType: 'datagrid',
+                    queryParams:
+                             {
+                                 projId: '@Model.ProjID',
+                                 Words: $("#fullNameSearchProj").val()
+                             }
+                });
+        }
+
+    });
+
+        var flag = decodeURIComponent($("#divXml").text().trim());
+        if (flag) {
+            var xml = GoldPM.loadXml(flag);
+            var items = GoldPM.selectNodes(xml, "Root/Item");
+
+            for (var i = 0; i < items.length; i++) {
+                var name = items[i].getAttribute("name");
+                var text = items[i].text || items[i].innerHTML;
+                $("#" + name).val(text);
+            }
+        }
+        //$("#QiTa").text("setValue","3333333333")
+
+
+        //多选人员
+        JQ.textbox.selEmp({
+            id: 'selEmployee',
+            setID: 'empids'
+        });
+
+
+
+        $.extend($.fn.datagrid.defaults.view, {
+            onAfterRender: function (_target) {
+                if (_target.id == "ProjTableGrid") {
+                    var _rowData = $(_target).datagrid("getRows");
+                    var _oldData = $.parseJSON($("#ProjTable_Data").val());
+
+                    $(_rowData).each(function (i, r) {
+                        $(_target).datagrid("beginEdit", i);
+                        if ($("#ProjTable_Data").val() == "") { return true; }
+
+                        $.each(_oldData, function (oi, or) {
+                            if (r.Id == or.Id) {
+                                var ed = $(_target).datagrid("getEditor", { index: i, field: 'ColAttVal1' });
+                                $(ed.target).textbox("setValue", or.ColAttVal1);
+                                return false;
+                            }
+                        })
+                    })
+
+                }
+            }
+        });
+
+
+        //选择工程前，将已有的 送出份数暂存
+        function Save_Proj() {
+            var _rowData = $("#ProjTableGrid").datagrid("getRows");
+            $(_rowData).each(function (i, r) {
+                var _rowIndex = $("#ProjTableGrid").datagrid("getRowIndex", _rowData[i]);
+                $("#ProjTableGrid").datagrid("endEdit", _rowIndex);
+                $("#ProjTableGrid").datagrid("beginEdit", _rowIndex);
+            });
+
+            $("#ProjTable_Data").val(JSON.stringify(_rowData));
+        }
+
+        //选择项目
+        function selectSingLeEng() {
+            //Save_Proj();//暂存项目信息
+            JQ.dialog.dialog({
+                title: "选择项目",
+                url: '@Url.Action("FilterList", "IsoFormProjectPublish", new { @area = "Iso" })',
+            width: '1024',
+            height: '100%',
+            //JQID: 'ProjTable',
+            //JQLoadingType: 'datagrid',
+            // iconCls: 'fa fa-list',
+        });
+    }
+
+
+    //返回回调刷新
+    var _ProjCallBackSingLe = function (param) {
+        //$("#redEngName").val(param[0]);
+        $("#redEngName").textbox('setValue', param[0]);
+    }
+
+
+    //  完成晒图
+    // A0
+    $("#stA0NumberTxt").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                SetstA0Number();
+            }
+        }
+    });
+
+    $("#rwdXuShaiFenShur").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                SetstA0Number();
+                SetstA1Number();
+                SetstA2Number();
+                SetstA3Number();
+                SetstA4Number();
+            }
+        }
+    });
+
+    //
+    function SetstA0Number() {
+        var stA0NumberTxt = parseFloat($("#stA0NumberTxt").numberspinner('getValue'));
+        var rwdXuShaiFenShur = parseFloat($("#rwdXuShaiFenShur").numberspinner('getValue'));
+        var Total = stA0NumberTxt * rwdXuShaiFenShur;
+        $("#stA0Number").numberspinner('setValue', Total.toString());
+    }
+
+
+
+    // A1
+    $("#stA1NumberTxt").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                SetstA1Number();
+            }
+        }
+    });
+
+
+
+    //
+    function SetstA1Number() {
+        var stA1NumberTxt = parseFloat($("#stA1NumberTxt").numberspinner('getValue'));
+        var rwdXuShaiFenShur = parseFloat($("#rwdXuShaiFenShur").numberspinner('getValue'));
+        var Total = stA1NumberTxt * rwdXuShaiFenShur;
+        $("#stA1Number").numberspinner('setValue', Total.toString());
+    }
+
+
+
+
+
+    // A2
+    $("#stA2NumberTxt").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                SetstA2Number();
+            }
+        }
+    });
+
+
+    //
+    function SetstA2Number() {
+        var stA2NumberTxt = parseFloat($("#stA2NumberTxt").numberspinner('getValue'));
+        var rwdXuShaiFenShur = parseFloat($("#rwdXuShaiFenShur").numberspinner('getValue'));
+        var Total = stA2NumberTxt * rwdXuShaiFenShur;
+        $("#stA2Number").numberspinner('setValue', Total.toString());
+    }
+
+    // A3
+    $("#stA3NumberTxt").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                SetstA3Number();
+            }
+        }
+    });
+    //
+    function SetstA3Number() {
+        var stA3NumberTxt = parseFloat($("#stA3NumberTxt").numberspinner('getValue'));
+        var rwdXuShaiFenShur = parseFloat($("#rwdXuShaiFenShur").numberspinner('getValue'));
+        var Total = stA3NumberTxt * rwdXuShaiFenShur;
+        $("#stA3Number").numberspinner('setValue', Total.toString());
+    }
+
+    // A4
+    $("#stA4NumberTxt").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                SetstA4Number();
+            }
+        }
+    });
+    //
+    function SetstA4Number() {
+        var stA4NumberTxt = parseFloat($("#stA4NumberTxt").numberspinner('getValue'));
+        var rwdXuShaiFenShur = parseFloat($("#rwdXuShaiFenShur").numberspinner('getValue'));
+        var Total = stA4NumberTxt * rwdXuShaiFenShur;
+        $("#stA4Number").numberspinner('setValue', Total.toString());
+    }
+
+
+    // A2  完成复印
+    $("#rwdFuYinFenShu").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+
+                SetfyA2Number();
+                SetfyA3Number();
+                SetfyA4Number();
+            }
+        }
+    });
+
+    // A2
+    $("#stA2NumberTxtFy").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                SetfyA2Number();
+            }
+        }
+    });
+    //
+    function SetfyA2Number() {
+        var stA2NumberTxtFy = parseFloat($("#stA2NumberTxtFy").numberspinner('getValue'));
+        var rwdFuYinFenShu = parseFloat($("#rwdFuYinFenShu").numberspinner('getValue'));
+
+        if (isNaN(stA2NumberTxtFy) || stA2NumberTxtFy == "" || stA2NumberTxtFy == "0" || stA2NumberTxtFy == 0) {
+            stA2NumberTxtFy = $("#stA2NumberTxtFy").numberspinner('setValue', "0");
+            stA2NumberTxtFy = parseFloat($("#stA2NumberTxtFy").numberspinner('getValue'));
+        }
+        if (isNaN(rwdFuYinFenShu) || rwdFuYinFenShu == "" || rwdFuYinFenShu == "0" || rwdFuYinFenShu == 0) {
+            rwdFuYinFenShu = $("#rwdFuYinFenShu").numberspinner('setValue', "0");
+            rwdFuYinFenShu = parseFloat($("#rwdFuYinFenShu").numberspinner('getValue'));
+        }
+        var Total = stA2NumberTxtFy * rwdFuYinFenShu;
+        $("#fyA2Number").numberspinner('setValue', Total.toString());
+    }
+
+    // A3
+    $("#stA3NumberTxtFy").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                SetfyA3Number();
+            }
+        }
+    });
+    //
+    function SetfyA3Number() {
+        var stA3NumberTxtFy = parseFloat($("#stA3NumberTxtFy").numberspinner('getValue'));
+        var rwdFuYinFenShu = parseFloat($("#rwdFuYinFenShu").numberspinner('getValue'));
+        if (isNaN(stA3NumberTxtFy) || stA3NumberTxtFy == "" || stA3NumberTxtFy == "0" || stA3NumberTxtFy == 0) {
+            stA3NumberTxtFy = $("#stA3NumberTxtFy").numberspinner('setValue', "0");
+            stA3NumberTxtFy = parseFloat($("#stA3NumberTxtFy").numberspinner('getValue'));
+        }
+        if (isNaN(rwdFuYinFenShu) || rwdFuYinFenShu == "" || rwdFuYinFenShu == "0" || rwdFuYinFenShu == 0) {
+            rwdFuYinFenShu = $("#rwdFuYinFenShu").numberspinner('setValue', "0");
+            rwdFuYinFenShu = parseFloat($("#rwdFuYinFenShu").numberspinner('getValue'));
+        }
+        var Total = stA3NumberTxtFy * rwdFuYinFenShu;
+        $("#fyA3Number").numberspinner('setValue', Total.toString());
+    }
+
+
+
+    // A4
+    $("#stA4NumberTxtFy").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                StA4NumberTxtFy();
+                JiLuFeiYongHeSuan();//费用核算
+            }
+        }
+    });
+
+    function StA4NumberTxtFy() {
+        var stA4NumberTxtFy = parseFloat($("#stA4NumberTxtFy").numberspinner('getValue'));
+        var rwdZhuangDingFenShu = parseFloat($("#rwdZhuangDingFenShu").numberspinner('getValue'));
+
+        var Total = stA4NumberTxtFy * rwdZhuangDingFenShu;
+        $("#stA4NumberTxtFyZs").numberspinner('setValue', Total.toString());
+    }
+    //装订份数
+    $("#rwdZhuangDingFenShu").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                StA4NumberTxtFy();   //A4总张数
+                SetfyA4Number();  //完成复印 A4
+            }
+        }
+    });
+
+
+    // A4总张数
+    $("#stA4NumberTxtFyYb").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                SetfyA4Number(); // A4总张数
+            }
+        }
+    });
+
+    $("#stA4NumberTxtFyZs").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                SetfyA4Number(); // A4总张数
+                JiLuFeiYongHeSuan();//费用核算
+            }
+        }
+    });
+    // A4总张数
+    function SetfyA4Number() {
+        var stA4NumberTxtFyYb = parseFloat($("#stA4NumberTxtFyYb").numberspinner('getValue'));
+        if (isNaN(stA4NumberTxtFyYb) || stA4NumberTxtFyYb == "" || stA4NumberTxtFyYb == "0" || stA4NumberTxtFyYb == 0) {
+            stA4NumberTxtFyYb = $("#stA4NumberTxtFyYb").numberspinner('setValue', "0");
+            stA4NumberTxtFyYb = parseFloat($("#stA4NumberTxtFyYb").numberspinner('getValue'));
+        }
+
+        var stA4NumberTxtFyZs = parseFloat($("#stA4NumberTxtFyZs").numberspinner('getValue'));
+        if (isNaN(stA4NumberTxtFyZs) || stA4NumberTxtFyZs == "" || stA4NumberTxtFyZs == "0" || stA4NumberTxtFyZs == 0) {
+            stA4NumberTxtFyZs = $("#stA4NumberTxtFyZs").numberspinner('setValue', "0");
+            stA4NumberTxtFyZs = parseFloat($("#stA4NumberTxtFyZs").numberspinner('getValue'));
+        }
+
+        var rwdFuYinFenShu = parseFloat($("#rwdFuYinFenShu").numberspinner('getValue'));
+        if (isNaN(rwdFuYinFenShu) || rwdFuYinFenShu == "" || rwdFuYinFenShu == "0" || rwdFuYinFenShu == 0) {
+            rwdFuYinFenShu = $("#rwdFuYinFenShu").numberspinner('setValue', "0");
+            rwdFuYinFenShu = parseFloat($("#rwdFuYinFenShu").numberspinner('getValue'));
+        }
+
+        var Total = stA4NumberTxtFyZs + stA4NumberTxtFyYb * (rwdFuYinFenShu + 1);
+        $("#fyA4Number").numberspinner('setValue', Total.toString());
+    }
+
+    //费用核算
+    function JiLuFeiYongHeSuan() {
+        var stA0Number = parseFloat($("#stA0Number").numberspinner('getValue'));
+        var stA1Number = parseFloat($("#stA1Number").numberspinner('getValue'));
+        var stA2Number = parseFloat($("#stA2Number").numberspinner('getValue'));
+        var stA3Number = parseFloat($("#stA3Number").numberspinner('getValue'));
+        var stA4Number = parseFloat($("#stA4Number").numberspinner('getValue'));
+
+        var fyA2Number = parseFloat($("#fyA2Number").numberspinner('getValue'));
+        var fyA3Number = parseFloat($("#fyA3Number").numberspinner('getValue'));
+        var fyA4Number = parseFloat($("#fyA4Number").numberspinner('getValue'));
+        var fyBenNumber = parseFloat($("#fyBenNumber").numberspinner('getValue'));
+        var stZheSuanZhangShu = parseFloat($("#stZheSuanZhangShu").numberbox('getValue'));
+
+        if (isNaN(stA0Number) || stA0Number == "" || stA0Number == "0" || stA0Number == 0) {
+            stA0Number = $("#stA0Number").numberspinner('setValue', "0");
+            stA0Number = parseFloat($("#stA0Number").numberspinner('getValue'));
+        }
+
+        if (isNaN(stA1Number) || stA1Number == "" || stA1Number == "0" || stA1Number == 0) {
+            stA1Number = $("#stA1Number").numberspinner('setValue', "0");
+            stA1Number = parseFloat($("#stA1Number").numberspinner('getValue'));
+        }
+
+        if (isNaN(stA2Number) || stA2Number == "" || stA2Number == "0" || stA2Number == 0) {
+            stA2Number = $("#stA2Number").numberspinner('setValue', "0");
+            stA2Number = parseFloat($("#stA2Number").numberspinner('getValue'));
+        }
+        if (isNaN(stA3Number) || stA3Number == "" || stA3Number == "0" || stA3Number == 0) {
+            stA3Number = $("#stA3Number").numberspinner('setValue', "0");
+            stA3Number = parseFloat($("#stA3Number").numberspinner('getValue'));
+        }
+        if (isNaN(stA4Number) || stA4Number == "" || stA4Number == "0" || stA4Number == 0) {
+            stA4Number = $("#stA4Number").numberspinner('setValue', "0");
+            stA4Number = parseFloat($("#stA4Number").numberspinner('getValue'));
+        }
+        if (isNaN(fyA2Number) || fyA2Number == "" || fyA2Number == "0" || fyA2Number == 0) {
+            fyA2Number = $("#fyA2Number").numberspinner('setValue', "0");
+            fyA2Number = parseFloat($("#fyA2Number").numberspinner('getValue'));
+        }
+        if (isNaN(fyA3Number) || fyA3Number == "" || fyA3Number == "0" || fyA3Number == 0) {
+            fyA3Number = $("#fyA3Number").numberspinner('setValue', "0");
+            fyA3Number = parseFloat($("#fyA3Number").numberspinner('getValue'));
+        }
+        if (isNaN(fyA4Number) || fyA4Number == "" || fyA4Number == "0" || fyA4Number == 0) {
+            fyA4Number = $("#fyA4Number").numberspinner('setValue', "0");
+            fyA4Number = parseFloat($("#fyA4Number").numberspinner('getValue'));
+        }
+        if (isNaN(fyBenNumber) || fyBenNumber == "" || fyBenNumber == "0" || fyBenNumber == 0) {
+            fyBenNumber = $("#fyBenNumber").numberspinner('setValue', "0");
+            fyBenNumber = parseFloat($("#fyBenNumber").numberspinner('getValue'));
+        }
+        if (isNaN(stZheSuanZhangShu) || stZheSuanZhangShu == "" || stZheSuanZhangShu == "0" || stZheSuanZhangShu == 0) {
+            stZheSuanZhangShu = $("#stZheSuanZhangShu").numberbox('setValue', "0");
+            stZheSuanZhangShu = parseFloat($("#stZheSuanZhangShu").numberbox('getValue'));
+        }
+
+        var Total = stA0Number * 2.4 + stA1Number * 1.2 + stA2Number * 0.6 + stA3Number * 0.4 + stA4Number * 0.3 + fyA2Number * 2 + fyA3Number * 0.4 + fyA4Number * 0.2 + fyBenNumber * 8 + stZheSuanZhangShu * 10;
+
+        $("#JiLuFeiYongHeSuan").numberbox('setValue', Total.toString());
+
+    }
+
+
+    // A4完成复印
+    $("#fyA4Number").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                JiLuFeiYongHeSuan();
+            }
+        }
+    });
+
+    //  折算张数（A4）
+    $("#stZheSuanZhangShu").numberbox({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberbox('setValue', '0');
+            }
+            else {
+                JiLuFeiYongHeSuan();
+            }
+        }
+    });
+
+    // 本
+    $("#fyBenNumber").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                JiLuFeiYongHeSuan();
+            }
+        }
+    });
+
+    // 完成晒图 A0
+    $("#stA0Number").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                JiLuFeiYongHeSuan();
+            }
+        }
+    });
+
+    // 完成晒图 A1
+    $("#stA1Number").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                JiLuFeiYongHeSuan();
+            }
+        }
+    });
+
+    // 完成晒图 A2
+    $("#stA2Number").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                JiLuFeiYongHeSuan();
+            }
+        }
+    });
+
+
+    // 完成晒图 A3
+    $("#stA3Number").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                JiLuFeiYongHeSuan();
+            }
+        }
+    });
+
+    // 完成晒图 A4
+    $("#stA4Number").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                JiLuFeiYongHeSuan();
+            }
+        }
+    });
+
+
+    // 完成复印 A2
+    $("#fyA2Number").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                JiLuFeiYongHeSuan();
+            }
+        }
+    });
+
+    // 完成复印 A3
+    $("#fyA3Number").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                JiLuFeiYongHeSuan();
+            }
+        }
+    });
+
+    // 完成复印 A4
+    $("#fyA4Number").numberspinner({
+        onChange: function (newVal, oldVal) {
+            if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+                $(this).numberspinner('setValue', '0');
+            }
+            else {
+                JiLuFeiYongHeSuan();
+            }
+        }
+    });
+
+    //// 复印份数
+    //$("#rwdFuYinFenShu").numberspinner({
+    //    onChange: function (newVal, oldVal) {
+    //        if (isNaN(newVal) || newVal == "" || newVal == "0" || newVal == 0) {
+    //            $(this).numberspinner('setValue', '0');
+    //        }
+    //        else {
+    //            alert(sss);
+    //            //StA4NumberTxtFy();
+    //            JiLuFeiYongHeSuan();//费用核算
+    //        }
+    //    }
+    //});
+
+</script>
+
+@using (Html.BeginForm("save", "IsoFormProjectPublish", FormMethod.Post, new { @area = "Iso", @id = "IsoFormProjectPublishForm" }))
+{
+    @Html.HiddenFor(m => m.FormID)
+    <table class="table table-bordered" id="sjcbjjd">
+        <tr style="border: none;">
+            <td colspan="11" style="border: none; text-align: center;">
+                <span style="font-weight: bold; font-size: large;">设计出版交接单</span>
+                <div id="divXml" style="display: none">
+                    @(ViewBag.contentXml)
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%" colspan="2">项目名称
+            </th>
+            <td colspan="5">
+                @*<select id="ProjID" name="ProjID" class="easyui-combogrid" data-options="required:true" style="width:98%;"></select>*@
+                <input id="ProjID" name="ProjID" data-options="required:true,multiple:false" style="width:99%;" value="@(@Model.ProjID == 0 ? "" : @Model.ProjID.ToString())" />
+                <input type="hidden" id="Words" name="Words" />
+                <input type="hidden" id="PhaseIDs" name="PhaseIDs" />
+                <input type="hidden" name="ProjIDName" value="@ViewBag.ProjName" />
+
+            </td>
+            <th width="10%" colspan="2">项目编号
+            </th>
+            <td colspan="2">
+                <label id="ProjNumber" bookmark="ProjNumber"></label>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%" colspan="2">设计阶段
+            </th>
+            <td colspan="5">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "PhaseID",
+               isRequired = true,
+               engName = "ProjectPhase",
+               width = "98%",
+               ids = Model.PhaseID.ToString()
+           })
+            </td>
+            <th width="10%" colspan="2">
+                @*项目专业*@
+                卷册索引号
+            </th>
+            <td colspan="2">
+                @*<label id="ProjEmpName"></label>*@
+                <input id="JcSyh" name="JcSyh" style="width: 190px;" class="easyui-textbox" validtype="length[0,500]" />
+            </td>
+        </tr>
+
+
+
+        <tr>
+            <th colspan="2">送出份数</th>
+            <td colspan="2">
+                <input name="SongChuNumber" id="SongChuNumber" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,10]" />
+                份
+            </td>
+            <th colspan="1">设总：</th>
+            <td colspan="2">
+                <input name="SheZongNumber" id="SheZongNumber" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+                份
+            </td>
+            <th colspan="2">档案室 ：</th>
+            <td colspan="2">
+                <input name="DangAnShiNumber" id="DangAnShiNumber" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+                份
+            </td>
+        </tr>
+
+
+        <tr>
+            <th width="10%" rowspan="3">成<br />
+                品
+            </th>
+            <th width="10%" rowspan="2">规格
+            </th>
+            <th width="10%" style="text-align: center;" colspan="5">总 图 纸 规 格 ( 张 )
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="2">说明书<br />
+                A4
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="2">清册<br />
+                A4
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="2">计算书<br />
+                A4
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="2">其它<br />
+                (规格)
+                <input name="GuiGeNumber" id="GuiGeNumber" style="width: 90%;" class="easyui-textbox" validtype="length[0,18]" />
+            </th>
+        </tr>
+
+
+        <tr>
+            <th style="text-align: center;" width="10%">0号
+            </th>
+            <th style="text-align: center;" width="10%">1号
+            </th>
+            <th style="text-align: center;" width="10%">2号
+            </th>
+
+            <th style="text-align: center;" width="10%">3号
+            </th>
+            <th style="text-align: center;" width="10%">4号
+            </th>
+        </tr>
+
+
+        <tr>
+            <th width="10%">页(张)数
+            </th>
+            <td width="10%">
+                <input name="c0Number" id="c0Number" bookmark="Number0" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+
+            <td width="10%">
+                <input name="c1Number" id="c1Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+
+            <td width="10%">
+                <input name="c2Number" id="c2Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+
+
+            <td width="10%">
+                <input name="c3Number" id="c3Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+
+            <td width="10%">
+                <input name="c4Number" id="c4Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%">
+                <input name="ShuoMingShuA4Number" id="ShuoMingShuA4Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%">
+                <input name="QingCeA4Number" id="QingCeA4Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%">
+                <input name="JiSuanShuA4Number" id="JiSuanShuA4Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%">
+                <input name="QiTaGuiGeNumber" id="QiTaGuiGeNumber" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+        </tr>
+
+        <tr>
+            <th colspan="2">出版申请人</th>
+            <td colspan="2" bookmark="cCreatorEmpName">
+                @Model.CreatorEmpName
+            </td>
+            <th colspan="2">要求送图时间</th>
+            <td colspan="5">
+                <input id="SongTuDate" name="SongTuDate" class="easyui-datebox" validtype="length[0,23]" />
+            </td>
+        </tr>
+
+        <tr>
+            <th colspan="2">出版申请时间</th>
+            <td colspan="2" bookmark="cCreationTime">
+                @*<input id="SongTuDate" name="SongTuDate" class="easyui-datebox" validtype="length[0,23]" />*@
+                @Model.CreationTime.ToString("yyyy-MM-dd")
+            </td>
+            <th colspan="2">成品完成时间</th>
+            <td colspan="5">
+                <input id="WanchengDate" name="WanchengDate" class="easyui-datebox" validtype="length[0,23]" />
+            </td>
+        </tr>
+
+        @*<tr>
+                <th colspan="3">卷册编号</th>
+                <th colspan="3">卷册名称</th>
+                <th colspan="5">备注</th>
+            </tr>*@
+
+
+        <tr>
+            <th>卷
+                册
+                信
+                息
+                <input type="hidden" name="HideprojIDs" id="HideprojIDs" value="@(ViewData["ProjIDs"])" />
+                <input type="hidden" name="ProjTable_Data" id="ProjTable_Data" />
+            </th>
+            <td colspan="11">
+
+                <table id="ProjTableGrid" bookmark="ProjTableGrid" style="width: 100%; height: auto;"></table>
+                <div id="ProjTablePanel" jqpanel="searchPanel" style="padding: 5px; height: auto;">
+                    <span jqpanel="toolbarPanel">
+                        @*<a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="AddFee()">新增</a>*@
+                        <a name="selectEng" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="selectEng(ProjId)">添加选择</a>
+                        <a name="DelEng" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="DelEng()">删除</a>
+                        <script type="text/javascript">
+
+                            $(function () {
+                                $('#ProjTableGrid').datagrid({
+                                    JQPrimaryID: 'Id',//主键的字段
+                                    JQID: 'ProjTableGrid',//数据表格ID
+                                    JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                                    url: '@Url.Action("GetProjectDeliverList", "IsoFormProjectDeliver", new { @area = "Iso" })',
+            toolbar: '#ProjTablePanel',//工具栏的容器ID
+            pagination: false,
+            queryParams: { projIDs: '@(ViewData["ProjIDs"])', FormID: '@Model.FormID' },
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                {
+                    field: 'Id', title: 'Id', halign: 'center', hidden: true, editor: {
+                        type: 'textbox', options: {}
+                    }
+                },
+                //{ field: 'ProjNumber', title: '项目编号', halign: 'center', width: "25%", },
+                //{ field: 'ProjName', title: '项目名称', halign: 'center', width: "25%", },
+                //{ field: 'TaskNumber', title: '卷册编号', halign: 'center', width: 150, },
+                { field: 'TaskName', id: 'd', title: '卷册名称', align: 'center', halign: 'center', width: "50%", },
+                 {
+                     field: 'ColAttVal1',
+                     title: '备注',
+                     width: "50%", align: 'center', halign: 'center',
+                     editor: {
+                         type: 'textbox',
+                         options: { required: true }
+                     }
+                 },
+            ]],
+            onLoadSuccess: function (data) {
+                var _rowData =this.datagrid("getRows");
+
+                $(_rowData).each(function (i, r) {
+                    this.datagrid("beginEdit", i);
+                })
+            }
+        });
+    });
+
+
+    //返回回调刷新
+    var _ProjCallBack = function (param) {
+        debugger;
+        var projIDs = $("#HideprojIDs").val().split(",");
+
+        for (var i = 0; i < param.length; i++) {
+            if (projIDs.indexOf(param[i]) < 0) {
+                projIDs.push(param[i]);
+            }
+        }
+        $("#HideprojIDs").val(projIDs);
+
+        $("#ProjTableGrid").datagrid({
+            url: '@Url.Action("GetProjectDeliverList", "IsoFormProjectDeliver", new { @area = "Iso" })',
+            queryParams: { projIDs: $("#HideprojIDs").val() },
+             
+        });
+
+      
+
+
+        // 刷新编辑行的
+        //if (typeof (IsEdit) != "undefined") {
+        //    if (IsEdit != undefined && IsEdit) {
+        //        //重新加载combox
+        //        reloadCombox(editIndex);
+        //    }
+        //}
+                            }
+    //选择项目
+    function selectEng(ProjId) {
+        if (ProjId < 1) {
+            JQ.dialog.warning("请先选择要出版登记的项目信息！！！");
+            return false;
+        }
+        Save_Proj();//暂存项目信息
+        JQ.dialog.dialog({
+            title: "选择卷册",
+            url: '@Url.Action("FilterList", "IsoFormProjectDeliver", new { @area = "Iso" })?ProjId=' + ProjId + '',
+            width: '1024',
+            height: '100%',
+            JQID: 'ProjTableGrid',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-list',
+
+        });
+    }
+    //删除
+    function DelEng() {
+        Save_Proj();
+        var row = $('#ProjTableGrid').datagrid('getSelections');
+        if (row.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+        }
+        else {
+
+            var projIDs = $("#HideprojIDs").val().split(",");
+            for (var i = 0; i < row.length; i++) {
+                delete projIDs[projIDs.indexOf(row[i]["Id"])];
+            }
+            $("#HideprojIDs").val(projIDs);
+
+            $("#ProjTableGrid").datagrid({
+                url: '@Url.Action("GetProjectDeliverList", "IsoFormProjectDeliver", new { @area = "Iso" })',
+                queryParams: { projIDs: $("#HideprojIDs").val() },
+            });
+        }
+        //reloadCombox();
+    }
+
+    //新增一行
+    function AddFee() {
+        $('#ProjTableGrid').datagrid('appendRow', {});
+        editIndex = $('#ProjTableGrid').datagrid('getRows').length - 1;
+        $('#ProjTableGrid').datagrid('beginEdit', editIndex);
+
+    }
+
+
+    //重新加载combox
+                            @*function reloadCombox(rowindex) {
+                                var _row = $("#planTable").datagrid("getRows");
+                                $.each(_row, function (i, e) {
+                                    var _EditRow = $("#planTable").datagrid("getEditors", i);
+                                    var _target = _EditRow[0];
+                                    var ComBoValue = $(_target.target).textbox('getValue');
+                                    if (("," + $("#HideprojIDs").val() + ",").indexOf("," + ComBoValue + ",") == -1) {
+                                        $(_target.target).textbox('setValue', "0");
+                                    }
+
+                                    if (_target.type == "textbox") {
+                                        $(_target.target).combobox('reload', '@Url.Action("GetProjectDeliverList")?projIDs=' + $("#HideprojIDs").val());
+                                    }
+                                })
+
+                            }*@
+
+                        </script>
+                    </span>
+                </div>
+            </td>
+        </tr>
+
+
+        <tr>
+            <th width="10%" colspan="2">出版内容</th>
+            <td colspan="9">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ColAttVal1",
+               isMult = true,
+               isRequired = false,
+               engName = "ProjectPublishContent",
+               width = "600px",
+               ids = Model.ColAttVal1.ToString()
+           })
+                <input type="hidden" name="ColAttVal1bm" value="@ViewBag.ColAttVal1" />
+                <input type="hidden" name="ColAttVal2bm" value="@ViewBag.ColAttVal2" />
+
+            </td>
+        </tr>
+        <tr>
+            <th width="10%" colspan="2">装订要求</th>
+            <td colspan="9">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ColAttVal2",
+               isMult = true,
+               isRequired = false,
+               engName = "ProjectPublishBinDing",
+               width = "600px",
+               ids = Model.ColAttVal2.ToString()
+           })
+                其他： 
+                <input id="QiTa" name="QiTa" style="width: 190px;" class="easyui-textbox" validtype="length[0,500]" />
+
+            </td>
+        </tr>
+        <tr>
+            <th width="10%" colspan="2">送图要求</th>
+            <td colspan="9">
+                <input id="FormReason" name="FormReason" style="width:600px" class="easyui-textbox" validtype="length[0,500]" value="@Model.FormReason" />
+            </td>
+        </tr>
+
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="11"></td>
+        </tr>
+    </table>
+
+    <table class="table table-bordered" id="stfjsmrwd" style="display: none">
+        <tr style="border: none;">
+            <td colspan="14" style="border: none; text-align: center;">
+                <span style="font-weight: bold; font-size: large;">晒 图 复 印 扫 描 任 务 单</span>
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="2" style="border: none; text-align: right;">
+                <span>检索号</span>
+            </td>
+            <td colspan="7" style="border: none;">
+                <input id="redJianSuoHao" name="redJianSuoHao" style="width: 100px;" class="easyui-textbox" validtype="length[0,500]" />
+            </td>
+            <td colspan="2" style="border: none; text-align: right;">
+                <span>编号</span>
+            </td>
+            <td colspan="3" style="border: none;">
+                <input id="redBianHao" name="redBianHao" style="width: 100px;" class="easyui-textbox" validtype="length[0,500]" />
+            </td>
+        </tr>
+        <tr>
+            <th colspan="2">部门</th>
+            <td colspan="4" bookmark="rCreatorDepName">
+                @Model.CreatorDepName
+            </td>
+            <th colspan="1" rowspan="2">申请人</th>
+            <td colspan="2" rowspan="2" bookmark="rCreatorEmpName">
+                @Model.CreatorEmpName
+            </td>
+            <th colspan="2">委托日期</th>
+            <td colspan="3">
+                <input id="redWeiTuDate" name="redWeiTuDate" class="easyui-datebox" validtype="length[0,23]" />
+            </td>
+        </tr>
+
+        <tr>
+            <th colspan="2">项目检索号</th>
+            <td colspan="4">
+                @*<label id="ProjNumberRWD"></label>*@
+                <input id="redEngJianSuoHao" name="redEngJianSuoHao" style="width: 98%;" class="easyui-textbox" validtype="length[0,500]" />
+            </td>
+            <th colspan="2">要求完成日期</th>
+            <td colspan="3">
+                <input id="redYaoQiuWanChengDate" name="redYaoQiuWanChengDate" class="easyui-datebox" validtype="length[0,23]" />
+            </td>
+        </tr>
+
+        <tr>
+            <th colspan="2">项目名称
+                <a class="easyui-linkbutton" name="selectSingLeEng" onclick="selectSingLeEng()">选择</a>
+            </th>
+            <td colspan="4">
+                @*<label id="ProjNameRWD"></label>*@
+                <input id="redEngName" name="redEngName" style="width: 98%;" data-options="required:true" class="easyui-textbox" validtype="length[0,500]" />
+            </td>
+            <th colspan="1">卷册名称</th>
+            <td colspan="7">
+                <input id="redJuanCeName" name="redJuanCeName" style="width: 98%;" class="easyui-textbox" validtype="length[0,500]" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%" rowspan="4">晒图
+            </th>
+            <th width="10%" rowspan="2">底图张数
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="2">需晒份数
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="4">复印
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="2">原稿本数
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="2">复印份数
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="4">装订
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="2">装订份数
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="4">其他
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="2">打字/
+                制图
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="5">成品交付对象
+            </th>
+            <th width="10%" style="text-align: center;">项目部
+            </th>
+            <td width="10%" style="text-align: center;">
+                <input name="rwdXiangMuBu" id="rwdXiangMuBu" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <th width="10%" style="text-align: center;">份
+            </th>
+        </tr>
+        <tr>
+
+            <th width="10%" style="text-align: center;">档案室
+            </th>
+            <td width="10%" style="text-align: center;">
+                <input name="rwdDangAnShi" id="rwdDangAnShi" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <th width="10%" style="text-align: center;">份
+            </th>
+        </tr>
+
+
+        <tr>
+
+            <td width="10%" rowspan="2">
+                <input name="rwdDiTuZhangShu" id="rwdDiTuZhangShu" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;" rowspan="2">
+                <input name="rwdXuShaiFenShur" id="rwdXuShaiFenShur" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+
+            <td width="10%" style="text-align: center;" rowspan="2">
+                <input name="rwdXuYuanGaoBenShu" id="rwdXuYuanGaoBenShu" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;" rowspan="2">
+                <input name="rwdFuYinFenShu" id="rwdFuYinFenShu" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+
+            <td width="10%" style="text-align: center;" rowspan="2">
+                <input name="rwdZhuangDingFenShu" id="rwdZhuangDingFenShu" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;" rowspan="2">
+                <input name="rwdDaZiZhiTu" id="rwdDaZiZhiTu" style="width: 60%;" data-options="min:0,precision:1" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <th width="10%" style="text-align: center;">设总
+            </th>
+            <td width="10%" style="text-align: center;">
+                <input name="rwdSheZong" id="rwdSheZong" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <th width="10%" style="text-align: center;">份
+            </th>
+        </tr>
+
+
+        <tr>
+            <th width="10%" style="text-align: center;">技经室
+            </th>
+            <td width="10%" style="text-align: center;">
+                <input name="rwdJiJingShi" id="rwdJiJingShi" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <th width="10%" style="text-align: center;">份
+            </th>
+        </tr>
+
+
+        <tr>
+            <th colspan="2">发往单位特殊要求</th>
+            <td colspan="9">
+                <input name="rwdFaSongDanWeiTeShuYaoQiu" id="rwdFaSongDanWeiTeShuYaoQiu" style="width: 90%;" class="easyui-textbox" validtype="length[0,200]" />
+            </td>
+            <th width="10%" style="text-align: center;">市场部
+            </th>
+            <td width="10%" style="text-align: center;">
+                <input name="rwdShiChangBu" id="rwdShiChangBu" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <th width="10%" style="text-align: center;">份
+            </th>
+        </tr>
+
+    </table>
+
+
+    <table class="table table-bordered" id="stfysmwcjl" style="display: none">
+        <tr style="border: none;">
+            <td colspan="11" style="border: none; text-align: center;">
+                <span style="font-weight: bold; font-size: large;">晒 图 复 印 扫 描 完 成 记 录</span>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%" colspan="2">外委日期
+            </th>
+            <td colspan="2">
+                <input id="JiLuWaiweiDate" name="JiLuWaiweiDate" class="easyui-datebox" validtype="length[0,23]" />
+
+            </td>
+            <th width="10%" colspan="2">外委公司名称
+            </th>
+            <td colspan="2">
+                <input name="JiLuWaiWeiGongSiName" id="JiLuWaiWeiGongSiName" style="width: 90%;" class="easyui-textbox" validtype="length[0,200]" />
+            </td>
+            <th colspan="1">接单人</th>
+            <td colspan="2">
+                <input name="JiLuJianDanRen" id="JiLuJianDanRen" style="width: 90%;" class="easyui-textbox" validtype="length[0,200]" />
+            </td>
+        </tr>
+
+
+
+        <tr>
+            <th width="10%" rowspan="2">完成晒图
+            </th>
+            <th width="10%" style="text-align: center;">A0
+            </th>
+            <th width="10%" style="text-align: center;">A1
+            </th>
+            <th width="10%" style="text-align: center;">A2
+            </th>
+            <th width="10%" style="text-align: center;">A3
+            </th>
+            <th width="10%" style="text-align: center;">A4
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="2">打字制图
+            </th>
+            <th width="10%" style="text-align: center;">折算张数（A4）
+            </th>
+            <th width="10%" style="text-align: center;">质量检验
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="4">费用核算（元）
+            </th>
+            <td width="10%" style="text-align: center;" rowspan="4">
+                <input name="JiLuFeiYongHeSuan" id="JiLuFeiYongHeSuan" style="width: 70%;" class="easyui-numberbox" data-options="min:0,precision:2" validtype="length[0,18]" />
+            </td>
+        </tr>
+
+        <tr>
+
+            <td width="10%" style="text-align: center;">
+                <input name="stA0Number" id="stA0Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="stA1Number" id="stA1Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="stA2Number" id="stA2Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="stA3Number" id="stA3Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="stA4Number" id="stA4Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+
+            </td>
+
+            <td width="10%" style="text-align: center;">
+                <input name="stZheSuanZhangShu" id="stZheSuanZhangShu" style="width: 60%;" class="easyui-numberbox" data-options="min:0,precision:2" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="stZhiLiangJianYan" id="stZhiLiangJianYan" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+        </tr>
+
+
+        <tr>
+            <th width="10%" rowspan="2">完成复印
+            </th>
+            <th width="10%" style="text-align: center;">A2
+            </th>
+            <th width="10%" style="text-align: center;">A3
+            </th>
+            <th width="10%" style="text-align: center;">A4
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="2">完成装订
+            </th>
+            <th width="10%" style="text-align: center;">本
+            </th>
+            <th width="10%" style="text-align: center;" rowspan="2">备注
+            </th>
+            <td style="text-align: center;" rowspan="2">
+                <input name="fyBeiZhu" id="fyBeiZhu" style="width: 60%;" class="easyui-textbox" validtype="length[0,200]" />
+            </td>
+
+            <th width="10%" style="text-align: center;">验收日期
+            </th>
+        </tr>
+
+        <tr>
+            @*data-options="readonly:true"*@
+            <td width="10%" style="text-align: center;">
+                <input name="fyA2Number" id="fyA2Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            <td width="10%" style="text-align: center;">
+                <input name="fyA3Number" id="fyA3Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="fyA4Number" id="fyA4Number" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+
+            <td width="10%" style="text-align: center;">
+                <input name="fyBenNumber" id="fyBenNumber" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+
+            <td width="10%" style="text-align: center;">
+                <input id="fyYanShouDate" name="fyYanShouDate" style="width: 60%;" class="easyui-datebox" validtype="length[0,23]" />
+            </td>
+        </tr>
+
+        <tr>
+            <th rowspan="2">成品签收</th>
+            <th colspan="5" style="text-align: center;">项目部接收人
+            </th>
+            <th colspan="5" style="text-align: center;">其它
+            </th>
+            @*<th>
+                    档案室接收人
+                </th>
+                <th>
+                    市场部
+                </th>
+                <th>
+                    设总
+                </th>
+                <th>
+                    技经室接收人
+                </th>
+                <th>
+                    其它
+                </th>*@
+            @*<td colspan="10">
+                    接收人<input id="selEmployee" name="selEmployee" style="width:250px;" />
+                    <input type="hidden" id="empids" name="empids" />
+                </td>*@
+        </tr>
+
+        <tr>
+            <td colspan="5">
+                <input id="selEmployee" name="selEmployee" style="width: 450px;" />
+                <input type="hidden" id="empids" name="empids" />
+            </td>
+            <td colspan="5">
+                <input name="JiLuQiTa" id="JiLuQiTa" style="width: 98%;" class="easyui-textbox" validtype="length[0,200]" />
+            </td>
+        </tr>
+
+
+
+        <tr>
+            <th width="10%" rowspan="2">完成晒图
+            </th>
+            <th width="10%" style="text-align: center;">A0
+            </th>
+            <th width="10%" style="text-align: center;">A1
+            </th>
+            <th width="10%" style="text-align: center;">A2
+            </th>
+            <th width="10%" style="text-align: center;">A3
+            </th>
+            <th width="10%" style="text-align: center;">A4
+            </th>
+        </tr>
+        <tr>
+            <td width="10%" style="text-align: center;">
+                <input name="stA0NumberTxt" id="stA0NumberTxt" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="stA1NumberTxt" id="stA1NumberTxt" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="stA2NumberTxt" id="stA2NumberTxt" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="stA3NumberTxt" id="stA3NumberTxt" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="stA4NumberTxt" id="stA4NumberTxt" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+
+            </td>
+        </tr>
+        <tr>
+            <th width="10%" rowspan="2">完成复印
+            </th>
+            <th width="10%" style="text-align: center;">A2
+            </th>
+            <th width="10%" style="text-align: center;">A3
+            </th>
+            <th width="10%" style="text-align: center;">A4
+            </th>
+            <th width="10%" style="text-align: center;">A4加竣工概算1本
+            </th>
+            <th width="10%" style="text-align: center;">A4总张数
+            </th>
+        </tr>
+
+        <tr>
+            <td width="10%" style="text-align: center;">
+                <input name="stA2NumberTxtFy" id="stA2NumberTxtFy" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="stA3NumberTxtFy" id="stA3NumberTxtFy" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="stA4NumberTxtFy" id="stA4NumberTxtFy" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="stA4NumberTxtFyYb" id="stA4NumberTxtFyYb" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+            </td>
+            <td width="10%" style="text-align: center;">
+                <input name="stA4NumberTxtFyZs" id="stA4NumberTxtFyZs" style="width: 60%;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,18]" />
+
+            </td>
+        </tr>
+    </table>
+    <div id="tbProj" style="padding: 5px; height: auto; display: none;">
+        <input id="fullNameSearchProj" name="Words" style="width: 250px;" jqwhereoptions="{ Key: 'ProjName', 'Contract': 'like' }" />
+    </div>
+}

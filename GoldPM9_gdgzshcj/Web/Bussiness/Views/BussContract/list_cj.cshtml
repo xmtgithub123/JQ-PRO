@@ -1,0 +1,494 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+
+@section head {
+    <script type="text/javascript">
+
+        var queryParams={
+                CustID: "@ViewData["CustID"]",
+                CustName : ""
+            };
+        $(function () {
+            if ((@Html.Raw(ViewBag.permission)).indexOf("add")==-1) {
+                $("#AddChildCon").hide();
+            }
+
+            @{
+                if (Request.QueryString["projectID"] != null)
+                {
+                    <text>queryParams.ProjID="@(JQ.Util.TypeParse.parse<int>(Request.QueryString["projectID"]) )";</text>
+                }
+
+                if (Request.QueryString["from"] == "projectcenter")
+                {
+                     <text>var buttons=[];</text>
+                }
+                else
+                {
+                     <text>var buttons=['add', 'del', 'export', 'moreSearch'];</text>
+                }
+            }
+            JQ.treegrid.treegrid({
+                pagination: true,
+                JQButtonTypes: buttons,//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")?CompanyType=CJ',//添加的路径
+                JQEditUrl: '@Url.Action("edit")?CompanyType=CJ',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                idField: 'Keyid',
+                treeField: 'ConNumber',
+                JQID: 'BussContractGrid',//数据表格ID
+                JQDialogTitle: '收款合同',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'treegrid',//数据表格类型 [datagrid,treegrid]
+                singleSelect: true,
+                JQExcludeCol: [1,14,15,16,17,18],//导出execl排除的列
+                JQFields: ["Id"],//追加的字段名
+                url: '@Url.Action("json", "BussContract", new { @area = "Bussiness" })?CompanyType=CJ&Footer=true',//请求的地址
+                queryParams: queryParams,
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussContractPanel',//工具栏的容器ID
+                showFooter: true,
+                nowrap: false,
+                frozenColumns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '合同编号', field: 'ConNumber', width: "180px", halign: 'center', align: 'left', sortable: true },
+                    {
+                        title: '合同名称', field: 'ConName', width: "20%", halign: 'center', align: 'left', sortable: true, formatter: function (item, data) {
+                            return "<span title='" + item + "'>" + item + "</span>";
+                        }
+                    },
+                ]],
+                columns: [[
+                    { title: '客户名称', field: 'CustName', width: "10%", halign: 'center', align: 'left', sortable: true },
+                    {
+                        title: '签订状态', field: 'ConStatus', width: "80px", halign: 'center', align: 'center', sortable: true, formatter: function (item, row) {
+                            return row.ConStatusShow;
+                        }
+                    },
+                    { title: '签订日期', field: 'ConDate', width: "80px", halign: 'center', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                    {
+                        title: '合同金额', field: 'NewConFee', width: "100px", halign: 'center', align: 'right', formatter: function (value, row, index) {
+                            if (row.Footer) {
+                                return row.NewConFee;
+                            }
+                            if (row.FatherID == 0) {
+                                if (row.ConFulfilType == '@((int)DataModel.ConDealWays.开口)') {
+                                    if (row.children.length == 0) {
+                                        row.NewConFee = row.SumConFee;
+                                        return "<div><span>" + row.SumConFee + "</span></div>";
+                                    } else {
+                                        row.NewConFee = row.SumConFee + "(" + row.ConFee + ")";
+                                        return "<div title=\"开口合同、红色金额为主合同金额\"><span>" + row.SumConFee + "</span><span style=\"color:red;\">（" + row.ConFee + "）</span></div>";
+                                    }
+
+                                } else {
+                                    if (row.children.length == 0) {
+                                        var showPan = "";
+                                        if (row.SumConBalanceFee == 0) {
+                                            row.NewConFee = row.SumConFee;
+                                            showPan = "<div><span>" + row.ConFee + "</span></div>";
+                                        } else {
+                                            row.NewConFee = row.SumConBalanceFee;
+                                            showPan = "<div><span>" + row.SumConBalanceFee + "</span></div>";
+                                        }
+                                        return showPan;
+                                    } else {
+                                        var showPan = "";
+                                        if (row.SumConBalanceFee == 0) {
+                                            row.NewConFee = row.SumConFee + "(" + row.ConFee + ")";
+                                            showPan = "<div title=\"闭口合同、红色金额为主合同金额\"><span>" + row.SumConFee + "</span><span style=\"color:red;\">（" + row.ConFee + "）</span></div>";
+                                        } else {
+                                            row.NewConFee = row.SumConBalanceFee + "(" + row.ConBalanceFee + ")";
+                                            showPan = "<div title=\"闭口合同、红色金额为主合同金额\"><span>" + row.SumConBalanceFee + "</span><span style=\"color:red;\">（" + row.ConBalanceFee + "）</span></div>";
+                                        }
+                                        return showPan;
+                                    }
+                                }
+                            } else {
+                                if (row.ConFulfilType == '@((int)DataModel.ConDealWays.开口)') {
+                                    row.NewConFee = row.ConFee;
+                                    return "" + row.ConFee + "";
+                                }
+                                else {
+                                    if (row.ConBalanceFee == 0) {
+                                        row.NewConFee = row.SumConFee;
+                                    } else {
+                                        row.NewConFee = row.ConBalanceFee;
+                                    }
+                                    return "" + row.NewConFee + "";
+                                }
+                            }
+                        }
+
+                    },
+                    {
+                        title: '已收款', field: 'FeeFact', width: "100px", halign: 'center', align: 'right', formatter: function (value, row, index) {
+                            if (row.Footer) {
+                                return row.FeeFact;
+                            }
+                            if (row.FatherID == 0) { return row.FeeFact; }
+                            else { return ""; }
+                        }
+                    },
+                    {
+                        title: '未收款', field: 'NoFee', width: "100px", halign: 'center', align: 'right', formatter: function (value, row, index) {
+                            if (row.Footer) {
+                                return row.NewConFee - row.FeeFact;
+                            }
+                            if (row.FatherID == 0) {
+                                if (row.ConFulfilType == '@((int)DataModel.ConDealWays.开口)') {
+                                    return "" + (row.SumConFee - row.FeeFact).toFixed(2) + "";
+                                } else {
+                                    return "" + (row.SumConBalanceFee - row.FeeFact).toFixed(2);
+                                }
+                            } else {
+                                return "";
+                            }
+                        }
+                    },
+                    {
+                        title: '开票款', field: 'FeeInvoice', width: "100px", halign: 'center', align: 'right', formatter: function (value, row, index) {
+                            if (row.Footer) {
+                                return row.FeeInvoice;
+                            }
+                            if (row.FatherID == 0) { return row.FeeInvoice; }
+                            else { return ""; }
+                        }
+                    },
+                    {
+                        title: '分包付款', field: 'FBFK', width: "100px", halign: 'center', align: 'right', formatter: function (value, row, index) {
+                            if (row.Footer) {
+                                return 0;
+                            }
+                            row.FBFK = 0;
+                            return row.FBFK;
+                        }
+                    },
+                    {
+                        title: '是否结清', field: 'ConIsFeeFinished', width: "60px", halign: 'center', align: 'center', formatter: function (value, row, index) {
+                            if (row.Footer) {
+                                return "";
+                            }
+                            return value;
+                        }
+                    },
+                    {
+                        title: '是否分包', field: 'ConStreamNumber', width: "60px", halign: 'center', align: 'center', formatter: function (value, row, index) {
+                            if (row.Footer) {
+                                return "";
+                            }
+                            if (row.ConStreamNumber != "" && row.ConStreamNumber == 1) {
+                                row.ConStreamNumber = "是";
+                            }
+                            else {
+                                row.ConStreamNumber = "否";
+                            }
+                            return row.ConStreamNumber;
+                        }
+                    },
+                    {
+                        title: '付款合同', field: 'tt', width: "70px", halign: 'center', align: 'center', formatter: function (value, row, index) {
+                            if (row.Footer) {
+                                return "";
+                            }
+                            if (row.FatherID == 0) {
+                                return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"OpenConSub('" + row.ProjId + "','" + row.EngineeringNumber + "')\">付款合同</>";
+                            }
+                        }
+                    },
+                    {
+                        title: '收款开票', field: 'Id', width: "70px", halign: 'center', align: 'center', JQIsExclude: true, formatter: function (value, row, index) {
+                            if (row.Footer) {
+                                return "";
+                            }
+                            if (row.FatherID == 0) {
+                                return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"FeeListView(" + row.Id + ")\">收款开票</>";
+                            } else {
+                                return "";
+                            }
+
+                        }
+                    },
+                    {
+                        field: 'JQFiles', title: '附件', align: 'center', width: "40px", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'BussContract', formatter: function (value, row) {
+                            return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                        }
+                    },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "100px", formatter: function (value, row, index) {
+                            if (row.Footer) {
+                                return "";
+                            } else {
+                                return JQ.Flow.showProgress("FlowIDD", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrentEmpID)")(value, row);
+                            }
+                        }
+                    },
+                    {
+                        field: "opt", title: "操作", align: "center", halign: "center", width: "40px", formatter: function (value, row, index) {
+                            if (row.Footer) {
+                                return "";
+                            }
+                            var title = "查看";
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                            }
+                            return ' <a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick="EditCon(' + row.Id + ')">' + title + '</a>';
+                        }
+                    }
+
+                ]],
+                onLoadSuccess: function (rowIndex, rowDatas) {
+                    if ((@Html.Raw(ViewBag.Feepermission)).indexOf("ContractFee") == -1) {
+                        $("#BussContractGrid").treegrid("hideColumn", "Id");
+                    }
+
+                    var isShowCKAll = true;
+
+                    var data = rowDatas.rows;
+                    var $rows = $("#BussContractGrid").parent().find(".datagrid-view1 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.length; i++) {
+
+                        if (data[i].FlowStatusID == 2 || data[i].FlowStatusID == 3) {
+                            var gRow = $rows.filter("[node-id='" + data[i].Id + "']");
+                            gRow.find("td[field='ck']").find("input[type='checkbox']").hide();
+                            isShowCKAll = false;
+                        }
+
+                        for (var j = 0; j < data[i].children.length; j++) {
+                            if (data[i].children[j].FlowStatusID == 2 || data[i].children[j].FlowStatusID == 3) {
+                                var cgRow = $rows.filter("[node-id='" + data[i].children[j].Id + "']");
+                                cgRow.find("td[field='ck']").find("input[type='checkbox']").hide();
+                                isShowCKAll = false;
+                            }
+                        }
+                    }
+                    if (isShowCKAll) {
+                        $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    }
+
+                    var htmlFooter = $("#BussContractGrid").datagrid("getPanel").find(".datagrid-footer").find("tr");
+                    htmlFooter.find("td[field=\"ConNumber\"]").find(".datagrid-cell").empty();
+                    htmlFooter.find("td[field=\"ConName\"]").find(".datagrid-cell").empty();
+                    htmlFooter.find("td[field=\"JQFiles\"]").find(".datagrid-cell").empty();
+                    htmlFooter.find("td[field=\"FlowProgress\"]").find(".datagrid-cell").empty();
+                }
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '合同编号、合同名称、客户名称',
+                onClickButton: function () {
+                    ResGrid();
+                }
+            });
+
+            $("#ConIsFeeFinished").combobox({
+                onChange: function () {
+                    ResGrid();
+                }
+            });
+
+            $("#ConStatus1").combotree({
+                onChange: function () {
+                   ResGrid();
+                }
+            });
+
+            $("#ConFulfilType1").combotree({
+                onChange: function () {
+                   ResGrid();
+                }
+            });
+
+            $("#SKZT").combobox({
+                onChange: function () {
+                    ResGrid();
+                }
+            });
+        });
+
+        function ResGrid() {
+            JQ.datagrid.searchGrid({
+                dgID: 'BussContractGrid',
+                loadingType: 'treegrid',
+                queryParams: queryParams,
+                setParamsFunc: function (paras) {
+                    var queryInfo = $.parseJSON(paras.queryInfo);
+
+                    $.each(queryInfo, function (index, item) {
+                        $.each(item.list, function (index, data) {
+                            if (data.Key == "FeeFact") {
+                                debugger;
+                                data.Key = "isnull((select Sum(FeeMoney) from BussFeeFact bf where bf.ConID=c.Id and bf.DeleterEmpId=0),0)";
+                                if (data.Value == "0") {
+                                    data.Contract = "<=";
+                                } else {
+                                    data.Value = "0";
+                                    data.Contract = ">";
+                                }
+                            }
+                        });
+                    });
+                    paras.queryInfo = JSON.stringify(queryInfo);
+                }
+            });
+        }
+
+        function FeeListView(ConID) {
+            JQ.dialog.dialog({
+                title: "收款开票",
+                url: '@Url.Action("FeeDetails")' + '?ConID=' + ConID,
+                width: '1024',
+                height: '100%',
+                JQID: 'BussContractGrid',
+                JQLoadingType: 'treegrid',
+                iconCls: 'fa fa-jpy',
+                onClose:function () {
+                    $("#BussContractGrid").treegrid("reload");
+                }
+            });
+        }
+
+        function OpenConSub(projId,EngineeringNumber){
+            JQ.dialog.dialog({
+                title: "付款合同",
+                url: '@Url.Action("conSubList", "BussContractSub", new { @area= "Bussiness" })?projectID='+projId+'&EngineeringNumber='+EngineeringNumber+'',
+                width: '1024',
+                height: '100%',
+                JQID: 'BussContractGrid',
+                JQLoadingType: 'treegrid',
+                iconCls: 'fa fa-jpy',
+                onClose:function () {
+                    $("#BussContractGrid").treegrid("reload");
+                }
+            });
+        }
+
+
+        function AddCon() {
+            var row = $('#BussContractGrid').treegrid('getSelections');
+            if (row.length < 1) {
+                window.top.JQ.dialog.warning('您必须选择至少一项进行操作！！！');
+            }
+            else {
+
+                if (row[0]['FatherID'] != '0') {
+                    window.top.JQ.dialog.warning('子合同下无法创建子合同！！！');
+                    return;
+                }
+
+                JQ.dialog.dialog({
+                    title: "添加子合同",
+                    url: '@Url.Action("AddChild")' + '?CompanyType=CJ&parentId=' + row[0]['Keyid'],
+                    width: '1024',
+                    height: '100%',
+                    JQID: 'BussContractGrid',
+                    JQLoadingType: 'treegrid',
+                    iconCls: 'fa fa-plus'
+                });
+            }
+        }
+
+        function EditCon(id) {
+            if(id){
+                JQ.dialog.dialog({
+                    title: "编辑收款合同",
+                    url: '@Url.Action("edit")' + '?CompanyType=CJ&id=' + id,
+                    width: '1024',
+                    height: '100%',
+                    JQID: 'BussContractGrid',
+                    JQLoadingType: 'treegrid',
+                    iconCls: 'fa fa-plus'
+                });
+            }
+        }
+
+        var _ConList_CallBack = function () {
+            $("#BussContractGrid").datagrid("reload");
+        }
+
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+@section Body_Content{
+    <table id="BussContractGrid"></table>
+    <div id="BussContractPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            @if (Request.QueryString["from"] != "projectcenter")
+            {
+                <a id="AddChildCon" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="AddCon()">新增子合同</a>
+                <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+            }
+        </span>
+        <strong>单位：元</strong>
+
+        <input id="JQSearch" style="width:400px;" JQWhereOptions="{ Key:'ConName,ConNumber,CustName', Contract:'like'}" />
+        <div class="moreSearchPanel">
+            <span>
+                履行方式：@BaseData.getBases(new Params()
+                {
+                    isMult = true,
+                    controlName = "ConFulfilType1",
+                    isRequired = false,
+                    engName = "ConDealWays",
+                    queryOptions = "{'Key':'ConFulfilType','Contract':'in','filedType':'Int'}",
+                    width = "150px",
+                })
+            </span>
+
+            <span>
+                签订状态：@BaseData.getBases(new Params()
+                {
+                    isMult = true,
+                    controlName = "ConStatus1",
+                    isRequired = false,
+                    engName = "ConStatus",
+                    queryOptions = "{'Key':'ConStatus','Contract':'in','filedType':'Int'}",
+                    width = "120px",
+                })
+            </span>
+            <span>
+                是否结清：<select name="ConIsFeeFinished" id="ConIsFeeFinished" class="easyui-combobox" editable="false" style='font-size:12px;width:80px;' JQWhereOptions="{ Key:'ConIsFeeFinished', Contract:'=',filedType:'Int' }">
+                    <option value="">请选择</option>
+                    <option value='1'>是</option>
+                    <option value='0'>否</option>
+                </select>
+            </span>
+            <span style="padding-left:10px;">
+                收款状态：<select name="SKZT" id="SKZT" class="easyui-combobox" editable="false" style='font-size:12px;width:80px;' JQWhereOptions="{ Key:'FeeFact', Contract:'=',filedType:'Int' }">
+                    <option value="">请选择</option>
+                    <option value='1'>已收</option>
+                    <option value='0'>未收</option>
+                </select>
+            </span>
+            <span style="padding-left:10px;">
+                签订时间：<input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期开始'" JQWhereOptions="{ Key:'ConDate', Contract:'>=',filedType:'Date' }">
+                至
+                <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期结束'" JQWhereOptions="{ Key:'ConDate', Contract:'<=',filedType:'Date' }">
+            </span>
+            <span style="padding-left:10px;">
+                合同金额：<input id="ConFeeLower" type="text" class="easyui-numberbox" style="width:110px" data-options="prompt: '合同金额',min:0,precision:2" JQWhereOptions="{ Key:'ConFee', Contract:'>=',filedType:'decimal' }">
+                ~
+                <input id="ConFeeUpper" type="text" class="easyui-numberbox" style="width:110px" data-options="prompt: '合同金额',min:0,precision:2" JQWhereOptions="{ Key:'ConFee', Contract:'<=',filedType:'decimal' }">
+            </span>
+            <span style="padding-left:10px;display:none;">
+                保证金：<input id="BZJLower" type="text" class="easyui-numberbox" style="width:110px" data-options="prompt: '保证金金额',min:0,precision:2" JQWhereOptions="{ Key:'BZJ', Contract:'>=',filedType:'double' }">
+                ~
+                <input id="BZJUpper" type="text" class="easyui-numberbox" style="width:110px" data-options="prompt: '保证金金额',min:0,precision:2" JQWhereOptions="{ Key:'BZJ', Contract:'<=',filedType:'double' }">
+            </span>
+        </div>
+    </div>
+}
+

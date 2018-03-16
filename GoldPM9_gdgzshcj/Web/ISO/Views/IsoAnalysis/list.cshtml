@@ -1,0 +1,48 @@
+﻿@model DataModel.Models.DesTaskCheck
+@{
+    Layout = null;
+}
+
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <link href="@(Url.Content("~/Content/fontawesome/css/font-awesome.min.css"))" rel="stylesheet" />
+    <link rel="stylesheet" href="@(Url.Content("~/Content/bootstrap.css"))" />
+    <link rel="stylesheet" href="@(Url.Content("~/Content/normalize.css"))" />
+    <link rel="stylesheet" href="@(Url.Content("~/Content/projhome.css"))" />
+    <title></title>
+</head>
+<body class="easyui-layout">
+    <div data-options="region:'north',border:false" style="height:40px;background-color:#F8F8F8;position:relative;overflow:hidden;border-bottom:1px solid #D2D2D2;">
+        <div style="position:absolute;left:10px;top:10px;">
+            <ul id="divTabHead" class="jq_tab_header"></ul>
+        </div>
+    </div>
+    <div id="divTabContent" data-options="region:'center',border:false" style="border-bottom:1px solid #D2D2D2;"></div>
+    <script src="@(Url.Content("~/Scripts/jquery.min.js"))"></script>
+    <script type="text/javascript" src="@(Url.Content("~/Scripts/jquery.easyui.min.js"))"></script>
+    <link href="@(Url.Content("~/Content/themes/base/easyui.css"))" rel="stylesheet" />
+    <script src="@(Url.Content("~/Scripts/Bootstrap/bootstrap-switch-master/docs/js/bootstrap.min.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/JQ/tab.js"))"></script>
+    <input type="hidden" id="AnalysisIds" name="AnalysisIds" value="1" />
+</body>
+</html>
+<script type="text/javascript">
+    $.parser.onComplete = function () {
+        var cTab = new Tab({
+            head: document.getElementById("divTabHead"),
+            body: document.getElementById("divTabContent"),
+            tabs: [
+                { name: "info", title: "按人员", url: "@(Url.Action("EmployeeAnalysis", "IsoAnalysis", new { @area= "ISO" }))" },
+                { name: "index", title: "按部门", url: "@(Url.Action("DeptAnalysis", "IsoAnalysis", new { @area= "ISO" }))" }
+            ]
+        });
+
+    }
+</script>

@@ -1,0 +1,83 @@
+﻿@model DataModel.Models.OaEquipment
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'OaEquipmentForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "OaEquipment", FormMethod.Post, new { @area = "Oa", @id = "OaEquipmentForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+
+        <tr>
+            <th width="10%">办公用品编号</th>
+            <td width="40%">
+                <input type="hidden" name="EquipOrOffice" id="EquipOrOffice" value="1" />
+                <input name="EquipNumber" style="width:98%;" class="easyui-textbox" validtype="length[0,100]" data-options="required:true" value="@Model.EquipNumber" />
+            </td>
+            <th width="10%">办公用品名称</th>
+            <td width="40%">
+                <input name="EquipName" style="width:98%;" class="easyui-textbox" data-options="required:true" validtype="length[0,100]" value="@Model.EquipName" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">总数量</th>
+            <td width="40%">
+                <input name="EquipTotalCount" style="width:98%;" class="easyui-numberspinner" data-options="required:true" validtype="length[0,10]" value="@Model.EquipTotalCount" />
+            </td>
+            <th width="10%">品牌</th>
+            <td width="40%">
+                <input name="EquipBrand" style="width:98%;" class="easyui-textbox" validtype="length[0,50]" value="@Model.EquipBrand" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">规格</th>
+            <td width="40%">
+                <input name="EquipModel" style="width:98%;" class="easyui-textbox" validtype="length[0,50]" value="@Model.EquipModel" />
+            </td>
+            <th width="10%">管理部门</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+                     {
+                         controlName = "ManageDepartID",
+                         isRequired = true,
+                         engName = "department",
+                         width = "98%",
+                         ids = Model.ManageDepartID.ToString()
+                     })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">备注</th>
+            <td colspan="3">
+                <input name="EquipNote" style="width:98%;height:120px;" class="easyui-textbox" data-options="multiline:true" validtype="length[0,500]" value="@Model.EquipNote" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+    var uploader = new DataModel.FileUploader();
+    uploader.RefID = Model.Id;
+    uploader.RefTable = "OaEquipment";
+    uploader.Name = "UploadFile1";
+    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+
+}
+
+
+

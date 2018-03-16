@@ -1,0 +1,108 @@
+﻿
+@using JQ.Web;
+<style type="text/css">
+    .rwpdialogdiv {
+        padding: 0px;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        $(".dialog-toolbar :last").hide();
+        var paramQuery = {
+            'type': '@ViewBag.contentType'
+        };
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'fromId',//主键的字段
+            JQID: 'PlanTableContent',//数据表格ID
+            JQDialogTitle: '选择工程',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            checkOnSelect: true,
+            url: '@Url.Action("GetDangerContent", "DesPlanTable")',//请求的地址
+            //checkOnSelect: true,//是否包含check
+            toolbar: '#PlanTableContentPanel',//工具栏的容器ID
+            queryParams: paramQuery,
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                  @{
+                      if (ViewBag.contentType == "designDanger")
+                      {
+                            <text>
+                            { title: '危险源辨识', field: 'DangerName', width: '30%', align: 'left', },
+                            { title: '风险评价和控制措施', field: 'DangerContent', width: '60%', align: 'center', },
+                            </text>
+                      }
+                      else
+                      {
+                           <text> { title: '应急事件', field: 'DangerName', width: '30%', align: 'left', },
+                            { title: '应急处理措施', field: 'DangerContent', width: '60%', align: 'center', },</text>
+                      }
+
+                }
+            ]],
+
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            @{if (ViewBag.contentType == "designDanger")
+            {
+                   <text>prompt: '危险源辨识、风险评价和控制措施',</text>
+            }
+            else
+            {
+                   <text>prompt: '应急事件、应急处理措施',</text>
+            } }
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+                {
+                    dgID: 'PlanTableContent',
+                    loadingType: 'datagrid',
+                    queryParams: paramQuery
+                });
+            }
+        });
+    });
+
+    function selectProj() {
+        var row = $("#PlanTableContent").datagrid('getChecked');
+        if (row.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+       
+        var ids = [];
+
+        for (var i = 0; i < row.length; i++) {
+            ids.push({
+                'DangerName': row[i]["DangerName"],
+                'DangerContent': row[i]["DangerContent"]
+            });
+        }
+      
+        window.top.selectPlanTableContent = ids;
+        JQ.dialog.dialogClose();
+    }
+
+</script>
+
+<table id="PlanTableContent"></table>
+<div id="PlanTableContentPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProj()">确定选择</a>
+    </span>
+    @*分割号*@
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'ColAttVal1,ColAttVal2', Contract:'like',filedType:'string'}" />
+
+    @*<div class="moreSearchPanel">
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期开始'" JQWhereOptions="{ Key:'ConDate', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期结束'" JQWhereOptions="{ Key:'ConDate', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>*@
+</div>
+
+
+

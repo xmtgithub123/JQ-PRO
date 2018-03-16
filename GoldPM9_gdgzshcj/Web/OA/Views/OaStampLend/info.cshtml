@@ -1,0 +1,144 @@
+﻿@model DataModel.Models.OaStampLend
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'OaStampLendForm',//formid提交需要用到
+        buttonTypes: @Html.Raw(ViewBag.Permission) ,//默认按钮
+        //buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+
+    $('#StampID').combogrid({
+        panelWidth: 500,
+        panelHeight: 300,
+        value: '@Model.StampID',
+        idField: 'Id',
+        textField: 'StampName',
+        url: '@Url.Action("FilterJson", "OaStampUse", new { @area = "OA" })',//请求的地址
+        editable: true,
+        pagination: true,           //是否分页
+        rownumbers: true,           //序号
+        collapsible: false,         //是否可折叠的
+        prompt: '请选择用章',
+        fit: true,
+        method: 'post',
+        columns: [[
+            { title: '用章名称', field: 'StampName', width: 300, align: 'left' },
+        ]],
+        keyHandler: {
+            up: function () {               //【向上键】押下处理
+                var selected = $('#StampID').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    var index = $('#StampID').combogrid('grid').datagrid('getRowIndex', selected);
+                    if (index > 0) {
+                        $('#StampID').combogrid('grid').datagrid('selectRow', index - 1);
+                    }
+                }
+                else {
+                    var rows = $('#StampID').combogrid('grid').datagrid('getRows');
+                    $('#StampID').combogrid('grid').datagrid('selectRow', rows.length - 1);
+                }
+            },
+            down: function () {             //【向下键】押下处理
+                //取得选中行
+                var selected = $('#StampID').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    var index = $('#StampID').combogrid('grid').datagrid('getRowIndex', selected);
+                    if (index < $('#StampID').combogrid('grid').datagrid('getData').rows.length - 1) {
+                        $('#StampID').combogrid('grid').datagrid('selectRow', index + 1);
+                    }
+                } else {
+                    $('#StampID').combogrid('grid').datagrid('selectRow', 0);
+                }
+            },
+            enter: function () {             //【回车键】押下处理
+                var row = $('#StampID').combogrid('grid').datagrid('getSelected');
+                $('#StampID').combogrid('hidePanel');
+            },
+            query: function (Words) {     //【动态搜索】处理
+                //设置查询参数
+                var queryPara = $('#StampID').combogrid("grid").datagrid('options').queryParams;
+                queryPara.Words = Words;
+                $('#StampID').combogrid("grid").datagrid('options').queryParams = queryPara;
+                //重新加载
+                var pager = $('#StampID').combogrid('grid').datagrid('getPager');
+                pager.pagination('refresh');
+                pager.pagination('select', 1);
+                $('#StampID').combogrid("grid").datagrid("reload");
+                //$('#StampID').combogrid("setValue", Words);                    //将查询条件存入隐藏域
+                //$('#Words').val(Words);
+            }
+        },
+        onLoadSuccess: function () {
+            if ($("#StampID").combogrid('getValue') == "0") {
+                $(this).combogrid('setValue', "");
+            }
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "OaStampLend", FormMethod.Post, new { @area = "Oa", @id = "OaStampLendForm"}))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+
+        <tr>
+            <th width="10%">印章名称</th>
+            <td width="40%">
+                <input type="hidden" name="OaStampUseId" id="OaStampUseId" value="@ViewBag.OaStampUseId" />
+                <select id="StampID" name="StampID" style="width:98%;" class="easyui-combogrid" data-options="readonly:true"></select>
+            </td>
+            <th width="10%">借用日期</th>
+            <td width="40%">
+                <input name="StampLendDate" data-options="readonly:true" class="easyui-datebox" validtype="length[0,23]" value="@Model.StampLendDate" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">申请理由</th>
+            <td colspan="3">
+                <input name="StampLendNote" style="width:98%;height:80px" class="easyui-textbox" data-options="multiline:true,readonly:true" validtype="length[0,500]" value="@Model.StampLendNote" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">归还人姓名</th>
+            <td width="40%">
+                <input name="StampReturnEmpName" style="width:98%;" data-options="required:true" class="easyui-textbox" validtype="length[0,50]" value="@Model.StampReturnEmpName" />
+            </td>
+            <th width="10%">归还日期</th>
+            <td width="40%">
+                <input name="StampFactReturnDate" style="width:98%;" data-options="required:true" class="easyui-datebox" validtype="length[0,23]" value="@Model.StampFactReturnDate" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">登记人</th>
+            <td width="40%">
+                <input name="CreatorEmpName" data-options="readonly:true" class="easyui-textbox" validtype="length[0,50]" value="@Model.CreatorEmpName" />
+            </td>
+            <th width="10%">登记时间</th>
+            <td width="40%">
+                <input name="CreationTime" data-options="readonly:true" class="easyui-datebox" validtype="length[0,23]" value="@Model.CreationTime" />
+            </td>
+        </tr>
+
+        @*<tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+    var uploader = new DataModel.FileUploader();
+    uploader.RefID = Model.Id;
+    uploader.RefTable = "OaStampLend";
+    uploader.Name = "UploadFile1";
+    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>*@
+    </table>
+
+}

@@ -1,0 +1,205 @@
+﻿@model DataModel.Models.BussFeeInvoice
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'BussFeeInvoiceForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }
+        });
+
+        $("#ConName").combogrid({
+            panelWidth: 650,
+            idField: 'Id',
+            textField: 'ConName',
+            url: '@Url.Action("json", "BussContract", new { @area = "Bussiness" })?CompanyType=SJ',
+            queryParams: { FatherID: '0' },
+            pagination: true,
+            nowrap: false,//是否换行
+            striped: true,
+            singleSelect: true,
+            required: true,
+            multiline: true,
+            height: 50,
+            mode: 'remote',
+            columns: [[
+                       { field: 'Id', title: '合同编号', width: 100, hidden: true, halign: 'center' },
+                       { field: 'ConNumber', title: '合同编号', width: 100, halign: 'center' },
+                       { field: 'ConName', title: '合同名称', width: 150, halign: 'center' },
+                       { field: 'CustName', title: '客户单位', width: 100, halign: 'center' },
+                       {
+                           field: 'ConFee', title: '合同金额', width: 100, halign: 'center', align: 'right', formatter: function (value, row, index) {
+                               if (row.ConFulfilType == '@((int)DataModel.ConDealWays.开口)') {
+                                   return "<div title=\"开口合同、红色金额为主合同金额\"><span>" + row.SumConFee + "</span><span style=\"color:red;\">（" + row.ConFee + "）</span></div>";
+                               } else {
+                                   return "<div title=\"闭口合同、红色金额为主合同金额\"><span>" + row.SumConBalanceFee + "</span><span style=\"color:red;\">（" + row.ConBalanceFee + "）</span></div>";
+                               }
+                           }
+                       },
+            ]],
+            onSelect: function (rowIndex, rowData) {
+                $("#ConNumber").text(rowData.ConNumber);
+                $("#CustName").text(rowData.CustName);
+                $("#ConFulfilTypeName").text(rowData.ConFulfilTypeName);
+                $("#ConFee").text(rowData.SumConFee + "(" + rowData.ConFee + ")");
+                $("#ConBalanceFee").text(rowData.SumConBalanceFee + "(" + rowData.ConBalanceFee + ")");
+                $("#HasInvoiceFee").text(rowData.FeeInvoice);
+                $("#ConFulfilTypeName").attr("ConFee", (rowData.ConFulfilType == '@((int)DataModel.ConDealWays.开口)' ? rowData.SumConFee : rowData.SumConBalanceFee));
+
+                showPercent();
+                //刷新项目
+                $("#ProjName").combogrid("grid").datagrid("load", { ConID: rowData.Id, Filter: '' });
+            }
+        });
+
+        @*$("#ProjName").combogrid({
+            panelWidth: 650,
+            idField: 'ProjID',
+            textField: 'ProjName',
+            url: '@Url.Action("JsonProject", "BussFeeFact", new { @area = "Bussiness" })',
+            queryParams: { ConID: '0' },
+            pagination: true,
+            nowrap: false,//是否换行
+            striped: true,
+            method: 'post',
+            required: true,
+            singleSelect: true,
+            multiline: true,
+            height: 50,
+            columns: [[
+                        { field: 'ProjID', title: '主键ID', width: 100, hidden: true, },
+                        { field: 'ProjNumber', title: '项目编号', width: 100 },
+                        { field: 'ProjName', title: '项目名称', width: 150 },
+                        { field: 'Customer', title: '客户单位', width: 100 },
+                        //{ field: 'ConFee', title: '金额', width: 100 },
+            ]],
+            onSelect: function (rowIndex, rowData) {
+                $("#ProjNumber").text(rowData.ProjNumber);
+            }
+        });*@
+    });
+
+    @*function showPercent() {
+        //已开票
+        var HasInvoice = isNaN(parseFloat($("#HasInvoiceFee").text())) ? 0 : parseFloat($("#HasInvoiceFee").text());
+        //合同金额
+        var ConFee = $("#ConFulfilTypeName").attr("ConFee");
+        //开票金额
+        var InvoiceMone = $("#InvoiceMoney").val();
+
+        if (ConFee == 0) {
+            $("#Percent").text("0%");
+        }
+        else {
+            $("#Percent").text(((HasInvoice + InvoiceMone) / ConFee).toFixed(2) + "%");
+        }
+        var _title = $("#ConFulfilTypeName").text() == '@(DataModel.ConDealWays.开口)' ? "开口合同:(已开票金额+本次开票金额)/合同金额" : "闭口合同:(已开票金额+本次开票金额)/结算金额";
+        $("#Percent").attr("title", _title);
+
+    }*@
+</script>
+@using (Html.BeginForm("save", "BussFeeInvoice", FormMethod.Post, new { @area = "Bussiness", @id = "BussFeeInvoiceForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th>合同名称</th>
+            <td>
+                <input id="ConName" name="ConName" style="width:98%" />
+            </td>
+            <th>合同编号</th>
+            <td>
+                <span name="ConNumber" id="ConNumber"></span>
+            </td>
+        </tr>
+        <tr>
+            <th>项目名称</th>
+            <td>
+                <input name="ProjName" id="ProjName" style="width:98%" />
+            </td>
+            <th>项目编号</th>
+            <td>
+                <span name="ProjNumber" id="ProjNumber"></span>
+            </td>
+        </tr>
+        <tr>
+            <th>客户单位</th>
+            <td>
+                <span name="CustName" id="CustName"></span>
+            </td>
+            <th>
+                合同履行方式
+            </th>
+            <td>
+                <span name="ConFulfilTypeName" id="ConFulfilTypeName"></span>
+            </td>
+        </tr>
+        <tr>
+            <th>合同金额(元)</th>
+            <td>
+                <span name="ConFee" id="ConFee"></span>
+            </td>
+            <th>结算金额(元)</th>
+            <td>
+                <span name="ConBalanceFee" id="ConBalanceFee"></span>
+            </td>
+        </tr>
+        <tr>
+            <th>已开票金额(元)</th>
+            <td>
+                <span name="HasInvoiceFee" id="HasInvoiceFee"></span>
+            </td>
+            <th>累计开票比例</th>
+            <td>
+                <span name="Percent" id="Percent"></span>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">开票金额(元)</th>
+            <td width="40%">
+                <input name="InvoiceMoney" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" value="@Model.InvoiceMoney" />
+            </td>
+            <th width="10%">开票日期</th>
+            <td width="40%">
+                <input name="InvoiceDate" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.InvoiceDate.ToString("yyyy-MM-dd")" />
+            </td>
+        </tr>
+        <tr>
+            <th>申请人</th>
+            <td>
+                @Model.CreatorEmpName
+            </td>
+            <th>申请时间</th>
+            <td>
+                @Model.CreationTime.ToString("yyyy-MM-dd")
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">备注说明</th>
+            <td width="40%" colspan="3">
+                <input name="InvoiceNote" style="width:98%;height:80px" class="easyui-textbox" data-options="multiline:true" validType="length[0,200]" value="@Model.InvoiceNote" />
+            </td>
+        </tr>
+
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @Html.Action("uploadFile", "usercontrol", new
+           {
+               @area = "Core",
+               AttachRefID = Model.Id,
+               AttachRefTable = "BussFeeInvoice"
+           })
+            </td>
+        </tr>
+    </table>
+
+}
+
+
+

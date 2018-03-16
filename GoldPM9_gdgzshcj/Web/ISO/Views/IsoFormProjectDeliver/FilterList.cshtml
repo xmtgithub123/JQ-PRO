@@ -1,0 +1,80 @@
+﻿@using JQ.Web;
+
+
+<script type="text/javascript">
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQButtonTypes: ['moreSearch'],//需要显示的按钮
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'InfoListGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '1200',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQExcludeCol: [1, 16],//导出execl排除的列
+            //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+            //JQFields: ["", ""],//追加的字段名
+            url: '@Url.Action("GeTaskListJson", "IsoFormProjectDeliver", new { @area = "Iso" })?ProjId=@ViewBag.ProjId',
+            checkOnSelect: true,
+            toolbar: '#InfoListPanel',//工具栏的容器ID
+            columns: [[
+                  { field: 'ck', align: 'center', checkbox: true },
+              { title: '项目编号', field: 'ProjNumber', width: 120, align: 'left', sortable: true },
+              { title: '项目名称', field: 'ProjName', width: 280, align: 'left', sortable: true },
+              { title: '阶段', field: 'PhaseName', width: 90, align: 'left', sortable: true },
+              { title: '专业', field: 'SpecialtyName', width: 80, align: 'left', sortable: true },
+              { title: '卷册名称', field: 'TaskName', width: 160, align: 'left', sortable: true },
+              { title: '设计人员', field: 'TaskEmpName', width: 80, align: 'center', sortable: true },
+              {
+                  title: '计划完成时间', field: 'DatePlanFinish', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT
+              }
+            ]]
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '项目编号，项目名称',
+            queryOptions: { 'Key': 'TextCondtion', 'Contract': 'like' },
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+                    {
+                        dgID: 'InfoListGrid',
+                        loadingType: 'datagrid',
+                        queryParams: {
+                            KeyJQSearch: $("#JQSearch").val(),
+                        }
+                    });
+            }
+        });
+    });
+
+
+    function selectProj() {
+        var row = $('#InfoListGrid').datagrid('getSelections');
+        if (row.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        var ids = [];
+        var _rows = [];
+        for (var i = 0; i < row.length; i++) {
+            ids.push(row[i]["Id"]);
+            _rows.push(row[i]);
+        }
+
+        _ProjCallBack(ids);
+        JQ.dialog.dialogClose();
+    }
+
+
+</script>
+<table id="InfoListGrid"></table>
+<div id="InfoListPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+    <span jqpanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProj()">确定选择</a>
+    </span>
+    @BaseData.getBases(new Params() { engName = "ProjectPhase", queryOptions = "{ Key:'TaskPhaseId', Contract:'in',filedType:'Int'}" })
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+    <input id="JQSearch" style="width:250px;"  />
+</div>

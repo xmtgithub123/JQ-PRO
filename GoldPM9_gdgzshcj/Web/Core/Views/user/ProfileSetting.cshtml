@@ -1,0 +1,106 @@
+﻿@model DataModel.Models.BaseEmployee
+<script type="text/javascript">
+
+    JQ.form.submitInit({
+        formid: "profilesetting",
+        buttonTypes: ["submit", "close"],
+        succesCollBack: function (data) {
+            window.top.location.reload();
+            window.execute("个人中心", "afterChangeProfile", { note: $("#EmpNote").textbox("getText") });
+            JQ.dialog.dialogClose();
+        }
+    });
+</script>
+@using (Html.BeginForm("SaveProfileSetting", "User", new { @area = "Core" }, FormMethod.Post, new { @id = "profilesetting", @name = "profilesetting" }))
+{
+    @Html.HiddenFor(m => m.EmpID)
+    <table class="table table-bordered">
+        <tr>
+            <th style="width:80px;">
+                职务职称
+            </th>
+            <td style="width:200px;" colspan="3">
+                <input name="EmpTitle" style="width:98%;" class="easyui-textbox" value="@Model.EmpTitle" />
+            </td>
+        </tr>
+        <tr>
+            <th style="width:80px;">
+                <div>办公室位置</div>
+                <div>（房号）</div>
+            </th>
+            <td style="width:200px;">
+                <input name="EmpFJNum" style="width:98%;" class="easyui-textbox" value="@Model.EmpFJNum" />
+            </td>
+            <th style="width:80px;">
+                生日
+            </th>
+            <td style="width:200px;">
+                <input name="EmpBirthDate" style="width:98%;" class="easyui-datebox" value="@Model.EmpBirthDate" />
+            </td>
+        </tr>
+        <tr>
+            <th style="width:80px;">
+                个性签名
+            </th>
+            <td colspan="3">
+                <textarea id="EmpNote" name="EmpNote" style="width:98%;height:60px" class="easyui-textbox" spellcheck="false" data-options="multiline:true" validType="length[0,100]">@(Model.EmpNote)</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th style="width:80px;">
+                手机号码
+            </th>
+            <td style="width:200px;">
+                <input id="EmpTel" name="EmpTel" style="width:98%;" class="easyui-textbox" value="@Model.EmpTel" />
+            </td>
+            <th style="width:80px;">
+                内线电话
+            </th>
+            <td style="width:200px;">
+                <input id="EmpTelNX" name="EmpTelNX" style="width:98%;" class="easyui-textbox" value="@Model.EmpTelNX" />
+            </td>
+        </tr>
+        <tr>
+            <th style="width:80px;">
+                分页数
+            </th>
+            <td style="width:200px;">
+                <input name="EmpPageSize" style="width:98%;" class="easyui-numberbox" data-options="precision:0" value="@Model.EmpPageSize" />
+            </td>
+            <th style="width:80px;">
+                外线电话
+            </th>
+            <td style="width:200px;">
+                <input name="EmpTelWX" style="width:98%;" class="easyui-textbox" value="@Model.EmpTelWX" />
+            </td>
+        </tr>
+        <tr>
+            <th style="width:80px;">
+                邮箱地址
+            </th>
+            <td style="width:200px;">
+                <input name="EmpOaMail" style="width:98%;" class="easyui-textbox" data-options="validType:'email'" value="@Model.EmpOaMail" />
+            </td>
+            <th style="width:80px;">
+                公司邮箱
+            </th>
+            <td style="width:200px;">
+                <input name="EmpComMail" style="width:98%;" class="easyui-textbox" data-options="validType:'email'" value="@Model.EmpComMail" />
+            </td>
+        </tr>
+        <tr>
+            <th style="width:80px;">
+                IP地址
+            </th>
+            <td style="width:200px;">
+                <input name="EmpIPAddress" style="width:98%;" class="easyui-textbox" value="@Model.EmpIPAddress" />
+            </td>
+            <th style="width:80px;">
+                物理网卡地址
+            </th>
+            <td style="width:200px;">
+                <input name="EmpMacAddress" style="width:98%;" class="easyui-textbox" value="@Model.EmpMacAddress" />
+            </td>
+        </tr>
+    </table>
+}

@@ -1,0 +1,66 @@
+﻿* {
+    margin: 0px;
+    padding: 0px;
+}
+
+@font-face {
+    font-family: YChart;
+    src: url(fonts/YChart.ttf?v=4.3.0) format('truetype');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@keyframes rotate360 {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.ycw_container {
+    height: 150px;
+    width: 100%;
+    background-color: #F8F8F8;
+    overflow: hidden;
+    border-bottom: 1px solid #E1E1E1;
+}
+
+.ycw_button {
+    height: 30px;
+    line-height: 28px;
+    font-size: 14px;
+    border: 1px solid #E1E1E1;
+    color: #666666;
+    cursor: pointer;
+    float: left;
+    padding: 0px 6px 0px 6px;
+    border-radius: 3px;
+}
+
+    .ycw_button:hover {
+        background-color: #FFFFFF;
+    }
+
+.ycw_icon {
+    font-family: "YChart";
+}
+
+.ycw_icon_ok::after {
+    content: "\f00c";
+}
+
+.ycw_icon_wrong::after {
+    content: "\F119";
+}
+
+.ycw_icon_remove::after {
+    content: "\F00D";
+}
+
+.ycw_icon_loading::after {
+    content: "\F110";
+    animation: rotate360 2s linear infinite;
+}

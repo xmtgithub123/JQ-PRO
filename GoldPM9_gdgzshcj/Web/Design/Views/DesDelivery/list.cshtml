@@ -1,0 +1,77 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "DesDelivery",new { @area="Design"})',
+            addUrl = '@Url.Action("add","DesDelivery",new {@area="Design" })',
+            editUrl = '@Url.Action("edit", "DesDelivery",new {@area="Design" })',
+            delUrl = '@Url.Action("del", "DesDelivery", new { @area = "Design" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit','del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'DeliveryID',//主键的字段
+                JQID: 'DesDeliveryGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                JQFields: ["DeliveryID"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#DesDeliveryPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+				  		{ title: '---交付单---', field: 'DeliveryID', width: 100, align: 'center', sortable: true  },
+		{ title: '工程', field: 'ProjID', width: 100, align: 'center', sortable: true  },
+		{ title: '工程编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true  },
+		{ title: '工程名称', field: 'ProjName', width: 100, align: 'center', sortable: true  },
+		{ title: '交付日期', field: 'DeliveryDate', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '交付方式', field: 'DeliveryTypeID', width: 100, align: 'center', sortable: true  },
+		{ title: '交付专业', field: 'DeliveryPhase', width: 100, align: 'center', sortable: true  },
+		{ title: '交付阶段', field: 'DeliverySpec', width: 100, align: 'center', sortable: true  },
+		{ title: '交付卷册', field: 'DeliveryVol', width: 100, align: 'center', sortable: true  },
+		{ title: '设计人', field: 'DeliveryDesignEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '晒图日期', field: 'DeliveryBlueDate', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '接收单位', field: 'DeliveryCompany', width: 100, align: 'center', sortable: true  },
+		{ title: '接收人', field: 'DeliveryRecEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '份数', field: 'DeliveryDetailNum', width: 100, align: 'center', sortable: true  },
+		{ title: '交付备注', field: 'DeliveryNote', width: 100, align: 'center', sortable: true  },
+                 { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'DesDelivery' }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '筛选字段',
+                queryOptions: { 'Key': 'ProjNumber', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'DesDeliveryGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="DesDeliveryGrid"></table>
+    <div id="DesDeliveryPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            
+        </span>
+
+        <input id="JQSearch" style="width:250px;" />
+
+    </div>
+}
+

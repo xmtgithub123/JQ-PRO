@@ -1,0 +1,197 @@
+﻿@model DataModel.Models.OaMail
+@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            $('#lefttreeemp').treegrid({
+                url: '@Url.Action("employeeByDepJson", "usercontrol", new { @area = "Core", state = "closed" })',
+                idField: 'id',
+                treeField: 'text',
+                border: 0,
+                fit: true,
+                animate: true,
+                singleSelect: true,
+                columns: [[
+                   { title: '', field: 'text', width: 240, align: 'left' }
+                ]],
+                onLoadSuccess: function (row, data) {
+
+                },
+                onSelect: function (node) {
+                    if (node.isEmp) {
+                        var emp1 = $('#SendEmp').textbox('getValue').split(',');
+
+                        var arr = node.text.split(',');
+                        if (Enumerable.From(emp1).Contains(node.text)) {
+                            var atext = Enumerable.From(emp1).Except(arr).Distinct().ToArray().join(",");
+                        }
+                        else {
+                            var atext = Enumerable.From(emp1).Union(arr).Distinct().ToArray().join(",");
+                        }
+                        $('#SendEmp').textbox('setValue', atext);
+                    }
+                    else {
+                        if (node.id != -1) {
+                            var emp1 = $('#SendEmp').textbox('getValue').split(',');
+                            //alert(node.id);
+
+                            var arr = [];
+                            Enumerable.From(node.children)
+                                .ToArray()
+                                .forEach(function (i) {
+                                    arr.push(i.text);
+                                });
+                            //debugger;
+                            var atext = Enumerable.From(emp1).Union(arr).Distinct().ToArray().join(",");
+
+                            $('#SendEmp').textbox('setValue', atext);
+                        }
+                    }
+                }
+            });
+            document.getElementById("contentframe").onload = function () {
+                var _mailContent = document.getElementById("divMailContent");
+                document.getElementById("contentframe").contentWindow.loadEditor(_mailContent.innerHTML);
+                _mailContent.parentNode.removeChild(_mailContent);
+            }
+            document.getElementById("contentframe").setAttribute("src", "@(Url.Action("Editor","OaNew",new { @area="OA" }))");
+        });
+
+
+        function Reset() {
+            $('#SendEmp').textbox('setValue', "");
+            $('#MailTitle').textbox('setValue', "");
+            document.getElementById("contentframe").contentWindow.resetEditor();
+        }
+
+        function Send(Flag) {
+            var msg = "您确定要发送邮件吗？";
+            if (Flag != 0) msg = "您确定要保存到草稿箱吗？";
+            window.top.JQ.dialog.confirm(msg, function () {
+                $("#MailFlag").val(Flag);
+                document.getElementById("MailNote").setAttribute("value", document.getElementById("contentframe").contentWindow.getContent());
+                JQ.form.submit({
+                    formid: 'OaMailForm',
+                    succesCollBack: function (data) {
+                        if (Flag == 0)
+                            window.location.href = '@Url.Action("MailSend", "OaMail",new { @area="Oa"})';
+                        else
+                            window.location.href = '@Url.Action("MailDraft", "OaMail",new { @area="Oa"})';
+                    }
+                });
+            }, null);
+        }
+    </script>
+}
+
+@section Body_Content{
+
+    <div id="BaseQualificationlayout" class="easyui-layout" style="overflow: hidden" fit="true">
+        <div data-options="region:'west'" style="width:80%">
+            <div id="tbQual" style="padding:5px;height:auto;">
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-envelope'" onclick="Send(0)">发送邮件</a>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="Send(1)">保存草稿箱</a>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-refresh'" onclick="Reset()">重置</a>
+            </div>
+            @using (Html.BeginForm("save", "oamail", FormMethod.Post, new { @area = "Oa", @id = "OaMailForm" }))
+            {
+                @Html.HiddenFor(m => m.Id)
+                <input name="MailFlag" id="MailFlag" type="hidden" value="0" />
+                <input name="TypeID" id="TypeID" type="hidden" value="@ViewBag.TypeID" />
+
+                <table class="table table-bordered">
+                    <tr>
+                        <th width="10%">收件人</th>
+                        <td colspan="3">
+                            <input name="SendEmp" id="SendEmp" style="width:98%;height:60px" class="easyui-textbox" data-options="required:true,multiline:true,editable:false" value="@ViewBag.SendEmp" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th width="10%">标题</th>
+                        <td colspan="3">
+                            <input name="MailTitle" id="MailTitle" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,255]" value="@Model.MailTitle" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th width="10%">内容</th>
+                        <td colspan="3">
+                            <iframe id="contentframe" frameborder="0" style="width:100%;height:300px"></iframe>
+                            <input type="hidden" name="MailNote" id="MailNote" />
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th width="10%">发送日期</th>
+                        <td width="40%">
+                            <input name="MailDate" readonly="readonly" style="width:98%;" class="easyui-datebox" validType="length[0,23]" value="@Model.MailDate" />
+                        </td>
+                        <th width="10%">密送</th>
+                        <td width="40%">
+                            <input name="MailIsBBC" type="checkbox" value="@Model.MailIsBBC" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            上传附件
+                        </th>
+                        <td colspan="3">
+                            @{
+                                var uploader = new DataModel.FileUploader();
+                                uploader.RefID = Model.Id;
+                                uploader.RefTable = "OaMail";
+                                uploader.Name = "UploadFile1";
+                                @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                            }
+                        </td>
+                    </tr>
+                </table>
+                                }
+        </div>
+        <div data-options="region:'center'" style="width:20%">
+            <table id="lefttreeemp"></table>
+        </div>
+    </div>
+    <div id="attachesData" style="display:none">@(ViewBag.AttachData)</div>
+    <div id="divMailContent" style="display:none">@(Html.Raw(Model.MailNote))</div>
+    <script type="text/javascript">
+        var _uploader = uploader_@(Html.ViewContext.Controller.ViewData["UploadFileUnqiueID"]);
+        var attachesData = JQ.Flow.htmlDecode(document.getElementById("attachesData").innerHTML);
+        window.afterFileUploaderLoad = function ($grid, refTable) {
+            if (!attachesData) {
+                return;
+            }
+            var xml = GoldPM.loadXml(attachesData);
+            var nodes = GoldPM.selectNodes(xml, "Root/File");
+            if (nodes.length > 0) {
+                for (var i = 0; i < nodes.length; i++) {
+                    _uploader.tempID--;
+                    var fileID = _uploader.tempID;
+                    $grid.datagrid("appendRow", {
+                        ID: fileID,
+                        Name: nodes[i].getAttribute("RealName"),
+                        Size: parseInt(nodes[i].getAttribute("Size")),
+                        LastModifyDate: nodes[i].getAttribute("LastModifiedTime"),
+                        UploadDate: null,
+                        Version: 0,
+                        UploadStatus: 2,
+                        RemoteName: nodes[i].getAttribute("FileName"),
+                        FileID: fileID,
+                        RealUploadTime: nodes[i].getAttribute("UploadTime")
+                    });
+                    var temp = document.getElementById("f_" + fileID).parentNode;
+                    temp.innerHTML = "";
+                    temp.appendChild(JQ.Flow.createElement("a", { href: JQ.Upload.Tools.buildDownloadUrl(_uploader.downloadUrl, 0, { name: nodes[i].getAttribute("FileName"), realName: nodes[i].getAttribute("RealName") }) }, null, nodes[i].getAttribute("RealName")));
+                    document.getElementById("p_" + fileID).parentNode.innerHTML = nodes[i].getAttribute("UploadTime").substring(0, 10);
+                    document.getElementById("e_" + fileID).parentNode.innerHTML = nodes[i].getAttribute("EmpName");
+                    _uploader.addToCache(refTable, fileID, nodes[i].getAttribute("RealName"), nodes[i].getAttribute("FileName"), nodes[i].getAttribute("LastModifiedTime"), nodes[i].getAttribute("UploadTime"));
+                }
+                _uploader.saveCache();
+            }
+            delete window.afterFileUploaderLoad;
+        }
+    </script>
+}

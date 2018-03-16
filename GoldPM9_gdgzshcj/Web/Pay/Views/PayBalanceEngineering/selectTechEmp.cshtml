@@ -1,0 +1,61 @@
+﻿
+@using JQ.Web;
+<style type="text/css">
+    .rwpdialogdiv {
+        padding: 0px;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        $(".dialog-toolbar :last").hide();
+        JQ.datagrid.datagrid({
+            JQButtonTypes: [],//需要显示的按钮
+            JQID: 'EmpListGrid',//数据表格ID
+            JQDialogTitle: '选择评审记录',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            singleSelect: false,
+            pagination:false,
+            url: '@Url.Action("selectTechEmpJson", "PayBalanceEngineering", new { @area="pay"})?projId=@ViewBag.projId&PhaseId=@ViewBag.PhaseId',//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#ReviewPanel',//工具栏的容器ID
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '任务名称', field: 'TaskName', width: 280, align: 'center', sortable: true },
+                { title: '专业', field: 'SpecName', width: 200, align: 'center', sortable: true },
+                { title: '节点类型', field: 'FlowNodeName', width: 200, align: 'center', sortable: true },
+                { title: '人员姓名', field: 'FlowNodeEmpName', width: 200, align: 'center', sortable: true }
+            ]],
+
+        });
+
+    });
+
+    function selectEmpList() {
+        var rows = $('#EmpListGrid').datagrid('getSelections');
+        if (rows.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        for (var rowindex=0;rowindex<rows.length;rowindex++)
+        {
+            insert(rows[rowindex]);
+        }
+        
+        JQ.dialog.dialogClose();
+    }
+
+</script>
+
+<table id="EmpListGrid"></table>
+<div id="ReviewPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectEmpList()">确定选择</a>
+    </span>
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+
+</div>
+
+
+

@@ -1,0 +1,105 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("EngineeringJson", "EmpManage",new { @area="Engineering"})';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                idField: 'Id',
+                JQID: 'EmpManageGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQExcludeCol: [4],//导出execl排除的列
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '项目名称',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: false,//是否包含check
+                fitColumns: false,
+                nowrap: false,
+                toolbar: '#EmpManagePanel',//工具栏的容器ID
+                columns: [[
+		            { title: '项目编号', field: 'ProjNumber', width: 120, align: 'center', sortable: true },
+		            { title: '项目名称', field: 'ProjName', width: 250, align: 'center', sortable: true },
+		            { title: '项目阶段', field: 'ProjPhase', width: 100, align: 'center', sortable: true },
+                    {
+                        title: '操作', field: 'EngineeringId', width: 155, align: 'center', sortable: true, formatter: function (value, row, index) {
+                            var html = '';
+
+                            if (row.IsWDEmp > 0) {
+                                html += '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;" onclick="ProjNote(' + row.EngineeringId + ','+ row.DesTaskGroupId +')">记事</a>';
+                                html += '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;" onclick="WD(' + row.Id + ')">资料上传</a>'
+                            }
+                            //if (row.IsXCEmp > 0) {
+                                html += '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;" onclick="Weekly(' + row.EngineeringId + ',\'' + '[' + row.ProjNumber + ']' + row.ProjName + ' 周报列表\')">周报</a>';
+                            //}
+
+                            return html;
+                        }
+                    }
+                ]]
+            });
+        });
+
+        // 填写项目记事
+        function ProjNote(engid, DesTaskGroupId) {
+            debugger;
+            JQ.dialog.dialogIframe({
+                title: "项目记事",
+                //title: "填写项目记事",
+                url: '@Url.Action("ProjEventList", "DesEvent", new { @area = "design" })?fromType=1&taskGroupId=' + DesTaskGroupId + '&projID=' + engid,//+ '&empId=' + id,
+                width: '1200',
+                height: '100%',
+                JQID: 'ProjTable',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-list',
+            });
+        }
+
+        function WD(tid) {
+            JQ.dialog.dialog({
+                title: "资料上传",
+                url: '@Url.Action("ProjDesReceiveList", "DesReceive", new { @area = "engineering" })?taskGroupId=' + tid,
+                width: '1200',
+                height: '100%',
+                JQID: 'WDTabled',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-list',
+            });
+        }
+
+        // 周报列表
+        function Weekly(engid, title) {
+            JQ.dialog.dialog({
+                title: title,
+                url: '@Url.Action("weeklist", "EmpManage", new { @area = "engineering" })?taskGroupId=' + engid,
+                width: '1200',
+                height: '100%',
+                JQID: 'ProjTable',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-list',
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="EmpManageGrid"></table>
+    <div id="EmpManagePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': '', 'Contract': 'like' }" />
+
+    </div>
+}
+

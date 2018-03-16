@@ -1,0 +1,56 @@
+﻿
+<script type="text/javascript">
+
+    var JQButInit = {
+        param: {
+            nums: 0,
+            isok: false,
+            int: null,
+            info: JQ.tools.findDialogInfo(),
+            $b: null
+        },
+        initButtons: function (permission) {
+       
+            JQButInit.param.nums++;
+       
+            if (JQ.tools.isNotEmpty(permission)) {             
+                permission = JQ.tools.htmlDecode(permission);
+        
+                if (JQButInit.param.info != null) {
+                    JQButInit.param.$b = JQButInit.param.info.$div.parent().find("[JQPermissionName]");
+                }
+                else {
+                    JQButInit.param.$b = $("[JQPermissionName]");
+                }
+              
+                if (JQButInit.param.$b.size() > 0) {
+                    JQButInit.param.$b.each(function (i) {                       
+                        if (!JQ.tools.isArray(permission)) {
+                            permission = eval("" + (permission) + "");
+                        }
+                        if (JQ.tools.isArray(permission)) {
+                            if (permission.indexOf("alledit") <= -1) {//全部维护权
+                                if (permission.indexOf($(this).attr("JQPermissionName")) <= -1) {
+                                    $(this).hide();
+                                    var $next = $(this).next();
+                                    if ($next.size() > 0 && $next[0].tagName == "SPAN") {
+                                        $next.hide();
+                                    }
+                                }
+                            }                            
+                        }
+                    });
+                    JQButInit.param.isok = true;
+                }
+            }
+            if (JQButInit.param.isok || JQButInit.param.nums >= 15) {
+                clearInterval(JQButInit.param.int);
+            }
+        }
+    }
+    $(function () {
+        JQButInit.param.int = setInterval(function () {          
+            JQButInit.initButtons('@ViewBag.permission');
+        }, 100);
+    });
+</script>

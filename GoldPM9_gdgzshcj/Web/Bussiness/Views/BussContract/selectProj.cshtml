@@ -1,0 +1,131 @@
+﻿
+@using JQ.Web;
+<style type="text/css">
+    .rwpdialogdiv {
+        padding: 0px;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        debugger;
+        $(".dialog-toolbar :last").hide();
+
+        @*var OnlyTask='@Request.Params["OnlyTask"]';
+        if(OnlyTask==null){
+            OnlyTask='';
+        }else{
+            OnlyTask='@Request.Params["OnlyTask"].ToString()';
+        }*@
+
+        JQ.treegrid.treegrid({
+            JQButtonTypes: [],//需要显示的按钮
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'BussProjectGrid',//数据表格ID
+            JQDialogTitle: '选择工程',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'treegrid',//数据表格类型 [datagrid,treegrid]
+            singleSelect: @(string.IsNullOrEmpty(Request.Params["SingleSelect"])?"false":Request.Params["SingleSelect"].ToString().ToLower()),
+            idField: 'Id',
+            treeField: 'ProjNumber',
+            pagination: true,
+            JQFields: ["Id"],//追加的字段名
+            url: '@Url.Action("JsonProject", "BussContract", new { @area = "Bussiness" })?CompanyType=@Request.Params["CompanyType"].ToString()',//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#BussProjectPanel',//工具栏的容器ID
+            columns: [[
+                { field: 'ck', align: 'center', checkbox:true, JQIsExclude: true },
+                { title: '项目编号', field: 'ProjNumber', width: 150, align: 'left', },
+                { title: '项目名称', field: 'ProjName', width: 200, align: 'center', },
+                { title: '客户单位', field: 'CustName', width: 200, align: 'center', },
+                { title: '客户联系人', field: 'CustLinkMan', width: 100, align: 'center', },
+                { title: '设总', field: 'ProjEmpName', width: 60, align: 'center', },
+                { title: '计划开始', field: 'DatePlanStart', width: 80, align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '计划完成', field: 'DatePlanFinish', width: 80, align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+            ]],
+            onCheck: function (rowData) {
+                var $girdId_Upload = $("#BussProjectGrid");
+                var gridPanel = $girdId_Upload.treegrid("getPanel");
+
+                var childs = $girdId_Upload.treegrid("getChildren", rowData.Id);
+                $.each(childs, function (index, childNode) {
+                    $girdId_Upload.treegrid("checkRow", childNode.Id);
+                })
+            },
+            onLoadSuccess: function (row, data) {
+                if (data.total && data.total > 0) {
+                    var treeHtml = $("#BussProjectGrid").treegrid("getPanel");
+                    var roots = $("#BussProjectGrid").treegrid("getRoots");
+                    $.each(roots, function (i, NodeItem) {
+                        treeHtml.find("tr[node-id='" + NodeItem.Id + "']").find("div.datagrid-cell-rownumber").text(NodeItem.row_number);
+                        var rowChildren = $("#BussProjectGrid").treegrid("getChildren", NodeItem.Id);
+                        if (rowChildren.length > 0) {
+                            $.each(rowChildren, function (y, k) {
+                                treeHtml.find("tr[node-id='" + k.Id + "']").find("div.datagrid-cell-rownumber").text("");
+                            })
+                        }
+                    })
+                }
+            }
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '项目编号、项目名称',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+            {
+                dgID: 'BussProjectGrid',
+                loadingType: 'treegrid',
+                queryParams: null
+            });
+            }
+        });
+    });
+
+    function selectProj() {
+        var row = $('#BussProjectGrid').treegrid('getSelections');
+        if (row.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        var ids = [];
+        var _rows = [];
+        for (var i = 0; i < row.length; i++) {
+            if (row[i]["ParentId"] != "0") {
+                ids.push(row[i]["Id"]);
+            }
+            //_rows.push(row[i]);
+        }
+
+        _ProjCallBack(ids);
+        JQ.dialog.dialogClose();
+    }
+
+    function closeDialog() {
+        JQ.dialog.dialogClose();
+    }
+
+</script>
+
+<table id="BussProjectGrid"></table>
+<div id="BussProjectPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProj()">确定选择</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-close'" onclick="closeDialog()">关闭</a>
+    </span>
+    @*分割号*@
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'ProjNumber,ProjName', Contract:'like'}" />
+
+    @*<div class="moreSearchPanel">
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期开始'" JQWhereOptions="{ Key:'ConDate', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期结束'" JQWhereOptions="{ Key:'ConDate', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>*@
+</div>
+
+
+

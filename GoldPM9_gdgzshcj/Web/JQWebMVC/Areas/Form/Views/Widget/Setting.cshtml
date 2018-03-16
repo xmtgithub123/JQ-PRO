@@ -1,0 +1,484 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css">
+    .tree-title {
+        height: auto !important
+    }
+</style>
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div id="div1" style="padding:5px;display:none">
+        <table class="documenttable">
+            <tr>
+                <th style="width:15%">存储模式</th>
+                <td style="width:35%">
+                    <select id="listStorageMode" class="yc_select">
+                        <option value="1">自定义数据表</option>
+                        <option value="2">数据库数据表</option>
+                        <option value="3">系统集成存储（未实现）</option>
+                    </select>
+                </td>
+                <th style="width:15%">
+                    存储数据表
+                </th>
+                <td style="width:35%">
+                    <select id="listTable" class="yc_select">
+                        <option value="" style="color:#1b7a83">系统集成存储</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    流程
+                </th>
+                <td>
+                    <div>
+                        <select id="listProcess" class="yc_select">
+                            <option value="">无</option>
+                            @{
+                                foreach (var item in ViewBag.Processes)
+                                {
+                                    <option value="@(item.Value)">@(item.Text)</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </td>
+                <th>版本</th>
+                <td>
+                    <select id="listProcessVersion" class="yc_select" style="margin-top:3px">
+                        <option value="">自动套用最新版本</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>子项</th>
+                <td>
+                    <input type="checkbox" id="cbIsSubItem" />
+                </td>
+                <th>缓存字段</th>
+                <td>
+                    <select id="listCacheField" class="yc_select">
+                        <option value="">无</option>
+                    </select>
+                </td>
+            </tr>
+        </table>
+        <div style="margin-top:6px;color:#888888;display:none"><span class="fa fa-info-circle"></span> 如果未选择，则使用系统默认的存储功能！</div>
+    </div>
+    <div id="div2" style="display:none">
+        <table id="tb"></table>
+    </div>
+</div>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript">
+    var tempid = 0;
+    window.onDialogLoaded = function () {
+        var yTab = new YChart.Tab({
+            container: "divcontent",
+            offsetHeight: 0,
+            tabs: [
+                {
+                    name: "foundation",
+                    title: "基础设置",
+                    element: "div1",
+                    closable: false
+                },
+                {
+                    name: "relation",
+                    title: "关系设置",
+                    element: "div2",
+                    closable: false
+                }
+            ],
+            onSelect: function (tabName) {
+                if (tabName == "relation" && !document.getElementById("tb").getAttribute("resized")) {
+                    document.getElementById("tb").setAttribute("resized", "1");
+                    $("#tb").treegrid("resize", {
+                        width: document.getElementById("div2").parentNode.clientWidth,
+                        height: document.getElementById("div2").parentNode.clientHeight
+                    });
+                }
+            }
+        });
+        var data = window.frameElement.api.getData();
+        if (data.processID) {
+            YChart.setSelectedByValue(document.getElementById("listProcess"), data.processID);
+        }
+        document.getElementById("cbIsSubItem").checked = (data.isSubItem == "1");
+        var _listProcess = document.getElementById("listProcess");
+        _listProcess.onchange = function () {
+            var _value = YChart.getSelectedValue(document.getElementById("listProcess"));
+            var _listProcessVersion = document.getElementById("listProcessVersion");
+            for (var i = 1; i < _listProcessVersion.options.length; i++) {
+                _listProcessVersion.removeChild(_listProcessVersion.options[i]);
+                i--;
+            }
+            if (_value == "") {
+                document.getElementById("listProcessVersion").style.display = "none";
+                return;
+            }
+            else {
+                document.getElementById("listProcessVersion").style.display = "";
+            }
+            YChart.ajax({
+                url: "@(Url.Action("GetAllVersion", "Template",new { @area="Process" }))",
+                type: "post",
+                data: { templateID: _value },
+                dataType: "json",
+                success: function (result) {
+                    for (var i = 0; i < result.length; i++) {
+                        var opt = document.createElement("option");
+                        opt.setAttribute("value", result[i].ID);
+                        if (data && result[i].ID == data.processVersionID) {
+                            opt.selected = true;
+                            data = null;
+                            delete data;
+                        }
+                        opt.appendChild(document.createTextNode(result[i].Version + (result[i].IsCurrent ? "（最新版）" : "")));
+                        _listProcessVersion.appendChild(opt);
+                    }
+                }
+            });
+        }
+        _listProcess.onchange();
+        var _listStorageMode = document.getElementById("listStorageMode");
+        if (data.storageMode) {
+            YChart.setSelectedByValue(_listStorageMode, data.storageMode);
+        }
+        _listStorageMode.onchange = function () {
+            var _v = YChart.getSelectedValue(this);
+            var _listTable = document.getElementById("listTable");
+            for (var i = 1; i < _listTable.childNodes.length; i++) {
+                _listTable.removeChild(_listTable.childNodes[i]);
+                i--;
+            }
+            switch (_v)
+            {
+                case "1":
+                case "2":
+                    document.getElementById("listTable").style.display = "";
+                    var result = frameElement.api.getDataTables(_v);
+                    for (var i = 0; i < result.length; i++) {
+                        var opt = document.createElement("option");
+                        opt.setAttribute("value", result[i].value);
+                        opt.appendChild(document.createTextNode(result[i].name));
+                        _listTable.appendChild(opt);
+                    }
+                    changeRootDisplayField();
+                    break;
+                case "3":
+                    //系统集成存储
+                    document.getElementById("listTable").style.display = "none";
+                    break;
+            }
+        }
+        _listStorageMode.onchange();
+        if (data.storageMode == "1" || data.storageMode == "2") {
+            YChart.setSelectedByValue(document.getElementById("listTable"), data.table);
+        }
+        document.getElementById("listTable").onchange = function () {
+            changeRootDisplayField();
+        }
+        if (data.cacheField) {
+            YChart.setSelectedByValue(document.getElementById("listCacheField"), data.cacheField);
+        }
+        var subItems;
+        YChart.ajax({
+            url: "@(Url.Action("GetSubItemList", "Template",new { @area="Form" }))",
+            type: "POST",
+            async: false,
+            dataType:"json",
+            success: function (result) {
+                subItems = result;
+            }
+        });
+        if (!data.relation) {
+            data.relation = [{
+                id: -1,
+                formTemplateID: 0,
+                referenceField: 0,
+                displayField:0
+            }];
+        }
+        $("#tb").treegrid({
+            idField: "id",
+            treeField: "formTemplateID",
+            rownumbers:true,
+            columns: [[
+                {
+                    title: "表单", field: "formTemplateID", width: 180, halign: "center", formatter: function (value, rowData) {
+                        if (rowData.id == -1) {
+                            return "根节点";
+                        }
+                        else {
+                            //获取出所有的可谓子项的表单
+                            var select = YChart.createElement("select", { id: "listform_" + rowData.id, className: "yc_select", onchange: "changeForm(this," + rowData.id + ")" });
+                            for (var i = 0; i < subItems.length; i++) {
+                                var option = YChart.createElement("option", { value: subItems[i].ID }, {width:"160px"}, subItems[i].Name);
+                                select.appendChild(option);
+                                if (rowData.formTemplateID.toString() == subItems[i].ID.toString()) {
+                                    option.setAttribute("selected", "selected");
+                                }
+                            }
+                            return select.outerHTML;
+                        }
+                    }
+                },
+                {
+                    title: "显示字段", field: "display", width: 180, halign: "center", formatter: function (value, rowData) {
+                        var select = YChart.createElement("select", { id: "displayfield_" + rowData.id, className: "yc_select" }, {width:"160px"});
+                        select.appendChild(YChart.createElement("option", { value: "0" }, null, "无"));
+                        return select.outerHTML;
+                    }
+                }
+                ,
+                {
+                    title: "与父级关联字段", field: "reference", width: 180, halign: "center", formatter: function (value, rowData) {
+                        if (rowData.id == -1) {
+                            return "无"
+                        }
+                        else {
+                            var select = YChart.createElement("select", { id: "referencefield_" + rowData.id, className: "yc_select" }, {width:"160px"});
+                            select.appendChild(YChart.createElement("option", { value: "0" }, null, "无"));
+                            return select.outerHTML;
+                        }
+                    }
+                }
+            ]],
+            data: data.relation,
+            onLoadSuccess: function (row, datas) {
+                var _select = document.getElementById("displayfield_-1");
+                if (_select) {
+                    selectRemove(_select);
+                    var dataColumns = frameElement.api.getColumns(YChart.getSelectedValue(document.getElementById("listStorageMode")), YChart.getSelectedValue(document.getElementById("listTable")));
+                    for (var i = 0; i < dataColumns.length; i++) {
+                        var option = YChart.createElement("option", { value: dataColumns[i].value }, null, dataColumns[i].name);
+                        _select.appendChild(option);
+                    }
+                }
+                recuriseLoadDatas(datas);
+            },
+            onContextMenu: function (e, row) {
+                $("#tb").treegrid("select", row.id);
+                e.preventDefault();
+                if (!window.omenu) {
+                    window.omenu = createMenu(row.id);
+                }
+                window.omenu.menu("show", {
+                    left: e.pageX,
+                    top: e.pageY
+                });
+            }
+        });
+    }
+
+    function sure() {
+        var options = {
+            storageMode: YChart.getSelectedValue(document.getElementById("listStorageMode")),
+            processID: YChart.getSelectedValue(document.getElementById("listProcess")),
+        };
+        if (options.storageMode == "1" || options.storageMode == "2") {
+            options.table = YChart.getSelectedValue(document.getElementById("listTable"));
+        }
+        else {
+            options.table = "";
+        }
+        if (options.processID != "") {
+            options.processVersionID = YChart.getSelectedValue(document.getElementById("listProcessVersion"))
+        }
+        else {
+            options.processVersionID = "";
+        }
+        options.cacheField = YChart.getSelectedValue(document.getElementById("listCacheField"));
+        var treeDatas = $("#tb").treegrid("getData");
+        options.relation = [];
+        recuriseDatas(treeDatas, options.relation);
+        options.isSubItem = (document.getElementById("cbIsSubItem").checked ? "1" : "0");
+        window.frameElement.api.setData(options);
+        frameElement.closeDialog();
+    }
+
+    function createMenu(dataid) {
+        var _div = document.createElement("div");
+        document.body.appendChild(_div);
+        $_div = $(_div);
+        $_div.menu({});
+        $_div.menu("appendItem", {
+            text: "新增下级",
+            name: "add",
+            iconCls: 'fa fa-plus-circle',
+            onclick: function () {
+                var $tb = $("#tb");
+                var item = $tb.treegrid("getSelected");
+                if (!item) {
+                    return;
+                }
+                tempid++;
+                $tb.treegrid("append", {
+                    parent: item.id,
+                    data: [{
+                        id: tempid,
+                        formTemplateID:-1,
+                        name: "",
+                    }]
+                });
+                changeForm(document.getElementById("listform_" + tempid), tempid);
+            }
+        });
+        //$(_div).menu("appendItem", {
+        //    text: "新增同级（之前）",
+        //    name: "insertbefore",
+        //    iconCls: "fa fa-chevron-circle-up",
+        //    onclick: function () {
+        //        //window.reviewAdvise.insertBeforeCatalog();
+        //    }
+        //});
+        //$(_div).menu("appendItem", {
+        //    text: "新增同级（之后）",
+        //    name: "insertafter",
+        //    iconCls: "fa fa-chevron-circle-down",
+        //    onclick: function () {
+        //       //window.reviewAdvise.insertAfterCatalog();
+        //    }
+        //});
+        $_div.menu("appendItem", {
+            text: "移除(<span style=\"text-decoration:underline\">Delete</span>)",
+            name: "delete",
+            iconCls: "fa fa-minus-circle",
+            onclick: function () {
+                var $tb = $("#tb");
+                var item = $tb.treegrid("getSelected");
+                if (!item) {
+                    return;
+                }
+                $tb.treegrid("remove",item.id);
+            }
+        });
+        //$_div.menu("appendItem", {
+        //    text: "上移",
+        //    name: "moveup",
+        //    iconCls: 'fa fa-arrow-up',
+        //    onclick: function () {
+        //        //window.reviewAdvise.moveUp();
+        //    }
+        //});
+        //$_div.menu("appendItem", {
+        //    text: "下移",
+        //    name: "movedown",
+        //    iconCls: "fa fa-arrow-down",
+        //    onclick: function () {
+        //        //window.reviewAdvise.moveDown();
+        //    }
+        //});
+        return $_div;
+    }
+
+    function changeForm(_select,rowID) {
+        var displayfield = document.getElementById("displayfield_" + rowID);
+        var referencefield = document.getElementById("referencefield_" + rowID);
+        if (!displayfield || !referencefield) {
+            return;
+        }
+        YChart.ajax({
+            url: "@(Url.Action("GetColumnsByFormTemplateID", "Widget", new { @area="Form" }))",
+            type: "POST",
+            data: { formTemplateID: YChart.getSelectedValue(_select) },
+            async: false,
+            success: function (result) {
+                for (var i = 1; i < displayfield.childNodes.length; i++) {
+                    displayfield.removeChild(displayfield.childNodes[i]);
+                    i--;
+                }
+                for (var i = 1; i < referencefield.childNodes.length; i++) {
+                    referencefield.removeChild(referencefield.childNodes[i]);
+                    i--;
+                }
+                for (var i = 0; i < result.length; i++) {
+                    var option = YChart.createElement("option", { value: result[i].Value }, null, result[i].Text);
+                    displayfield.appendChild(option);
+                    referencefield.appendChild(option.cloneNode(true));
+                }
+            }
+        });
+    }
+
+    function changeRootDisplayField() {
+        var storageMode = YChart.getSelectedValue(document.getElementById("listStorageMode"));
+        var tableName = YChart.getSelectedValue(document.getElementById("listTable"));
+        var columns = frameElement.api.getColumns(storageMode, tableName);
+        var _select = document.getElementById("displayfield_-1");
+        if (_select) {
+            selectRemove(_select);
+            for (var i = 0; i < columns.length; i++) {
+                var option = YChart.createElement("option", { value: columns[i].value }, null, columns[i].name);
+                _select.appendChild(option);
+            }
+        }
+        var _listCacheField = document.getElementById("listCacheField");
+        selectRemove(_listCacheField);
+        for (var i = 0; i < columns.length; i++) {
+            var option = YChart.createElement("option", { value: columns[i].value }, null, columns[i].name);
+            _listCacheField.appendChild(option);
+        }
+    }
+
+    function recuriseDatas(treeDatas, datas) {
+        for (var i = 0; i < treeDatas.length; i++) {
+            var data = { id: treeDatas[i].id }
+            if (data.id.toString() == "-1") {
+                data.formTemplateID = 0;
+                data.referenceField = 0;
+            }
+            else {
+                data.formTemplateID = YChart.getSelectedValue(document.getElementById("listform_" + data.id));
+                data.referenceField = YChart.getSelectedValue(document.getElementById("referencefield_" + data.id));
+            }
+            data.displayField = YChart.getSelectedValue(document.getElementById("displayfield_" + data.id));
+            if (treeDatas[i].children && treeDatas[i].children.length > 0) {
+                data.children = [];
+                recuriseDatas(treeDatas[i].children, data.children );
+            }
+            datas.push(data);
+        }
+    }
+
+    function recuriseLoadDatas(datas) {
+        for (var i = 0; i < datas.length; i++) {
+            var _dataid = parseInt(datas[i].id);
+            if (tempid < parseInt(_dataid)) {
+                tempid = parseInt(_dataid);
+            }
+            if (_dataid > -1) {
+                changeForm(document.getElementById("listform_" + datas[i].id), datas[i].id);
+                //设置关联字段
+                YChart.setSelectedByValue(document.getElementById("referencefield_" + datas[i].id), datas[i].referenceField);
+            }
+            //设置显示字段
+            YChart.setSelectedByValue(document.getElementById("displayfield_" + datas[i].id), datas[i].displayField);
+            if (datas[i].children && datas[i].children.length > 0) {
+                recuriseLoadDatas(datas[i].children);
+            }
+        }
+    }
+
+    function selectRemove(_select) {
+        for (var i = 1; i < _select.options.length; i++) {
+            _select.removeChild(_select.options[i]);
+            i--;
+        }
+    }
+</script>

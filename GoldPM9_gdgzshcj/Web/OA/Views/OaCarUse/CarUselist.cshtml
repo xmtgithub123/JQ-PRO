@@ -1,0 +1,150 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("jsonStatu", "OaCarUse",new { @area="Oa"})';
+
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export','moreSearch'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaCarUseGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#OaCarUsePanel',//工具栏的容器ID
+                JQExcludeCol: [11],//导出execl排除的列
+                JQExportName: '车辆使用记录',
+                nowrap: true,
+                columns:
+                    [[
+		              { title: '用途', field: 'UsePurpose', width: '20%', align: 'left', halign: 'center' },
+		              { title: '车辆信息', field: 'CarInfo', width: '10%', align: 'left', halign: 'center' },
+		              { title: '申请日期', field: 'UseApplyDatetime', width: '8%', align: 'center', halign: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+		              { title: '去向', field: 'UsePlace', width: '10%', align: 'left', halign: 'center' },
+		              { title: '带车责任人', field: 'UseLeaderEmpName', width: '80px', align: 'center' },
+		              { title: '计划出车时间', field: 'DateLeavePlan', width: '8%', align: 'center', formatter: JQ.tools.DateTimeFormatterByH },
+		              { title: '计划归队时间', field: 'DateArrivePlan', width: '8%', align: 'center', formatter: JQ.tools.DateTimeFormatterByH },
+		              { title: '实际出车时间', field: 'DateLeave', width: '8%', align: 'center', formatter: JQ.tools.DateTimeFormatterByH },
+		              { title: '实际归队时间', field: 'DateArrive', width: '8%', align: 'center', formatter: JQ.tools.DateTimeFormatterByH },
+		              { title: '驾驶员', field: 'UseCarDriver', width: '60px', align: 'center' },
+                      { field: 'JQFiles', title: '附件', align: 'center', width: '40', JQIsExclude: true, JQRefTable: 'OaCarUse' }
+                    ]]
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '用途',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'OaCarUseGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+
+
+            $("#CarName").combobox({
+                url: '@Url.Action("GetAllCarInfo", "OaCar",new { @area="Oa"})',
+                valueField: 'Id',
+                textField: "text",
+                onChange: function () {
+                    ResGrid();
+                }, onHidePanel: function () {
+                    comBoxHidePanel(this);
+                }
+            });
+
+            $("#CarHeader").combobox({
+                url: '@Url.Action("employeeJson", "usercontrol",new { @area="Core"})',
+                valueField: 'EmpID',
+                textField: "EmpName",
+                onChange: function () {
+                    ResGrid();
+                }, onHidePanel: function () {
+                    comBoxHidePanel(this);
+                }
+            });
+
+            $("#endTime").datebox({
+                onSelect: function () {
+                    ResGrid();
+                }
+            });
+
+
+            $("#startTime").datebox({
+                onSelect: function () {
+                    ResGrid();
+                }
+            });
+
+            $("#sj_startTime").datebox({
+                onSelect: function () {
+                    ResGrid();
+                }
+            });
+
+            $("#sj_endTime").datebox({
+                onSelect: function () {
+                    ResGrid();
+                }
+            });
+
+        });
+
+        function ResGrid() {
+            JQ.datagrid.searchGrid({
+                dgID: 'OaCarUseGrid',
+                loadingType: 'datagrid',
+                queryParams: null
+            });
+        }
+
+        function Opencheckin(sId) {
+            JQ.dialog.dialog({
+                title: "收车登记",
+                url: '@Url.Action("Edit01")' + '?id=' + sId,
+                width: '700',
+                height: '800',
+                JQID: 'CheckIn',
+                JQLoadingType: 'treegrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaCarUseGrid"></table>
+    <div id="OaCarUsePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <span style="padding-left:20px;">
+                车辆信息：<select id="CarName" name="CarName" data-options="prompt: '车辆名称'" style="width:150px;" JQWhereOptions="{'Key':'CarID','Contract':'in',filedType:'Int'}"></select>
+            </span>
+            <span style="padding-left:20px;">
+                带车责任人：<select id="CarHeader" name="CarHeader" data-options="prompt: '带车责任人'" style="width:150px;" JQWhereOptions="{'Key':'UseLeaderEmp','Contract':'in',filedType:'Int'}"></select>
+            </span>
+            <span style="padding-left:20px;">
+                <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '计划出车时间'" JQWhereOptions="{ Key:'DateLeavePlan', Contract:'>=',filedType:'Date' }">
+                至
+                <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '计划归队时间'" JQWhereOptions="{ Key:'DateArrivePlan', Contract:'<=',filedType:'Date' }">&nbsp;&nbsp;&nbsp;&nbsp;
+                <input id="sj_startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '实际出车时间'" JQWhereOptions="{ Key:'DateLeave', Contract:'>=',filedType:'Date' }">
+                至
+                <input id="sj_endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '实际归队时间'" JQWhereOptions="{ Key:'DateArrive', Contract:'<=',filedType:'Date' }">
+            </span>
+        </span>
+    </div>
+    <input type="hidden" id="ExportType" name="ExportType" value="1" />
+}
+

@@ -1,0 +1,176 @@
+﻿@model DataModel.Models.SafeManage
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'SafeManageForm',//formid提交需要用到
+        buttonTypes: ['close'],//默认按钮
+        beforeFormSubmit: function () {
+            var datas = $("#ProjTable").datagrid("getData");
+            if (datas.rows.length == 0) {
+                JQ.dialog.warning("请先选择项目!");
+                return false;
+            }
+        },
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            @*var _tempFrame = window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+            if (_tempFrame) {
+                _tempFrame.contentWindow.refreshGrid();
+            }
+            _flowInstance.$form.parent().dialog("close");*@
+        },
+        flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "Engineering,Engineering.FlowProcessor.SafeProcessor",
+            onInit: function () {
+                _flowInstance = this;
+            },
+            refID: "@(Model.Id)",
+            refTable: "SafeManage",
+            dataCreator: "@(ViewBag.CreatorEmpId )"
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "SafeManage", FormMethod.Post, new { @area = "Engineering", @id = "SafeManageForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">
+                项目名称
+                <input type="hidden" id="EngineeringID" name="EngineeringID" value="@(Model.EngineeringID)" />
+                <input type="hidden" id="empid" name="empid" value="@(Request.QueryString["empid"])" />
+            </th>
+            <td colspan="3">
+                <table id="ProjTable"></table>
+                <div id="ProjTablePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+                    <span JQPanel="toolbarPanel">
+                        @*<a name="selectEng" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="selectEng()">选择项目</a>*@
+                        <a name="DelEng" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="DelEng()">删除</a>
+                    </span>
+                    <script type="text/javascript">
+                        $(function () {
+                            console.log("Model.EngineeringID:@(Model.EngineeringID)");
+
+                            $('#ProjTable').datagrid({
+                                JQPrimaryID: 'Id',//主键的字段
+                                JQID: 'ProjTable',//数据表格ID
+                                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                                //url: '@Url.Action("ProjectPlanListJsonAll", "DesTask", new { @area = "Design" })?InTaskGroupId=@(Model.EngineeringID)',
+                                toolbar: '#ProjTablePanel',//工具栏的容器ID
+                                pagination: false,
+                                columns: [[
+                                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                                    { field: 'ProjNumber', title: '项目编号', halign: 'center', width: "30%", },
+                                    { field: 'ProjName', title: '项目名称', halign: 'center', width: '65%', },
+                                ]]
+                            });
+
+                            $('#ProjTable').datagrid('insertRow', {
+                                index: 0,	// 索引从0开始
+                                row: {
+                                    ProjNumber: '@ViewBag.ProjNumber',
+                                    ProjName: '@ViewBag.ProjName'
+                                }
+                            });
+                        });
+
+                        //返回回调刷新
+                        var _ProjCallBack = function (param) {
+                            console.log("param:" + param);
+                            console.log("EngineeringID:" + $("#EngineeringID").val());
+
+                            $("#EngineeringID").val(param);
+
+                            $("#ProjTable").datagrid({
+                                url: '@Url.Action("ProjectPlanListJsonAll", "DesTask", new { @area = "Design" })?InTaskGroupId=' + $("#EngineeringID").val(),
+                            });
+                        }
+
+                        //选择工程
+                        function selectEng() {
+                            // 暂存项目信息
+                            //Save_Proj();
+                            JQ.dialog.dialog({
+                                title: "选择项目",
+                                url: '@Url.Action("ChooseProjectList", "EmpManage", new { @area = "Engineering" })?TaskGroupId=' + $("#EngineeringID").val(),
+                                width: '1024',
+                                height: '100%',
+                                JQID: 'ProjTable',
+                                JQLoadingType: 'datagrid',
+                                iconCls: 'fa fa-list',
+
+                            });
+                        }
+
+                        //删除
+                        function DelEng() {
+                            //Save_Proj();
+                            var row = $('#ProjTable').datagrid('getSelections');
+                            if (row.length < 1) {
+                                window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+                            }
+                            else {
+                                $("#EngineeringID").val(0);
+                                $('#ProjTable').datagrid('loadData', { total: 0, rows: [] });
+                            }
+                        }
+
+                        // 周报列表
+                        function Weekly() {
+                            JQ.dialog.dialog({
+                                title: '项目周报',
+                                url: '@Url.Action("weeklist", "EmpManage", new { @area = "engineering" })?taskGroupId=' + $("#EngineeringID").val(),
+                                width: '1200',
+                                height: '100%',
+                                JQID: 'ProjTable',
+                                JQLoadingType: 'datagrid',
+                                iconCls: 'fa fa-list',
+                            });
+                        }
+                    </script>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">是否内审</th>
+            <td width="40%">
+                <select id="IsNS" name="IsNS" class="easyui-combobox" style="width:98%;" data-options="value:@Model.IsNS">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+            <th width="10%">是否外审</th>
+            <td width="40%">
+                <select id="IsWS" name="IsWS" class="easyui-combobox" style="width:98%;" data-options="value:@Model.IsWS">
+                    <option value="1">是</option>
+                    <option value="0">否</option>
+                </select>
+            </td>
+        </tr>
+        @*<tr>
+            <th width="10%">填写周报</th>
+            <td width="40%" colspan="3">
+                <a class="easyui-linkbutton" onclick="Weekly()">项目周报</a>
+            </td>
+        </tr>*@
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "SafeManage";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+
+                    }

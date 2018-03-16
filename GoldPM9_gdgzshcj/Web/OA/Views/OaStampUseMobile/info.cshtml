@@ -1,0 +1,501 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.OaStampUse
+
+@section head {
+ <style type="text/css">
+
+    .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+
+    .p-15 {
+        padding: 15px;
+    }
+
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+    .error {
+        color: red;
+        font-size: 14px;
+        display: inline-block;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+     .aui-dialog {
+         z-index: 999;
+     }
+     .error-border {
+         border: 1px solid red !important;
+     }
+     
+</style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="OaStampUseMobileForm" class="aui-form">
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;编号</label>
+                <input name="Number" id="Number" type="text" class="aui-input" value="@Model.Number"  />
+            </div>
+            <div class="aui-input-row">
+                <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+                <label class="aui-input-addon">&nbsp;&nbsp;申请人</label>
+                <input name="CreatorEmpName_EmpName" id="CreatorEmpName_EmpName" type="text" class="aui-input set-disabled" value="@Model.CreatorEmpName" placeholder="请输入申请人" />
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;是否外借</label>
+                <input type="hidden" name="iswjValue" id="iswjValue" value="@Model.IsWJ"/>
+                <select id="IsWJ" name="IsWJ" class="aui-input" style="width:98%;" >
+                    <option value="0">否</option>
+                    <option value="1">是</option>
+                </select>
+                <input name="StampUseDate" id="StampUseDate" style="width:98%;" type="hidden" value="@Model.StampUseDate" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目</label>
+                <input id="ProjID" name="ProjID" data-options="multiple:false" type="hidden" style="width:100%;height:40px" class="aui-input" value="@(@Model.ProjId==0 ? "" :@Model.ProjId.ToString())" />
+                <input type="hidden" id="Words" name="Words" />
+                <div class="aui-input-block"  id="projNameText" style="width:98%;display: inline-block;">@ViewBag.ProjName</div>
+
+                <input type="hidden" name="ProjIDName" class="aui-input"  style="width:60%;text-overflow: ellipsis;" value="@ViewBag.ProjName" />
+                <input type="hidden" id="ProjI" name="ProjI" value="@Model.ProjId" />
+                <input type="hidden" id="ProjIName" name="ProjIName"value="@Model.ProjName" />
+                <input type="hidden" id="ProjNumber" name="ProjNumber" value="@ViewBag.ProjNumber" />
+                @*<input type="button" id="setProjNameBtn" namne="setProjNameBtn" class="aui-btn aui-btn-block aui-btn-success p-0" style="width:32%;float:right;margin-right:15px;" onclick="SetProjectSelectBegin();" value="选择项目" />*@
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;印章名称</label>
+                <div class="aui-input-block" style="width:60%;display: inline-block;" id="stampNameText">@(Model.StampID > 0 ? Model.FK_OaStampUse_StampID.StampName : "")</div>
+                <input name="StampName" id="StampName" type="hidden" class="aui-input"  value="@(Model.StampID>0?Model.FK_OaStampUse_StampID.StampName:"")" style="width:60%;margin-right:15px;text-overflow: ellipsis;" />
+                <input name="StampID" id="StampID" type="hidden" class="aui-input" value="@Model.StampID" style="width:60%;margin-right:15px;text-overflow: ellipsis;" />
+                @*<div class="aui-input-block" style="width:60%;display:inline-block;">@(Model.StampID > 0 ? Model.FK_OaStampUse_StampID.StampName : "")</div>*@
+                <input type="button" id="selectProjNameBtn" namne="selectProjNameBtn" class="aui-btn aui-btn-block aui-btn-success p-0" style="width:32%;float:right;margin-right:15px;" onclick="SetStampSelectBegin();" value="选择印章" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;申请理由</label>
+                <textarea rows="6" name="StampEmpesult" id="StampEmpesult" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.StampEmpesult</textarea>
+            </div>
+
+
+            <div class="aui-input-row" id="IsJSL">
+                <label class="aui-input-addon">&nbsp;&nbsp;份数</label>
+                <input name="FS" id="FS" type="number" class="aui-input" value="@Model.FS" />
+                <label class="aui-input-addon">&nbsp;&nbsp;文件签收人</label>
+                <input name="WJQSR" id="WJQSR" type="text" class="aui-input" value="@Model.WJQSR"  />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;备注</label>
+                <textarea rows="6" name="remark" id="remark" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.remark</textarea>
+            </div>
+            
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+
+        <div class="aui-dialog aui-hidden" id="dialog">
+            <div class="aui-dialog-header">选择印章</div>
+            <div class="aui-dialog-body aui-text-left">
+                <div class="aui-card aui-noborder">
+                    <ul class="aui-list-view aui-self-list-view" id="gridList"></ul>
+                    <!--模板-->
+                    <script id="listTpl" type="text/x-dot-template">
+                        {{~it:appendStampInfoData:index}}
+                        <li class="aui-list-view-cell aui-im" tapmode
+                            data-uid="{{=appendStampInfoData.Id}}">
+                            <div class="radio">
+                                @*<input type="hidden" name="optionsRadios" id="{{=appendStampInfoData.Id}}" value="{{=appendStampInfoData.CarName}}" />*@
+                                <input type="radio" name="optionsRadios" id="{{=appendStampInfoData.Id}}" value="{{=appendStampInfoData.Id}}_{{=appendStampInfoData.StampStatusID}}_{{=appendStampInfoData.StampName}}_{{=appendStampInfoData.StampTypeID}}" />
+                            </div>
+                            <div class="aui-img-body">
+                                <div>
+                                    <label style="display:inline"><b>印章名称：</b>{{=appendStampInfoData.StampName == '' ? '未填写': appendStampInfoData.StampName}}</label>
+                                    <span class="aui-badge aui-badge-{{=appendStampInfoData.StampStatusID == '使用中' ? 'success' : 'warning'}} pull-right">{{=appendStampInfoData.StampStatusID}}</span>
+                                </div>
+                               @* <input type="hidden" name="StampTypeIDName" id="StampTypeIDName" value="" />*@
+                                <label><b>印章类型：</b>{{=appendStampInfoData.StampTypeID}}</label>
+                                <br />
+                                <span><b>保管人：</b>{{=appendStampInfoData.KeepEmpName}}</span>
+                            </div>
+                        </li>
+                        {{~}}
+                    </script>
+                </div>
+            </div>
+            <div class="aui-dialog-footer">
+                <div class="aui-dialog-btn aui-text-danger" tapmode onclick="cancel()">取消</div>
+                <div class="aui-dialog-btn aui-text-info" tapmode onclick="confirm()">确定</div>
+            </div>
+        </div>
+
+        <div class="aui-dialog aui-hidden" id="dialog_pro">
+            <div class="aui-dialog-header">选择项目</div>
+            <div class="aui-dialog-body aui-text-left">
+                <div class="aui-card aui-noborder">
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <div class="checkAll">
+                                            <input type="checkbox" name="name" value="" />
+                                        </div>
+                                    </th>
+                                    <th>项目编号</th>
+                                    <th>项目名称</th>
+                                    <th>项目阶段</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gridList_pro"></tbody>
+                        </table>
+                    </div>
+                    <!--模板-->
+                    <script id="listTpl_pro" type="text/x-dot-template">
+                        {{~it:appendInfoData:index}}
+
+                        <tr id="tr_{{=index}}">
+
+                            <td>
+                                <div class="checkbox">
+                                    <input type="checkbox" name="subBox" value="" />
+                                </div>
+                            </td>
+                            <td>
+                                {{=appendInfoData.ProjNumber}}
+                            </td>
+                            <td>
+                                {{=appendInfoData.ProjName}}
+                            </td>
+                            <td>
+                                {{=appendInfoData.PhaseName}}
+                            </td>
+                        
+                        </tr>
+                        {{~}}
+                    </script>
+                </div>    
+            </div>
+            <div class="aui-dialog-footer">
+                <div class="aui-dialog-btn aui-text-danger" tapmode onclick="cancel()">取消</div>
+                <div class="aui-dialog-btn aui-text-info" tapmode onclick="confirm_pro()">确定</div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+        };
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                //initFormBegin(JSON.stringify({
+                //    "AllowEditControls": "{}"
+                //}));
+               // initFormBegin();
+            }
+
+        })
+
+        //页面初始化
+        function initFormBegin(params) {
+
+            $('#IsWJ').val($('#iswjValue').val())
+
+            //借用类型
+            $('#StampBorrowType').prepend("<option disabled selected value>--- 请选择借用类型 ---</option>");
+            $('#StampBorrowType').change(function () {
+                $(this).removeClass('error-border')
+            })
+
+            var StartDate = $('#StartDate').val();
+            var EndDate = $('#EndDate').val();
+            if ((StartDate == '1900-01-01')) {
+                $('#StartDate').val('');
+            }
+            if ((EndDate == '1900-01-01')) {
+                $('#EndDate').val('');
+            }
+
+            if ('@ViewBag.StampType' == "技术类") {
+                $("#IsJSL").show();
+            } else {
+                $("#IsJSL").hide();
+            }
+            //去除换行
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+
+            var paramsObj = JSON.parse(params);
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls.replace("StampID", "selectProjNameBtn").replace('ProjID','setProjNameBtn');
+
+
+            //申请内容，替换换行符
+            var StampEmpesultValue = $('#StampEmpesult').val();
+            StampEmpesultValue = StampEmpesultValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#StampEmpesult').val(StampEmpesultValue);
+            //备注，替换换行符
+            var remarkValue = $('#remark').val();
+            remarkValue = remarkValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#remark').val(remarkValue);
+
+            $('#StampBorrowType').val($('#StampBorrowType_i').val());
+            //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('OaStampUseMobileForm'));
+
+
+            
+
+            if (paramsObj.AllowEditControls == "{}") {
+                //单独设置申请人不可编辑
+                $('#CreatorEmpName_EmpName').addClass('jq-text-disabled');
+
+                $('#StampEmpesult,#remark').removeClass('jq-text-disabled');
+                $("#StampEmpesult,#remark").css({
+                    overflow: 'auto',
+                })
+            }
+            else {
+
+                $('#StampEmpesult,#remark').removeClass('jq-text-disabled').attr("readonly", "readonly")
+                $("#StampEmpesult,#remark").css({
+                    overflow: 'auto',
+                    background: '#efefef',
+                    color: '#898787'
+                })
+            }
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#OaStampUseMobileForm').validate({
+                rules: {
+
+                    StampID: 'required',//项目名称
+                    StampEmpesult: {
+                        required: false,
+                        maxlength: 500
+                    },
+                    StampBorrowType:'required'
+
+                },
+                messages: {
+
+                    StampID: '请输入印章名称', //项目名称
+                    StampEmpesult: {
+                        maxlength: '内容长度必须介于0-500之间'
+                    },
+                    StampBorrowType: '请选择借用类型'
+                }
+            });
+
+            if ($('#StampName').val() == '') {
+                $.alert('请选择印章！')
+                return false;
+            }
+
+            // 份数只能为正整数
+            var count = $('#FS').val();
+            if (count < 0 || !count || count.indexOf('.') > 0)
+            {
+                $.alert('份数只能为正整数！')
+                return false;
+            }
+
+            isValidate = formVali.form();
+            if (isValidate) {
+                var formData = DomUtil.serialize(document.getElementById('OaStampUseMobileForm'));//json or =&
+                console.log(JSON.stringify(formData))
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+            var formData = DomUtil.serialize(document.getElementById('OaStampUseMobileForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //项目负责人 - 选择印章
+
+        function SetStampSelectBegin() {
+
+            $('#dialog_pro').hide();
+            $('#dialog').show();
+
+           // $(body).css('background-color','red')
+            var url = _webconfig.serverUrl + 'oa/OaStampUse/FilterJson';
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: '',
+                success: function (data) {
+                    console.log(JSON.parse(data))
+                    var appendStampInfoData = JSON.parse(data).rows;
+                    if (appendStampInfoData.length > 0) {
+                        var interText = doT.template($("#listTpl").text())
+
+
+                        $("#gridList").html(interText(appendStampInfoData));
+                        $('body').append('<div class="aui-mask"></div>');
+                        $(".aui-dialog.aui-hidden").removeClass('aui-hidden')
+                    }
+                    else {
+                        $.alert('暂无数据');
+                        $('#gridList').html('');
+                    }
+                }
+            })
+
+        }
+
+        //项目 - 选择项目
+        function SetProjectSelectBegin() {
+            //alert(1)
+            var selemp = {
+                projI: $('#ProjI').val(),
+                ProjIName: $('#ProjIName').val()
+            }
+            if (window.JinQuMobile) {
+                window.JinQuMobile.ProjectSelectBegin(JSON.stringify(selemp), 'SetProjectSelectEnd');
+            }
+        }
+        function SetProjectSelectEnd(emp) {
+            //alert(emp)
+            emp = JSON.parse(emp);
+            $("#ProjI").val(emp.Id)
+            $('#ProjIName').val(emp.ProjName);
+            $('#projNameText').text(emp.ProjName)
+        }
+
+        //信息弹出框-----------------------------------------------------------------------
+        function cancel() {
+            $('div').removeClass("aui-mask")
+            $('.aui-dialog').addClass("aui-hidden")
+        }
+        function confirm() {
+            var radioValueLength = $(".radio input[type='radio']:checked").length;
+            if (radioValueLength > 0) {
+                $('div').removeClass('aui-mask');
+                $('.aui-dialog').addClass("aui-hidden");
+                var radioValue = $(".radio input[type='radio']:checked").val();
+                console.log(radioValue)
+
+                //var carId = $(".radio input[type='radio']:checked").attr('id');
+                var radioValue = radioValue.split('_');
+                console.log(radioValue)
+                if (radioValue[1] != '使用中') {
+                    $.alert("该印章暂时不可用");
+                    return false;
+                }
+                if (radioValue[3] == '技术类') {
+                    $("#IsJSL").show();
+                }
+                else {
+                    $("#IsJSL").hide();
+                }
+                $('#StampID').val(radioValue[0]);
+                $('#StampName').val(radioValue[2])
+                $('#stampNameText').text(radioValue[2])
+
+            }
+            else {
+                $.alert('请选择印章');
+            }
+
+        }
+    </script>
+}

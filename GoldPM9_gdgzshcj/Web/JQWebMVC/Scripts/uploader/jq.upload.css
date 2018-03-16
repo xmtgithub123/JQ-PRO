@@ -1,0 +1,43 @@
+﻿
+.jq_upfile_s {
+    width: 80px;
+    margin: auto;
+}
+
+.jq_upfile_s1 {
+    width: 60px;
+    position: relative;
+    height: 18px;
+    border: 1px solid #E1E1E1;
+    background-color: transparent;
+    float: left;
+}
+
+.jq_upfile_s2 {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 100%;
+    background-color: #77ca9e;
+}
+
+.jq_upfile_s3 {
+    width: 100%;
+    color: #144f8e;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    line-height: 18px;
+    text-align: center;
+}
+
+.jq_upfile_s4 {
+    float: left;
+    margin: 4px 0px 0px 5px;
+    cursor: pointer;
+    color: #888888;
+}
+
+    .jq_upfile_s4:hover {
+        color: #222222;
+    }

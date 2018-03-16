@@ -1,0 +1,30 @@
+﻿@using JQ.Web;
+<script type="text/javascript">
+    var _flowInstance = null;
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'TestForm',
+            buttonTypes: ['close'],
+            succesCollBack: function (data) {
+                var _tempFrame = window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+                if (_tempFrame) {
+                    _tempFrame.contentWindow.refreshGrid();
+                }
+                JQ.datagrid.autoRefdatagrid();
+                _flowInstance.$form.parent().dialog("close");
+            }, flow: {
+                refTable: "BussProjInfoRecords",
+                refID: 0,
+                flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+                flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+                url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+                processor: "DBSql,DBSql.PubFlow.FlowTestProcessor",
+                instance: "_flowInstance",
+                onInit: function () {
+                    _flowInstance = this;
+                }
+            }
+        });
+    });
+</script>
+<form id="TestForm" name="TestForm"></form>

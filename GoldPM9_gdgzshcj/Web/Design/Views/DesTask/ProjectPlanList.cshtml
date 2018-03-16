@@ -1,0 +1,218 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+}
+
+@section Body_Content{
+
+    <table id="DesTaskGrid"></table>
+    <div id="DesTaskPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a href="javascript:void(0);" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-play-circle fa-lg text-success'" onclick="ChangeTaskGroupStatus(2, '启动')">启动</a>
+            <a href="javascript:void(0);" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle fa-lg text-danger'" onclick="ChangeTaskGroupStatus(4, '暂停')">暂停</a>
+            <a href="javascript:void(0);" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-check-circle fa-lg text-info'" onclick="ChangeTaskGroupStatus(3, '完成')">完成</a>
+            @*<a href="javascript:void(0);" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-gittip fa-lg text-warning'" onclick="">收藏</a>*@
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'g.ProjNumber,g.ProjName', Contract:'like'}" />
+
+        <div class="moreSearchPanel">
+
+            @BaseData.getBases(new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{ Key:'TaskGroupPhaseId', Contract:'in',filedType:'Int'}" })
+
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '计划开始时间'" JQWhereOptions="{ Key:'g.DatePlanStart', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '计划结束时间'" JQWhereOptions="{ Key:'g.DatePlanStart', Contract:'<=',filedType:'Date' }">&nbsp;
+
+        </div>
+    </div>
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("ProjectPlanListJson", "DesTask",new { @area="Design"})?FormMenu=ProjectPlanList';
+        var _currentUserId = @ViewBag.currentUserId;
+        var _permission = @Html.Raw(ViewBag.permission);
+
+        var params = {
+        };
+
+        $(function () {
+
+            $.extend($.fn.datagrid.defaults.view, {
+                onAfterRender: function (target) {
+                    if (target.id == "DesTaskGrid") {
+                        var _row = $("#DesTaskGrid").datagrid("getRows");
+                        $.each(_row, function (i, e) {
+                            //重新赋值CheckBox
+                            if (e.ProjPhaseEmpId == _currentUserId || _permission.indexOf("alledit")>-1) {
+                                // 如果你是这个项目的负责人，或者你拥有该模块的维护权，那么你是可以进行项目状态的切换的。
+                            } else {
+                                //JQ.dialog.error("你没有权限执行该操作，只有项目负责人或具有项目维护权的用户，才能改变项目状态。")
+                                var CheckB = $("#DesTaskGrid").datagrid("getPanel").find(".datagrid-body .datagrid-btable td[field='ck'] input[type='checkbox']")[i];
+                                //$(CheckB).attr("checked","checked");
+                                //$(CheckB).attr("disabled", "disabled");
+                                $(CheckB).hide();
+                            }
+                        });
+                    }
+                }
+            });
+
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export', 'moreSearch'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'DesTaskGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect:false,
+                selectOnCheck:false,
+                singleSelect:true,
+                queryParams: params,
+                //JQMergeCells: { fields: ['ProjNumber', 'ProjName'], Only: 'Id' },//当字段值相同时会自动的跨行(只对相邻有效)
+                toolbar: '#DesTaskPanel',//工具栏的容器ID
+                JQExcludeCol: [1, 10],
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '项目编号', field: 'ProjNumber', width: '10%', align: 'center', sortable: false },
+		            { title: '项目名称', field: 'ProjName', width: '30%', align: 'left', sortable: false },
+                    { title: '阶段类型', field: 'ProjPhaseName', width: '10%', align: 'center', sortable: false },
+                    {
+                        title: '阶段状态', field: 'TaskGroupStatusName', width: 80, align: 'center', formatter: function (value, row, index) {
+                            var icon = "";
+                            var title = "";
+                            switch (row.TaskGroupStatus) {
+                                case 0:
+                                    title = "未启动";
+                                    icon = "fa-circle-o text-muted";
+                                    break;
+                                case 1:
+                                    title = "已轮到";
+                                    icon = "fa-dot-circle-o text-warning";
+                                    break;
+                                case 2:
+                                    title = "进行中";
+                                    icon = "fa-play-circle text-success";
+                                    break;
+                                case 3:
+                                    title = "已完成";
+                                    icon = "fa-check-circle text-info";
+                                    break;
+                                case 4:
+                                    title = "已停止";
+                                    icon = "fa-minus-circle text-danger";
+                                    break;
+                            }
+                            row.TaskGroupStatusName = title;
+                            return "<i class=\"fa " + icon + "\" style=\"font-size: 16px;\" title=\"" + title + "\"></i>&nbsp;" + title;
+                        }
+                    },
+                    { title: '阶段负责人', field: 'ProjPhaseEmpName', width: '10%', align: 'center', sortable: false },
+		            { title: '计划开始', field: 'DatePlanStart', width: 80, align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '计划结束', field: 'DatePlanFinish', width: 80, align: 'center', sortable: false, formatter: JQ.tools.DateTimeFormatterByT },
+                    {
+                        title: '进度', field: 'ProgressVer', width: 80, align: 'center', formatter: function (value, row, index) {
+                            if (row.TaskTotalCount == 0) {
+                                row.ProgressVer = "0%";
+                            } else {
+                                row.ProgressVer = "{0}%".format(Math.ceil(row.TaskFinishCount / row.TaskTotalCount * 100));
+                            }
+                            var _titleName = "项目进度：[{0}]{1} &gt; {2}".format(row.ProjNumber.escapeHTML(), row.ProjName.escapeHTML(), row.ProjPhaseName);
+                            return '<div title="已完任务 {1} / 全部任务 {2}" onclick="openProjectProgressInfo(\'{3}\', {4}, {5})" class="easyui-progressbar progressbar easyui-fluid" style="width: 69px; height: 22px; cursor:pointer;"><div class="progressbar-text" style="width: 69px; height: 22px; line-height: 22px;">{0}</div><div class="progressbar-value" style="width: {0}; height: 22px; line-height: 22px;"><div class="progressbar-text" style="width: 69px; height: 22px; line-height: 22px;">{0}</div></div></div>'.format(row.ProgressVer, row.TaskFinishCount, row.TaskTotalCount, _titleName, row.Id, row.TaskGroupId);
+                        }
+                    },
+                    {
+                        title: '操作', field: 'Id', width: 90, align: 'center', formatter: function (value, row, index) {
+                            var _titleName = "项目策划：[{0}]{1} &gt; {2}".format(row.ProjNumber.escapeHTML(), row.ProjName.escapeHTML(), row.ProjPhaseName);
+                            return "<a href=\"javascript:void(0);\" btnAction class=\"easyui-linkbutton\" data-options=\"plain:true\" onclick=\"openProjPlanInfo('{0}',{1},{2})\">项目策划</a>".format(_titleName, row.Id, row.TaskGroupId);
+                        }
+                    }
+                ]],
+                onLoadSuccess: function (row, data) {
+                    $("a[btnAction]").linkbutton();
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    $("#DesTaskGrid").datagrid('unselectRow', rowIndex);
+                },
+                onCheckAll:function(rows){
+                    $("#DesTaskGrid").datagrid("getPanel").find("input[type='checkbox'][name='ck']").each(function(i, CheckB) {
+                        if ($(CheckB).is(":hidden")) {
+                            $("#DesTaskGrid").datagrid('uncheckRow', i);
+                        }
+                    });
+                }
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目名称、编号',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'DesTaskGrid',
+                            loadingType: 'datagrid',
+                            queryParams: params
+                        });
+                }
+            });
+        });
+
+        function ChangeTaskGroupStatus(statusId, statusName) {
+            var $grid = $("#DesTaskGrid");
+            var CheckRow = $grid.datagrid("getChecked");
+            if (CheckRow.length == 0) {
+                JQ.dialog.warning("请至少勾选一个阶段");
+                return false;
+            } else {
+                JQ.dialog.confirm("确定改变选中项的状态为＂" + statusName + "＂吗？", function () {
+                    var parm;
+                    parm = "status=" +statusId.toString();
+                    $.each(CheckRow, function (i, n) {
+                        parm += "&id=" + n.TaskGroupId.toString();
+                    });
+                    JQ.tools.ajax({
+                        url: '@(Url.Action("ProjectPlanListChangeTaskGroupStatus", "DesTask",new { @area="Design" }))',
+                        data: parm,
+                        succesCollBack: function (data) {
+                            $grid.datagrid('reload');
+                        }
+                    });
+                }, null);
+            }
+        }
+
+        function openProjPlanInfo(title, projId, taskGroupId) {
+            var url = '@Url.Action("ProjectPlanInfo")?tabId=1&projID=' + projId + '&taskGroupId=' + taskGroupId
+
+            //window.top.addTab("项目策划:" + title, url, "");
+
+            JQ.dialog.dialogIframe({
+                title: title,
+                url: url,
+                width: 1366,
+                height: 800
+            });
+        }
+
+
+        function openProjectProgressInfo(title, projId, taskGroupId) {
+            var url = '@Url.Action("ProjectProgressInfo", "DesTask", new { @area = "Design" })?projID=' + projId + '&taskGroupId=' + taskGroupId
+            JQ.dialog.dialogIframe({
+                title: title,
+                url: url,
+                width: 1200,
+                height: 800
+            });
+        }
+
+        function openProjectCenter(projectID, title) {
+            window.top.addTab(decodeURIComponent(title), "@(Url.Action("Center","Project",new { @area="Project" }))?projectID=" + projectID, "");
+        }
+    </script>
+}
+

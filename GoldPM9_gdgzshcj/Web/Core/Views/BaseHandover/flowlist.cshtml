@@ -1,0 +1,165 @@
+﻿@model DataModel.Models.BaseHandover
+@using JQ.Web;
+<script type="text/javascript">
+    $("#JQSearch").textbox({
+        buttonText: "筛选",
+        buttonIcon: "fa fa-search",
+        height: 25,
+        prompt: "筛选字段",
+        onClickButton: function () {
+            refreshGrid()
+        }
+    });
+
+    JQ.datagrid.datagrid({
+        JQPrimaryID: "FlowNodeID",
+        JQID: "tbList",
+        JQDialogTitle: "流程模版",
+        JQWidth: "768",//弹出窗体宽
+        JQHeight: '700',//弹出窗体高
+        JQLoadingType: "datagrid",
+        url: "@(Url.Action("GetToDoList", "PubFlow", new { @area = "Core" }))",
+        checkOnSelect: true,
+        columns: [[
+            { field: "ck", align: "center", checkbox: true, JQIsExclude: true },
+            { title: "标题", field: "FlowTitle", width: '46%', align: "left", halign: "center" },
+            { title: "流程名称", field: "FlowName", width: 100, align: "center", halign: "center" },
+            { title: "节点名称", field: "FlowNodeName", width: 100, align: "center", halign: "center" },
+            {
+                title: "节点轮到日期", field: "FlowNodeFromDateTime", width: 80, align: "center", halign: "center", formatter: function (value) {
+                    return JQ.Flow.parseDateText(value);
+                }
+            },
+            { title: "节点状态", field: "FlowNodeStatusName", width: 60, align: "center", halign: "center" },
+            { title: "处理人", field: "FlowNodeEmpName", width: 60, align: "center", halign: "center" },
+            {
+                title: "流程发起日期", field: "FlowStartDate", width: 80, align: "center", halign: "center", formatter: function (value) {
+                    return JQ.Flow.parseDateText(value);
+                }
+            },
+             {
+                 title: "流程状态", field: "FlowStatusName", width: 100, align: "center", halign: "center", formatter: function (value, rowData) {
+                     var span = document.createElement("span");
+                     span.appendChild(document.createTextNode(value));
+                     span.style.color = "#165778";
+                     span.style.cursor = "pointer";
+                     span.setAttribute("onclick", "showProgress(" + rowData.FlowNodeID + ")");
+                     return span.outerHTML;
+                 }
+             },
+        ]],
+        queryParams: getQueryParameters()
+    });
+
+    window.refreshGrid = function () {
+        $("#tbList").datagrid("load", getQueryParameters());
+    }
+
+    function getQueryParameters() {
+        return { text: $("#JQSearch").textbox("getText"), statusID: 1, modular: "@(Request.QueryString["modular"]??"")",empID: "@(Model.HandEmpId)",useEmpID:"1" };
+        }
+
+        function showProcess(flowNodeID) {
+            var datas = $("#tbList").datagrid("getData").rows;
+            var flowNodeUrl = "";
+            var title = "";
+        for (var i in datas) {
+                if (datas[i].FlowNodeID == flowNodeID) {
+                    flowNodeUrl = datas[i].FlowNodeUrl;
+                    title = datas[i].FlowName + " " + datas[i].FlowNodeName;
+                    break;
+                }
+            }
+            JQ.dialog.dialog({
+                title: decodeURIComponent(title),
+            url: "@(ViewBag.sitePath)" + flowNodeUrl,
+            width: 800,
+            height: 680,
+            JQID: "",
+            JQLoadingType: "",
+            iconCls: "fa fa-table"
+            });
+            JQ.Flow.stopBubble();
+        }
+
+        function showProgress(flowNodeID) {
+            var datas = $("#tbList").datagrid("getData").rows;
+            var title = "";
+            var flowID = 0;
+        for (var i in datas) {
+                if (datas[i].FlowNodeID == flowNodeID) {
+                    title = datas[i].FlowName;
+                    flowID = datas[i].FlowID;
+                    break;
+                }
+            }
+            JQ.dialog.dialog({
+                title: decodeURIComponent(title),
+            url: "@(Url.Action("Progress", "PubFlow", new { @area="Core"}))?flowID=" + flowID,
+            width: 800,
+            height: 600,
+            iconCls: "fa fa-list"
+            });
+            JQ.Flow.stopBubble();
+        }
+        function saveChange() {
+            var empID = $("#HandEmpId").combobox("getValue");
+            if (!empID) {
+                return;
+            }
+            var $tbList = $("#tbList");
+            var checkedItems = $tbList.datagrid("getChecked");
+            if (checkedItems.length == 0) {
+                return;
+            }
+            var list = [];
+            for (var i = 0; i < checkedItems.length; i++) {
+            list.push(checkedItems[i].FlowNodeID + "|" + checkedItems[i].FlowMultiSignID);
+        }
+        $tbList.datagrid("loading");
+        $.ajax({
+            url: "@(Url.Action("BatchTransfer","PubFlow",new { @area="Core" }))",
+            type: "POST",
+            data: { flowNodeIDs: list.join(","), empID: empID, handOverID: "@(Request.QueryString["id"])" },
+            success: function (result) {
+                $tbList.datagrid("loaded");
+                if (result.Result == false) {
+                    JQ.dialog.error(result.Message);
+                    return;
+                }
+                window.refreshGrid();
+            },
+            error: function () {
+                $tbList.datagrid("loaded");
+            }
+        });
+    }
+</script>
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',border:false" style="border-bottom-width:1px;overflow:hidden">
+        <div style="height:30px;padding:5px 0px;">
+            <div style="float:left;margin-left:5px;">
+                移交给:
+                <select id="HandEmpId" name="HandEmpId" class="easyui-combobox" data-options="panelHeight:'auto'">
+                    @{
+                        if (ViewBag.Emps != null)
+                        {
+                            foreach (var emp in ViewBag.Emps)
+                            {
+                                <option value="@(emp.Key)">@(emp.Value)</option>
+                            }
+                        }
+                    }
+                </select>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="saveChange()">保存</a>
+            </div>
+            <div style="float:right;margin-right:5px">
+                <input id="JQSearch" style="width:250px;" />
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'center',border:false">
+        <table id="tbList"></table>
+    </div>
+</div>
+

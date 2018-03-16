@@ -1,0 +1,270 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <style>
+        .panel-body {
+            padding: 0px !important;
+        }
+
+        .tabs-panels {
+            border-style: none !important;
+        }
+    </style>
+    <script type="text/javascript">
+        $(function () {
+            // ----------------开票-----------------------
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussInvoiceGrid',//数据表格ID
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: '@Url.Action("invoicejson", "HZShow", new { @area = "Bussiness" })',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussInvoicePanel',//工具栏的容器ID
+                columns: [[
+                    { title: '合同编号', field: 'ConNumber', width: 150, align: 'center' },
+                    { title: '合同名称', field: 'ConName', width: 150, align: 'center' },
+                    { title: '合同类型', field: 'ConType', width: 100, align: 'center' },
+                    { title: '项目名称', field: 'ProjName', width: 150, align: 'center' },
+                    { title: '开票日期', field: 'InvoiceDate', width: 120, align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '金额(元)', field: 'InvoiceMoney', width: 120, align: 'right' },
+                    { title: '说明', field: 'InvoiceNote', width: 200, align: 'center' },
+                    { title: '经办人', field: 'CreatorEmpName', width: 100, align: 'center' }
+                ]],
+
+            });
+
+            $("#JQSearchInvoice").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '合同名称、编号',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid({
+                        dgID: 'BussInvoiceGrid',
+                        loadingType: 'datagrid',
+                        queryParams: null
+                    });
+                }
+            });
+
+            var paramesInvoice = {
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussInvoiceGrid',//数据表格ID
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: '@Url.Action("invoicejson", "HZShow", new { @area = "Bussiness" })',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussInvoicePanel',//工具栏的容器ID
+                columns: [[
+                    { title: '合同编号', field: 'ConNumber', width: 150, align: 'center' },
+                    { title: '合同名称', field: 'ConName', width: 150, align: 'center' },
+                    { title: '合同类型', field: 'ConType', width: 100, align: 'center' },
+                    { title: '项目名称', field: 'ProjName', width: 150, align: 'center' },
+                    { title: '开票日期', field: 'InvoiceDate', width: 120, align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                    { title: '金额(元)', field: 'InvoiceMoney', width: 120, align: 'right' },
+                    { title: '说明', field: 'InvoiceNote', width: 200, align: 'center' },
+                    { title: '经办人', field: 'CreatorEmpName', width: 100, align: 'center' }
+                ]],
+            };
+            var $dg = $("#" + paramesInvoice.JQID);
+            $("<div>", {
+                text: '导出全部页',
+                iconCls: 'fa fa-gbp',
+                click: function () {
+                    debugger;
+                    JQ.datagrid.selectFiled({ $dg: $dg, arr: paramesInvoice.JQFields, queryParams: paramesInvoice });
+                    JQ.tools.exportExcel(paramesInvoice, 1);
+                }
+            }).prependTo($("#ExcelInvoice"));
+
+
+            // ----------------收款-----------------------
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussFactGrid',//数据表格ID
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: '@Url.Action("factjson", "HZShow", new { @area = "Bussiness" })',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussFactPanel',//工具栏的容器ID
+                columns: [[
+                    { title: '合同编号', field: 'ConNumber', width: 150, align: 'center' },
+                    { title: '合同名称', field: 'ConName', width: 150, align: 'center' },
+                    { title: '合同类型', field: 'ConType', width: 100, align: 'center' },
+                    { title: '项目名称', field: 'ProjName', width: 150, align: 'center' },
+                    { title: '收款日期', field: 'FeeDate', width: 120, align: 'center' },
+                    { title: '金额(元)', field: 'FeeMoney', width: 120, align: 'right' },
+                    { title: '说明', field: 'FeeNote', width: 200, align: 'center' },
+                    { title: '经办人', field: 'CreatorEmpName', width: 100, align: 'center' }
+                ]],
+
+            });
+
+            $("#JQSearchFact").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '合同名称、编号',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid({
+                        dgID: 'BussFactGrid',
+                        loadingType: 'datagrid',
+                        queryParams: null
+                    });
+                }
+            });
+
+            var paramesFact = {
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussFactGrid',//数据表格ID
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: '@Url.Action("factjson", "HZShow", new { @area = "Bussiness" })',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussFactPanel',//工具栏的容器ID
+                columns: [[
+                    { title: '合同编号', field: 'ConNumber', width: 150, align: 'center' },
+                    { title: '合同名称', field: 'ConName', width: 150, align: 'center' },
+                    { title: '合同类型', field: 'ConType', width: 100, align: 'center' },
+                    { title: '项目名称', field: 'ProjName', width: 150, align: 'center' },
+                    { title: '收款日期', field: 'FeeDate', width: 120, align: 'center' },
+                    { title: '金额(元)', field: 'FeeMoney', width: 120, align: 'right' },
+                    { title: '说明', field: 'FeeNote', width: 200, align: 'center' },
+                    { title: '经办人', field: 'CreatorEmpName', width: 100, align: 'center' }
+                ]],
+            };
+            var $dg = $("#" + paramesFact.JQID);
+            $("<div>", {
+                text: '导出全部页',
+                iconCls: 'fa fa-gbp',
+                click: function () {
+                    debugger;
+                    JQ.datagrid.selectFiled({ $dg: $dg, arr: paramesFact.JQFields, queryParams: paramesFact });
+                    JQ.tools.exportExcel(paramesFact, 1);
+                }
+            }).prependTo($("#ExcelFact"));
+
+
+            // ----------------付款-----------------------
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussSubFactGrid',//数据表格ID
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: '@Url.Action("subfactjson", "HZShow", new { @area = "Bussiness" })',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussSubFactPanel',//工具栏的容器ID
+                columns: [[
+                    { title: '合同编号', field: 'ConNumber', width: 150, align: 'center' },
+                    { title: '合同名称', field: 'ConName', width: 150, align: 'center' },
+                    { title: '合同类型', field: 'ConType', width: 100, align: 'center' },
+                    { title: '项目名称', field: 'ProjName', width: 150, align: 'center' },
+                    { title: '付款日期', field: 'SubFeeFactDate', width: 120, align: 'center' },
+                    { title: '金额(元)', field: 'SubFeeFactMoney', width: 120, align: 'right' },
+                    { title: '经办人', field: 'CreatorEmpName', width: 100, align: 'center' }
+                ]],
+
+            });
+
+            $("#JQSearchSubFact").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '合同名称、编号',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid({
+                        dgID: 'BussSubFactGrid',
+                        loadingType: 'datagrid',
+                        queryParams: null
+                    });
+                }
+            });
+
+            var paramesSubFact = {
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussSubFactGrid',//数据表格ID
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: '@Url.Action("subfactjson", "HZShow", new { @area = "Bussiness" })',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussSubFactPanel',//工具栏的容器ID
+                columns: [[
+                    { title: '合同编号', field: 'ConNumber', width: 150, align: 'center' },
+                    { title: '合同名称', field: 'ConName', width: 150, align: 'center' },
+                    { title: '合同类型', field: 'ConType', width: 100, align: 'center' },
+                    { title: '项目名称', field: 'ProjName', width: 150, align: 'center' },
+                    { title: '付款日期', field: 'SubFeeFactDate', width: 120, align: 'center' },
+                    { title: '金额(元)', field: 'SubFeeFactMoney', width: 120, align: 'right' },
+                    { title: '经办人', field: 'CreatorEmpName', width: 100, align: 'center' }
+                ]],
+            };
+            var $dg = $("#" + paramesSubFact.JQID);
+            $("<div>", {
+                text: '导出全部页',
+                iconCls: 'fa fa-gbp',
+                click: function () {
+                    debugger;
+                    JQ.datagrid.selectFiled({ $dg: $dg, arr: paramesSubFact.JQFields, queryParams: paramesSubFact });
+                    JQ.tools.exportExcel(paramesSubFact, 1);
+                }
+            }).prependTo($("#ExcelSubFact"));
+        })
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <div id="tabs" class="easyui-tabs" data-options="fit:true">
+        <div title="合同开票" style="padding:10px">
+            <table id="BussInvoiceGrid"></table>
+            <div id="BussInvoicePanel" JQPanel="searchPanelInvoice" style="padding:5px;height:auto;border:none;">
+                    <div id="ExcelInvoice" class="l-btn" style="width: 75px; height: 27px; line-height: 27px;"></div>
+                    <input id="JQSearchInvoice" style="width:250px;" JQWhereOptions="{ Key:'c1.ConName,c1.ConNumber,co1.ConName,co1.ConNumber', Contract:'like'}" />
+                    <input id="startTimeInvoice" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开票日期开始'" JQWhereOptions="{ Key:'InvoiceDate', Contract:'>=',filedType:'Date' }">
+                    至
+                    <input id="endTimeInvoice" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开票日期结束'" JQWhereOptions="{ Key:'InvoiceDate', Contract:'<',filedType:'Date' }">
+            </div>
+        </div>
+        <div title="合同收款" style="padding:10px">
+            <table id="BussFactGrid"></table>
+            <div id="BussFactPanel" JQPanel="searchPanelFact" style="padding:5px;height:auto;border:none;">
+                    <div id="ExcelFact" class="l-btn" style="width: 75px; height: 27px; line-height: 27px;"></div>
+                    <input id="JQSearchFact" style="width:250px;" JQWhereOptions="{ Key:'c2.ConName,c2.ConNumber,co2.ConName,co2.ConNumber', Contract:'like'}" />
+                    <input id="startTimeFact" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '收款日期开始'" JQWhereOptions="{ Key:'FeeDate', Contract:'>=',filedType:'Date' }">
+                    至
+                    <input id="endTimeFact" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '收款日期结束'" JQWhereOptions="{ Key:'FeeDate', Contract:'<',filedType:'Date' }">
+            </div>
+        </div>
+        <div title="合同付款" style="padding:10px">
+            <table id="BussSubFactGrid"></table>
+            <div id="BussSubFactPanel" JQPanel="searchPanelSubFact" style="padding:5px;height:auto;border:none;">
+                    <div id="ExcelSubFact" class="l-btn" style="width: 75px; height: 27px; line-height: 27px;"></div>
+                    <input id="JQSearchSubFact" style="width:250px;" JQWhereOptions="{ Key:'c3.ConName,c3.ConNumber,co3.ConName,co3.ConNumber', Contract:'like'}" />
+                    <input id="startTimeSubFact" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '付款日期开始'" JQWhereOptions="{ Key:'SubFeeFactDate', Contract:'>=',filedType:'Date' }">
+                    至
+                    <input id="endTimeSubFact" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '付款日期结束'" JQWhereOptions="{ Key:'SubFeeFactDate', Contract:'<',filedType:'Date' }">
+            </div>
+        </div>
+    </div>
+}

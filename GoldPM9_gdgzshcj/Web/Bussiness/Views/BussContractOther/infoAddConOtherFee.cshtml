@@ -1,0 +1,486 @@
+﻿@model DataModel.Models.BussContractOther
+@using JQ.Web;
+<script type="text/javascript">
+
+        JQ.form.submitInit({
+            formid: 'BussContractOtherFeeForm',//formid提交需要用到
+            //buttonTypes: ['close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                //刷新上一级数据表格，必须在close窗体前调用
+                //JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            },
+            buttons: [
+               {
+                   icon: "fa-pencil",  id: "eFinish", text: "置为结清", onClick: function () {
+                       editIsFeeFinished(true);
+                       $("#toolbar").children().eq(0).hide();
+                       $("#toolbar").children().eq(1).show();
+                       //JQ.datagrid.autoRefdatagrid();
+                   }
+               },
+               {
+                   icon: 'fa-pencil',  id: "nFinish", text: "置为未结清", onClick: function () {
+                       editIsFeeFinished(false);
+                       $("#toolbar").children().eq(0).show();
+                       $("#toolbar").children().eq(1).hide();
+                       //JQ.datagrid.autoRefdatagrid();
+                   }
+               },
+                {
+                    icon: "fa-close",  id: "btnClose", text: "关闭", onClick: function () {
+                        onClose();
+                    }
+                }
+            ]
+        });
+
+
+
+    var ConIsFeeFinished= '@Model.ConIsFeeFinished';
+    if (ConIsFeeFinished=="False") {
+        $("#toolbar").children().eq(1).hide();
+    }else {
+        $("#toolbar").children().eq(0).hide();
+    }
+
+
+    var editUrl = '@Url.Action("editIsFeeFinished")';
+
+    function onClose() {
+        //  JQ.datagrid.autoRefdatagrid();
+        JQ.dialog.dialogClose();
+    }
+
+    function editIsFeeFinished(isValue) {
+        if (isValue == 0) {
+            if (!confirm("是否确定置为未结清状态？")) {
+                return;
+            }
+        } else {
+            if (!confirm("是否确定置为结清状态？")) {
+                return;
+            }
+        }
+
+        $.ajax({
+            url: "@(Url.Action("editIsFeeFinished", "BussContractOther", new { @area = "Bussiness" }))",
+            data: { isValue: isValue ,Id:@Model.Id},
+            type: "POST",
+            success: function (result) {
+                if (result.Result == "0") {
+                    alert(result.Message);
+                    return;
+                }
+            }
+        });
+    }
+
+
+    $.extend($.fn.datagrid.defaults.view,{
+        onAfterRender:function(target){
+            if (target.id=="FeeFactGrid") {
+                if ($(target).datagrid("getRows").length==0) {
+                    FeeFactAdd();
+                }
+            }
+            else if (target.id=="InvoiceGrid") {
+                if ($(target).datagrid("getRows").length==0) {
+                    InvoiceAdd();
+                }
+            }
+        }});
+
+
+</script>
+@using (Html.BeginForm("saveIsFeeFinished", "BussContractOther", FormMethod.Post, new { @area = "Bussiness", @id = "BussContractOtherFeeForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+
+    <div jqpanel='dialogButtonPanel'>
+
+        <table class="table table-bordered">
+            <tr>
+                <th width="10%">合同编号</th>
+                <td width="15%">
+                    @Model.ConNumber
+                </td>
+                <th width="10%">合同名称</th>
+                <td>
+                    @Model.ConrName
+                </td>
+                <th width="10%">合同金额(元)</th>
+                <td width="15%">
+                    @ViewBag.Fee
+                </td>
+            </tr>
+        </table>
+
+    </div>
+
+
+    <table id="FeeFactGrid"></table>
+    <div id="FeeFactGridPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+            <span class="label label-default"><strong style="padding:10px;">合同收款<input type="hidden" name="tValue" /></strong></span>
+            <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="FeeFactAdd()">新增</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="FeeFactDel()">删除</a>
+        </span>
+        <script type="text/javascript">
+            $(function () {
+                $("#FeeFactGrid").datagrid({
+                    idField: 'Id',//主键的字段
+                    singleSelect: false,
+                    pagination: false,
+                    //JQCustomSearch: [  //自定义搜索的字段
+                    //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+                    //],
+                    //JQExcludeCol: [1, 4, 10],//导出execl排除的列
+                    //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+                    //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+                    url: '@Url.Action("jsonOtherFee", "BussContractOtherFeeFact", new { @area = "Bussiness" })',//请求的地址
+                    queryParams: {ConOtherID:@Model.Id},
+                    //checkOnSelect: true,//是否包含check
+                    toolbar: '#FeeFactGridPanel',//工具栏的容器ID
+                    columns: [[
+                        { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                        { title: '实际收款日期', field: 'FeerDate', width: "15%", align: 'center',formatter: JQ.tools.DateTimeFormatterByT,
+                            editor: {
+                                type: 'datebox',
+                                options: { validType: { date: 'yyyy-MM-dd' },required: true } }
+                        },
+                        { title: '金额(元)', field: 'FeeMoney', width:  "15%", align: 'right',editor:{type:'numberspinner',options: {  precision: 2, prefix: '￥', required: true }}},
+                        { title: '收款说明', field: 'FeeNote', width:  "25%", align: 'center', sortable: false, editor: { type: 'textbox', options: { validType: length[0, 23] } }  },
+                    { title: '经办人', field: 'CreatorEmpName', width:  "15%", align: 'center', sortable: false,JQIsExclude: true },
+                          { title: '操作', field: 'Id', width:  "15%", align: 'center', sortable: false,JQIsExclude: true,formatter: function (value, row, index) {
+                              if (IsEdit) {
+                                  if (editIndex==-1) {
+                                      //新增一行
+                                      return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"endEditing(this)\">创建</>";
+                                  }else {
+                                      return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"endEditing(this)\">更新</>&nbsp;&nbsp;&nbsp;<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;padding-margin:10px\" onclick=\"CannelRow()\">取消</>";
+                                  }
+
+                              }
+                              else  {
+                                  return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"onDblClickRow("+index+")\">编辑</>";
+                              }
+                          }
+                          },
+                    ]],
+                    onDblClickRow: onDblClickRow,
+                });
+            })
+
+            var IsEdit=false;//是否在编辑状态(true编辑、false列表)
+            var editIndex=-1;//编辑行号
+            //新增行
+            function FeeFactAdd() {
+                if (IsEdit==false) {
+                    IsEdit=true;
+                    //var _rowC=$('#planTable').datagrid('getRows').length==undefined?0:$('#planTable').datagrid('getRows').length;
+                    editIndex=-1;
+                    $('#FeeFactGrid').datagrid('appendRow', {});
+                    editIndex = $('#FeeFactGrid').datagrid('getRows').length - 1;
+                    $('#FeeFactGrid').datagrid('beginEdit', editIndex);
+                }
+            }
+            //编辑
+            function onDblClickRow(index) {
+                if (!IsEdit) {
+                    //编辑行
+                    IsEdit=true;
+                    editIndex = index;
+                    $('#FeeFactGrid').datagrid('refreshRow', index);//刷新行
+                    $('#FeeFactGrid').datagrid('beginEdit', index);
+                    //combox参数重新赋值
+                    //reloadCombox(editIndex);
+
+                } else {
+                    alert("第"+(parseInt(editIndex)+1)+"行正在编辑");
+                    //取消编辑行
+                    //$('#planTable').datagrid('selectRow', editIndex);
+                }
+            }
+            //创建、更新
+            function endEditing(objEvent) {
+                if (IsEdit) {
+                    //编辑状态、验证下
+                    if ($('#FeeFactGrid').datagrid('validateRow', editIndex)) {
+                        //提交数据
+                        var ed = $('#FeeFactGrid').datagrid('getEditors', editIndex);
+                        var productname = $(ed[0].target).combobox('getText');
+                        //var _id=$(ed[0].target).combobox('getValue');
+                        //combox赋值
+                        //$('#FeeFactGrid').datagrid('getRows')[editIndex]['text'] = productname;
+                        //$('#FeeFactGrid').datagrid('getRows')[editIndex]['ProjId'] = _id;
+                        //checkbox赋值
+                        //var CheckB = $(ed[4].target);
+                        IsEdit=false;
+                        //$('#FeeFactGrid').datagrid('getRows')[editIndex]['FinishedCheck']=($(CheckB).is(":checked")?"1":"0");
+                        $('#FeeFactGrid').datagrid('endEdit', editIndex);
+
+                        var _postDate=$('#FeeFactGrid').datagrid('getRows')[editIndex];
+                        _postDate.RefID=@Model.Id;
+                        $.post('@Url.Action("save", "BussContractOtherFeeFact")?Id='+(_postDate.hasOwnProperty("Id")?_postDate.Id:0),_postDate,function () {
+                            JQ.dialog.show("操作成功！");
+                            $('#FeeFactGrid').datagrid('reload');
+                            //$('#FeeFactGrid').datagrid('refreshRow', editIndex);//刷新行
+                            //editIndex=-1;
+
+                            //FeeFactAdd();
+                        }).error(function (a) {
+                            var CurrentIndex=editIndex;
+                            editIndex=_postDate.hasOwnProperty("Id")?editIndex:-1;
+                            IsEdit=true;
+                            $('#FeeFactGrid').datagrid('refreshRow', CurrentIndex);//刷新行
+                            $('#FeeFactGrid').datagrid('beginEdit', CurrentIndex);
+                            editIndex=CurrentIndex;
+                            alert(a.responseText);
+                        });
+                        //JQ.datagrid.autoRefdatagrid();
+                    } else {
+                        return false;
+                    }
+                }
+            }
+            //行取消
+            function CannelRow() {
+                IsEdit=false;
+                $('#FeeFactGrid') .datagrid('cancelEdit', editIndex);
+                editIndex=-1;
+            }
+            //删除行
+            function FeeFactDel() {
+                var row = $('#FeeFactGrid').datagrid('getSelections');
+                if (row.length==0) {
+                    JQ.dialog.warning("请至少选择一项！！！");
+                    return;
+                }
+                if (!confirm("你确定要删除吗?")) {
+                    return;
+                }
+
+                var DelIds=[];
+                var KeyID="";
+                var _CurrentEditRow=$("#FeeFactGrid").datagrid("getRows")[editIndex];
+                for (var i = 0; i < row.length; i++) {
+                    var _rowindex=$('#FeeFactGrid').datagrid('getRowIndex',row[i]);
+
+                    if (IsEdit) {
+                        if (_rowindex==editIndex) {
+                            //先处理编辑行
+                            IsEdit=false;
+                        }
+                    }
+                    var _dataROW=row[i];
+                    if (_dataROW.hasOwnProperty("Id")) {
+                        KeyID+=(_dataROW.Id+",");
+                    }
+                    DelIds.push(_rowindex);
+                }
+
+                $.post('@Url.Action("delOtherFeeByIDs", "BussContractOtherFeeFact")',{ids:KeyID},function () {
+                    DelIds.reverse();//倒序排列
+                    for (var i = 0; i < DelIds.length; i++) {
+                        $('#FeeFactGrid').datagrid('deleteRow',DelIds[i]);
+                    }
+                    if (IsEdit) {
+                        //存在行编辑、重新赋值行号
+                        editIndex=$('#FeeFactGrid').datagrid('getRowIndex',_CurrentEditRow);
+                    }
+                    JQ.dialog.show("删除成功！");
+                    //JQ.datagrid.autoRefdatagrid();
+                }).error(function (err) {
+                    alert("删除失败！");
+                });
+            }
+        </script>
+    </div>
+
+
+
+    <div style="padding-top:10px"> </div>
+    <table id="InvoiceGrid"></table>
+    <div id="InvoiceGridPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+            <span class="label label-default"><strong style="padding:10px;">合同开票</strong></span>
+            <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="InvoiceAdd()">新增</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="InvoiceDel()">删除</a>
+        </span>
+        <script type="text/javascript">
+            $(function () {
+                $("#InvoiceGrid").datagrid({
+                    idField: 'Id',//主键的字段
+                    singleSelect: false,
+                    pagination: false,
+                    url: '@Url.Action("jsonOtherInvoice", "BussContractOtherInvoice", new { @area = "Bussiness" })',//请求的地址
+                    queryParams: { ConOtherID:@Model.Id},
+                    checkOnSelect: true,//是否包含check
+                    toolbar: '#InvoiceGridPanel',//工具栏的容器ID
+                    columns: [[
+                        { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+
+                        {
+                            title: '开票日期', field: 'InvoiceDate', width: "15%", align: 'center', formatter: JQ.tools.DateTimeFormatterByT,
+                            editor: {
+                                type: 'datebox',
+                                options: { validType: { date: 'yyyy-MM-dd' }, required: true }
+                            }
+                        },
+                        { title: '金额(元)', field: 'InvoiceMoney', width: "15%", align: 'right', editor: { type: 'numberspinner', options: { precision: 2, prefix: '￥', required: true } } },
+                        { title: '开票说明', field: 'InvoiceNote', width: "25%", align: 'center', sortable: false, editor: { type: 'textbox', options: { validType: length[0, 23] } } },
+                        { title: '经办人', field: 'CreatorEmpName', width: "15%", align: 'center', sortable: false, JQIsExclude: true },
+                        {
+                            title: '操作', field: 'Id', width: "15%", align: 'center', sortable: false, JQIsExclude: true, formatter: function (value, row, index) {
+                                if (InvoiceIsEdit) {
+                                    if (InvoiceeditIndex == -1) {
+                                        //新增一行
+                                        return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"endInvoiceEditing()\">创建</>";
+                                    } else {
+                                        return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"endInvoiceEditing()\">更新</>&nbsp;&nbsp;&nbsp;<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;padding-margin:10px\" onclick=\"CannelInvoiceRow()\">取消</>";
+                                    }
+
+                                }
+                                else {
+                                    return "<a href=\"#\" class=\"easyui-linkbutton\"  style=\"line-height:22px;\" onclick=\"onInvoicetDblClickRow(" + index + ")\">编辑</>";
+                                }
+                            }
+
+                        },
+                    ]],
+                    onDblClickRow: onInvoicetDblClickRow,
+
+                });
+            })
+
+            var InvoiceIsEdit=false;//是否在编辑状态(true编辑、false列表)
+            var InvoiceeditIndex=-1;//编辑行号
+            //新增行
+            function InvoiceAdd() {
+                if (InvoiceIsEdit==false) {
+                    InvoiceIsEdit=true;
+                    //var _rowC=$('#planTable').datagrid('getRows').length==undefined?0:$('#planTable').datagrid('getRows').length;
+                    InvoiceeditIndex=-1;
+                    $('#InvoiceGrid').datagrid('appendRow', {});
+                    InvoiceeditIndex = $('#InvoiceGrid').datagrid('getRows').length - 1;
+                    $('#InvoiceGrid').datagrid('beginEdit', InvoiceeditIndex);
+
+                }
+            }
+
+            //编辑
+            function onInvoicetDblClickRow(index) {
+                if (!InvoiceIsEdit) {
+                    //编辑行
+                    InvoiceIsEdit=true;
+                    InvoiceeditIndex = index;
+                    $('#InvoiceGrid').datagrid('refreshRow', InvoiceeditIndex);//刷新行
+                    $('#InvoiceGrid').datagrid('beginEdit', InvoiceeditIndex);
+                    //combox参数重新赋值
+                    //reloadCombox(editIndex);
+
+                } else {
+                    alert("第"+(parseInt(InvoiceeditIndex)+1)+"行正在编辑");
+                    //取消编辑行
+                    //$('#planTable').datagrid('selectRow', editIndex);
+                }
+            }
+
+            //创建、更新
+            function endInvoiceEditing() {
+                if (InvoiceIsEdit) {
+                    //编辑状态、验证下
+                    if ($('#InvoiceGrid').datagrid('validateRow', InvoiceeditIndex)) {
+                        //提交数据
+                        var ed = $('#InvoiceGrid').datagrid('getEditors', InvoiceeditIndex);
+                        var productname = $(ed[0].target).combobox('getText');
+                        var _id=$( ed[0].target).combobox('getValue');
+                        //combox赋值
+                        $('#InvoiceGrid').datagrid('getRows')[InvoiceeditIndex]['text'] = productname;
+                        $('#InvoiceGrid').datagrid('getRows')[InvoiceeditIndex]['ProjId'] = _id;
+                        InvoiceIsEdit=false;
+                        $('#InvoiceGrid').datagrid('endEdit', InvoiceeditIndex);
+
+                        var _postDate=$('#InvoiceGrid').datagrid('getRows')[InvoiceeditIndex];
+
+                        _postDate.RefID=@Model.Id;
+                        $.post('@Url.Action("save", "BussContractOtherInvoice")?Id='+(_postDate.hasOwnProperty("Id")?_postDate.Id:0),_postDate,function () {
+                            JQ.dialog.show("操作成功！");
+                            $('#InvoiceGrid').datagrid('reload');
+                            //$('#InvoiceGrid').datagrid('refreshRow', InvoiceeditIndex);//刷新行
+                            //InvoiceeditIndex=-1;
+
+                            //PlanAdd();
+                        }).error(function (a) {
+                            var CurrentIndex=InvoiceeditIndex;
+                            InvoiceeditIndex=_postDate.hasOwnProperty("Id")?InvoiceeditIndex:-1;
+                            InvoiceIsEdit=true;
+                            $('#InvoiceGrid').datagrid('refreshRow', CurrentIndex);//刷新行
+                            $('#InvoiceGrid').datagrid('beginEdit', CurrentIndex);
+                            InvoiceeditIndex=CurrentIndex;
+                            alert(a.responseText);
+                        });
+                        //JQ.datagrid.autoRefdatagrid();
+                    } else {
+
+                        return false;
+                    }
+                }
+            }
+            //行取消
+            function CannelInvoiceRow() {
+                InvoiceIsEdit=false;
+                $('#InvoiceGrid') .datagrid('cancelEdit', InvoiceeditIndex);
+                InvoiceeditIndex=-1;
+            }
+            //删除行
+            function InvoiceDel() {
+                var row = $('#InvoiceGrid').datagrid('getSelections');
+                if (row.length==0) {
+                    JQ.dialog.warning("请至少选择一项！！！");
+                    return;
+                }
+                if (!confirm("你确定要删除吗?")) {
+                    return;
+                }
+                var DelIds=[];
+                var KeyID="";
+                var _CurrentEditRow=$("#InvoiceGrid").datagrid("getRows")[InvoiceeditIndex];
+                for (var i = 0; i < row.length; i++) {
+                    var _rowindex=$('#InvoiceGrid').datagrid('getRowIndex',row[i]);
+
+                    if (InvoiceIsEdit) {
+                        if (_rowindex==InvoiceeditIndex) {
+                            //先处理编辑行
+                            InvoiceIsEdit=false;
+                        }
+                    }
+                    var _dataROW=row[i];
+                    if (_dataROW.hasOwnProperty("Id")) {
+                        KeyID+=(_dataROW.Id+",");
+                    }
+                    DelIds.push(_rowindex);
+                }
+
+                $.post('@Url.Action("delOtherInvoiceIDs", "BussContractOtherInvoice")',{ids:KeyID},function () {
+                    DelIds.reverse();//倒序排列
+                    for (var i = 0; i < DelIds.length; i++) {
+                        $('#InvoiceGrid').datagrid('deleteRow',DelIds[i]);
+                    }
+                    if (InvoiceIsEdit) {
+                        //存在行编辑、重新赋值行号
+                        InvoiceeditIndex=$('#InvoiceGrid').datagrid('getRowIndex',_CurrentEditRow);
+                    }
+                    JQ.dialog.show("删除成功！");
+                    //JQ.datagrid.autoRefdatagrid();
+                }).error(function (err) {
+                    //alert(err.responseText);
+                    alert("删除失败！");
+                });
+
+            }
+        </script>
+    </div>
+}

@@ -1,0 +1,77 @@
+﻿@model DataModel.Models.BussTendersInfoDetail
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'BussTendersInfoDetailForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.treegrid.autoReftreegrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }
+        });
+    });
+</script>
+@using (Html.BeginForm("save", "BussTendersInfoDetail", FormMethod.Post, new { @area = "Bussiness", @id = "BussTendersInfoDetailForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+
+        <tr>
+            <th width="10%">BussTendersInfo表ID</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+                     {
+                         controlName = "BussTendersInfoID",
+                         isRequired = true,
+                         engName = "department",
+                         width = "98%",
+                         ids = Model.BussTendersInfoID.ToString()
+                     })
+            </td>
+            <th width="10%">外委表ID</th>
+            <td width="40%">
+                <input name="CustomerID" style="width:98%;" class="easyui-numberspinner" validType="length[0,10]" value="@Model.CustomerID" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">商务得分</th>
+            <td width="40%">
+                <input name="BusinessPoints" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" value="@Model.BusinessPoints" />
+            </td>
+            <th width="10%">技术得分</th>
+            <td width="40%">
+                <input name="TechnologyPoints" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" value="@Model.TechnologyPoints" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">总体得分</th>
+            <td width="40%">
+                <input name="TotalityPoints" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" value="@Model.TotalityPoints" />
+            </td>
+            <th width="10%">是否中标</th>
+            <td width="40%">
+                @*<input name="IsWin" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.IsWin" />*@
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @Html.Action("uploadFile", "usercontrol", new
+           {
+               @area = "Core",
+               AttachRefID = Model.Id,
+               AttachRefTable = "BussTendersInfoDetail"
+           })
+            </td>
+        </tr>
+    </table>
+
+}
+
+
+

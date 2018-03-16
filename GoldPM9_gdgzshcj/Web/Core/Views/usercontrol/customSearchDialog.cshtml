@@ -1,0 +1,100 @@
+﻿@model Core.Controllers.CSDialog
+<script>
+    var JQCS = JQCS || {};
+    JQCS.changesDialog = function (target) {
+        var $td = $("#csdTD"),
+            val = $("#customTableByDialog").find("select[name='zdn']").val();
+        JQCS.genderVal($td, val);
+    };
+    JQCS.saveDialog = function () {
+        var $t = $("#customTableByDialog"),
+        ljfval = $t.find("select[name='ljf']").val(),
+        zdnval = $t.find("select[name='zdn']").val(),
+        ysfval = $t.find("select[name='ysf']").val(),
+        json = JQCS.getJson(zdnval),
+        zdntext = json.key,
+        jgzJosn = JQCS.getJGZVal($t, 'zdn');
+        JQCS.editRow(@Model.index, { ljfval: ljfval, zdnval: zdnval, zdntext: zdntext, ysfval: ysfval, jgztext: jgzJosn.text, jgzval: jgzJosn.val,filedType:json.type });
+        JQ.dialog.dialogClose();
+    };
+    JQCS.setJGZVal = function ($t) {
+        var json = JQCS.getJson($t.find("select[name='zdn']").val()),
+            $jgz = $t.find("#jgz");
+        switch (json.type) {
+            case "combox":
+                $jgz.combotree('setValues', [@Model.jgz]);
+                break;
+            case "datetime":
+                $jgz.datebox('setValue', '@Model.jgz');
+                break;
+            default:
+                $jgz.textbox('setValue', '@Model.jgz');
+                break;
+        }
+    };
+    JQCS.setDialogValues = function () {
+        var $t = $("#customTableByDialog");
+        $t.find("select[name='ljf']").val('@Model.ljf');
+        $t.find("select[name='zdn']").val('@Model.zdn');
+        $t.find("select[name='ysf']").val(JQ.tools.htmlDecode('@Model.ysf'));
+    };
+
+    JQ.form.submitInit({});
+    $('#customTableByDialog select[name="zdn"]').each(function (index) {
+        var arr = JQCS.getArr()
+        for (var i = 0; i < arr.length; i++) {
+            $(this).append("<option value='" + arr[i].value + "'>" + arr[i].key + "</option>");
+        }
+    });
+    JQCS.genderVal($("#csdTD"), '@Model.zdn');
+    JQCS.setDialogValues();
+    setTimeout(function () {
+        JQCS.setJGZVal($("#customTableByDialog"));
+    }, 100);
+</script>
+<div JQPanel="dialogButtonPanel">
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="JQCS.saveDialog()">确定</a>
+</div>
+<table id="customTableByDialog" class="table table-bordered">
+    <tr>
+        <td style="width:90px;">
+            链接符
+        </td>
+        <td>
+            <select name="ljf" style="width:75%">
+                <option value="and">and</option>
+                <option value="or">or</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            字段名
+        </td>
+        <td>
+            <select name="zdn" onchange="JQCS.changesDialog(this)" style="width:75%"></select>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            运处符
+        </td>
+        <td>
+            <select name="ysf" style="width:75%">
+                <option value="=">=</option>
+                <option value=">=">>=</option>
+                <option value=">">></option>
+                <option value="<="><=</option>
+                <option value="<"><</option>
+                <option value="like">like</option>
+                <option value="in">in</option>
+            </select>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            结果值
+        </td>
+        <td id="csdTD"></td>
+    </tr>
+</table>

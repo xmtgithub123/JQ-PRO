@@ -1,0 +1,99 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")',//添加的路径
+                JQEditUrl: '@Url.Action("edit")',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'ModelExchangeGrid',//数据表格ID
+                JQDialogTitle: '提资模板信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                //JQCustomSearch: [  //自定义搜索的字段
+                //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+                //],
+                JQExcludeCol: [1, 7],//导出execl排除的列
+                //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+                //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+                //JQFields: ["", ""],//追加的字段名
+                url: '@Url.Action("json","ModelExchange",new { @area="Core"})',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#ModelExchangePanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+				  		//{ title: '自增', field: 'Id', width: 100, align: 'center', sortable: true },
+                        { title: '阶段', field: 'ModelExchangePhaseID', width: "12%", align: 'center', sortable: true },
+                        { title: '专业', field: 'ModelExchangeSpecID', width: "12%", align: 'center', sortable: true },
+                        { title: '资料名称', field: 'ModelExchangeName', width: "20%", align: 'center', sortable: true },
+		{ title: '资料内容', field: 'ModelExchangeContent', width: "22%", align: 'center', sortable: true },
+	     	 { title: '接收专业', field: 'ReciveSpecName', width: "25%", align: 'center', sortable: false },
+             {
+                 title:'操作',field:'edit',width:'5%',align:'center',
+                     formatter:function(val,row)
+                     {
+                         return '<a  class="easyui-linkbutton" onclick="EditOrReadingInfo('+row.Id+')">修改</a>'
+                     }
+             }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '资料名称,资料内容',
+                queryOptions: { 'Key': 'ModelExchangeName,ModelExchangeContent', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ModelExchangeGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                KeyJQSearch: $("#JQSearch").val(),
+                                //ProjectPhase: $('#ProjectPhase').textbox('getValue'),
+                                //Special: $('#Special').textbox('getValue')
+                            }
+                        });
+                }
+            });
+        });
+
+        // 查看或者编辑  提资模板信息
+        function EditOrReadingInfo(Id)
+        {
+            JQ.dialog.dialog({
+                title: '提资模板信息',
+                height: '600',
+                width: '800',
+                url: '@Url.Action("edit")?id=' + Id,
+                onClose:function()
+                {
+                    $("#ModelExchangeGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="ModelExchangeGrid"></table>
+    <div id="ModelExchangePanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+
+        </span>
+        @BaseData.getBases(
+                                                      new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{ Key:'ModelExchangePhaseID', Contract:'in',filedType:'Int'}" },
+                                             new Params() { isMult = true, engName = "Special", queryOptions = "{ Key:'ModelExchangeSpecID', Contract:'in',filedType:'Int'}" }
+           )
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key: 'ModelExchangeName,ModelExchangeContent', 'Contract': 'like' }" />
+
+    </div>
+}
+

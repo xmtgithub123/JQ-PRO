@@ -1,0 +1,287 @@
+﻿@model DataModel.Models.BussContractSub
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        $("#ProjSubIDs").val('@ViewBag.ProjSubIDs');
+        JQ.form.submitInit({
+            formid: 'BussContractSubForm',//formid提交需要用到
+            docName: 'BussContractSub',
+            buttonTypes: ['exportForm', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                var tab = $('#mainTab').tabs('getSelected');
+                var index = $('#mainTab').tabs('getTabIndex', tab);
+                $("#mainTab").find("iframe")[index].contentWindow.refreshGrid();
+                _flowInstance.$form.parent().dialog("close");
+            },
+            beforeFormSubmit: function () {
+                var _Id = $("#Id").val();
+                var _ConSubNumber = $("#ConSubNumber").textbox('getText');
+                var bit;
+                //判断编号重名
+                $.ajax({
+                    doBackResult: false,
+                    url: '@Url.Action("GetConSubCodeCount", "BussContractSub")',
+                    data: { ConSubNumber: _ConSubNumber, Id: _Id },
+                    async: false,
+                    success: function (data) {
+                        bit = data
+                    }
+                })
+                if (bit > 0) {
+                    JQ.dialog.warning('存在相同的外委合同编号:[' + _ConSubNumber + "]");
+                    return false;
+                }
+            },
+            flow: {
+                flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+                flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+                url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+                instance: "_flowInstance",
+                processor: "Bussiness,Bussiness.FlowProcessor.BussContractSub",
+                refID: "@(Model.Id)",
+                refTable: "BussContractSub",
+                dataCreator: "@(ViewBag.CreatorEmpId )"
+            },
+            onBefore: function () {
+                $("#ProjSubTableGrid").datagrid('hideColumn', "ck");
+            },
+            onAfter: function () {
+                $("#ProjSubTableGrid").datagrid('showColumn', "ck");
+            },
+        });
+
+        $('#ProjSubTableGrid').datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'ProjSubTableGrid',//数据表格ID
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            url: '@Url.Action("GetProjSubList", "BussContractSub", new { @area = "Bussiness" })',
+            toolbar: '#ProjSubTablePanel',//工具栏的容器ID
+            pagination: false,
+            queryParams: { ProjSubIDs: $("#ProjSubIDs").val() },
+            columns: [[
+                     { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                     { title: '外委项目编号', field: 'SubNumber', width: 100, halign: 'center', align: 'left', sortable: true, exportWidth: 100 },
+                     { title: '外委项目名称', field: 'SubName', width: 160, halign: 'center', align: 'left', sortable: true, exportWidth: 100 },
+                     { title: '项目编号', field: 'ProjNumber', width: 100, halign: 'center', align: 'left', sortable: true, exportWidth: 80 },
+                     { title: '项目名称', field: 'ProjName', width: 250, halign: 'center', align: 'left', sortable: true, exportWidth: 80 },
+                     { title: '外委单位', field: 'CustName', width: 200, halign: 'center', align: 'left', sortable: true, exportWidth: 80 }
+            ]],
+        });
+
+        JQ.combobox.selEmp({
+            id: 'CreateEmpId'
+        });
+    });
+
+    function SelectProjSub() {
+        JQ.dialog.dialog({
+            title: "选择项目外委",
+            url: '@Url.Action("selectprojsub", "ProjSub", new { @area = "Project" })?CompanyType=FGS&typeID=1&FilterConSubID=1',
+            width: '1024',
+            height: '100%',
+            JQID: 'ProjSubTableGrid',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-plus',
+        });
+    }
+    var _ProjCallBack = function (param) {
+        var _ProjSubIDs = $("#ProjSubIDs").val().split(",");
+        for (var i = 0; i < param.length; i++) {
+            if (_ProjSubIDs.indexOf(param[i]) < 0) { _ProjSubIDs.push(param[i]); }
+        }
+        $("#ProjSubIDs").val(_ProjSubIDs);
+        $("#ProjSubTableGrid").datagrid({
+            url: '@Url.Action("GetProjSubList", "ProjSub", new { @area = "Project" })?CompanyType=FGS',
+            queryParams: { ProjSubIDs: $("#ProjSubIDs").val() },
+        });
+    }
+
+
+    function DelProjSub() {
+        var updateIds = "";
+        var rows = $('#ProjSubTableGrid').datagrid("getSelections");
+        var _ProjSubIDs = $("#ProjSubIDs").val().split(",");
+        for (var j = 0; j < rows.length; j++) {
+            var index = $('#ProjSubTableGrid').datagrid('getRowIndex', rows[j]);
+            var _ProjSubId = rows[j].Id;
+            var delIndex = _ProjSubIDs.indexOf(_ProjSubId);
+            if (delIndex > -1) {
+                _ProjSubIDs.splice(delIndex, 1);
+                $("#ProjSubIDs").val(_ProjSubIDs);
+            }
+            updateIds += _ProjSubId;
+            $('#ProjSubTableGrid').datagrid('deleteRow', index);
+        }
+        if (updateIds.length > 0)
+        {
+            $.ajax({
+                doBackResult: false,
+                url: "@(Url.Action("UpdateProjSubByConSubIDs", "ProjSub", new { @area= "Project" }))?CompanyType=FGS",
+                data: { Ids: updateIds }
+            })
+        }
+    }
+</script>
+
+@using (Html.BeginForm("save", "BussContractSub", FormMethod.Post, new { @area = "Bussiness", @id = "BussContractSubForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <input type="hidden" id="CompanyType" name="CompanyType" value="FGS" />
+    <table class="table table-bordered">
+        <tr>
+            <th>
+                外委项目名称
+            </th>
+            <td colspan="3">
+                <table id="ProjSubTableGrid" bookmark="DetailGrid"></table>
+                <div id="ProjSubTablePanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+                    <span jqpanel="toolbarPanel">
+                        <a class="easyui-linkbutton" name="SelectProjSub" data-options="plain:true,iconCls:'fa fa-plus'" onclick="SelectProjSub()">选择外委项目</a>
+                        <a class="easyui-linkbutton" name="DelProjSub" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="DelProjSub()">删除</a>
+                    </span>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">外委合同编号</th>
+            <td width="40%">
+                <input id="ConSubNumber" name="ConSubNumber" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,50]" value="@Model.ConSubNumber" />
+            </td>
+            <th width="10%">外委合同名称</th>
+            <td width="40%">
+                <input name="ConSubName" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,200]" value="@Model.ConSubName" />
+            </td>
+
+        </tr>
+        <tr>
+            <th width="10%">外委合同类型</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ConSubType",
+               isRequired = true,
+               engName = "ConSubType",
+               width = "98%",
+               ids = Model.ConSubType.ToString()
+           })
+            </td>
+
+            <th width="10%">签订状态</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ConSubStatus",
+               isRequired = true,
+               engName = "ConSubStatus",
+               width = "98%",
+               ids = Model.ConSubStatus.ToString()
+           })
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">顾客名称</th>
+            <td colspan="3">
+                <input id="ConSubCustId" name="ConSubCustId" style="width:98%;" value="@(Model.ConSubCustId==0?"":Model.ConSubCustId.ToString())" />
+                <input id="CustName" name="CustName" type="hidden">
+                <script type="text/javascript">
+                    $(function () {
+                        $("#ConSubCustId").combobox({
+                            url: '@Url.Action("GetSubCustomerListCombobox", "BussCustomer", new { @area= "Bussiness" })',
+                            valueField: 'Id',
+                            textField: 'CustName',
+                            filter:function (q,row) {
+                                var opts = $(this).combobox('options');
+                                return row[opts.textField].indexOf(q) > -1;
+                            },
+                            onLoadSuccess: function (data) {
+                                console.log(data);
+                                if ($("#ConSubCustId").combobox("getText") == "") {
+                                    $("#ConSubCustId").combobox("setText", $("#CustName").val());
+                                }
+                            }
+                        })
+
+                    })
+                </script>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">外委合同金额</th>
+            <td width="40%">
+                <input name="ConSubFee" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" data-options="precision:2" value="@Model.ConSubFee" />
+            </td>
+
+            <th width="10%">外委合同类别</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ConSubCategory",
+               isRequired = true,
+               engName = "ConSubCategory",
+               width = "98%",
+               ids = Model.ConSubCategory.ToString()
+           })
+            </td>
+
+        </tr>
+        <tr>
+            <th width="10%">登记人员</th>
+            <td width="40%">
+                <select id="CreateEmpId" name="CreateEmpId" JQvalue="@Model.CreateEmpId"></select>
+            </td>
+            <th width="10%">登记日期</th>
+            <td width="40%">
+                <input name="CreateDate" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.CreateDate" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">签订日期</th>
+            <td width="40%">
+                <input name="ConSubDate" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.ConSubDate" />
+            </td>
+
+            <th width="10%">归档盒号</th>
+            <td width="40%">
+                <input name="ArchNumber" style="width:98%;" class="easyui-textbox" validType="length[0,50]" value="@Model.ArchNumber" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">付款条件</th>
+            <td width="40%" colspan="3">
+
+                <textarea name="Condition" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.Condition</textarea>
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">外委合同备注</th>
+            <td width="40%" colspan="3">
+                <textarea name="ConSubNote" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.ConSubNote</textarea>
+            </td>
+
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3" style="width:98%">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "BussContractSub";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <div id="tbCustomer" style="padding:5px;height:auto; display:none;">
+        <input id="fullNameSearchCustomer" style="width:250px;" JQWhereOptions="{ Key: 'CustName', 'Contract': 'like' }" />
+    </div>
+    <input type="hidden" id="ProjSubIDs" name="ProjSubIDs" />
+
+                    }

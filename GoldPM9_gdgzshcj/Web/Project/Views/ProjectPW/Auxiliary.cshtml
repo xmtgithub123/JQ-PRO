@@ -1,0 +1,84 @@
+﻿@model DataModel.Models.ProjectAuxiliary
+@using JQ.Web;
+
+<script type="text/javascript">
+    debugger;
+    $("#ProjId").val(@ViewBag.ProjId);
+    $(function () {
+        //提交页面
+        JQ.form.submitInit({
+            formid: 'ProjectFormAuxiliary',//formid提交需要用到
+            docName: 'ProjectTask',
+            ExportName: '电网任务书',
+            buttonTypes: ['submit', 'close'],//默认按钮
+            beforeFormSubmit: function () {
+                debugger;
+            },
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }
+        });
+    });
+</script>
+@using (Html.BeginForm("savePerfect", "ProjectPW", FormMethod.Post, new { @area = "Project", @id = "ProjectFormAuxiliary" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">项目前期配合单位</th>
+            <td width="40%" colspan="3">
+                <input name="AuxiliaryUnit" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,400]" value="@Model.AuxiliaryUnit" />
+            </td>
+
+        </tr>
+
+        <tr>
+            <th width="10%">需勘测项目数</th>
+            <td width="40%">
+                <input name="KCNum" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" data-options="precision:0" value="@Model.KCNum" />
+            </td>
+            <th width="10%">已完成勘测项目数</th>
+            <td width="40%">
+                <input name="AKCNum" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" data-options="precision:0" value="@Model.AKCNum" />
+            </td>
+
+        </tr>
+        <tr>
+            <th width="10%">施工图计划时间</th>
+            <td width="40%">
+                <input name="SGJH" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.SGJH" />
+            </td>
+            <th width="10%">完成时间</th>
+            <td width="40%">
+                <input name="SGWCJH" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.SGWCJH" />
+            </td>
+
+        </tr>
+        <tr>
+            <th width="10%">定点划线计划时间</th>
+            <td width="40%"><input name="DDJH" style="width:98%;" class="easyui-datebox" validType="dateISO" value="@Model.DDJH" /></td>
+            <th width="10%">定点划线完成项目数</th>
+            <td width="40%"><input name="DDWCNum" style="width:98%;" class="easyui-numberspinner" validType="length[0,18]" data-options="precision:0" value="@Model.DDWCNum" /></td>
+
+        </tr>
+
+
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "ProjectAuxiliary";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+
+    </table>
+    <input type="hidden" id="ProjId" name="ProjId" value="0" />
+                    }

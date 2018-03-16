@@ -1,0 +1,167 @@
+﻿@model DataModel.Models.ProjCostModel
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'ProjCostModelForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            },
+            beforeFormSubmit: function () {
+                var flag1 = false;
+                var flag2 = false;
+                //判断checkbox是否选中
+                $("input[name='ModelIsType']").each(function () {
+                    if ($(this).attr("checked")) {
+                        flag1 = true;
+                    }
+                });
+                $("input[name='ModelIsSum']").each(function () {
+                    if ($(this).attr("checked")) {
+                        flag2 = true;
+                    }
+                });
+                if (flag1 && flag2) {
+                    return true;
+                }
+                else {
+                    JQ.dialog.warning('"请选择复选框!!!"');
+                    return false;
+                }
+
+            }
+        });
+
+        $("input[name='ModelIsType']").click(function () {
+            if ($(this).attr("checked")) {
+                $("input[name='ModelIsType']").attr("checked", false);
+                $(this).attr("checked", true);
+            }
+        });
+
+        $("input[name='ModelIsSum']").click(function () {
+            if ($(this).attr("checked")) {
+                $("input[name='ModelIsSum']").attr("checked", false);
+                $(this).attr("checked", true);
+            }
+        });
+
+    });
+
+    function callOnChange() {
+        $("#ParentId").combotree("clear");
+        var tempVal = $("input[name='ModelType']").val();
+        $("#ParentId").combotree("reload", '@(Url.Action("GetAllProjCostType", "ProjCostModel"))?ModelType=' + tempVal+'&id='+@Model.Id);
+        @* $("#ParentId").combotree("reload");*@
+    }
+</script>
+@using (Html.BeginForm("save", "ProjCostModel", FormMethod.Post, new { @area = "Project", @id = "ProjCostModelForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <td colspan="4" style="padding: 15px; font-size: 20px; text-align: center; font-weight: bold; border: none;">项目成本配置</td>
+        </tr>
+        <tr>
+            <th width="10%">成本项</th>
+            <td colspan="3">
+                <input name="ModelName" style="width:98%;" class="easyui-textbox" validtype="length[0,50]" value="@Model.ModelName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">成本类型</th>
+            <td colspan="3">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ModelType",
+               isRequired = true,
+               engName = "ProjCostType",
+               width = "80%",
+               ids = Model.ModelType.ToString()
+           })
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">父节点</th>
+            <td colspan="3">
+                <select id="ParentId" name="ParentId" style="width: 80%; height: 28px;"></select>&nbsp;&nbsp;
+                <script type="text/javascript">
+                    $(function () {
+                    
+                        $('#ParentId').combotree({
+                            animate: true, cascadeCheck: false, multiple: false, required: true, url:  '@(Url.Action("GetAllProjCostType", "ProjCostModel"))', prompt: '请选择父节点', onlyLeafCheck: true, onLoadSuccess: function (row, data) {
+                                var tempVal = $("input[name='ModelType']").val();
+                                // debugger;
+                                //如果父节点不为空，并且modeltype是选择的值则绑定父节点
+                                if(@Model.ModelType==tempVal && @Model.ParentId!=0)
+                                {
+                                    $('#ParentId').combotree('setValues', '@Model.ParentId'); 
+                                }
+
+                             @*   @if (Model.ParentId != 0)
+                                {
+                                  <text>$('#ParentId').combotree('setValues', '@Model.ParentId'); </text>
+                                }*@
+                            }
+                        });
+                    })
+                </script>
+            </td>
+        </tr>
+
+        <tr>
+            <th width="12%">是否是类别</th>
+            <td width="38%">
+                @{
+                                var ischecked = "";
+                                if (ViewBag.isAdd == null)
+                                {
+                                    ischecked = "checked='checked'";
+                                }
+                                var val = Model.ModelIsType;
+                    <input type="checkbox" name="ModelIsType" value="1" @(val == 1 ? ischecked : "") /><text>是</text>
+                    <input type="checkbox" name="ModelIsType" value="0" @(val == 0 ? ischecked : "") /><text>否</text>
+                }
+
+
+            </td>
+            <th width="10%">是否统计</th>
+            <td width="40%">
+                @{
+                                var ischecked2 = "";
+                                if (ViewBag.isAdd == null)
+                                {
+                                    ischecked2 = "checked='checked'";
+                                }
+                                var val2 = Model.ModelIsSum;
+                    <input type="checkbox" name="ModelIsSum" value="1" @(val2 == 1 ? ischecked2 : "") /><text>是</text>
+                    <input type="checkbox" name="ModelIsSum" value="0" @(val2 == 0 ? ischecked2 : "") /><text>否</text>
+                }
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">备注</th>
+            <td colspan="3">
+                <textarea name="Note" rows="3" cols="80">@Model.Note</textarea></td>
+        </tr>
+
+
+    </table>
+
+}
+<script type="text/javascript">
+    $(function () {
+        $('#ModelType').combotree({
+            onChange: function (n, o) {
+                callOnChange();
+            }
+        })
+    })
+</script>
+
+
+

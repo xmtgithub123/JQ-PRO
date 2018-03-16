@@ -1,0 +1,121 @@
+﻿@model DataModel.Models.FlowModel
+<style type="text/css">
+    .table1 {
+        border-collapse: separate !important;
+        border-spacing: 5px !important;
+    }
+
+    .nodeview {
+        display: inline-block;
+        -webkit-user-select: none;
+        cursor: default;
+        margin-left: 5px;
+    }
+
+    .nodeview_block {
+        word-spacing: normal;
+        line-height: 24px;
+        width: 60px;
+        display: inline-block;
+        text-align: center;
+        margin-right: 3px;
+        color: #222222;
+    }
+
+    #divFlows th {
+        border: solid 1px #66ccff;
+        padding: 5px;
+        white-space: nowrap;
+        list-style: none;
+        background-color: white;
+        cursor: default;
+        height: 38px;
+        margin: 3px;
+        text-align: left;
+        width: 100px;
+    }
+</style>
+<script type="text/javascript">
+    var flowID = "@(Request.QueryString["flowID"] != null ? int.Parse(Request.QueryString["flowID"]):0)";
+    JQ.form.submitInit({
+        formid: "FlowNodes",
+        buttonTypes: ["close"],
+        succesCollBack: function (data) {
+        },
+        onInit: function ($panel) {
+            $("<div class=\"nodeview\">节点颜色说明：<div class=\"nodeview_block\" style=\"background-color:#FFFF99;width:80px;\">节点轮到</div><div class=\"nodeview_block\" style=\"background-color:#ff9966;width:80px;\">节点退回</div><div class=\"nodeview_block\" style=\"background-color:#B6AAFC;width:80px;\">节点跳过</div><div class=\"nodeview_block\" style=\"background-color:#66ccff;width:80px;\">任务完成</div></div>").appendTo($panel);
+        }
+    });
+    loadNodes();
+    $("#tbGrid").datagrid({
+        url: "@(Url.Action("GetFlowExe","PubFlow",new { @area="Core" }))",
+        method: "post",
+        queryParams: { flowID: flowID },
+        idField: "Id",
+        singleSelect: true,
+        rownumbers: true,
+        columns: [[
+              { title: "节点名称", field: "FlowNodeName", width: 100, align: "center", halign: "center" },
+              { title: "动作", field: "ActionName", width: 60, align: "center", halign: "center" },
+              { title: "操作人", field: "ExeEmpName", width: 70, align: "center", halign: "center" },
+              { title: "代理操作人", field: "ExeArgEmpName", width: 70, align: "center", halign: "center" },
+              {
+                  title: "操作时间", field: "NewExeActionDate", width: 126, align: "center", halign: "center",
+              },
+              {
+                  title: "意见", field: "ExeNote", width: 280, align: "left", halign: "center", formatter: function (value) {
+                      var texts = value.split("\n");
+                      var div = document.createElement("div");
+                      for (var i = 0; i < texts.length; i++) {
+                          var p = document.createElement("p");
+                          p.appendChild(document.createTextNode(texts[i]));
+                          div.appendChild(p);
+                      }
+                      return div.innerHTML;
+                  }
+              }
+        ]],
+        fit: true,
+        pageSize: 10,
+        pagination: true,
+        pageList: [10, 15, 20, 30, 50],
+        onLoadSuccess: function () {
+            $("#tbGrid").datagrid("doCellTip", {
+                onlyShowInterrupt: false,
+                showFields: ["ExeNote"],
+                position: "bottom",
+                maxWidth: "350px",
+                tipStyler: {
+                    backgroundColor: "#ffffff",
+                    borderColor: "#0092fc",
+                    padding: "10px",
+                    color: "#5c5c5c",
+                    fontSize: "9px"
+                }
+            });
+        }
+    }).datagrid("getPager").pagination({
+        beforePageText: '第',
+        afterPageText: '页    共 {pages} 页',
+        displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录'
+    });
+
+    function loadNodes() {
+        $.ajax({
+            url: "@(Url.Action("GetNodesHtml","PubFlow",new { @area="Core" }))",
+            type: "post",
+            data: { flowID: flowID },
+            success: function (result) {
+                document.getElementById("divFlows").innerHTML = result;
+                document.getElementById("divFlowExes").style.height = (document.getElementById("FlowNodes").clientHeight - document.getElementById("divFlows").offsetHeight) + "px";
+                $("#tbGrid").datagrid("resize");
+            }
+        });
+    }
+</script>
+<form id="FlowNodes" name="flowNodes" style="height:100%;width:100%;">
+    <div id="divFlows" style="overflow-x:auto;overflow-y:hidden;padding:5px 0px 5px 8px"></div>
+    <div id="divFlowExes" style="background:#EFEFEF">
+        <table id="tbGrid"></table>
+    </div>
+</form>

@@ -1,0 +1,406 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <form id="form1">
+        <div id="div1" style="padding:5px;display:none">
+            <table class="documenttable" style="width:100%">
+                <tr>
+                    <th style="width:15%">名称</th>
+                    <td style="width:35%">
+                        <input type="text" id="txtName" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                    <th style="width:15%">
+                        字段
+                    </th>
+                    <td style="width:35%">
+                        <select id="listdatafield" class="yc_select">
+                            <option value="">无</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr style="height:39px">
+                    <th>
+                        最小日期
+                    </th>
+                    <td>
+                        <select id="ddlMinDateMode" class="yc_select">
+                            <option value="1">选择</option>
+                            <option value="2">控件</option>
+                        </select>
+                        <input type="text" id="txtMinDate" class="yc_textbox yc_datebox" style="width:100px;display:none" />
+                        <select id="ddlMinDateElement" class="yc_select" style="width:110px;display:none"></select>
+                    </td>
+                    <th>
+                        最大日期
+                    </th>
+                    <td>
+                        <select id="ddlMaxDateMode" class="yc_select">
+                            <option value="1">选择</option>
+                            <option value="2">控件</option>
+                        </select>
+                        <input type="text" id="txtMaxDate" class="yc_textbox yc_datebox" style="width:100px" />
+                        <select id="ddlMaxDateElement" class="yc_select" style="width:110px;display:none"></select>
+                    </td>
+                </tr>
+                <tr style="height:39px">
+                    <th>
+                        必选
+                    </th>
+                    <td>
+                        <input type="checkbox" id="cbIsRequire" />
+                    </td>
+                    <th></th>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th style="width:15%">宽度</th>
+                    <td style="width:35%"><input type="text" id="txtWidth" name="" class="yc_textbox" style="width:80%"> px</td>
+                    <th style="width:15%">默认当天</th>
+                    <td style="width:35%"><input type="checkbox" id="cbIsDefaultCurrentDate" /></td>
+                </tr>
+                <tr>
+                    <th>内边距</th>
+                    <td colspan="3">
+                        上 <input type="text" id="txtPaddingTop" class="yc_textbox" style="width:32px" /> px
+                        右 <input type="text" id="txtPaddingRight" class="yc_textbox" style="width:32px" /> px
+                        下 <input type="text" id="txtPaddingBottom" class="yc_textbox" style="width:32px" /> px
+                        左 <input type="text" id="txtPaddingLeft" class="yc_textbox" style="width:32px" /> px
+                    </td>
+                </tr>
+                <tr>
+                    <th>外边距</th>
+                    <td colspan="3">
+                        上 <input type="text" id="txtMarginTop" class="yc_textbox" style="width:32px" /> px
+                        右 <input type="text" id="txtMarginRight" class="yc_textbox" style="width:32px" /> px
+                        下 <input type="text" id="txtMarginBottom" class="yc_textbox" style="width:32px" /> px
+                        左 <input type="text" id="txtMarginLeft" class="yc_textbox" style="width:32px" /> px
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        提示文本
+                    </th>
+                    <td colspan="3">
+                        <input type="text" id="txtPlaceHolder" name="" class="yc_textbox" style="width:90%">
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="div3" style="display:none;padding:5px;">
+            <table class="documenttable" style="width:100%">
+                <tr>
+                    <th style="width:15%">变量名称</th>
+                    <td style="width:35%">
+                        <input type="text" id="txtVariableName" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                    <th style="width:15%">
+                    </th>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th>
+                        可编辑步骤
+                    </th>
+                    <td colspan="3" id="tdActivities"></td>
+                </tr>
+                <tr>
+                    <th>显示设置</th>
+                    <td colspan="3">
+                        <div id="divdisplay">
+                            <div>
+                                步骤：
+                                <select id="listActivities" class="yc_select">
+                                    <option value="">无</option>
+                                </select>
+                            </div>
+                            <div style="margin-top:5px;">
+                                <input type="checkbox" id="cbIsShowProcessTime" /><label for="cbIsShowProcessTime">显示处理时间</label>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        审批完成后
+                    </th>
+                    <td colspan="3">
+                        <input type="checkbox" id="cbIsEditableWhenPassed" /><label for="cbIsEditableWhenPassed">通过后可以编辑</label>
+                        <input type="checkbox" id="cbIsEditableWhenUnPassed" /><label for="cbIsEditableWhenUnPassed">不通过后可以编辑</label>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<link rel="stylesheet" href="@(Url.Content("~/Content/chart/chart.tab.css"))" />
+<link rel="stylesheet" href="@(Url.Content("~/Content/chart/chart.datebox.css"))" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.datebox.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.grid.js"))"></script>
+<script type="text/javascript">
+    var _lastMinDate, _lastMaxDate;
+    document.getElementById("ddlMinDateMode").onchange = function () {
+        var _v = YChart.getSelectedValue(this);
+        if (_v == "1") {
+            document.getElementById("txtMinDate").style.display = "";
+            if (_lastMinDate) {
+                document.getElementById("txtMinDate").value = _lastMinDate;
+            }
+            document.getElementById("ddlMinDateElement").style.display = "none";
+        }
+        else if (_v == "2") {
+            document.getElementById("txtMinDate").style.display = "none";
+            _lastMinDate = document.getElementById("txtMinDate").value;
+            document.getElementById("txtMinDate").value = "";
+            document.getElementById("ddlMinDateElement").style.display = "";
+        }
+    }
+
+    document.getElementById("ddlMaxDateMode").onchange = function () {
+        var _v = YChart.getSelectedValue(this);
+        if (_v == "1") {
+            document.getElementById("txtMaxDate").style.display = "";
+            if (_lastMaxDate) {
+                document.getElementById("txtMaxDate").value = _lastMaxDate;
+            }
+            document.getElementById("ddlMaxDateElement").style.display = "none";
+        }
+        else if (_v == "2") {
+            document.getElementById("txtMaxDate").style.display = "none";
+            _lastMaxDate = document.getElementById("txtMaxDate").value;
+            document.getElementById("txtMaxDate").value = "";
+            document.getElementById("ddlMaxDateElement").style.display = "";
+        }
+    }
+
+    window.onDialogLoaded = function () {
+        var yTab = new YChart.Tab({
+            container: "divcontent",
+            offsetHeight: 0,
+            tabs: [
+                {
+                    name: "controlproperty",
+                    title: "控件属性",
+                    element: "div1",
+                    closable: false
+                },
+                {
+                    name: "processproperty",
+                    title: "流程属性",
+                    element: "div3",
+                    closable: false
+                }
+            ]
+        });
+        YChart.registerNumberBox({
+            element: [document.getElementById("txtWidth"), document.getElementById("txtPaddingTop"), document.getElementById("txtPaddingRight"), document.getElementById("txtPaddingBottom"), document.getElementById("txtPaddingLeft"), document.getElementById("txtMarginTop"), document.getElementById("txtMarginRight"), document.getElementById("txtMarginBottom"), document.getElementById("txtMarginLeft")],
+            precision: 0,
+            min: 0
+        });
+        var data = window.frameElement.api.getSource();
+        var source = data.source;
+        var style = source.element.ownerDocument.defaultView.getComputedStyle(source.element);
+        document.getElementById("txtName").value = source.element.getAttribute("id") || "";
+        document.getElementById("txtWidth").value = style.width.replace("px", "");
+        document.getElementById("txtPaddingTop").value = style.paddingTop.replace("px", "");
+        document.getElementById("txtPaddingRight").value = style.paddingRight.replace("px", "");
+        document.getElementById("txtPaddingBottom").value = style.paddingBottom.replace("px", "");
+        document.getElementById("txtPaddingLeft").value = style.paddingLeft.replace("px", "");
+        document.getElementById("txtMarginTop").value = style.marginTop.replace("px", "");
+        document.getElementById("txtMarginRight").value = style.marginRight.replace("px", "");
+        document.getElementById("txtMarginBottom").value = style.marginBottom.replace("px", "");
+        document.getElementById("txtMarginLeft").value = style.marginLeft.replace("px", "");
+        var dateboxes = window.frameElement.api.getDateBoxes();
+        var _ddlMinDateElement = document.getElementById("ddlMinDateElement");
+        var _ddlMaxDateElement = document.getElementById("ddlMaxDateElement");
+        var option = document.createElement("option");
+        option.setAttribute("value", "");
+        option.appendChild(document.createTextNode("无"));
+        _ddlMinDateElement.appendChild(option);
+        option = document.createElement("option");
+        option.setAttribute("value", "");
+        option.appendChild(document.createTextNode("无"));
+        _ddlMaxDateElement.appendChild(option);
+        for (var i = 0; i < dateboxes.length; i++) {
+            option = document.createElement("option");
+            option.setAttribute("value", dateboxes[i]);
+            option.appendChild(document.createTextNode(dateboxes[i]));
+            _ddlMinDateElement.appendChild(option);
+            option = document.createElement("option");
+            option.setAttribute("value", dateboxes[i]);
+            option.appendChild(document.createTextNode(dateboxes[i]));
+            _ddlMaxDateElement.appendChild(option);
+        }
+        if ("isRequire" in source) {
+            document.getElementById("cbIsRequire").checked = source.isRequire == "1" ? true : false;
+            YChart.setSelectedByValue(document.getElementById("ddlMinDateMode"), source.minDateMode);
+            YChart.setSelectedByValue(document.getElementById("ddlMaxDateMode"), source.maxDateMode);
+            if (source.minDateMode == "1") {
+                document.getElementById("txtMinDate").value = source.minDate;
+            }
+            else {
+                YChart.setSelectedByValue(_ddlMinDateElement, source.minDateElement);
+            }
+            if (source.maxDateMode == "1") {
+                document.getElementById("txtMaxDate").value = source.maxDate;
+            }
+            else {
+                YChart.setSelectedByValue(_ddlMaxDateElement, source.maxDateElement);
+            }
+        }
+        if ("isDefaultCurrentDate" in source) {
+            document.getElementById("cbIsDefaultCurrentDate").checked = source.isDefaultCurrentDate == "1" ? true : false;
+        }
+        if (source.placeHolder) {
+            document.getElementById("txtPlaceHolder").value = source.placeHolder;
+        }
+        document.getElementById("ddlMinDateMode").onchange();
+        document.getElementById("ddlMaxDateMode").onchange();
+        if (data.columns && data.columns.length > 0) {
+            var _listfield = document.getElementById("listdatafield");
+            for (var i = 0; i < data.columns.length; i++) {
+                var option = document.createElement("option");
+                option.setAttribute("value", data.columns[i].value);
+                option.appendChild(document.createTextNode(data.columns[i].name));
+                if (data.columns[i].value == source.dataField) {
+                    option.setAttribute("selected", "selected");
+                }
+                _listfield.appendChild(option);
+            }
+        }
+        if (source.inlineTableName) {
+            document.getElementById("txtVariableName").style.display = "none";
+            document.getElementById("divdisplay").style.display = "none";
+        }
+        if (source.flow) {
+            document.getElementById("txtVariableName").value = source.flow.variableName;
+            document.getElementById("cbIsShowProcessTime").checked = source.flow.isShowProcessTime == "1";
+            document.getElementById("cbIsEditableWhenPassed").checked = source.flow.isEditableWhenPassed == "1";
+            document.getElementById("cbIsEditableWhenUnPassed").checked = source.flow.isEditableWhenUnPassed == "1";
+        }
+        if (data.processTemplateID || data.processTemplateVersionID) {
+            YChart.ajax({
+                url: "@(Url.Action("GetAllActivities", "Template",new { @area="Process" }))",
+                type: "POST",
+                data: { id: data.processTemplateID, versionID: data.processTemplateVersionID },
+                success: function (result) {
+                    var _listActivities = document.getElementById("listActivities");
+                    var _tdActivities = document.getElementById("tdActivities");
+                    for (var i = 0; i < result.length; i++) {
+                        var option = document.createElement("option");
+                        option.setAttribute("value", result[i].Value);
+                        option.appendChild(document.createTextNode(result[i].Text));
+                        _listActivities.appendChild(option);
+                        var checkbox = YChart.createElement("input", { type: "checkbox", id: "cb_a_" + i, value: result[i].Value }, { marginLeft: "5px" });
+                        _tdActivities.appendChild(checkbox);
+                        var lbl = YChart.createElement("label", { "for": "cb_a_" + i });
+                        lbl.appendChild(document.createTextNode(result[i].Text));
+                        _tdActivities.appendChild(lbl);
+                        if (source.flow) {
+                            if (result[i].Value == source.flow.displayStep) {
+                                option.selected = true;
+                            }
+                            for (var j = 0; j < source.flow.editableSteps.length; j++) {
+                                if (source.flow.editableSteps[j] == result[i].Value) {
+                                    checkbox.checked = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function sure() {
+        var name = document.getElementById("txtName").value;
+        if (name && window.frameElement.api.isExists(name)) {
+            alert("控件名称已经存在，无法保存！");
+            return;
+        }
+        var property = {
+            minDateMode: YChart.getSelectedValue(document.getElementById("ddlMinDateMode")),
+            maxDateMode: YChart.getSelectedValue(document.getElementById("ddlMaxDateMode"))
+        }
+        if (property.minDateMode == "1") {
+            property.minDate = document.getElementById("txtMinDate").value;
+        }
+        else {
+            property.minDateElement = YChart.getSelectedValue(document.getElementById("ddlMinDateElement"));
+        }
+        if (property.maxDateMode == "1") {
+            property.maxDate = document.getElementById("txtMaxDate").value;
+        }
+        else {
+            property.maxDateElement = YChart.getSelectedValue(document.getElementById("ddlMaxDateElement"));
+        }
+        if (property.minDateMode == "1" && property.maxDateMode == "1" && property.minDate && property.maxDate) {
+            if (YChart.parseDate(property.minDate) >= YChart.parseDate(property.maxDate)) {
+                alert("最小日期大于最大日期!");
+                return;
+            }
+        }
+        else if (property.minDateMode == "2" && property.maxDateMode == "2" && property.minDateElement && property.maxDateElement && property.minDateElement == property.maxDateElement) {
+            alert("最小日期和最大日期无法适用于相同的控件!");
+            return;
+        }
+        property.flow = {
+            variableName: YChart.trim(document.getElementById("txtVariableName").value),
+            displayStep: YChart.getSelectedValue(document.getElementById("listActivities")),
+            isEditableWhenPassed: document.getElementById("cbIsEditableWhenPassed").checked? "1":"0",
+            isEditableWhenUnPassed: document.getElementById("cbIsEditableWhenUnPassed").checked ? "1" : "0",
+            editableSteps: []
+        };
+        if (property.flow.displayStep == "") {
+            property.flow.isShowProcessTime = "0";
+        }
+        else {
+            property.flow.isShowProcessTime = document.getElementById("cbIsShowProcessTime").checked ? "1" : "0";
+        }
+        //获取出选项
+        YChart.recuriseChildNodes(document.getElementById("tdActivities"), function (element) {
+            if (element.nodeType != 1 || element.tagName != "INPUT" || element.getAttribute("type") != "checkbox") {
+                return;
+            }
+            if (element.checked) {
+                property.flow.editableSteps.push(element.getAttribute("value"));
+            }
+        });
+        property.dataField = YChart.getSelectedValue(document.getElementById("listdatafield"));
+        property.isRequire = document.getElementById("cbIsRequire").checked ? "1" : "0";
+        property.isDefaultCurrentDate = document.getElementById("cbIsDefaultCurrentDate").checked ? "1" : "0";
+        property.placeHolder = document.getElementById("txtPlaceHolder").value;
+        window.frameElement.api.saveData({
+            name: name,
+            style: {
+                width: document.getElementById("txtWidth").value,
+                padding: document.getElementById("txtPaddingTop").value + "px" + " " + document.getElementById("txtPaddingRight").value + "px" + " " + document.getElementById("txtPaddingBottom").value + "px" + " " + document.getElementById("txtPaddingLeft").value + "px",
+                margin: document.getElementById("txtMarginTop").value + "px" + " " + document.getElementById("txtMarginRight").value + "px" + " " + document.getElementById("txtMarginBottom").value + "px" + " " + document.getElementById("txtMarginLeft").value + "px"
+            },
+            property: property
+        });
+        frameElement.closeDialog();
+    }
+
+    YChart.DateBox.init(document.getElementById("txtMinDate"), {
+        maxDateElement: document.getElementById("txtMaxDate")
+    });
+
+    YChart.DateBox.init(document.getElementById("txtMaxDate"), {
+        minDateElement: document.getElementById("txtMinDate")
+    });
+
+</script>

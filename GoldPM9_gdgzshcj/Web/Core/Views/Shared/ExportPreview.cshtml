@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>导出预览</title>
+    @RenderPage("_Header.cshtml")
+    <link href="@Url.Content("~/lib/rwpUI/skins/lightblue/css/rwpLayout.css")" rel="stylesheet" type="text/css" />
+    <style type="text/css">
+        .printbutton
+        {
+            padding: 10px 0 10px 0;
+        }
+        .printbutton .inputWidth
+        {
+            float: left;
+            padding: 0 5px 0 3px;
+            height: 22px;
+        }
+        /*.printTable
+        {            
+            border-left: #000 1px solid;
+            border-top: #000 1px solid;
+        }*/
+        /*.printTable td
+        {
+            border-bottom: #000 1px solid;
+            border-right: #000 1px solid;
+            text-align: center;
+            padding-top: 5px;
+            padding-bottom:5px;
+            line-height:22px;
+
+        }*/
+        /*.printTable .tableHead td
+        {
+            background: #fff;
+            font-weight: 700;            
+        }*/
+    </style>
+    <script src="@Url.Content("~/lib/rwpUI/js/ui/rwpDatagrid.js")" type="text/javascript" ></script>
+    <script src="@Url.Content("~/lib/rwpUI/js/ui/rwpDatagrid.plugin.js")" type="text/javascript"></script>
+    <script type="text/javascript">
+        var gridManager;
+        var gridData = { itemsPerPage: 100 };
+        var parentGridManager, parentGridOptions, parentUrl, parentGridParams = [];
+        function initGridData() {
+            gridData.totalPages = 1;
+            gridData.currentPage = 1;
+            gridData.items = [];
+        }
+
+        //获取所有分页数据
+        function getAllPageData() {
+            initGridData();    //每次请求时 初始化变量
+            for (; gridData.currentPage <= gridData.totalPages; gridData.currentPage++) {
+                getPageData();
+            }
+            return gridData;
+        }
+
+        //获取某页数据
+        function getPageData() {
+            var param = [];
+            if (parentGridParams && parentGridParams.length > 0) {
+                $(parentGridParams).each(function () {
+                    param.push({ name: this.name, value: this.value });
+                })
+            }
+            param.push({ name: 'page', value: gridData.currentPage });
+            param.push({ name: 'pagesize', value: gridData.itemsPerPage });
+
+            $.rwpUI.post(parentUrl, param, null,
+                function (data) {
+                    addPageData(data);
+                }, null, null, false, true);
+        }
+
+        //添加某页数据
+        function addPageData(pageData) {
+            if (pageData) {
+                if (pageData['totalPages'])  //分页时才更新总页数
+                    gridData.totalPages = pageData['totalPages'];
+                $(pageData['items']).each(function (i, item) {
+                    gridData.items.push(item);
+                });
+            }
+        }
+
+        //设置表格数据
+        function setGridData() {
+            var waiting = $.rwpUI.waitting('数据量大,正在加载中,请稍候...');
+            setTimeout(function () {
+                gridManager.refreshData({ data: getAllPageData() });
+                setPrintTableHtml();   //同步打印表格的html
+                waiting.close();
+            }, 0);
+        }
+
+        //设置打印表格的html
+        function setPrintTableHtml() {
+            var rwpUIHeaderTable = $('.exportContentHidden .rwpGridTableHead table');
+            var rwpUIBodyTable = $('.exportContentHidden .rwpGridTableBody > table');
+            var printTable = $('.printContent .printTable');
+            $('tr:not(:first)', printTable).remove();  //删除所有非首行元素(标题行不会重新加载)            
+            $('tr', rwpUIHeaderTable).each(function (i, item) {
+                printTable.append(item);   //插入表头
+            });
+            $('tr', rwpUIBodyTable).each(function (i, item) {
+                printTable.append(item);   //插入body
+            });
+
+            $('*', printTable).removeClass();   //移除所有元素的类名            
+            $('td >div', printTable).css({ height: 'auto', width: 'auto' });   //移除td中div的高度和宽度            
+            $('tr', printTable).unbind('mouseover').unbind('mouseout');  //解除mouseover绑定
+
+            $('th, td', printTable).css({ 'text-align': 'center', 'paddingTop': '5px', 'paddingBottom': '5px', 'line-height': '22px', 'border-color': '#000' });
+            $('tr:first th', printTable).css({ 'background': '#fff', 'font-weight': '700' });
+        }
+
+        function htmlEncode(value) {
+            //create a in-memory div, set it's inner text(which jQuery automatically encodes)
+            //then grab the encoded contents back out.  The div never exists on the page.
+            return $('<div/>').text(value).html();
+        }
+
+        function exportExcel() {
+            var tableHtml = htmlEncode($('.printTable')[0].outerHTML);//做html编码
+            $('#fileHtmlStr').val(tableHtml);
+            $('#exportform').submit(); //表单提交
+        }
+
+        function doSave() {
+            //alert(document.getElementById('theexecel').innerHTML);
+            var winname = window.open('', 'excel1', 'top=0');
+            winname.document.open('text/html', 'replace');
+            execelcontent = document.getElementById('Report_DIV').innerHTML
+            winname.document.writeln(execelcontent);
+            winname.document.execCommand('saveas', '', '导出的excel.xls');
+            winname.close();
+        }
+
+        $(function () {
+            parentGridManager = window.opener.rwpListLayout.getCurrentGrid();
+            parentGridOptions = parentGridManager.getOptions();
+            parentUrl = parentGridOptions.url;  //重新获取url
+            parentGridParams = parentGridOptions.params;   //获取表格查询参数            
+            var parentGridExportOpts = window.opener.rwpTemp.exportgridopts;  //父窗体的导出表格参数            
+            parentGridExportOpts.url = null;  //取消url, 用data静态数据
+            parentGridExportOpts.toolbar = null;  //取消工具栏
+            parentGridExportOpts.checkbox = false;  //取消复选框
+            parentGridExportOpts.onContextmenu = null;  //取消表格的右键菜单
+            parentGridExportOpts.onAfterShowData = null;  //取消表格的数据加载完成事件
+            var columnRemove = [];
+            for (var i = 0; i < parentGridExportOpts.columns.length; i++) {
+                if (!parentGridExportOpts.columns[i].name || parentGridExportOpts.columns[i].isHide === true)
+                    columnRemove.push(i);   //获取表格列中 操作栏的索引 及主键隐藏列的索引
+            }
+            for (var i = 0; i < columnRemove.length; i++)
+                parentGridExportOpts.columns.splice(columnRemove[i] - i, 1);  //删除指定索引处的元素            
+            parentGridExportOpts.usePager = false;   //不使用分页            
+            $('.exportContentHidden:first').rwpUIDatagrid(parentGridExportOpts);
+            gridManager = $('.exportContentHidden:first').data('rwpUIDatagrid');
+            setGridData();  //开始加载表格数据
+            $('#export').click(function (e) {
+                e.preventDefault();  //IE6阻止默认事件
+                //exportExcel();
+                doSave();
+            });
+            $('#close').click(function () {
+                window.close();
+            });
+            $('#refresh').click(function () {
+                setGridData();   //重新加载表格数据
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="printbutton">
+        <ul class="clear">
+            <li class="inputWidth"><a id="export" href="javascript:void(0);" class="rwpButton">导出</a></li>
+            <li class="inputWidth"><a id="refresh" href="javascript:void(0);" class="rwpButton">刷新</a></li>
+            <li class="inputWidth"><a id="close" href="javascript:void(0);" class="rwpButton">关闭</a></li>
+        </ul>
+    </div>
+    <div class="tablepanel">
+        <div id="Report_DIV" class ="printContent">
+            <table class="printTable" border="1" style="border-color:#000;"></table>
+        </div>        
+        <div class ="exportContentHidden" style="display:none;"></div>@*//隐藏rwpUIDatagrid生成的元素*@
+    </div>
+    <form id="exportform"  method="post" action="@Url.Action("exportexcel", "main", new { @area = "Core" })">
+        @Html.Hidden("fileName", (string)ViewBag.fileName)
+        @Html.Hidden("fileHtmlStr")
+    </form>
+</body>
+</html>

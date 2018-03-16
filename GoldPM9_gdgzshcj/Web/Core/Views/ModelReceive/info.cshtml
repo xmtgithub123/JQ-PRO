@@ -1,0 +1,110 @@
+﻿@model DataModel.Models.ModelReceive
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'ModelReceiveForm',//formid提交需要用到
+        buttonTypes: @Html.Raw(ViewBag.editPermission),//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        beforeFormSubmit: function () {
+            var flag1 = false;
+            //判断checkbox是否选中
+            $("input[name='ModelReceiveIsMust']").each(function () {
+                if ($(this).attr("checked")) {
+                    flag1 = true;
+                }
+            }); 
+            if (flag1) {
+                return true;
+            }
+            else {
+                JQ.dialog.warning('请选择是否必要条件');
+                return false;
+            }
+        }
+    });
+    $("input[name='ModelReceiveIsMust']").click(function () {
+        if ($(this).attr("checked")) {
+            $("input[name='ModelReceiveIsMust']").attr("checked", false);
+            $(this).attr("checked", true);
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "ModelReceive", FormMethod.Post, new { @area = "Core", @id = "ModelReceiveForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+
+        <tr>
+            <th width="10%">项目类型</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ProjectTypeID",
+               isRequired = true,
+               engName = "ProjectType",
+               width = "98%",
+               typeId = "1",
+               ids = Model.ProjectTypeID.ToString()
+           })
+            </td>
+
+            <th width="10%">阶段</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "PhaseID",
+               isRequired = true,
+               engName = "ProjectPhase",
+               width = "98%",
+               ids = Model.PhaseID.ToString()
+           })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">模板名称</th>
+            <td width="40%">
+                <input name="ModelReceiveName" style="width:98%;" data-options="required:true" class="easyui-textbox" validtype="length[0,200]" value="@Model.ModelReceiveName" />
+            </td>
+            <th width="10%">是否必要条件</th>
+            <td width="40%">
+                @{
+    var ischecked = "";
+    if (ViewBag.isAdd == null)
+    {
+        ischecked = "checked='checked'";
+    }
+    var val = Model.ModelReceiveIsMust;
+    <input type="checkbox" name="ModelReceiveIsMust" value="1" @(val == true ? ischecked : "") /><text>是</text>
+    <input type="checkbox" name="ModelReceiveIsMust" value="0" @(val == false ? ischecked : "") /><text>否</text>
+                }
+
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">收资内容</th>
+            <td colspan="3">
+                <input name="ExchReceiveItem" style="width:98%;height:80px" data-options="required:true,multiline:true" class="easyui-textbox" validtype="length[0,200]" value="@Model.ExchReceiveItem" />
+            </td>
+        </tr>
+
+        @*<tr>
+                <th width="10%">专业</th>
+                <td width="40%">
+                    @BaseData.getBase(new Params()
+               {
+                   controlName = "SpecialID",
+                   isRequired = true,
+                   engName = "Special",
+                   width = "98%",
+                   ids = Model.SpecialID.ToString()
+               })
+                </td>
+            </tr>*@
+    </table>
+}
+
+
+

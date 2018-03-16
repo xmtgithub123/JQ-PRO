@@ -1,0 +1,267 @@
+﻿@model DataModel.Models.Project
+@{
+    Layout = null;
+}
+<html>
+<head>
+    <link href="@(Url.Content("~/Content/themes/base/easyui.css"))" rel="stylesheet" />
+    <link href="@(Url.Content("~/Content/projhome.css"))" rel="stylesheet" />
+    <link href="@(Url.Content("~/Content/fontawesome/css/font-awesome.min.css"))" rel="stylesheet" />
+    <style type="text/css">
+        .jq_tab_head {
+            position: absolute;
+            right: 10px;
+            list-style: none;
+            padding: 0px;
+            margin: 0px;
+            bottom: 0px;
+            z-index: 2;
+        }
+
+            .jq_tab_head > li {
+                padding: 0px 15px 0px 15px;
+                float: left;
+                background-color: #FFFFFF;
+                border-top: 1px solid #D2D2D2;
+                border-left: 1px solid #D2D2D2;
+                border-right: 1px solid #D2D2D2;
+                margin-left: 8px;
+                line-height: 26px;
+                height: 26px;
+                border-top-left-radius: 5px;
+                border-top-right-radius: 5px;
+                text-align: center;
+                cursor: pointer;
+            }
+
+                .jq_tab_head > li:not(.jq_tab_active):hover {
+                    background-color: #F8F8F8;
+                }
+
+        .jq_tab_line {
+            position: absolute;
+            width: 100%;
+            left: 0px;
+            bottom: 0px;
+            height: 1px;
+            background-color: #D2D2D2;
+            z-index: 1;
+        }
+
+        .jq_tab_active {
+            margin-top: 1px;
+            border-top: 2px solid #3d93cf !important;
+        }
+    </style>
+</head>
+<body class="easyui-layout">
+    <div data-options="region:'center',border:false" style="padding:3px;">
+        <div class="easyui-layout" data-options="fit:true">
+            <div data-options="region:'north',border:false" style="padding-bottom:3px;">
+                <table class="ptable">
+                    <tr>
+                        <th style="width:10%">项目编号</th>
+                        <td style="width:23%">@(ViewData["ProjNumber"])</td>
+                        <th style="width:10%">项目名称</th>
+                        <td colspan="3">@(ViewData["ProjName"])</td>
+                    </tr>
+                    <tr>
+                        <th style="width:10%">设总</th>
+                        <td style="width:23%">@(ViewBag.TaskGroup.TaskGroupEmpName)</td>
+                        <th style="width:10%">计划开始</th>
+                        <td style="width:23%">@(JQ.Util.TypeParse.GetDateTimeText(ViewBag.TaskGroup.DatePlanStart))</td>
+                        <th style="width:10%">计划完成</th>
+                        <td style="width:24%">@(JQ.Util.TypeParse.GetDateTimeText(ViewBag.TaskGroup.DatePlanFinish))</td>
+                    </tr>
+                    <tr>
+                        <th>阶段</th>
+                        <td>@(ViewBag.PhaseName)</td>
+                        <th>项目类型</th>
+                        <td colspan="3">@(ViewData["ProjectTypeName"])</td>
+                        @*<th>电压等级</th>
+                        <td>@(ViewData["ProjectVoltName"])</td>*@
+                    </tr>
+                    <tr>
+                        <th>客户</th>
+                        <td colspan="5">@(ViewData["CustName"])</td>
+                    </tr>
+                    <tr>
+                        <th>备注</th>
+                        <td colspan="5">@(ViewData["ProjNote"].ToString().Replace("\n", "<br/>"))</td>
+                    </tr>
+                </table>
+            </div>
+            <div data-options="region:'center',border:false" style="height:260px">
+                <div class="easyui-layout" data-options="fit:true" style="border:1px solid #D2D2D2">
+                    <div data-options="region:'north',border:false" style="height:38px;line-height:37px;background-color:#F2F2F2; cursor:default;-webkit-user-select:none;position:relative">
+                        <div style="float:left;text-indent:10px">
+                            <span class="fa fa-bullhorn"></span>  项目动态
+                        </div>
+                        <ul id="divTabHead" class="jq_tab_head"></ul>
+                        <div class="jq_tab_line"></div>
+                    </div>
+                    <div id="divTabBody" data-options="region:'center',border:false">
+                        <table id="dynamiclist"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'east',border:false" style="width:200px;border-right:1px solid #D2D2D2;padding:3px">
+        <div class="easyui-layout" data-options="fit:true" style="border:1px solid #D2D2D2">
+            <div data-options="region:'north',border:false" style="height:38px;line-height:37px;background-color:#F2F2F2;border-bottom:1px solid #D2D2D2;text-indent:10px; cursor:default;-webkit-user-select:none;">
+                <span class="fa fa-group"></span>  项目组成员
+            </div>
+            <div id="projectmember" data-options="region:'center',border:false">
+            </div>
+        </div>
+    </div>
+    <script src="@(Url.Content("~/Scripts/jquery.min.js"))"></script>
+    <script type="text/javascript" src="@(Url.Content("~/Scripts/jquery.easyui.min.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/JQ/tab.js"))"></script>
+</body>
+</html>
+<script type="text/javascript">
+    if (typeof (JQ) == "undefined") {
+        JQ = {};
+    }
+    var cTab;
+    window.taskGroupID = "@(JQ.Util.TypeParse.parse<int>(Request.QueryString["taskGroupID"]))";
+    $.parser.onComplete = function () {
+        cTab = new Tab({
+            head: document.getElementById("divTabHead"),
+            body: document.getElementById("divTabBody"),
+            tabs: [
+                { name: "gantt", title: "项目", queryParams: { refID: window.taskGroupID, refTable: "DesTaskGroup" } },
+                { name: "contract", title: "经营", queryParams: { refID: window.taskGroupID, refTable: "Business" } },
+                { name: "design", title: "费用", queryParams: { refID: window.taskGroupID, refTable: "Cost" } },
+                { name: "archive", title: "表单", queryParams: { refID: window.taskGroupID, refTable: "ISOForm" } }
+            ],
+            onSelected: function (tab) {
+                loadDynamicList(tab);
+            }
+        });
+        getProjectUsers();
+    };
+
+    //获取用户组成员
+    function getProjectUsers() {
+        var _projectmember = document.getElementById("projectmember");
+        _projectmember.innerHTML = "<div style=\"width:100%;height:100%;text-align:center;position:relative\"><span class=\"fa fa-spinner fa-spin\" style=\"display:inline-block;font-size:28px;margin-top:60%;color:#D2D2D2\"></span></div>";
+        $.ajax({
+            url: "@(Url.Action("GetTaskGroupUsers", "Project",new { @area="Project" }))",
+            type: "POST",
+            data: { taskGroupID: taskGroupID },
+            success: function (result) {
+                _projectmember.innerHTML = "";
+                function add(data) {
+                    var e = createElement("div", { className: "member_block" });
+                    _projectmember.appendChild(e);
+                    var e_1 = createElement("div", { className: "member_block_name" });
+                    e.appendChild(e_1);
+                    e_1.appendChild(createElement("span", { className: "fa fa-user" }));
+                    e_1.appendChild(createElement("span", null, { marginLeft: "2px" }, data.EmpName));
+                    for (var i in data.Tags) {
+                        var e_2 = createElement("div", { className: "member_block_tag" });
+                        e.appendChild(e_2);
+                        e_2.appendChild(createElement("span", { className: "fa fa-tag" }));
+                        e_2.appendChild(createElement("span", null, { marginLeft: "2px" }, data.Tags[i]));
+                    }
+                }
+                for (var i in result) {
+                    if (result[i].IsProjectPrincipal) {
+                        add(result[i]);
+                        result.splice(i, 1);
+                        break;
+                    }
+                }
+                for (var i in result) {
+                    add(result[i]);
+                }
+            }
+        });
+    }
+
+    function createElement(tagName, attributes, styles, text) {
+        var v = document.createElement(tagName);
+        if (attributes) {
+            for (var a in attributes) {
+                if (attributes[a]) {
+                    if (a == "className") {
+                        v.className = attributes[a];
+                    }
+                    else {
+                        v.setAttribute(a, attributes[a]);
+                    }
+                }
+            }
+        }
+        if (styles) {
+            for (var s in styles) {
+                v.style[s] = styles[s];
+            }
+        }
+        if (text) {
+            v.appendChild(document.createTextNode(text));
+        }
+        return v;
+    }
+
+    function loadDynamicList(tab) {
+        if (document.getElementById("dynamiclist").getAttribute("init")) {
+            $("#dynamiclist").datagrid("load", tab.queryParams);
+        }
+        else {
+            document.getElementById("dynamiclist").setAttribute("init", "1");
+            $("#dynamiclist").datagrid({
+                fit: true,
+                url: "@(Url.Action("GetDynamicList","Project",new { area="Project" }))",
+                queryParams: tab.queryParams,
+                method: "POST",
+                pagination: true,
+                rownumbers: true,
+                singleSelect: true,
+                pageSize: 20,
+                loadMsg: "正在努力加载项目动态中...",
+                border: false,
+                columns: [[
+                    { field: "CreatorEmpName", title: "关联人", width: "10%", align: "center" },
+                    { field: "Content", title: "内容", width: "70%", align: "left", halign: "center" },
+                    {
+                        field: "CreationTime", title: "时间", width: "16%", align: "center", formatter: function (value) {
+                            return parseDateTimeText(value);
+                        }
+                    }
+                ]],
+            }).datagrid("getPager").pagination({
+                pageSize: 20,
+                pageList: [10, 15, 20, 25, 30, 50],
+                beforePageText: '第',
+                afterPageText: '页    共 {pages} 页',
+                displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录'
+            });
+        }
+
+    }
+
+    function parseDateTimeText(str) {
+        var reg = /^\/Date\(([0-9]*)\)\/$/;
+        try {
+            var date = new Date(parseInt(reg.exec(str)[1]));
+            return date.getFullYear().toString() + "-" + supplyString((date.getMonth() + 1)) + "-" + supplyString(date.getDate()) + " " + supplyString(date.getHours()) + ":" + supplyString(date.getMinutes());
+        }
+        catch (err) {
+        }
+    }
+
+    function supplyString(content, digit) {
+        if (!digit) {
+            digit = 2;
+        }
+        content = content.toString();
+        while (content.length < digit) {
+            content = "0" + content;
+        }
+        return content;
+    }
+</script>

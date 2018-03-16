@@ -1,0 +1,110 @@
+﻿@model DataModel.Models.OaNew
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'OaNewForm',//formid提交需要用到
+        buttonTypes: [],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+    @*$(function () {
+        var hidSave="@ViewBag.HiddenSave";
+        if (hidSave=="True") {
+            $("#toolbar a:first").hide();
+        }
+    });*@
+    function closeDio() {
+        JQ.datagrid.autoRefdatagrid();
+        JQ.dialog.dialogClose();
+    }
+</script>
+@using (Html.BeginForm("save", "OaNew", FormMethod.Post, new { @area = "Oa", @id = "OaNewForm", @style = "background-color:#FFFFFF" }))
+{
+    <div style="padding:0px 10px 0px 10px;font-family:'Microsoft YaHei';cursor:default">
+        <div style="width:100%;text-align:center;font-size:28px;font-weight:bolder;float:left;">@(Model.NewsTitle)</div>
+        <div style="width:100%;font-size:14px;text-align:center;color:#888888;float:left;border-bottom:1px solid #AAAAAA;padding:0px 0px 5px 0px">@(Model.CreatorEmpName + " " + Model.CreationTime.ToString("yyyy-MM-dd HH:mm:ss") + " " + ViewBag.NewsTypeText)</div>
+
+
+            <div id="imagecontainer" style="float:left;width:100%;text-align:center;font-size:12px;margin:10px 0px 5px 0px">
+                <div>
+                    <img id="newsimg" />
+                </div>
+                <div>@(Model.NewsDescription)</div>
+            </div>
+        <table class="table table-bordered">
+
+            <tr>
+                <th width="10%">内容</th>
+                <td colspan="3">
+                    <div style="margin-top:5px;float:left;font-size:16px">@(Html.Raw(Model.NewsContent))</div>
+                </td>
+            </tr>
+            <tr>
+                <th>附件列表</th>
+                <td>
+
+                    <div style="margin-top:5px;float:left;width:100%">
+                        @{
+    var uploader = new DataModel.FileUploader();
+    uploader.RefID = Model.Id;
+    uploader.RefTable = "OaNew";
+    uploader.Name = "UploadFile1";
+    uploader.AllowDelete = false;
+    uploader.AllowUpload = false;
+                @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                        }
+                    </div>
+                </td>
+            </tr>
+
+        </table>
+
+    </div>
+    </div>
+    <div id="divPanel" JQPanel="dialogButtonPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-close'" onclick="closeDio()">关闭</a>
+        </span>
+    </div>
+}
+<script type="text/javascript">
+    @{
+        if (string.IsNullOrEmpty(Model.NewsImage))
+        {
+            <text>
+    document.getElementById("imagecontainer").parentNode.removeChild(document.getElementById("imagecontainer"));
+    </text>
+        }
+        else
+        {
+            <text>
+    document.getElementById("newsimg").onload = function () {
+        var maxHeight = 450, maxWidth = 650;
+        imgHeight = this.clientHeight;
+        imgWidth = this.clientWidth;
+        var scale = maxHeight / maxWidth;
+        if (imgHeight > maxHeight || imgWidth > maxWidth) {
+            if (imgWidth * scale > imgHeight) {
+                //以宽度为准
+                imgHeight = imgHeight * (maxWidth / imgWidth);
+                this.style.height = imgHeight + "px";
+                this.style.width = maxWidth + "px";
+                imgWidth = maxWidth;
+            }
+            else {
+                //以高度为准
+                imgWidth = imgWidth * (maxHeight / imgHeight);
+                this.style.height = maxHeight + "px";
+                this.style.width = imgWidth + "px";
+                imgHeight = maxHeight;
+            }
+        }
+        this.style.margin = "0px auto 0px auto";
+    }
+    document.getElementById("newsimg").setAttribute("src", "@(Url.Action("ShowImage","OaNew",new { @area="OA" }))?path=" + "@(HttpUtility.UrlEncode(Model.NewsImage))");
+    </text>
+        }
+    }
+</script>

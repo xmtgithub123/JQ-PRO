@@ -1,0 +1,124 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "user",new { @area="Core"})';
+        $(function () {
+            //数据表格
+            JQ.datagrid.datagrid({
+                JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+                JQButtonTypes: ['moreSearch'],//需要显示的按钮
+                JQPrimaryID: 'EmpID',//主键的字段
+                JQID: 'dg',//数据表格ID
+                JQDialogTitle: '用户信息',//弹出窗体标题
+                JQWidth: '760',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQExcludeCol: [1, 4, 10],//导出execl排除的列
+                //JQMergeCells: { fields: ['DepartmentName'], Only: 'DepartmentName' },
+                JQFields: ["EmpID"],//追加的字段名
+                JQSearch: {
+                    id: 'fullNameSearch',
+                    prompt: '姓名',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                    $panel: $("#tb")//搜索的容器，可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: false,//是否包含check
+                toolbar: '#tb',//工具栏的容器ID
+                columns: [[
+                  { title: '所属部门', field: 'DepartmentName', width: 180, align: 'center', sortable: true },
+                  { title: '姓名', field: 'EmpName', width: 150, align: 'center', sortable: true },
+                  {
+                      title: 'IP地址', field: 'EmpIPAddress', width: 150, align: 'center', sortable: true, editor: {
+                          type: 'textbox'
+                      }
+                  },
+                  {
+                      title: 'MAC地址', field: 'EmpMacAddress', width: 150, align: 'center', sortable: true, editor: {
+                          type: 'textbox'
+                      }
+                  },
+                  {
+                      title: '是否绑定', field: 'EmpIsBind', width: 150, align: 'center', sortable: true, formatter: function (value, row, index) {
+                          if (value == true)
+                              return "true";
+                          else
+                              return "false";
+                      }, 
+                      editor: {
+                          type: 'combobox',
+                          options: {
+                              data: [{ text: 'true', value: 'true' }, { text: 'false', value: 'false' }],
+                              panelHeight: 'auto', valueField: 'value', textField: 'text', editable: false,
+                          }
+                      }
+                  },
+                  {
+                      title: '备注', field: 'EmpNote', width: 150, align: 'center', sortable: true, editor: {
+                          type: 'textbox'
+                      }
+                  },
+                ]],
+                onDblClickRow: function (index, value) {
+                    $(this).datagrid('beginEdit', index);
+                }
+            });
+        });
+
+        function beginEdit() {
+            var getRows = $("#dg").datagrid("getRows");
+            $.each(getRows, function (i, n) {
+                debugger;
+                $("#dg").datagrid("beginEdit", i);
+            });
+        }
+
+        function endEdit() {
+            var getRows = $("#dg").datagrid("getRows");
+            $.each(getRows, function (i, n) {
+                $("#dg").datagrid("endEdit", i);
+            });
+        }
+
+        function save() {
+            endEdit();
+            var url = '@Url.Action("saveinfo", "user", new { @area="Core"})';
+            $.ajax({
+                url: url,
+                data: JSON.stringify($("#dg").datagrid("getData")["rows"]),
+                type: 'POST',
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function (result) {
+                    JQ.dialog.info("保存成功！");
+                    $('#dg').datagrid('reload');
+                }
+            });
+        }
+
+    </script>
+}
+@section Body_Content{
+    <table id="dg"></table>
+    <div id="tb" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="save()">保存</a>
+            @*<a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="beginEdit()">开始编辑</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="endEdit()">结束编辑</a>*@
+        </span>
+
+        <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+
+        <input id="fullNameSearch" value="" style="width:250px;" JQWhereOptions="{ Key: 'EmpName', 'Contract': 'like' }" />
+
+        <div class="moreSearchPanel">
+            @BaseData.getBases(
+           new Params() { isMult = true, engName = "department", queryOptions = "{ Key:'EmpDepID', Contract:'in',filedType:'Int'}" })
+        </div>
+    </div>
+}
+
+

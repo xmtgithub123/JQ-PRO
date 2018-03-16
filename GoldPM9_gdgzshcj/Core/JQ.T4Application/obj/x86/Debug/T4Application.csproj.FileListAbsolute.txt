@@ -1,0 +1,7 @@
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\JQ.T4Application\bin\Debug\T4ConsoleApplication.exe
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\JQ.T4Application\bin\Debug\T4ConsoleApplication.pdb
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\JQ.T4Application\obj\x86\Debug\T4Application.csprojResolveAssemblyReference.cache
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\JQ.T4Application\obj\x86\Debug\T4ConsoleApplication.Properties.Resources.resources
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\JQ.T4Application\obj\x86\Debug\T4Application.csproj.GenerateResource.Cache
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\JQ.T4Application\obj\x86\Debug\T4ConsoleApplication.exe
+D:\GoldPM\GoldPM9_Version\GoldPM9_gdgzshcj_广东广州首汇城建\GoldPM9_gdgzshcj\Core\JQ.T4Application\obj\x86\Debug\T4ConsoleApplication.pdb

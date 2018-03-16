@@ -1,0 +1,216 @@
+﻿@model DataModel.Models.IsoDesignReturn
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoDesignReturnForm',//formid提交需要用到
+        docName: 'IsoDesignReturn',
+        ExportName: '设计回访纪要表',
+        buttonTypes: ['close','exportForm'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }, flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "ISO,ISO.FlowProcessor.IsoDesignReturnFlow",
+            refID: "@(Model.Id)",
+            refTable: "IsoDesignReturn",
+            dataCreator: "@(ViewBag.CreateEmpId )"
+        },
+        onBefore: function (resultArr) {
+            resultArr.push({ Key: "Permission", Value: '@ViewBag.Permission' });
+        }
+    });
+
+
+    //选中控件，隐藏控件，id，name，是否单选
+    function Checked(ckControl, hidCon, value, isOnlyName) {
+        //debugger;
+        if ($("#" + ckControl).attr("checked")) {
+            if (isOnlyName != undefined) {
+                $(':checkbox[name=' + isOnlyName + ']').removeAttr('checked');
+                $("#" + ckControl).attr('checked', 'checked');
+            }
+            var cId = ckControl.split('Q')[1];
+            if(Number(value) == 1){
+                if(Number(cId) < 3)
+                    $('#CheckValue').val('☑   否□');
+                else
+                    $('#CheckValue1').val('☑   否□');
+            }
+            else if(Number(value) == 2){
+                if(Number(cId) < 3)
+                    $('#CheckValue').val('□   否☑');
+                else
+                    $('#CheckValue1').val('□   否☑');
+            }
+
+            $("#" + hidCon).val(value);
+        } else {
+            $("#" + hidCon).val("");
+        }
+    }
+
+    $(function () {
+        if(@Model.IsResolved == 1){
+            document.getElementById('FHYQ1').checked = true;
+            $('#CheckValue').val('☑   否□');
+        }
+        else if(@Model.IsResolved == 2){
+            document.getElementById('FHYQ2').checked = true;
+            $('#CheckValue').val('□   否☑');
+        }
+        else
+            $('#CheckValue').val('□   否□');
+
+        if(@Model.IsResponse == 1){
+            document.getElementById('FHYQ3').checked = true;
+            $('#CheckValue1').val('☑   否□');
+        }
+        else if(@Model.IsResponse == 2){
+            document.getElementById('FHYQ4').checked = true;
+            $('#CheckValue1').val('□   否☑');
+        }
+        else
+            $('#CheckValue1').val('□   否□');
+    })
+
+     //确定选择回调
+    var _ProjCallBack = function (row) {
+        var data = row[0];
+        $("#ProjId").val(data.Id);
+        $("#ProjName").textbox("setValue", data.ProjName);
+        $("#ProjNumber").textbox("setValue",data.ProjNumber);
+        $("#ProjPhaseName").val(data.ProjPhaseName);
+        $("#ProjPhaseId").val(data.ProjPhaseId);
+    }
+
+    //选择项目
+    function SelectMainProject() {
+        JQ.dialog.dialog({
+            title: "选择项目",
+            url: '@Url.Action("ChooseProjectList1", "EmpManage", new { @area = "Engineering" })?CompanyType=&TaskGroupId=' + $("#ProjId").val(),
+            width: '1024',
+            height: '100%',
+            iconCls: 'fa fa-list',
+        });
+    }
+
+</script>
+@using (Html.BeginForm("save", "IsoDesignReturn", FormMethod.Post, new { @area = "Iso", @id = "IsoDesignReturnForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <div style="width:100%;text-align:center;font-size:20px;font-weight:bold;margin-top:10px;">
+            <a>设计回访纪要表</a>
+        </div>
+        <div style="float:left;margin-left:20px;margin-top:10px;">
+            表<label>@Model.TableNumber</label><input type="hidden" name="TableNumber" value="@Model.TableNumber" />
+        </div>
+        <div style="float:right;margin-right:20px;margin-top:10px;margin-bottom:10px;">
+            编号：<input id="Number" name="Number" style="width:140px;" class="easyui-textbox" validtype="length[0,50]" value="@Model.Number" />
+        </div>
+        <tr>
+            <th width="10%">项目编号</th>
+            <td width="40%">
+                <input id="ProjNumber" name="ProjNumber" style="width:60%;" class="easyui-textbox" data-options="required:true,editable:false" validType="length[0,50]" value="@Model.ProjNumber" />
+                <a class="easyui-linkbutton" name="btnChoice" id="btnChoice" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="SelectMainProject()" style="display:none;">选择项目</a>
+            </td>
+            <th width="10%">项目名称</th>
+            <td width="40%">
+                <input type="hidden" id="ProjId" name="ProjId" value="@Model.ProjId" />
+                <input type="hidden" id="CheckValue" name="CheckValue" />
+                <input type="hidden" id="CheckValue1" name="CheckValue1" />
+                <input type="hidden" name="ProjPhaseId" id="ProjPhaseId" value="@Model.ProjPhaseId" />
+                <input type="hidden" name="ProjPhaseName" id="ProjPhaseName" value="@Model.ProjPhaseName" />
+                <input id="ProjName" name="ProjName" style="width:98%;" class="easyui-textbox" data-options="required:true,editable:false" validtype="length[0,50]" value="@Model.ProjName" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">回访时间</th>
+            <td width="40%">
+                <input name="ReturnDate" id="ReturnDate" class="easyui-datebox" data-options="editable:false" validtype="length[0,23]" value="@Model.ReturnDate" />
+            </td>
+            <th width="10%">回访对象</th>
+            <td width="40%">
+                <input name="ReturnPerson" style="width:98%;" class="easyui-textbox" validType="length[0,10]" value="@Model.ReturnPerson" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">组织部门</th>
+            <td width="40%">
+                <input name="OrganizeDepart" style="width:98%;" class="easyui-textbox" validType="length[0,50]" value="@Model.OrganizeDepart" />
+            </td>
+            <th width="10%">参与人</th>
+            <td width="40%">
+                <input name="Participant" style="width:98%;" class="easyui-textbox" validType="length[0,50]" value="@Model.Participant" />
+            </td>
+        </tr>
+        <tr>
+            <td width="40%" colspan="4">
+                内容：
+                <input name="Text" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validtype="length[0,200]" value="@Model.Text" />
+            </td>
+        </tr>
+        <tr>
+            @*<th width="10%"></th>*@
+            <td width="40%" colspan="4">
+                需解决的问题及责任部门：
+                <input name="Unresolved" style="width:98%;height:60px;" data-options="multiline:true" class="easyui-textbox" validtype="length[0,200]" value="@Model.Unresolved" />
+            </td>
+        </tr>
+        <tr>
+            <td width="40%" colspan="4">
+                <span style="display:block;float:left;margin-left:5px;width:300px;">问题是否解决：</span>
+
+                <span style="display:block;width:50px;float:left;">
+                    <label for="FHYQ1" style="vertical-align:middle;">是</label>
+                    <input type="checkbox" id="FHYQ1" style="vertical-align:middle;" name="Resolved" onclick="Checked(this.id, 'IsResolved', '1', 'Resolved')">
+                </span>
+                <span style="display:block;width:50px;float:left;">
+                    <label for="FHYQ2" style="vertical-align:middle;">否</label>
+                    <input type="checkbox" id="FHYQ2" style="vertical-align:middle;" name="Resolved" onclick="Checked(this.id, 'IsResolved', '2', 'Resolved')">
+                </span>
+                <br />
+                <br />
+
+                <span style="display:block;float:left;margin-left:5px;width:300px;">是否通知顾客：</span>
+
+                <span style="display:block;width:50px;float:left;">
+                    <label for="FHYQ3" style="vertical-align:middle;">是</label>
+                    <input type="checkbox" id="FHYQ3" style="vertical-align:middle;" name="Response" onclick="Checked(this.id, 'IsResponse', '1', 'Response')">
+                </span>
+                <span style="display:block;width:50px;float:left;">
+                    <label for="FHYQ4" style="vertical-align:middle;">否</label>
+                    <input type="checkbox" id="FHYQ4" style="vertical-align:middle;" name="Response" onclick="Checked(this.id, 'IsResponse', '2', 'Response')">
+                </span>
+
+                <input type="hidden" id="IsResolved" name="IsResolved" value="@Model.IsResolved" />
+                <input type="hidden" id="IsResponse" name="IsResponse" value="@Model.IsResponse" />
+            </td>
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "IsoDesignReturn";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+
+                    }

@@ -1,0 +1,107 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("mailsendjson", "OaMail",new { @area="Oa", @Flag =1})';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: [ 'export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'OaMailGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '标题',
+                },
+                JQExcludeCol: [0, 1, 2, 7],//导出execl排除的列
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: true,
+                nowrap: false,
+                toolbar: '#OaMailPanel',//工具栏的容器ID
+                columns: [[
+                            { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                            {
+                                title: '状态', field: 'MailFlag', width: 40, align: 'center', formatter: function (v) {
+                                    return "<div class='" + v + "'/>";
+                                }
+                            },
+                            { title: '收件人', field: 'MailEmpName', width: 200, align: 'center', sortable: true },
+		                    { title: '发送时间', field: 'MailDate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                            {
+                                field: 'MailTitle', title: '标题', width: 300, align: 'center',
+                                formatter: function (value, row, index) {
+                                    return "<a href=\"javascript:Handler(" + row.Id + ")\">" + value + "</a>";
+                                }
+                            },
+		                    { title: '内容', field: 'MailNote', width: 100, align: 'center', sortable: true },
+                            { field: 'JQFiles', title: '附件', align: 'center', width: 60, JQIsExclude: true, JQRefTable: 'OaMail' }
+                ]]
+            });
+        });
+
+        function ToUrl(TypeID) {
+            var row = $("#OaMailGrid").datagrid("getSelections");
+            if (row.length <= 0) {
+                JQ.dialog.info("请选择");
+                return;
+            }
+            var MailID = row[0]["Id"];
+            debugger;
+            window.location.href = '@Url.Action("MailWrite", "OaMail",new { @area="Oa"})?MailID=' + MailID + "&TypeID=" + TypeID;
+        }
+
+        function del(DelType) {
+            var row = $("#OaMailGrid").datagrid("getSelections");
+            if (row.length <= 0) {
+                JQ.dialog.info("请选择");
+                return;
+            }
+
+            var parm;
+            $.each(row, function (i, n) {
+                if (i == 0) {
+                    parm = "id=" + n["Id"];
+
+                } else {
+                    parm += "&id=" + n["Id"];
+                }
+            });
+            parm += "&DelType=" + DelType;
+            Url = '@Url.Action("del", "OaMail", new { @area = "Oa" })';
+            JQ.tools.ajax({
+                doBackResult: true,
+                url: Url,
+                data: parm
+            });
+            $('#OaMailGrid').datagrid('reload');
+        }
+
+        function Handler(rowid) {
+           window.location.href = '@Url.Action("MailWrite", "OaMail",new { @area="Oa"})?MailID=' + rowid + "&TypeID=3";
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="OaMailGrid"></table>
+    <div id="OaMailPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-undo'" onclick="ToUrl(1)">转发</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-remove (alias)'" onclick="del(false)">删除</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-remove (alias)'" onclick="del(true)">彻底删除</a>
+        </span>
+        <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '发送开始时间'" JQWhereOptions="{ Key:'MailDate', Contract:'>=',filedType:'Date' }">
+        至
+        <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '发送结束时间'" JQWhereOptions="{ Key:'MailDate', Contract:'<=',filedType:'Date' }">&nbsp;
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'MailTitle', 'Contract': 'like' }" />
+
+    </div>
+}
+

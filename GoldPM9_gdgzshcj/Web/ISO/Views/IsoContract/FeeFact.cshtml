@@ -1,0 +1,401 @@
+﻿@model DataModel.Models.IsoForm
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+
+        JQ.form.submitInit({
+            formid: 'BussFeeFactForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            },
+            beforeFormSubmit:function () {
+                var result=true;
+                var _tb=$("#FeeGrid").datagrid("getRows");
+
+                $.each(_tb,function (i,e) {
+                    var isvalidate=$("#FeeGrid").datagrid("validateRow",i);
+                    if(!isvalidate){
+                        $("#FeeGrid").datagrid("scrollTo",i);
+                        JQ.dialog.show("第"+(i+1)+"行,验证失败！");
+                        result=false;
+                        return false;
+                    }
+                    else {
+                        //判断合同名称、项目名称是否为选中值
+                        var Editors= $("#FeeGrid").datagrid("getEditors",i);
+                        if ($(Editors[0].target).attr("_selectValue")==undefined) {
+                            JQ.dialog.show("第"+(i+1)+"行,请重新选择合同！！！");
+                            result=false;
+                            return false;
+                        }
+                        if ($(Editors[1].target).attr("_selectValueProj")==undefined) {
+                            JQ.dialog.show("第"+(i+1)+"行,请重新选择项目！！！");
+                            result=false;
+                            return false;
+                        }
+                    }
+
+                });
+                if (!result) {
+                    return false;
+                }
+                $.each(_tb,function (i,e) {
+                    $("#FeeGrid").datagrid("endEdit",i);
+                });
+                $("#HiddenData").val(JSON.stringify($("#FeeGrid").datagrid("getRows")));
+                //alert(JSON.stringify($("#FeeGrid").datagrid("getRows")));
+                if (!result) {
+                    return result;
+                }
+            }
+        });
+
+
+        $.extend($.fn.datagrid.defaults.editors, {
+            span: {
+                init: function(container, options){
+                    var input = $('<span></span>').appendTo(container);
+                    return input;
+                },
+                destroy: function(target){
+                    //$(target).text('destroy');
+                },
+                getValue: function(target){
+                    return $(target).text();
+                },
+                setValue: function(target, value){
+                    $(target).text(value);
+                },
+                resize: function(target, width){
+                    //$(target).textbox('resize',width);
+                }
+            }
+        });
+
+
+        $.extend($.fn.datagrid.defaults.view,{
+            onAfterRender:function(target){
+                if (target.id=="FeeGrid") {
+                    if ($(target).datagrid("getRows").length!=0) {
+                        var _row=$("#FeeGrid").datagrid("getRows");
+                        //alert(JSON.stringify(_row));
+                        $.each(_row,function (i,e) {
+                            $(target).datagrid("beginEdit",i);
+
+                            var ed = $('#FeeGrid').datagrid('getEditors', i)[0];
+                            $(ed.target).combogrid('grid').attr("_row",i);
+                            $(ed.target).attr("_selectValue",e.ConID);
+                            if (e.ConID) {
+                                $(ed.target).combogrid("setValue",e.ConID);
+                            }
+
+                            var ed1 = $('#FeeGrid').datagrid('getEditors', i)[1];
+                            $(ed1.target).combogrid('grid').attr("_row",i);
+                            $(ed1.target).attr("_selectValueProj",e.ProjID);
+                            $(ed1.target).combogrid("grid").datagrid("load",{ConID:e.ConID,Filter:''});
+                        })
+                    }
+                }
+            }
+        });
+    });
+
+    //提交前验证
+</script>
+@using (Html.BeginForm("save", "IsoContract", FormMethod.Post, new { @area = "Bussiness", @id = "BussFeeFactForm" }))
+{
+    @Html.HiddenFor(m => m.FormID)
+    <table class="table table-bordered">
+        <tr>
+            <td colspan="4" align="center" style="border:none;">收款合同登记</td>
+        </tr>
+        <tr>
+            <td colspan="4">
+                <table id="FeeGrid"></table>
+                <input id="HiddenData" name="HiddenData" type="hidden" />
+                <div id="FeeGridPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+                    <span JQPanel="toolbarPanel">
+                        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="Add()">新增</a>
+                        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="FactDel()">删除</a>
+                    </span>
+                </div>
+                <script type="text/javascript">
+                    var CurrentRow;
+                    $(function () {
+                        $("#FeeGrid").datagrid({
+                            idField: 'Id',//主键的字段
+                            singleSelect: false,
+                            pagination: false,
+                            url: '@Url.Action("jsonFact", "BussFeeFact", new { @area = "Bussiness" })?CompanyType=@Request.Params["CompanyType"].ToString()',//请求的地址
+                            queryParams: {FormID:@Model.FormID},
+                            rownumbers: true,
+                            toolbar: '#FeeGridPanel',//工具栏的容器ID
+                            checkOnSelect: true,//是否包含check
+                            columns: [[
+                                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                                { title: '合同名称', field: 'ConID', width: 160, align: 'center',
+                                    formatter: function (value, row) {
+                                        return row.ConName;
+                                    },
+                                    editor:{
+                                        type:"combogrid",
+                                        options: {}
+                                    }
+                                },
+                                { title: '项目名称', field: 'ProjID', width: 300, align: 'center', JQIsExclude: true,
+                                    formatter: function (value, row) {
+                                        //console.log("===="+JSON.stringify(row));
+                                        if (row.ProjID==0) {
+                                            return "未指定项目";
+                                        }else {
+                                            return row.ProjName;
+                                        }
+
+                                    },
+                                    editor:{
+                                        type:"combogrid",
+                                        options: {
+                                            panelWidth: 650,
+                                            idField: 'ProjID',
+                                            textField: 'ProjName',
+                                            url: '@Url.Action("JsonProject", "BussFeeFact", new { @area = "Bussiness" })?CompanyType=@Request.Params["CompanyType"].ToString()',
+                                            queryParams:{ConID:'0'},
+                                            pagination: true,
+                                            nowrap:false,//是否换行
+                                            striped: true,
+                                            method: 'post',
+                                            required: true,
+                                            singleSelect:true,
+                                            multiline:true,
+                                            height:50,
+                                            columns: [[
+                                                        { field: 'ProjID', title: '主键ID', width: 100 ,hidden:true,},
+                                                        { field: 'ProjNumber', title: '项目编号', width: 100 },
+                                                        { field: 'ProjName', title: '项目名称', width: 150 },
+                                                        { field: 'Customer', title: '客户单位', width: 100 },
+                                                        { field: 'ConFee', title: '金额', width: 100 },
+                                            ]],
+                                            //keyHandler: {query: function (keyword) {
+                                            //    $(this).combogrid("grid").datagrid('load',{Filter:keyword,FatherID:'0'});
+                                            //    $(this).combogrid("setValue", keyword);
+                                            //}},
+                                            onSelect:function (rowIndex, rowData) {
+                                                var _row=$(this).attr("_row");
+                                                var EditorArray=$('#FeeGrid').datagrid('getEditors',_row);
+                                                //alert(rowData.ProjID);
+                                                $(EditorArray[1].target).attr("_selectValueProj",rowData.ProjID);
+                                            }
+                                        }
+                                    }
+                                },
+                                { title: '合同金额', field: 'ConFee', width: 100, align: 'right',editor:'span'},
+                                { title: '已收款金额', field: 'FeeFact', width: 100, align: 'right',editor:'span'},
+                                { title: '本次收款金额', field: 'FeeMoney', width: 100, align: 'right',editor:{type:'numberspinner',options: {  prompt:'',precision: 2,  required: true,onChange:function (_new,_old) {
+                                    if ($(this).attr("_row")!=undefined) {
+                                        GetPercent($(this).attr("_row"));
+                                    }
+                                } }}},
+                                { title: '本次收款日期', field: 'FeeDate', width: 100, align: 'center',formatter: JQ.tools.DateTimeFormatterByT,  editor: { type: 'datebox',   options: { validType: ['dateISO'],required: true } }  },
+                                { title: '累计比例', field: 'Persent', width: 80, align: 'center', JQIsExclude: true,editor:'span' },
+                                { title: '是否结清', field: 'ConIsFeeFinished', width: 100, align: 'center', JQIsExclude: true,formatter:function (value, row) {
+                                    if (row.ConIsFeeFinished=="True"||row.ConIsFeeFinished=="1") {
+                                        row.ConIsFeeFinished=1;
+                                        return "已结清";
+                                    }
+                                    else {
+                                        row.ConIsFeeFinished=0;
+                                        return "未结清";
+                                    }
+
+                                },editor:{type:'combobox',options:{data:@Html.Raw(ViewData["ConFeeType"]), panelHeight: 'auto',valueField:'ConIsFeeFinished',textField:'Name'}} },
+                            ]],
+                            onBeginEdit: beginEditFunc,
+                            onEndEdit:function (rowIndex, rowData) {
+                                //alert(JSON.stringify(rowData));
+                                //var ed = $('#FeeGrid').datagrid('getEditors', rowIndex)[0];
+                                //$(ed.target).combogrid('setValue',rowData.Id);
+                            }
+                        });
+                    });
+
+                    function beginEditFunc(rowIndex, rowData) {
+                        var edits=$("#FeeGrid").datagrid("getEditors",rowIndex);
+                        $.each(edits,function (i,eItem) {
+                            if(eItem.field=="ConID"){
+                                $(eItem.target).combogrid({
+                                    panelWidth: 650,
+                                    idField: 'Id',
+                                    textField: 'ConName',
+                                    url: '@Url.Action("json", "BussContract", new { @area = "Bussiness" })?CompanyType=@Request.Params["CompanyType"].ToString()',
+                                    queryParams:{FatherID:'0','ConDefaultID':rowData.ConID},
+                                    pagination: true,
+                                    nowrap:false,//是否换行
+                                    striped: true,
+                                    method: 'post',
+                                    singleSelect:true,
+                                    required: true,
+                                    multiline:true,
+                                    height:50,
+                                    mode: 'remote',
+                                    columns: [[
+                                                { field: 'Id', title: '合同编号', width: 100 ,hidden:true,halign:'center'},
+                                                { field: 'ConNumber', title: '合同编号', width: 100,halign:'center' },
+                                                { field: 'ConName', title: '合同名称', width: 150,halign:'center' },
+                                                { field: 'CustName', title: '客户单位', width: 100,halign:'center' },
+                                                { field: 'ConFee', title: '合同金额', width: 100,halign:'center',align:'right',formatter:function (value, row, index) {
+                                                    if (row.ConFulfilType == '@((int)DataModel.ConDealWays.开口)') {
+                                                        return "<div title=\"开口合同、红色金额为主合同金额\"><span>" + row.SumConFee + "</span><span style=\"color:red;\">（" + row.ConFee + "）</span></div>";
+                                                    } else {
+                                                        return "<div title=\"闭口合同、红色金额为主合同金额\"><span>" + row.SumConBalanceFee + "</span><span style=\"color:red;\">（" + row.ConBalanceFee + "）</span></div>";
+                                                    }
+                                                } },
+                                    ]],
+                                    onSelect:function (rowIndex, rowData) {
+                                        var _row=$(this).attr("_row");
+                                        var EditorArray=$('#FeeGrid').datagrid('getEditors',_row);
+                                        //设置合同选中值
+                                        $(EditorArray[0].target).attr("_selectValue",rowData.Id);
+                                        $(EditorArray[1].target).combogrid("grid").datagrid("load",{ConID:rowData.Id,Filter:''});
+                                        var ConFeeToop="";
+                                        var ConFeeHtml="";
+                                        var CurrentConFee=0;//合同金额
+                                        if (rowData.ConFulfilType == '@((int)DataModel.ConDealWays.开口)') {
+                                            ConFeeHtml= rowData.SumConFee+"（" + rowData.ConFee + "）";
+                                            ConFeeToop="开口合同、括号中主合同金额";
+                                            CurrentConFee=rowData.SumConFee;
+                                        } else {
+                                            ConFeeHtml=rowData.SumConBalanceFee+"（" + rowData.ConBalanceFee + "）";
+                                            ConFeeToop="闭口合同(结算金额)、括号中主合同金额";
+                                            CurrentConFee=rowData.SumConBalanceFee;
+                                        }
+                                        $(EditorArray[2].target).text(ConFeeHtml);
+                                        $(EditorArray[2].target).attr("title",ConFeeToop);
+                                        $(EditorArray[2].target).attr("CurrentConFee",CurrentConFee);//设置合同金额
+                                        $(EditorArray[3].target).text(rowData.FeeFact==null?0:rowData.FeeFact);
+                                        $(EditorArray[4].target).attr("_row",_row);
+                                        //累计比例
+                                        GetPercent(_row);
+                                        //设置是否结清
+                                        $(EditorArray[7].target).combobox("setValue",rowData.ConIsFeeFinished);
+                                    }
+                                })
+                            }
+                        });
+                    }
+
+                    function Add() {
+                        var rowlength=typeof($('#FeeGrid').datagrid("getRows"))=="undefined"?0:$('#FeeGrid').datagrid("getRows").length;
+                        $('#FeeGrid').datagrid('appendRow', {});
+                        $('#FeeGrid').datagrid('beginEdit', rowlength);
+                        var ed = $('#FeeGrid').datagrid('getEditors', rowlength)[0];
+                        $(ed.target).combogrid('grid').attr("_row",rowlength);
+                        $(ed.target).combogrid('grid').datagrid("load",{FatherID:'0'});
+
+                        var ed1 = $('#FeeGrid').datagrid('getEditors', rowlength)[1];
+                        $(ed1.target).combogrid('grid').attr("_row",rowlength);
+                    }
+
+                    function FactDel() {
+                        var htmlStr = $("#FeeGrid").datagrid('getPanel');
+
+                        var ckItems=$(htmlStr).find("input:checked");
+                        var rowItems=[];
+                        $.each(ckItems,function (i,Ck) {
+                            var rowIndex=$(Ck).closest("tr").attr("datagrid-row-index");
+                            rowItems.push(rowIndex);
+                        })
+
+                        if (rowItems.length==0) {
+                            JQ.dialog.warning("请至少选择一项！！！");
+                            return;
+                        }
+                        if (!confirm("你确定要删除吗?")) {
+                            return;
+                        }
+                        rowItems=rowItems.reverse();
+                        $.each(rowItems,function (i,e) {
+                            $('#FeeGrid').datagrid('deleteRow',e);
+                        });
+
+                        //刷新 记录的行数
+                        var _Newrow= $('#FeeGrid').datagrid('getRows');
+                        $.each(_Newrow,function (i,e) {
+                            var ed = $('#FeeGrid').datagrid('getEditors', i)[0];
+                            $(ed.target).combogrid('grid').attr("_row",i);
+
+                            var ed1 = $('#FeeGrid').datagrid('getEditors', i)[1];
+                            $(ed1.target).combogrid('grid').attr("_row",i);
+
+                            $($('#FeeGrid').datagrid('getEditors', i)[4].target).attr("_row",i);
+                        });
+                    }
+
+                    function GetPercent(rowIndex) {
+                        var EditorArray=$('#FeeGrid').datagrid('getEditors',rowIndex);
+                        //获取合同金额
+                        var CurrentConFee=isNaN(parseFloat($(EditorArray[2].target).attr("CurrentConFee")))?0:parseFloat($(EditorArray[2].target).attr("CurrentConFee"));
+                        //获取已收款
+                        var HasFee=isNaN(parseFloat($(EditorArray[3].target).text()))?0:parseFloat($(EditorArray[3].target).text());
+                        //获取本次收款金额
+                        var getNum= isNaN(parseFloat($(EditorArray[4].target).numberbox('getValue')))?0:parseFloat($(EditorArray[4].target).numberbox('getValue'));
+                        if (CurrentConFee==0) {
+                            $(EditorArray[6].target).text("0%");
+                        }
+                        else {
+                            $(EditorArray[6].target).text(((HasFee+getNum)/CurrentConFee*100).toFixed(2)+"%");
+                            if ((CurrentConFee-HasFee)>0) {
+                                $(EditorArray[4].target).numberbox({prompt:(CurrentConFee-HasFee)});
+                            }
+                        }
+
+                        $(EditorArray[6].target).attr("title","(已收款金额+本次收款金额)/合同金额");
+                    }
+                </script>
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">备注说明</th>
+            <td width="40%" colspan="3">
+                <input name="FormNote" style="width:98%;height:80px" value="@Model.FormNote" class="easyui-textbox" data-options="multiline:true" validType="length[0,500]" />
+                @*<input name="FeeNote" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,200]" />*@
+            </td>
+
+        </tr>
+        <tr>
+            <th width="10%">经办人</th>
+            <td width="40%">
+                @Model.CreatorEmpName
+            </td>
+            <th width="10%">登记日期</th>
+            <td width="40%">
+                @Model.CreationTime.ToString("yyyy-MM-dd")
+            </td>
+        </tr>
+
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.FormID;
+                    uploader.RefTable = "BussFeeFactIso";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+                @*@Html.Action("uploadFile", "usercontrol", new
+           {
+               @area = "Core",
+               AttachRefID = Model.FormID,
+               AttachRefTable = "BussFeeFactIso"
+           })*@
+            </td>
+        </tr>
+    </table>
+}
+

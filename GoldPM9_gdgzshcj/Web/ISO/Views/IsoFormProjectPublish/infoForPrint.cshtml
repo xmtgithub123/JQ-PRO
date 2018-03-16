@@ -1,0 +1,28 @@
+﻿@model DataModel.Models.DesTask
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoFormProjectPublishForm',//formid提交需要用到
+        buttonTypes: ['close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "IsoFormProjectPublish", FormMethod.Post, new { @area = "ISO", @id = "IsoFormProjectPublishForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th width="30%">出版时间</th>
+            <td colspan="3">
+                @ViewBag.DateForPrint
+            </td>
+        </tr>
+    </table>
+}
+ 
+
+
+

@@ -1,0 +1,162 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "BussProjInfoRecords", new { @area= "Bussiness" })?CompanyType=FGS',
+            addUrl = '@Url.Action("add", "BussProjInfoRecords", new {@area= "Bussiness" })?CompanyType=FGS',
+            editUrl = '@Url.Action("edit", "BussProjInfoRecords", new {@area= "Bussiness" })?CompanyType=FGS',
+            delUrl = '@Url.Action("del", "BussProjInfoRecords", new { @area = "Bussiness" })';
+
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: addUrl,//添加的路径
+                JQEditUrl:editUrl,//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussProjInfoRecordsGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQExcludeCol: [1,10,11,12,13],//导出execl排除的列
+                JQIsSearch: true,
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,
+                toolbar: '#BussProjInfoRecordsPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		          { title: '项目编号', field: 'ProjCode', width: "10%", align: 'left', halign: "center", sortable: true },
+                  { title: '项目名称', field: 'ProjName', width: "20%", align: 'left', halign: "center", sortable: true },
+		          { title: '备案人', field: 'RecordsEmpName', width: "5%", align: 'center', halign: "center", sortable: true },
+		          { title: '预计启动时间', field: 'PredictStartTime', width: "8%", align: 'center', halign: "center", sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		          { title: '预计签合同时间', field: 'PredictConcludeTime', width: "8%", align: 'center', halign: "center", sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                  { title: '备案时间', field: 'RecordTime', width: "5%", align: 'center', halign: "center", sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		          { title: '业主单位', field: 'CustomerName', width: "15%", align: 'left', halign: "center", sortable: true },
+                  { title: '创建人', field: 'CreatorEmpName', width: "5%", align: 'center', halign: "center", sortable: true },
+                  {
+                      field: 'JQFiles', title: '附件', align: 'center', width: "5%", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'BusinessInfoRecord', formatter: function (value, row) {
+                          return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                      }
+                  },
+                  {
+                      field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "10%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrentEmpID)")
+                  },
+                  {
+                      field: 'opt', title: '操作', width: "5%", align: 'center', JQIsExclude: true,
+                      formatter: function (value, row, index) {
+                          var title = "查看";
+                          if (row._EditStatus == 1) {
+                              title = "修改";
+                          }
+                          else if (row._EditStatus == 2) {
+                              title = "处理";
+                          }
+
+                          var note = '<a class="easyui-linkbutton" style="margin-left:10px;" onclick="Note(' + row.Id + ')">记事</a>';
+
+                          return '<a class="easyui-linkbutton" onclick="Info(' + row.Id + ')">' + title + '</a>' + note;
+                      }
+                  }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#BussProjInfoRecordsGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号/项目名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid({
+                        dgID: 'BussProjInfoRecordsGrid',
+                        loadingType: 'datagrid'
+                    });
+                }
+            });
+
+            $("#isStartSearch").combobox('hidePanel');
+        });
+
+        window.refreshGrid = function () {
+            $("#JQSearch").textbox("button").click();
+        }
+
+        function Info(Id) {
+            JQ.dialog.dialog({
+                title: '项目信息备案明细',
+                width: '768',
+                height: '100%',
+                url: '@Url.Action("edit")?CompanyType=FGS&Id=' + Id,
+                onClose: function () {
+                    $("#BussProjInfoRecordsGrid").datagrid("reload");
+                }
+            });
+        }
+
+        function Note(Id) {
+            JQ.dialog.dialog({
+                title: '项目信息备案记事',
+                width: '1200',
+                height: '100%',
+                url: '@Url.Action("notelist")?BussProjInfoRecordsId=' + Id,
+                onClose: function () {
+                    $("#BussProjInfoRecordsGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="BussProjInfoRecordsGrid"></table>
+    <div id="BussProjInfoRecordsPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+        </span>
+        <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key: 'ProjName,ProjCode', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            <span style="padding-left:10px;">
+                预计启动时间
+                <input id="PSTStartTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始日期'" validType="dateISO" JQWhereOptions="{ Key:'PredictStartTime', Contract:'>=',filedType:'Date' }">
+                至
+                <input id="PSTEndTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束日期'" validType="dateISO" JQWhereOptions="{ Key:'PredictStartTime', Contract:'<=',filedType:'Date' }">
+            </span>
+
+            <span style="padding-left:10px;">
+                预计签合同时间
+                <input id="PCTStartTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始日期'" validType="dateISO" JQWhereOptions="{ Key:'PredictConcludeTime', Contract:'>=',filedType:'Date' }">
+                至
+                <input id="PCTEndTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束日期'" validType="dateISO" JQWhereOptions="{ Key:'PredictConcludeTime', Contract:'<=',filedType:'Date' }">
+            </span>
+
+            <span style="padding-left:10px;">
+                备案时间
+                <input id="RTStartTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始日期'" validType="dateISO" JQWhereOptions="{ Key:'RecordTime', Contract:'>=',filedType:'Date' }">
+                至
+                <input id="RTEndTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束日期'" validType="dateISO" JQWhereOptions="{ Key:'RecordTime', Contract:'<=',filedType:'Date' }">
+            </span>
+        </div>
+    </div>
+}
+

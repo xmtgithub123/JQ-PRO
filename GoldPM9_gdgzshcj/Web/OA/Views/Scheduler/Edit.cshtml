@@ -1,0 +1,248 @@
+﻿@model DataModel.Models.Scheduler
+<script type="text/javascript">
+    var buttons=[];
+    @if (Model.ID > 0)
+    {
+        <text>
+    buttons.push({ icon: "fa-minus-circle", text: "删除", onClick: function () {
+        deleteData();
+    }});
+    </text>
+    }
+    JQ.form.submitInit({
+        formid: "schedulerform",
+        buttonTypes: ["submit", "close"],//默认按钮
+        succesCollBack: function (data) {
+            if(typeof(data.stateValue)=="string")
+            {
+                JQ.dialog.error(data.stateValue);
+            }
+            else
+            {
+                data.stateValue.start_date=parseDateTimeValue(data.stateValue.StartTime,false);
+                data.stateValue.end_date=parseDateTimeValue(data.stateValue.EndTime,data.stateValue.IsFullDay);
+                window.top.document.getElementById("@(Request.QueryString["parentID"])").contentWindow.afterSchedulerSave(data.stateValue,@(Request.QueryString["id"]));
+                JQ.dialog.dialogClose();
+            }
+        },
+        buttons: buttons
+    });
+    function parseDateTimeValue(str,isFullDay) {
+        var matches = /^\/Date\((-?[0-9]*)\)\/$/.exec(str);
+        return new Date(isFullDay?(parseInt(matches[1])+24*60*60*1000) :parseInt(matches[1]));
+    }
+</script>
+
+@using (Html.BeginForm("Save", "Scheduler", FormMethod.Post, new { @area = "OA", @id = "schedulerform", @name = "schedulerform" }))
+{
+    <input type="hidden" name="id" value="@(Model.ID)" />
+    <table class="table table-bordered">
+        <tr>
+            <th style="width:12%">时间</th>
+            <td style="width:88%;height:45px;">
+                <div style="float:left;position:relative; margin-left:-10px">
+                    <input type="checkbox" id="cbIsFullDay" name="cbIsFullDay" style="position: absolute;top: 6px;width: 32px;left:0px" /><label for="cbIsFullDay" style="position: absolute;top: 7px;width: 32px;left:29px;-webkit-user-select:none">全天</label>
+                </div>
+                <div style="float:left;margin-left:50px">
+                    <input id="txtStartDate" name="txtStartDate" style="width:100px" value="@(Model.StartTime.ToString("yyyy-MM-dd"))">
+                </div>
+                <div id="divStartTime" style="float:left;margin-left:5px">
+                    <select id="txtStartMinute" name="txtStartMinute">
+                        @{
+                            for (var i = 0; i < 24; i++)
+                            {
+                                if (i == Model.StartTime.Hour)
+                                {
+                                    <option value="@(i.ToString("00"))" selected="selected">@(i.ToString("00"))</option>
+                                }
+                                else
+                                {
+                                    <option value="@(i.ToString("00"))">@(i.ToString("00"))</option>
+                                }
+                            }
+                        }
+                    </select>
+                    <span>:</span>
+                    <select id="txtStartSecond" name="txtStartSecond">
+                        @{
+                            for (var i = 0; i < 60; i = i + 5)
+                            {
+                                if (i == Model.StartTime.Minute)
+                                {
+                                    <option value="@(i.ToString("00"))" selected="selected">@(i.ToString("00"))</option>
+                                }
+                                else
+                                {
+
+                                    <option value="@(i.ToString("00"))">@(i.ToString("00"))</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+                <div style="float:left;margin:0px 5px 0px 5px;line-height:26px;cursor:default; -webkit-user-select:none">
+                    –
+                </div>
+                <div style="float:left">
+                    <input id="txtEndDate" name="txtEndDate" style="width:100px" value="@(Model.EndTime.ToString("yyyy-MM-dd"))">
+                </div>
+                <div id="divEndTime" style="float:left;margin-left:5px">
+                    <select id="txtEndMinute" name="txtEndMinute">
+                        @{
+                            for (var i = 0; i < 24; i++)
+                            {
+                                if (i == Model.EndTime.Hour)
+                                {
+                                    <option value="@(i.ToString("00"))" selected="selected">@(i.ToString("00"))</option>
+                                }
+                                else
+                                {
+
+                                    <option value="@(i.ToString("00"))">@(i.ToString("00"))</option>
+                                }
+                            }
+                        }
+                    </select>
+                    <span>:</span>
+                    <select id="txtEndSecond" name="txtEndSecond">
+                        @{
+                            for (var i = 0; i < 60; i = i + 5)
+                            {
+                                if (i == Model.EndTime.Minute)
+                                {
+                                    <option value="@(i.ToString("00"))" selected="selected">@(i.ToString("00"))</option>
+                                }
+                                else
+                                {
+
+                                    <option value="@(i.ToString("00"))">@(i.ToString("00"))</option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                提醒
+            </th>
+            <td style="height:45px;">
+                <div id="divRemind1" style="float:left;position:relative;margin:5px 0px 0px -2px;">
+                    <input type="checkbox" id="cbIsRemind" name="cbIsRemind" style="position:absolute" /><label for="cbIsRemind" style="position:absolute;left:20px;width:32px;top:1px;-webkit-user-select:none">提醒</label>
+                </div>
+                <div id="divRemind" style="float:left; margin:1px 0px 0px 50px;">
+                    <div style="float:left;line-height:28px">
+                        提前
+                    </div>
+                    <div style="float:left;margin-left:5px">
+                        <input id="txtRemindBefore" name="txtRemindBefore" style="width:36px" type="text" value="@(Model.RemindBefore==-1?5:Model.RemindBefore)" />
+                    </div>
+                    <div style="float:left;margin-left:5px">
+                        <select id="txtRemindBeforeType" name="txtRemindBeforeType">
+                            <option value="1">分</option>
+                            <option value="2">时</option>
+                            <option value="3">天</option>
+                        </select>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                参与人员
+            </th>
+            <td style="height:45px;">
+                <input name="joinEmpIDs" id="joinEmpIDs" type="hidden" value="@(Model.JoinEmpIDs)" />
+                <input id="joinEmpIDsDisplay" name="joinEmpIDsDisplay" class="easyui-textbox" value="@(ViewBag.JoinEmpNames)" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                内容
+            </th>
+            <td>
+                <textarea id="Content" name="Content" style="width:488px;height:160px" placeholder="请输入日程内容" class="easyui-textbox" data-options="multiline:true,required:true">@(Model.Content)</textarea>
+            </td>
+        </tr>
+    </table>
+                            }
+<script type="text/javascript">
+    $("#txtStartDate,#txtEndDate").datebox({
+        required: true,
+        validType: ["dateISO"]
+    });
+    $("#txtStartMinute,#txtEndMinute").combobox({
+        editable: false
+    });
+    $("#txtRemindBeforeType").val("@(Model.RemindBeforeType)");
+    $("#txtStartSecond,#txtEndSecond,#txtRemindBeforeType").combobox({
+        editable: false,
+        panelHeight: "auto",
+    });
+    $("#txtRemindBefore").numberbox({
+        min:0,
+        precision:0
+    }).numberbox("textbox").css({ textAlign: "right" });
+    document.getElementById("cbIsFullDay").onchange = function () {
+        onIsFullDayChanged();
+    }
+    @if (Model.IsFullDay)
+    {
+        <text>
+    document.getElementById("cbIsFullDay").checked=true;
+    </text>
+    }
+    @if (Model.RemindBefore>-1&&Model.ID>0)
+    {
+        <text>
+    document.getElementById("cbIsRemind").checked=true;
+    </text>
+    }
+    function onIsFullDayChanged() {
+        if (document.getElementById("cbIsFullDay").checked) {
+            $("#txtRemindBeforeType").combobox("setValue","3").combobox("disable");
+            document.getElementById("divStartTime").style.display = "none";
+            document.getElementById("divEndTime").style.display = "none";
+        }
+        else {
+            $("#txtRemindBeforeType").combobox("enable");
+            document.getElementById("divStartTime").style.display = "";
+            document.getElementById("divEndTime").style.display = "";
+        }
+    }
+    document.getElementById("cbIsRemind").onchange = function () {
+        onIsRemindChanged();
+    }
+
+    function onIsRemindChanged() {
+        if (document.getElementById("cbIsRemind").checked) {
+            document.getElementById("divRemind1").style.margin = "6px 0px 0px -2px";
+            document.getElementById("divRemind").style.display = "";
+        }
+        else {
+            document.getElementById("divRemind1").style.margin = "-8px 0px 0px -2px";
+            document.getElementById("divRemind").style.display = "none";
+        }
+    }
+
+    onIsFullDayChanged();
+
+    onIsRemindChanged();
+
+    JQ.textbox.selEmp({
+        id: "joinEmpIDsDisplay",
+        setID: "joinEmpIDs",
+        width: 488
+    });
+
+    function deleteData(){
+        $.messager.confirm("提示","确定要删除吗",function(r){
+            if(!r) {
+                return;
+            }
+            window.top.document.getElementById("@(Request.QueryString["parentID"])").contentWindow.deleteSchedulerData(@(Request.QueryString["id"]),true);
+            JQ.dialog.dialogClose();
+        });
+    }
+</script>

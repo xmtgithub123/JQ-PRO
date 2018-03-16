@@ -1,0 +1,113 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            $("#JQSearch").textbox({
+                buttonText: "筛选",
+                buttonIcon: "fa fa-search",
+                height: 25,
+                prompt: "表单名称",
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                         {
+                             dgID: 'tbList',
+                             loadingType: 'datagrid',
+                             queryParams: null
+                         });
+                }
+            });
+
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export', 'moreSearch'],
+                JQPrimaryID: "FlowNodeID",
+                JQID: "tbList",
+                JQDialogTitle: "表单",
+                JQWidth: "768",//弹出窗体宽
+                JQHeight: '700',//弹出窗体高
+                JQLoadingType: "datagrid",
+                url: "@(Url.Action("GetSelectList", "IsoForm", new { @area = "Iso" }))",
+                checkOnSelect: true,
+                toolbar: "#list_toolbar",
+                fitColumns: true,
+                nowrap: false,
+                columns: [[
+
+                        { title: "表单名称", field: "FlowName", width: "45%", align: "center", halign: "center" },
+                        {
+                            title: "发起日期", field: "CreationTime", width: "10%", align: "center", halign: "center", formatter: function (value,row,index) {
+                                row.CreationTime = JQ.tools.DateTimeFormatterByT(value, row, index);
+                                return row.CreationTime;
+                            }
+                        },
+                        { title: "发起人", field: "CreatorEmpName", width: "10%", align: "center", halign: "center" },
+                        { title: "审批状态", field: "FlowStatusName", width: "20%", align: "center", halign: "center" },
+                        {
+                            title: "操作", field: "CZ", width: "8%", align: "center", halign: "center",
+                            formatter: function (value, row, index) { 
+                               // return '<a btn  class="easyui-linkbutton"  data-options="iconCls:\'fa fa-check\'"   onclick="Edit(' + row.Id + ')">处理</a>';
+                                return '<a btn  class="easyui-linkbutton"  data-options="iconCls:\'fa fa-check\'"   onclick="Edit(' + row.Id + ')">' + row.NodeState + '</a>';
+                            }
+                        }
+                ]],
+                JQExcludeCol: [5],//导出execl排除的列
+            });
+        });
+
+        //查看
+        function Edit(Id) {
+            var datas = $("#tbList").datagrid("getData").rows;
+            var FlowUrl = "";
+            var title = "";
+            for (var i in datas) {
+                if (datas[i].Id == Id) {
+                    FlowUrl = datas[i].FlowUrl;
+                    title = datas[i].FlowName + " " + datas[i].FlowName;
+                    break;
+                }
+            }
+            JQ.dialog.dialog({
+                title: "查看",
+                url: "@(ViewBag.sitePath)" + FlowUrl,
+                width: '900',
+                height: '100%',
+            });
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+@section Body_Content{
+    <table id="tbList"></table>
+    <div id="list_toolbar" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+        </span>
+
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key: 'FlowName', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            @Html.GetComboTree(new Condition()
+       {
+           Area = "Iso",
+           ControllerName = "IsoForm",
+           ActionName = "getFlowStatusEnum",
+           controlName = "FlowStatusEnum",
+           isMult = true,
+           prompt = "审批状态",
+           queryOptions = "{ Key:'FlowStatusID', Contract:'in',filedType:'Int'}"
+       })
+            @Html.GetComboTree(new Condition()
+       {
+           Area = "Iso",
+           ControllerName = "IsoForm",
+           ActionName = "getAllFormJson",
+           controlName = "allformSelect",
+           isMult = true,
+           prompt = "表单类型",
+           queryOptions = "{ Key:'FlowModelID', Contract:'in',filedType:'Int'}"
+       })
+        </div>
+
+    </div>
+    <input type="hidden" id="ExportType" name="ExportType" value="1" />
+}

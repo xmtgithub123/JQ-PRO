@@ -1,0 +1,53 @@
+﻿@using JQ.Web;
+
+<script type="text/javascript">
+    $(function () {
+        JQ.datagrid.datagrid({
+            pagination: true,
+            JQButtonTypes: [],//需要显示的按钮
+            JQPrimaryID: 'Id',//主键的字段
+            idField: 'Id',
+            JQID: 'tableJC1',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            singleSelect: true,
+            url: '@Url.Action("TaskWorkListJson1","DesTask",new { @area="Design"})?projId=@Request["projId"]&taskGroupId=@Request.Params["taskGroupId"]',//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#FilePanel',//工具栏的容器ID
+            columns: [[
+              { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+            { field: 'ItemName',title:'任务册名',width:'50%', align: 'center', JQIsExclude: true },
+            { field: 'ProjName',title:'项目名称',width:'50%', align: 'center', JQIsExclude: true }
+            ]]
+        });
+    });
+
+    function selectProj() {
+        debugger;
+        var node = $("#tableJC1").datagrid('getSelections');
+        if (node == "" || node == null) {
+            JQ.dialog.warning("请选择具体卷册!");
+        }
+        else {
+            _BCFileBack(node);
+            JQ.dialog.dialogClose();
+        }
+    }
+
+    function closedialog() {
+        JQ.dialog.dialogClose();
+    }
+</script>
+
+
+
+
+<table id="tableJC1"></table>
+<div id="FilePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProj()">确定选择</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="closedialog()">关闭</a>
+    </span>
+</div>

@@ -1,0 +1,179 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="openEditDialog()">
+        <span class="fa fa-plus"></span>
+        <span>新增</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="deleteData()">
+        <span class="fa fa-minus"></span>
+        <span>删除</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="window.location.reload()">
+        <span class="fa fa-refresh"></span>
+        <span>刷新</span>
+    </div>
+</div>
+<div id="divcontent" style="">
+    <table id="grid"></table>
+</div>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<script type="text/javascript">
+    window.onLoaded = function () {
+        document.body.style.overflow = "hidden";
+        $("#grid").datagrid({
+            fit: true,
+            rownumbers: true,
+            border: false,
+            idField: "ID",
+            columns: [[
+                { field: "ck", checkbox: true, align: "left", halign: "center" },
+                { field: "Name", title: "名称", width: 380, align: "left", halign: "center" },
+                { field: "Version", title: "当前版本", width: 80, align: "center", halign: "center" },
+                {
+                    field: "CreateTime", title: "创建日期", width: 160, align: "center", halign: "center", formatter: function (value) {
+                        return YChart.getDateText(YChart.parseDate(value.replace("T", " ")), "yyyy-MM-dd");
+                    }
+                },
+                {
+                    field: "op", title: "操作", width: 120, align: "center", halign: "center", formatter: function (value, rowData) {
+                        return "<a href=\"javascript:void(0)\" class=\"yc_abutton\" onclick=\"build(" + rowData.ID + ")\">设置</a> <a href=\"javascript:void(0)\" class=\"yc_abutton\" onclick=\"showHistory(" + rowData.ID + ")\">版本</a> <a href=\"javascript:void(0)\" class=\"yc_abutton\" onclick=\"edit(" + rowData.ID + ")\">编辑</a>";
+                    }
+                }
+            ]],
+            url: "@(Url.Action("GetList","Template",new { @area="Form" }))",
+            method: "POST",
+            pagination: true,
+            pageSize: 20
+        }).datagrid("getPager").pagination({
+            pageSize: 20,
+            pageList: [10, 15, 20, 25, 30, 50],
+            beforePageText: '第',
+            afterPageText: '页    共 {pages} 页',
+            displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录'
+        });
+    }
+
+    function openEditDialog() {
+        new YChart.Dialog({
+            height: 300,
+            width: 400,
+            icon: "fa-table",
+            title: "自定义表单模版 新增",
+            mask: true,
+            url: "@(Url.Action("Edit","Template",new { @area="Form" }))",
+            api: {
+                refreshGrid: function () {
+                    $("#grid").datagrid("reload");
+                }
+            }
+        });
+    }
+
+    function edit(dataID) {
+        var dialog = new YChart.Dialog({
+            height: 300,
+            width: 400,
+            icon: "fa-table",
+            title: "自定义表单模版 编辑",
+            mask: true,
+            url: "@(Url.Action("Edit","Template",new { @area="Form" }))?id=" + dataID,
+            api: {
+                refreshGrid: function () {
+                    $("#grid").datagrid("reload");
+                }
+            }
+        });
+        YChart.stopBubble();
+    }
+
+    function showHistory(dataID) {
+
+        YChart.stopBubble();
+    }
+
+    function deleteData() {
+        var rows = $("#grid").datagrid("getChecked");
+        if (rows.length == 0) {
+            return;
+        }
+        YChart.Dialog.confirm("删除提示", "确定要删除选中的自定义表单吗？", function (result) {
+            if (!result) {
+                return;
+            }
+            var ids = "";
+            for (var i = 0; i < rows.length; i++) {
+                if (i != 0) {
+                    ids += ",";
+                }
+                ids += rows[i].ID;
+            }
+            YChart.ajax({
+                url: "@(Url.Action("Delete","Template",new { @area="Form" }))",
+                type: "POST",
+                data: { ids: ids },
+                success: function (result) {
+                    if (!result.Result) {
+                        YChart.Dialog.alert("删除提示", result.Message);
+                        return;
+                    }
+                    $("#grid").datagrid("reload");
+                }
+            });
+        });
+    }
+
+    function build(templateID) {
+        var div = document.getElementById("div_buildpanel");
+        if (!div) {
+            div = document.createElement("div");
+            div.setAttribute("id", "div_buildpanel");
+            div.className = "content_container";
+            div.style.height = document.documentElement.clientHeight + "px";
+            document.body.appendChild(div);
+            var iframe = document.createElement("iframe");
+            iframe.setAttribute("scrolling", "no");
+            iframe.setAttribute("frameborder", "0");
+            iframe.setAttribute("border", "0");
+            iframe.setAttribute("width", "100%");
+            iframe.setAttribute("height", "100%");
+            div.appendChild(iframe);
+        }
+        div.style.display = "";
+        div.style.left = document.documentElement.clientWidth + "px";
+        var am = setInterval(function () {
+            var left = parseFloat(div.style.left.replace("px", "")) - 100;
+            if (left <= 0) {
+                left = 0;
+                window.clearInterval(am);
+            }
+            div.style.left = left + "px";
+        }, 30);
+        div.childNodes[0].src = "@(Url.Action("Build", "Template",new { @area= "Form" }))?formTemplateID=" + templateID;
+        YChart.stopBubble();
+    }
+
+    window.hideBuildPanel = function () {
+        var div = document.getElementById("div_buildpanel");
+        if (!div) {
+            return;
+        }
+        var width = -document.documentElement.clientWidth;
+        var am = setInterval(function () {
+            var left = parseFloat(div.style.left.replace("px", "")) - 100;
+            if (left <= width) {
+                left = width;
+                window.clearInterval(am);
+                div.style.display = "none";
+            }
+            div.style.left = left + "px";
+        }, 30)
+    }
+
+    window.refreshGrid = function () {
+        $("#grid").datagrid("reload");
+    }
+</script>

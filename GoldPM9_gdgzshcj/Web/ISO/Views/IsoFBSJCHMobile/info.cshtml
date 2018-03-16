@@ -1,0 +1,585 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.IsoFBSJCH
+
+@section head {
+    <style type="text/css">
+    .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+    .p-15{
+        padding:15px;
+    }
+
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+    .aui-input-check-disable {
+        font-size: 12px !important;
+        font-weight: normal !important;
+    }
+
+    .aui-input-check-disable label {
+        line-height: 45px;
+        margin-right: 15px;
+    }
+
+        .aui-input-check-disable input[type="checkbox"], .aui-input-check-disable input[type="radio"] {
+            width: auto;
+            margin: 0 5px 0 0;
+            line-height: 45px;
+        }
+</style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="IsoFBSJCHForm" class="aui-form">
+            <div class="p-15">
+               表 <label>@Model.TableNumber</label><input type="hidden" name="TableNumber" value="@Model.TableNumber" />
+                <br />编号 <input id="Number" name="Number" type="text" class="aui-input" style="display:inline;min-width: 60px;max-width: 60%;border: 1px solid #dbdbdb; border-radius: 6px;padding: 3px 6px;margin:0 3px;text-align:center;" class="form-control" validType="length[0,200]" value="@Model.Number" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;外委项目名称</label>
+                <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="ProjPhaseGrid" style="font-size:12px;">
+                    <thead>
+                        <tr>
+                           
+                            <th>外委项目编号</th>
+                            <th>外委项目名称</th>
+                            <th>项目编号</th>
+                            <th>项目名称</th>
+                            <th>外委单位</th>
+                            <th>设计部门</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gridList" style="font-size:12px;"></tbody>
+                </table>
+            </div>
+
+            <script id="listTpl" type="text/x-dot-template">
+                {{~it:appendProjectGetInfoData:index}}
+                <tr id="tr_{{=index}}">
+                    <td>
+                        {{=appendProjectGetInfoData.SubNumber}}
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.SubName}}
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.ProjNumber}}
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.ProjName}}
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.CustName}}
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.CreatorDepName}}
+                    </td>
+                </tr>
+                {{~}}
+            </script>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;分包/合作内容<br/>&nbsp;&nbsp;、设计阶段及<br/>&nbsp;&nbsp;责任分界</label>
+                <textarea rows="1" name="SubContent" id="SubContent" style="width:98%;overflow:auto;" class="aui-input">@Model.SubContent</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;分包/合作<br/>&nbsp;&nbsp;设计标准</label>
+                <textarea rows="6" name="SubStandard" id="SubStandard" style="width:98%;overflow:auto;" class="aui-input">@Model.SubStandard</textarea>
+            </div>
+          
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp;接口控制<br />&nbsp;&nbsp;要求和成果<br />&nbsp;&nbsp;验证要求</label>
+                <div  id="IsZD">
+                    <label>是否专业指导？</label>
+                    <label>
+
+                        <input type="radio" name="IsZD" id="IsZD1" style="vertical-align:middle;" />
+                        是
+                    </label>
+
+                    <label>
+                        <input type="radio" name="IsZD" id="IsZD2" style="vertical-align:middle;" />
+                        否
+                    </label>
+                    <input type="hidden" id="IsGuide" name="IsGuide" value="@Model.IsGuide" />
+                    <input type="hidden" id="IsZD_Ex" name="IsZD_Ex" />
+                </div>
+               
+                <br />
+                <label>专业指导时机</label>
+                <input type="date" id="GuideTime" name="GuideTime" class="aui-input" value="@Model.GuideTime.ToString("yyyy-MM-dd")" style="width: 60%;float: right;"/>
+                <br />
+                <div id="IsPS">
+                    <label>是否设计评审？</label>
+                    <label>
+
+                        <input type="radio" name="IsPS" id="IsPS1" style="vertical-align:middle;" />
+                        是
+                    </label>
+
+                    <label>
+                        <input type="radio" name="IsPS" id="IsPS2" style="vertical-align:middle;" />
+                        否
+                    </label>
+                    <input type="hidden" id="IsReview" name="IsReview" value="@Model.IsReview" />
+                    <input type="hidden" id="IsPS_Ex" name="IsPS_Ex" />
+                </div>
+                
+                <br />
+                <label>设计评审时机</label>
+                <input type="date" id="ReviewTime" name="ReviewTime" class="aui-input" value="@Model.ReviewTime.ToString("yyyy-MM-dd")" style="width: 60%;float: right;" />
+                <br />
+
+                <div id="IsHQ">
+                    <label>是否专业会签？</label>
+                    <label>
+
+                        <input type="radio" name="IsHQ" id="IsHQ1" style="vertical-align:middle;" />
+                        是
+                    </label>
+
+                    <label>
+                        <input type="radio" name="IsHQ" id="IsHQ2" style="vertical-align:middle;" />
+                        否
+                    </label>
+                    <input type="hidden" id="IsMulsign" name="IsMulsign" value="@Model.IsMulsign" />
+                    <input type="hidden" id="IsHQ_Ex" name="IsHQ_Ex" />
+                    <br />
+                </div>
+
+                
+                <label>专业会签时机</label>
+                <input type="date" id="MulsignTime" name="MulsignTime" class="aui-input" value="@Model.MulsignTime.ToString("yyyy-MM-dd")" style="width: 60%;float: right;" />
+                <br />
+
+               
+            </div>
+                <div class="aui-input-row" style="width:100%;">
+                    <label class="aui-input-addon">&nbsp;&nbsp;其他要求</label>
+                    <textarea rows="6" name="OtherNote" id="OtherNote" style="width:90%;overflow:auto;" class="aui-input" placeholder="请输入其他要求">@Model.OtherNote</textarea>
+                </div>
+                <div class="aui-input-row">
+                    <label class="aui-input-addon">&nbsp;&nbsp;设计文件交付要求</label>
+                    <textarea rows="6" name="DeliveryNote" id="DeliveryNote" style="width:98%;overflow:auto;" class="aui-input">@Model.DeliveryNote</textarea>
+                </div>
+                <div class="aui-input-row">
+                    <label class="aui-input-addon">&nbsp;&nbsp;工程后期服务<br />&nbsp;&nbsp;的要求和责任</label>
+                    <textarea rows="6" name="EngineeringService" id="EngineeringService" style="width:98%;overflow:auto;" class="aui-input">@Model.EngineeringService</textarea>
+                </div>
+                <div class="aui-input-row">
+                    <label class="aui-input-addon">&nbsp;&nbsp;质量控制措施<br />&nbsp;&nbsp;及质量记录要求</label>
+                    <textarea rows="6" name="QualityNote" id="QualityNote" style="width:98%;overflow:auto;" class="aui-input">@Model.QualityNote</textarea>
+                </div>
+                <div class="aui-input-row">
+                    <label class="aui-input-addon">&nbsp;&nbsp;联合设计、外聘<br />&nbsp;&nbsp;人员设计签署人</label>
+                    <textarea rows="2" name="DesSign" id="DesSign" style="width:98%;overflow:auto;" class="aui-input">@Model.DesSign</textarea>
+                </div>
+                <div class="aui-input-row" style="font-size:12px;">
+                    <label class="aui-input-addon">&nbsp;&nbsp;我公司人员</label>
+                    <br />
+                    <div>设计人：<textarea rows="1" name="OwnerDes" id="OwnerDes" style="width:90px;overflow:auto;display:inline-block;float:none; padding:5px;"class="aui-input">@Model.OwnerDes</textarea>校核人：<textarea rows="1" name="OwnerCheck" id="OwnerCheck" style="width:90px;overflow:auto; padding:5px;display:inline-block;float:none;" class="aui-input">@Model.OwnerCheck</textarea></div>
+                    @*<p>校核人<input name="OwnerCheck" id="OwnerCheck" type="text" style="width:80px;float:none;display:inline-block;" class="aui-input" value="@Model.OwnerCheck" /></p>*@
+                    <div style="margin:10px 0;">审核人：<textarea rows="1" name="OwnerAudit" id="OwnerAudit" style="width:100px;float:none; padding:5px;display:inline-block;" class="aui-input">@Model.OwnerAudit</textarea>审定人：<textarea rows="1" name="OwnerApproval" id="OwnerApproval" style="width:80px; padding:5px;float:none;display:inline-block;" class="aui-input">@Model.OwnerApproval</textarea></div>
+                    @* <p>审定人<input name="OwnerApproval" id="OwnerApproval" type="text" style="width:80px;float:none;display:inline-block;" class="aui-input" value="@Model.OwnerApproval" /></p>*@
+                    <div>专业负责人：<textarea rows="1" name="OwnerProjEmpName" id="OwnerProjEmpName" style="width:80px;float:none;display:inline-block; padding:5px;" class="aui-input">@Model.OwnerProjEmpName</textarea></div>
+                    <div style="margin:10px 0;">项目负责人：<textarea rows="1" name="OwnerSpecEmpName" id="OwnerSpecEmpName"style="width:80px;float:none; padding:5px;display:inline-block;" class="aui-input">@Model.OwnerSpecEmpName</textarea></div>
+                </div>
+
+                <div class="aui-input-row" style="font-size:12px;">
+                    <label class="aui-input-addon">&nbsp;&nbsp;合作单位人员</label>
+                    <br />
+                    <div>设计人：<textarea rows="1" name="OtherDes" id="OtherDes"  style="width:90px;float:none;display:inline-block;padding:5px;" class="aui-input">@Model.OtherDes</textarea>校核人：<textarea rows="1" name="OtherCheck" id="OtherCheck" style="width:80px;float:none;display:inline-block;padding:5px;" class="aui-input">@Model.OtherCheck</textarea></div>
+                    @*<p>校核人<input name="OwnerCheck" id="OwnerCheck" type="text" style="width:80px;float:none;display:inline-block;" class="aui-input" value="@Model.OwnerCheck" /></p>*@
+                    <div style="margin:10px 0;">审核人：<textarea rows="1" name="OtherAudit" id="OtherAudit" style="width:90px;float:none;display:inline-block;padding:5px;" class="aui-input">@Model.OtherAudit</textarea>审定人：<textarea rows="1" name="OtherApproval" id="OtherApproval" type="text" style="width:80px;float:none;display:inline-block;padding:5px;" class="aui-input">@Model.OtherApproval</textarea></div>
+                    @* <p>审定人<input name="OwnerApproval" id="OwnerApproval" type="text" style="width:80px;float:none;display:inline-block;" class="aui-input" value="@Model.OwnerApproval" /></p>*@
+                    <div>专业负责人：<textarea rows="1" name="OtherProjEmpName" id="OtherProjEmpName" style="width:80px;float:none;display:inline-block;padding:5px;" class="aui-input">@Model.OtherProjEmpName</textarea></div>
+                    <div style="margin:10px 0;">项目负责人：<textarea rows="1" name="OtherSpecEmpName" id="OtherSpecEmpName"  style="width:80px;float:none;display:inline-block;padding:5px;" class="aui-input" >@Model.OtherSpecEmpName</textarea></div>
+                </div>
+
+                <div class="aui-input-row aui-input-check-disable">
+                    <label class="aui-input-addon">&nbsp;&nbsp;专业负责人<br />&nbsp;&nbsp;和审定人员<br />&nbsp;&nbsp;是否为本公司人员</label>
+                    <div id="IsBGS">
+                        <label>
+
+                            <input type="radio" name="IsBGS" id="IsBGS1" style="vertical-align:middle;" />
+                            是
+                        </label>
+
+                        <label>
+                            <input type="radio" name="IsBGS" id="IsBGS2" style="vertical-align:middle;" />
+                            否
+                        </label>
+                        <input type="hidden" id="IsOwnerEmp" name="IsOwnerEmp" value="@Model.IsOwnerEmp" />
+                        <input type="hidden" id="IsBGS_Ex" name="IsBGS_Ex" />
+                    </div>
+                    
+                </div>
+
+                <div class="aui-input-row">
+                    <label class="aui-input-addon">&nbsp;&nbsp;策划调整内容</label>
+                    <textarea rows="2" name="ChangePlanNote" id="ChangePlanNote" style="width:98%;overflow:auto;" class="aui-input">@Model.ChangePlanNote</textarea>
+                </div>
+                <input type="hidden" id="ProjSubID" name="ProjSubID" value="0" />
+
+                @*<div class="aui-input-row">
+                    <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+                </div>*@
+            </form>
+    </div>
+    <script type="text/javascript">
+         var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+        };
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                //initFormBegin(JSON.stringify({
+                //    "AllowEditControls": "{}"
+                //    //"AllowEditControls":""
+
+                //}));
+                //initFormBegin();
+            }
+
+        })
+        //页面初始化
+        function initFormBegin(params) {
+           // alert(params)
+            $("#ProjSubID").val(@Model.ProjSubID);
+            console.log($("#ProjSubID").val())
+            //获取数据
+            $.post('@Url.Action("GetProjSubList", "ProjSub", new { @area= "Project" })'  + "", {
+                ProjSubIDs: $("#ProjSubID").val()
+            }, function (_rData) {
+               // alert(_rData)
+                console.log(JSON.parse(_rData))
+                dssatas = JSON.parse(_rData)
+                var appendProjectGetInfoData = JSON.parse(_rData).rows
+                if (appendProjectGetInfoData.length > 0) {
+                    var interText = doT.template($("#listTpl").text())
+                    $("#gridList").html(interText(appendProjectGetInfoData));
+                }
+                else {
+                    console.log('暂无数据')
+                }
+            })
+            @*alert(3)
+            var url = _webconfig.serverUrl + 'project/ProjSub/GetProjSubList';
+            var ProjSubIDs = '@Model.ProjSubID';
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: ProjSubIDs ,
+                success: function (data) {
+                    alert(data)
+                }
+            })*@
+
+            SetCheck("IsZD", '@Model.IsGuide');
+            SetCheck("IsPS", '@Model.IsReview');
+            SetCheck("IsHQ", '@Model.IsMulsign');
+            SetCheck("IsBGS", '@Model.IsOwnerEmp');
+
+            //去除换行
+            //alert(window.location.href)
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+
+
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+
+            //清除签发时间，默认为1900-01-01改为空
+            var ReviewTime = $('#ReviewTime').val();;
+            if ((ReviewTime == '1900-01-01')) {
+                $('#ReviewTime').val('');
+            }
+            //清除接收时间，默认为1900-01-01改为空
+            var GuideTime = $('#GuideTime').val();;
+            if ((GuideTime == '1900-01-01')) {
+                $('#GuideTime').val('');
+            }
+            //清除接收时间，默认为1900-01-01改为空
+            var MulsignTime = $('#MulsignTime').val();;
+            if ((MulsignTime == '1900-01-01')) {
+                $('#MulsignTime').val('');
+            }
+
+
+             //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('IsoFBSJCHForm'));
+
+            if (paramsObj.AllowEditControls == "-") {
+                $('input[type="radio"]').attr('disabled','disabled')
+            }
+
+
+            //分包/合作内容，替换换行符
+            var SubContentValue = $('#SubContent').val();
+            SubContentValue = SubContentValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#SubContent').val(SubContentValue);
+
+            //分包/合作，替换换行符
+            var SubStandardValue = $('#SubStandard').val();
+            SubStandardValue = SubStandardValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#SubStandard').val(SubStandardValue);
+
+            //其他要求，替换换行符
+            var OtherNoteValue = $('#OtherNote').val();
+            OtherNoteValue = OtherNoteValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#OtherNote').val(OtherNoteValue);
+
+            //设计文件交付要求，替换换行符
+            var DeliveryNoteValue = $('#DeliveryNote').val();
+            DeliveryNoteValue = DeliveryNoteValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#DeliveryNote').val(DeliveryNoteValue);
+
+            //工程后期服务，替换换行符
+            var EngineeringServiceValue = $('#EngineeringService').val();
+            EngineeringServiceValue = EngineeringServiceValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#EngineeringService').val(EngineeringServiceValue);
+
+            //质量控制措施，替换换行符
+            var QualityNoteValue = $('#QualityNote').val();
+            QualityNoteValue = QualityNoteValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#QualityNote').val(QualityNoteValue);
+
+            //联合设计、外聘，替换换行符
+            var DesSignValue = $('#DesSign').val();
+            DesSignValue = DesSignValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#DesSign').val(DesSignValue);
+
+            //策划调整内容，替换换行符
+            var ChangePlanNoteValue = $('#ChangePlanNote').val();
+            ChangePlanNoteValue = ChangePlanNoteValue.replace(/[\r\n]/g, "").replace(/\s/g, "")
+            $('#ChangePlanNote').val(ChangePlanNoteValue);
+
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#IsoFBSJCHForm').validate({
+                rules: {
+                    //ProjectName: 'required',//项目名称
+                    //ColAttVal2:'required',//变更原因
+                    SubContent: { //修改内容
+                        required: false,
+                        maxlength: 10
+                    },
+                    //FormNote: { // 监理单位意见
+                    //    required: false,
+                    //    maxlength: 500
+                    //}
+                },
+                messages: {
+                    //ProjectName: '请输入项目名称 ',
+                    //ColAttVal2:'请输入变更原因',
+                    //ModifyContent: {
+                    //    maxlength: '内容长度必须介于0-500之间'
+                    //},
+                    SubContent: {
+                        maxlength: '内容长度必须介于0-10之间'
+                    }
+                }
+            });
+
+            isValidate = formVali.form();
+            if (isValidate) {
+
+                //是否专业指导
+                var iszdIdArr = [], iszdArr = [];
+                $('#IsZD input[type="radio"]:checked').each(function (i, e) {
+                    var iszdIdName = $(this).attr('id').split('IsZD')[1]
+                    iszdIdArr.push(iszdIdName)
+                    iszdArr.push($(this).next().text())
+                })
+                $('#IsGuide').val(iszdIdArr)
+
+                //是否设计评审
+                var ispsIdArr = [], ispsArr = [];
+                $('#IsPS input[type="radio"]:checked').each(function (i, e) {
+                    var ispsIdName = $(this).attr('id').split('IsPS')[1]
+                    ispsIdArr.push(ispsIdName)
+                    ispsArr.push($(this).next().text())
+                })
+                $('#IsReview').val(ispsIdArr)
+
+                //是否专业会签
+                var ishqIdArr = [], ishqArr = [];
+                $('#IsHQ input[type="radio"]:checked').each(function (i, e) {
+                    var ishqIdName = $(this).attr('id').split('IsHQ')[1]
+                    ishqIdArr.push(ishqIdName)
+                    ishqArr.push($(this).next().text())
+                })
+                $('#IsMulsign').val(ishqIdArr)
+
+                //专业负责人
+                var isbgsIdArr = [], isbgsArr = [];
+                $('#IsBGS input[type="radio"]:checked').each(function (i, e) {
+                    var isbgsIdName = $(this).attr('id').split('IsBGS')[1]
+                    isbgsIdArr.push(isbgsIdName)
+                    isbgsArr.push($(this).next().text())
+                })
+                $('#IsOwnerEmp').val(isbgsIdArr);
+
+
+                var formData = DomUtil.serialize(document.getElementById('IsoFBSJCHForm'));//json or =&
+                //console.log(formData)
+                //告诉移动端页面初始完完毕
+                //alert(JSON.stringify(formData))
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+            var formData = DomUtil.serialize(document.getElementById('IsoFBSJCHForm'));//json or =&
+            //告诉移动端页面验证完毕
+            //alert(JSON.stringify(formData))
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+        function SetCheck(contId, paras) {
+            $(':checkbox[name=' + contId + ']').removeAttr('checked');
+            var paraArr = Enumerable.From(paras.split(',')).Where("x=>x!=''").Select("x=>x").ToArray();
+            $.each(paraArr, function (index, data) {
+                $("#" + contId + paraArr[index]).attr("checked", "checked");
+            })
+
+            var val = "0";
+            if (paraArr.length == 0) {
+                val = "0";
+            } else {
+                val = paraArr[0];
+            }
+
+            switch (contId) {
+                default:
+                    switch (val) {
+                        case "1":
+                            $("#" + contId + "_Ex").val("☑是  □否");
+                            break;
+                        case "2":
+                            $("#" + contId + "_Ex").val("□是  ☑否");
+                            break;
+                        default:
+                            $("#" + contId + "_Ex").val("□是  □否");
+                            break;
+                    }
+                    break;
+            }
+        }
+        //function getProjInfo() {
+        //    var projInfo = {
+        //        mainProjId: $('#mainProjId').val(),
+        //        projId: $('#projId').val(),
+        //        projPhaseId: $('#projPhaseId').val(),
+        //        desTaskGroupId: $('#desTaskGroupId').val(),
+        //        ProjEmpId: $('#ProjEmpId').val(),
+        //        ProjPhaseEmpName: $('#ProjPhaseEmpName').val(),
+        //        FProjEmpId: $('#FProjEmpId').val(),
+        //        FProjEmpName: $('#FProjEmpName').val()
+        //    };
+        //    if (window.JinQuMobile) {
+        //        window.JinQuMobile.projInfo(JSON.stringify(projInfo));
+        //    }
+        //}
+
+    </script>
+}

@@ -1,0 +1,65 @@
+﻿<div id="toolbar_y">
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'fa fa-check',plain:true" onclick="sure()">确定</a>
+    <a href="javascript:void(0)" class="easyui-linkbutton" data-options="iconCls:'fa fa-close',plain:true" onclick="closedialog()">关闭</a>
+</div>
+<table id="list"></table>
+<script type="text/javascript">
+    $("#list").datagrid({
+        url: "@(Url.Action("GetShortcutList", "Menu",new { @area="Core" }))",
+        toolbar: "#toolbar_y",
+        idField: "MenuID",
+        rownumbers: true,
+        columns: [[
+                 { field: "ck", align: "center", halign: "center", checkbox: true },
+                  {
+                      field: "MenuImageUrl", width: 40, align: "center", halign: "center", formatter: function (value) {
+                          return "<span class=\"" + value + "\" style=\"color:#E1C68D\"></span>";
+                      }
+                  },
+                { field: "MenuName", title: "菜单名称", width: 300, align: "center", halign: "center" },
+        ]],
+        onLoadSuccess: function (data) {
+            var $list = $("#list");
+            for (var i in data.rows) {
+                if (data.rows[i].IsChecked == 1) {
+                    $list.datagrid("checkRow", $list.datagrid("getRowIndex", data.rows[i].MenuID));
+                }
+            }
+            if (data.rows.length > 0) {
+                $("#toolbar_y").next()[0].childNodes[1].childNodes[1].scrollTop = 0;
+            }
+        },
+        fit: true
+    });
+
+    function closedialog() {
+        $("#" + "@(Request.QueryString["divid"])").dialog("close");
+    }
+
+    function sure() {
+        var checked = $("#list").datagrid("getChecked");
+        //if (checked.length == 0) {
+        //    return;
+        //}
+        var idSet = "";
+        for (var i = 0; i < checked.length; i++) {
+            if (i != 0) {
+                idSet += ",";
+            }
+            idSet += checked[i].MenuID
+        }
+        $.ajax({
+            url: "@(Url.Action("SaveShortcut","Menu",new { @area="Core" }))",
+            type: "POST",
+            data: { idSet: idSet },
+            success: function (result) {
+                if (result.Result == false) {
+                    alert(result.Message);
+                    return;
+                }
+                window.top.execute("个人中心", "reloadShortcut");
+                closedialog();
+            }
+        });
+    }
+</script>

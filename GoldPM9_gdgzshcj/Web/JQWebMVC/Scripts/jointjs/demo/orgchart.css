@@ -1,0 +1,147 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial;
+}
+#paper {
+    position: relative;
+    width: 100%;
+    height: 600px;
+    overflow: auto;
+    background: #f4f4f4;
+    outline: 1px solid #f2f2f2;
+    border: 1px solid #fff;
+}
+#paper .paper > svg {
+    overflow: visible;
+}
+#console {
+    position: absolute;
+}
+.link {
+    pointer-events: none;
+}
+.tree-layout-preview {
+    stroke: #212135;
+    stroke-width: 5;
+}
+.tree-layout-preview.child {
+    fill: #212135;
+    stroke: #c7c8e0;
+}
+.tree-layout-preview.parent {
+    fill: none;
+}
+.tree-layout-box.active {
+    opacity: 0.3;
+    border-color: #212135;
+    border-width: 3px;
+    margin: 0;
+    margin-left: -4px;
+    margin-top: -1px;
+    padding-right: 2px;
+}
+.tree-layout-box.translate {
+    border-width: 3px;
+}
+.tree-layout-box.translate svg {
+    margin-top: 2px;
+}
+
+.tree-layout-mask.dropping-not-allowed {
+  z-index: 101;
+}
+
+.btn {
+    cursor: pointer;
+}
+.btn:hover circle, .btn:hover rect {
+    fill: #c7c8e0;
+}
+
+#header {
+    height: 50px;
+    background-color: #F6F6F6;
+    color: #696c8a;
+    text-align: center;
+}
+#header h1 {
+    margin: 0;
+    padding: 0;
+    display: inline-block;
+    line-height: 50px;
+    margin-left: 20px;
+    font-size: 14px;
+    float: left;
+}
+#header p {
+    display: inline-block;
+    font-size: 12px;
+    line-height: 50px;
+    margin: 0;
+    padding: 0;
+}
+#header a {
+    float: right;
+    margin-right: 10px;
+    line-height: 50px;
+    font-weight: bold;
+    color: inherit;
+    text-decoration: none;
+}
+#header img {
+    max-height: 30px;
+    float: right;
+    margin-top: 10px;
+    margin-right: 10px;
+}
+.inspector {
+    position: relative;
+}
+.inspector .field {
+  margin-bottom: 10px;
+}
+.inspector input, .inspector textarea, .inspector select {
+    text-shadow: none;
+    color: #666;
+    padding: 15px 4px;
+    border: 1px solid #ededed;
+    box-shadow: none;
+    font-weight: lighter;
+    background-color: white;
+}
+.inspector label {
+    color: #555;
+    font-weight: normal;
+    margin: 0 0 3px 2px;
+}
+.dialog .titlebar {
+    text-shadow: none;
+    background-color: #EFEFEF;
+    color: #333;
+    border-bottom: 0;
+}
+.dialog .btn-close {
+    color: #CCC;
+    width: 16px;
+    height: 16px;
+    border: 1px solid #CCC;
+    border-radius: 100%;
+    padding: 0px 1px;
+}
+.dialog .btn-close:hover {
+    cursor: pointer;
+    background: #f00;
+    color: #fff;
+    border-color: #f00;
+}
+.dialog .fg {
+    top: 0;
+    bottom: 0;
+    display: table;
+    margin: auto;
+}
+.color-palette.select-box-options {
+  z-index: 1000000;
+  width: 180px;
+}

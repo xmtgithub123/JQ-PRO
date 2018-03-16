@@ -1,0 +1,122 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoFormProjDelegateServiceReg", new { @area = "ISO" })',
+               addUrl = '@Url.Action("add")',
+               editUrl = '@Url.Action("edit")',
+               delUrl = '@Url.Action("del")';
+        var xml = '';
+        var EmpId = '@ViewBag.EmpId';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'IsoFormProjDelegateServiceRegGrid',//数据表格ID
+                JQDialogTitle: '工代登记信息',//弹出窗体标题
+                JQWidth: '960',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#IsoFormProjDelegateServiceRegPanel',//工具栏的容器ID
+                JQExcludeCol: [1, 10],//导出execl排除的列
+                singleSelect: false,
+                columns: [[
+                  {
+                      field: 'ck', align: 'center', checkbox: true, JQIsExclude: true
+
+                  },
+                  {
+                      title: '项目名称', field: 'ProjName', width: "19%", align: 'left', sortable: false
+                  },
+                  {
+                      title: '项目编号', field: 'ProjNumber', width: "12%", align: 'left', sortable: false
+                  },
+                  {
+                      title: '项目负责人', field: 'ProjEmpName', width: "8%", align: 'center', sortable: false
+                  },
+                  {
+                      title: '阶段', field: 'ProjPhaseIds', width: "18%", align: 'center', sortable: false
+                  },
+                   {
+                       title: '服务开始时间', field: 'ColAttDate1', width: "8%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT
+                   },
+                   {
+                       title: '服务结束时间', field: 'ColAttDate2', width: "8%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT
+                   },
+                  {
+                      title: '登记人', field: 'CreatorEmpName', width: "8%", align: 'center', sortable: true
+                  },
+                  {
+                      title: '登记日期', field: 'CreationTime', width: "8%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT
+                  },
+                  {
+                      title: '操作', field: 'Info', width: "7%", align: 'center',
+                      formatter: function (val, row) {
+                          if (row.CreatorEmpId == EmpId)//个人只能维护自己的
+                          {
+                              return '<a class="easyui-linkbutton" onclick="UpdateOrReadingInfo(' + row.FormID + ')">修改</a>'
+                          }
+                          else {
+                              return '<a class="easyui-linkbutton" onclick="UpdateOrReadingInfo(' + row.FormID + ')">查看</a>'
+                          }
+                      }
+                  }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目名称、项目编号',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'IsoFormProjDelegateServiceRegGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                KeyJQSearch: $("#JQSearch").val(),
+                                //ProjectPhase: $('#ProjectPhase').combotree("getValues"),
+                            }
+                        });
+                }
+            });
+        });
+
+        //更新或者查看  工代登记信息
+        function UpdateOrReadingInfo(id) {
+            JQ.dialog.dialog({
+                title: '工代登记信息',
+                width: 960,
+                height: 700,
+                url: editUrl + '?id=' + id,
+                onClose:function()
+                {
+                    $("#IsoFormProjDelegateServiceRegGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="IsoFormProjDelegateServiceRegGrid"></table>
+    <div id="IsoFormProjDelegateServiceRegPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+
+        </span>
+        @*@BaseData.getBases(
+                                                      new Params() { isMult = true, engName = "ProjectPhase", controlName = "ProjectPhase" }
+           )*@
+        <input id="JQSearch" style="width:250px;" />
+
+    </div>
+}
+

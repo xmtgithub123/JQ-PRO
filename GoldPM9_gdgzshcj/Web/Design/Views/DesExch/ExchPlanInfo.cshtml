@@ -1,0 +1,496 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+
+@section head {
+    <style>
+        .panel-body {
+            padding: 0px !important;
+        }
+
+        .tabs-panels {
+            border-style: none !important;
+        }
+
+        .wordpage {
+            margin: 20px;
+            background-color: #FFFFFF;
+            -moz-box-shadow: 0px 0px 7px #808080;
+            -webkit-box-shadow: 0px 0px 7px #808080;
+            box-shadow: 0px 0px 7px #808080;
+        }
+
+
+
+        #divSpecExchPlan .panel-body {
+            border-width: 1px;
+            border-style: solid;
+        }
+
+        #divSpecExchPlan .tree-title {
+            height: 30px;
+        }
+    </style>
+    <style>
+        .btn-medium {
+            padding: 5px 15px;
+            font-size: 18px;
+            color: white !important;
+        }
+        
+        .pageheader {
+            text-align: center;
+        }
+
+            .pageheader h1 {
+                font-size: 24px;
+                font-weight: bold;
+                padding: 20px 10px 10px 10px;
+            }
+
+        .pagefoot {
+            text-align: center;
+            padding: 10px 10px 20px 10px;
+        }
+
+        .pagefoot .l-btn-text {
+            vertical-align: middle !important;
+        }
+
+        .pagefoot .btn-blue {
+            background: -webkit-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+            background: -moz-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+            background: -o-linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+            background: linear-gradient(top,#67c2ff 0,#3d93cf 100%);
+            border: none;
+        }
+
+        .pagefoot .btn-green {
+            background: -webkit-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+            background: -moz-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+            background: -o-linear-gradient(top,#6cd2b7 0,#69a898 100%);
+            background: linear-gradient(top,#6cd2b7 0,#69a898 100%);
+            border: none;
+        }
+
+        .pagefoot .btn-blue:hover {
+            background: #3d93cf;
+        }
+
+        .pagefoot .btn-green:hover {
+            background: #69a898;
+        }
+
+        .ml-10 {
+            margin-left: 10px;
+        }
+
+        .mr-10 {
+            margin-right: 10px;
+        }
+        
+        .datagrid-toolbar {
+            background-color: #ddd;
+        }
+    </style>
+
+    @*提资策划*@
+    <script type="text/javascript">
+        var _currentUserId = @ViewBag.EmpId;
+        var _permission = @Html.Raw(ViewBag.permission);
+        var _mainTabsUsed = @Html.Raw(ViewBag.mainTabsUsed);
+
+        var tabId = 0;
+        var tabNum = 0;
+        var tabs = [
+            '@Url.Action("PlanTableInfo", "DesTask", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId',
+            '@Url.Action("ProjectPlanInfo", "DesTask", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId',
+            '@Url.Action("ExchPlanInfo", "DesExch", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId',
+            '@Url.Action("SpecPlanInfo", "DesTask", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId',
+            '@Url.Action("ProjectGantt", "DesTask", new { @area = "Design" })?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskSpecId=@ViewBag.taskSpecId'
+        ];
+
+        $(function() {
+            // 导航栏点击
+            $(".pageheader li").each(function(i, li) {
+                if (tabs[i].toLowerCase().indexOf(window.location.pathname.toLowerCase()) > -1) tabId = i;
+                $(li).click(function() {
+                    //window.parent.changeTabId(i);
+                    //console.log(tabs[i] + "&time=" + (new Date()).getTime());
+                    window.location.href = tabs[i] + "&time=" + (new Date()).getTime();
+                });
+            });
+
+            // 页面载入后，设置导航当前页面节点，并处理前后节点状态
+            $(".pageheader li").each(function(i, li) {
+                var $li = $(li);
+                var isShow = true;
+                switch(i){
+                    case 0:
+                        isShow = _mainTabsUsed.PlanTableList;
+                        break;
+                    case 1:
+                        isShow = _mainTabsUsed.ProjectPlanList;
+                        break;
+                    case 2:
+                        isShow = _mainTabsUsed.ExchPlanList;
+                        break;
+                    case 3:
+                        isShow = _mainTabsUsed.SpecPlanList;
+                        break;
+                    case 4:
+                        isShow = _mainTabsUsed.ProjGanttList;
+                        break;
+                }
+                $li.toggle(isShow);
+                if (isShow) tabNum++;
+                if (i < tabId) {
+                    $li.addClass("visited");
+                    $li.find(".small-tag").html('<i class="fa fa-check" aria-hidden="true"></i>');
+                } else if (i == tabId) {
+                    $li.addClass("active");
+                    $li.find(".small-tag").html(tabNum);
+                } else {
+                    $li.find(".small-tag").html(tabNum);
+                }
+            });
+
+            //显示提资策划
+            showSpecExchPlan();
+
+        });
+
+        var tempID=-1;
+        var _dataGet;
+        //显示提资策划
+        function showSpecExchPlan(){
+            tempID=-1;//初始化
+            $.getJSON('@Url.Action("SpecPlanInfoGetSpecPlanDataJson", "DesTask", new { @area = "Design" })?taskGroupId=@ViewBag.taskGroupId&&taskSpecId=@(ViewBag.taskSpecId)',function (data) {
+                _dataGet=data.rows;
+
+                var SpecArray=Enumerable.From(_dataGet).Where("x=>x.TaskType==1&&x.TaskSpecId!=0").ToArray();//排除汇总专业,只显示专业
+                //遍历专业生成datagrid
+                var $divContain=$("#divSpecExchPlan");//显示容器
+                $.each(SpecArray,function (fatherIdIndex,fatherIdData) {
+                    var $toolbar=$("<div id=\"bar_"+fatherIdData.TaskSpecId+"\" style=\"padding:5px;height:auto;\"></div>");
+                    Gettoolbar($toolbar,fatherIdData);
+                    $toolbar.appendTo($divContain);
+
+                    var $tableEle=$("<table id=\"Spec_"+fatherIdData.TaskSpecId+"\" style=\"width:99%\"></table>");
+                    $tableEle.appendTo($divContain);
+                    Gettable($tableEle,fatherIdData);
+
+                    var $divpadding=$("<div style=\"padding-top:30px\"></div>");
+                    $divpadding.appendTo($divContain);
+                })
+
+            }).error(function () {
+                JQ.dialog.warning("提资策划获取数据失败！！！");
+            })
+        }
+
+        //生成gridtable
+        function Gettable($tableEle,fatherIdData) {
+
+            JQ.datagrid.datagrid({
+                toolbar: '#bar_'+fatherIdData.TaskSpecId,
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: "Spec_"+fatherIdData.TaskSpecId,//数据表格ID
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                checkOnSelect:false,
+                selectOnCheck:false,
+                fit:false,
+                pagination:false,
+                collapsible:true,
+                JQMergeCells: { fields: ['Id','ExchTitle', 'ExchSpecName', 'ExchEmpName','SpecIdent','EmpIdent','dateIdent']},
+                url:'@Url.Action("DesSpecExchJson", "DesExch", new { @area = "Design" })?SpecId='+fatherIdData.TaskSpecId+'&taskGroupId=@ViewBag.taskGroupId&projID=@ViewBag.projID',
+                columns: [[
+                    { title: '资料名称', field: 'ExchTitle', width: 220, align: 'left',halign:'center',
+                        formatter:function(val,row)
+                        {
+                            return  row.ExchTitle;//'<b>'+row.ExchTitle+'</b>';
+                        }
+                    },
+                    { title: '提资专业', field: 'SpecIdent', width: 120, align: 'center',halign:'center',
+                        formatter:function(val,row,index)
+                        {
+                            return row.ExchSpecName;
+                        }
+                    },
+                    { title: '提资人', field: 'EmpIdent', width: 110, align: 'center',halign:'center',
+                        formatter:function(val,row)
+                        {
+                            return row.ExchEmpName;
+                        }
+                    },
+                    { title: '收资专业', field: 'RecSpecName', width: 120, align: 'left',halign:'center'},
+                    { title: '收资人', field: 'RecEmpName', width: 110, align: 'left',halign:'center'},
+                    {
+                        title: '提资期限', field: 'dateIdent', width: 100, align: 'center',halign:'center',
+                        formatter: function(val,row)//JQ.tools.DateTimeFormatterByT
+                        {
+                            var value="";
+                            if (JQ.tools.isNotEmpty(row.ExcLastPutTime)) {
+                                value = row.ExcLastPutTime.replace("T", " ").substring(0, 10);
+
+                                if (row.ExcLastPutTime.substring(0, 4) <= 1900)
+                                    value = "";
+                            }
+                            return value;
+                        }
+                    },
+                    {title: '操作', field: 'Id', width: 150, align: 'left',halign:'center',
+                        formatter:function(val,row,index)
+                        {
+                            var del='@ViewBag.delPermission';
+                            if(_currentUserId==fatherIdData.TaskEmpID||row.CreatorEmpId==_currentUserId)
+                            {
+                                del='1';
+                            }
+                            var edit='@ViewBag.editPermission';
+                            if(_currentUserId==fatherIdData.TaskEmpID||row.CreatorEmpId==_currentUserId)
+                            {
+                                edit='1';
+                            }
+                            return '<a btn del="'+del+'" class="easyui-linkbutton" onclick="SpecDel('+fatherIdData.TaskSpecId+','+row.Id+','+index+')" >删除</a>'+
+                                '<a btnEdit edit="'+edit+'" class="easyui-linkbutton" onclick="Edit('+fatherIdData.TaskSpecId+','+row.Id+')">编辑</a>'
+                        }
+                    }
+                ]],
+                onLoadSuccess:function (row, data) {
+                    $("a[btnEdit]").linkbutton({iconCls: 'fa fa-edit'});
+                    $("a[btn]").linkbutton({iconCls: 'fa fa-edit'});
+                    $('a[btn][del!=1]').linkbutton({
+                        iconCls: 'fa fa-trash',
+                        disabled:true
+                    });
+
+
+
+                    $('a[btnEdit][edit!="1"]').linkbutton({
+                        iconCls: 'fa fa-edit',
+                        disabled:true
+                    });
+                }
+            })
+        }
+
+
+
+        var specialEmp=@Html.Raw(ViewBag.Qualification);//资格人员
+
+
+        //添加toolbar
+        function Gettoolbar($toolbar,fatherData) {
+            //显示专业名称
+            var $toolbarPanel=$("<span JQPanel=\"toolbarPanel\"></span>");
+            $("<span style=\"font-weight:bold;display:inline-block;width:120px;text-overflow:ellipsis;\"><strong style=\"padding:10px;\">"+fatherData.TaskName+"</strong></span>").appendTo($toolbarPanel);
+            $("<span style=\"font-weight:bold;display:inline-block;width: 80px;text-overflow:ellipsis;\"><strong style=\"padding:10px;\"><i class=\"fa fa-user\"></i>&nbsp;"+fatherData.TaskEmpName+"</strong></span>").appendTo($toolbarPanel);
+            $("<span style=\"font-weight:bold;display:inline-block;width:200px;text-overflow:ellipsis;\"><strong style=\"padding:10px;\"><i class=\"fa fa-calendar\"></i>&nbsp;" + checkDate(fatherData.DatePlanStart, "yyyy-MM-dd") + " ~ " + checkDate(fatherData.DatePlanFinish, "yyyy-MM-dd") +"</strong></span>").appendTo($toolbarPanel);
+            $("<span class='datagrid-btn-separator' style='padding-right:5px;vertical-align: middle; height: 22px;display:inline-block;float:none'></span>").appendTo($toolbarPanel);
+            var addPermission='@ViewBag.addPermission';
+            if(addPermission=="1"||_currentUserId==fatherData.TaskEmpID)//判断是否有添加权
+            {
+                $("<a class=\"easyui-linkbutton\" data-options=\"plain:true,iconCls:'fa fa-plus fa-lg'\" onclick='AddSpecExchPlan("+fatherData.TaskSpecId+")'>添加提资计划</a>").appendTo($toolbarPanel);
+                $("<a class=\"easyui-linkbutton\" data-options=\"plain:true,iconCls:'fa fa-filter fa-lg'\" onclick='InsertExchModelData("+fatherData.TaskSpecId+")'>导入提资模板</a>").appendTo($toolbarPanel);
+            }
+            $toolbarPanel.appendTo($toolbar);
+        }
+
+        // 添加提资
+        function AddSpecExchPlan(SpecID)
+        {
+            JQ.dialog.dialog({
+                title:'添加提资计划',
+                height:'600',
+                width:'800',
+                url:'@Url.Action("SpecExchAdd","DesExch",new { @area="Design"})?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&ExchSpecID='+SpecID,
+                onClose:function()
+                {
+                    $("#Spec_"+SpecID).datagrid('reload','@Url.Action("DesSpecExchJson", "DesExch", new { @area = "Design" })?SpecId='+SpecID+'&taskGroupId=@ViewBag.taskGroupId&projID=@ViewBag.projID');
+                }
+            });
+        }
+
+        // 编辑
+        function Edit(SpecID,Id)
+        {
+            JQ.dialog.dialog({
+                title:'编辑提资计划',
+                height:'600',
+                width:'800',
+                url:'@Url.Action("SpecExchEdit")?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&Id='+Id,
+                onClose:function()
+                {
+                    $("#Spec_"+SpecID).datagrid('reload','@Url.Action("DesSpecExchJson", "DesExch", new { @area = "Design" })?SpecId='+SpecID+'&taskGroupId=@ViewBag.taskGroupId&projID=@ViewBag.projID');
+                }
+            });
+        }
+
+        // 导入提资模板数据
+        function InsertExchModelData(SpecId)
+        {
+            JQ.dialog.dialog({
+                title:'导入提资模板',
+                height:'600',
+                width:'1024',
+                url:'@Url.Action("ExchModelData")?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&SpecId='+SpecId,
+                onClose:function()
+                {
+                    $("#Spec_"+SpecId).datagrid('reload','@Url.Action("DesSpecExchJson", "DesExch", new { @area = "Design" })?SpecId='+SpecId+'&taskGroupId=@ViewBag.taskGroupId&projID=@ViewBag.projID');
+                }
+
+            });
+        }
+        //执行回调函数
+        var PostBack=function(SpecId,row)
+        {
+            $("#Spec_"+SpecId).datagrid("appendRow",
+                {
+                    Id:0,
+                    ExchTitle:row.ModelExchangeName,
+                    ExchSpecId:row.ModelExchangeSpecID,
+                    ExchSpecName:row.SpecName,
+
+                });
+        }
+        //删除
+        function SpecDel(SpecId,rowID,index) {
+            try
+            {
+                JQ.dialog.confirm("确定要删除该记录吗？",
+                    function () {
+                        if(parseInt(rowID)<=0)
+                        {
+                            $("#Spec_"+SpecId).datagrid("deleteRow",index);
+                        }
+                        else
+                        {
+                            $.post('@Url.Action("DeleteInfo")?Id='+rowID,function () {
+                                $("#Spec_"+SpecId).datagrid("deleteRow",index);
+                                JQ.dialog.show("删除成功！！！");
+                                $("#Spec_"+SpecId).datagrid('reload','@Url.Action("DesSpecExchJson", "DesExch", new { @area = "Design" })?SpecId='+SpecId+'&taskGroupId=@ViewBag.taskGroupId&projID=@ViewBag.projID');
+                            });
+                        }
+                    });
+
+            }
+            catch (e)
+            {
+                JQ.dialog.show("删除出错");
+            }
+        }
+
+
+        // 返回上一页面
+        function GoToBackPage() {
+            //window.parent.changeTabId(tabId - 1);
+            window.location.href = tabs[tabId - 1] + "&time=" + (new Date()).getTime();
+        }
+
+        function GoToNextPage()
+        {
+            //JQ.dialog.confirm("确定要转到下一页面吗？", function () {
+            //    window.parent.changeTabId(tabId + 1);
+            //    window.location.href = tabs[tabId + 1] + "&time=" + (new Date()).getTime();
+            //}, null);
+            //window.parent.changeTabId(tabId + 1);
+            window.location.href = tabs[tabId + 1] + "&time=" + (new Date()).getTime();
+        }
+
+        // 保存
+        function saveExchPlanData() {
+            //JQ.dialog.show("保存成功");
+            window.location.href = tabs[tabId] + "&time=" + (new Date()).getTime();
+        }
+
+        // 查看项目进度
+        function ShowProjectProgress(){
+            JQ.dialog.dialogIframe({
+                title: "项目进度",
+                url: '@Url.Action("ProjectProgressInfo", "DesTask", new { @area = "Design" })?projID=@(ViewBag.projID)&taskGroupId=@(ViewBag.taskGroupId)',
+                width: 1200,
+                height: 800
+            });
+        }
+
+        // 格式化时间，并且 1900 返回空
+        function checkDate(strDate, strFormat) {
+            var jd = Date.jsonStringToDate(strDate);
+            if (jd.getFullYear() == 1900) return "";
+            return jd.format(strFormat);
+        }
+
+    </script>
+
+}
+
+@section Body_Content{
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',border:false" style="border-bottom-width:1px;overflow:hidden">
+        <div style="height:30px;padding:5px">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-repeat'" onclick="saveExchPlanData()">刷新</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-sitemap'" onclick="ShowProjectProgress()">查看进度</a>
+        </div>
+    </div>
+    <div data-options="region:'center',border:false">
+        <div class="nowordpage">
+            <div class="pageheader">
+                @*<h1>项目计划单</h1>*@
+                <div class="row-fluid-wrap">
+                    <ul class="clearfix ul-fluid ">
+                        <li class="">
+                            <div class="list-wrap">
+                                <div class="line"></div>
+                                <a href="#"><div class="small-tag">1</div></a>
+                                <div class="line"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                            <p>计划要求</p>
+                        </li>
+                        <li class="">
+                            <div class="list-wrap">
+                                <div class="line"></div>
+                                <a href="#"><div class="small-tag">2</div></a>
+                                <div class="line"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                            <p>项目策划</p>
+                        </li>
+                        <li class="">
+                            <div class="list-wrap">
+                                <div class="line"></div>
+                                <a href="#"><div class="small-tag">4</div></a>
+                                <div class="line"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                            <p>提资策划</p>
+                        </li>
+                        <li class="">
+                            <div class="list-wrap">
+                                <div class="line"></div>
+                                <a href="#"><div class="small-tag">3</div></a>
+                                <div class="line"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                            <p>专业策划</p>
+                        </li>
+                        <li class="">
+                            <div class="list-wrap">
+                                <div class="line"></div>
+                                <a href="#"><div class="small-tag">5</div></a>
+                                <div class="line"></div>
+                            </div>
+                            <div class="clearfix"></div>
+                            <p>关键节点</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="divSpecExchPlan" style="margin:20px;"></div>
+
+        </div>
+    </div>
+</div>
+}

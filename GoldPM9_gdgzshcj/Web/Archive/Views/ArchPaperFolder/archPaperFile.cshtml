@@ -1,0 +1,427 @@
+﻿@using JQ.Web;
+<script type="text/javascript">
+    var ss = 0;
+    var mlurl = '@Url.Action("json", "ArchShareFolderML",new { @area="Archive"})';
+    var wjurl = '@Url.Action("GetFile", "ArchPaperFolderType", new { @area="Archive"})';
+    var FolderId = "";
+    var BaseId = "";
+    var ParentId = "";
+    var ArchPaperFolderId = "";
+    $(function () {
+        $("#WJ").panel();
+        $('#ML').panel();
+        $("#WJ").panel('close');
+        $('#ML').panel('close');
+        $("#MLPanel").hide();
+        $('#lefttree').treegrid({
+            url: '@Url.Action("treejson", "ArchPaperFolderType", new { @area= "Archive"})?Id=@Request.Params["Id"].ToString()',
+            idField: 'GId',
+            treeField: 'numberShow',
+            border: 0,
+            toolbar: '#tbleft',
+            fit: true,
+            animate: true,
+            singleSelect: true,
+            columns: [[
+                { title: '<b>选择节点</b>', field: 'numberShow', width: '100%', align: 'left' }
+            ]],
+            onSelect: function (node) {
+                debugger;
+                if (node.type == "1") {
+                    $("#WJ").panel('close');
+                    $('#ML').panel('open');
+                    $("#MLPanel").show();
+                    $("#WJPannel").hide();
+                    $('#MLGrid').datagrid('load', {
+                        FolderId: node.Id
+                    });
+                    FolderId = node.Id;
+                } else if (node.type == "-1") {
+                    $("#WJ").panel('open');
+                    $('#ML').panel('close');
+                    $("#MLPanel").hide();
+                    $("#WJPannel").show();
+                    $('#WJGrid').datagrid('load', {
+                        ArchPaperFolderId: node.Id,
+                        State:'有效'
+                    });
+                    ArchPaperFolderId = node.Id;
+                    BaseId = 0;
+                } else if (node.type == "0") {
+                    $("#WJ").panel('open');
+                    $('#ML').panel('close');
+                    $("#MLPanel").hide();
+                    $("#WJPannel").show();
+                    $('#WJGrid').datagrid('load', {
+                        BaseId: node.Id,
+                        State:'有效'
+                    });
+                    ArchPaperFolderId = 0;
+
+                    BaseId = node.Id;
+                } else if (node.type == "2") {
+                    $("#WJ").panel('close');
+                    $('#ML').panel('open');
+                    $("#MLPanel").show();
+                    $("#WJPannel").hide();
+                    $('#MLGrid').datagrid('load', {
+                        FolderId: node.Id
+                    });
+                    FolderId = node.Id;
+                }
+            }
+        });
+
+        $("#MJQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '文件名、创建人',
+            onClickButton: function () {
+                $("#MLGrid").datagrid("load", {
+                    TxtLike: $("#MJQSearch").textbox("getValue"),
+                    FolderId: FolderId
+                });
+            }
+        });
+
+        $("#WJQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '文件名、创建人',
+            onClickButton: function () {
+                $("#WJGrid").datagrid("load", {
+                    TxtLike: $("#WJQSearch").textbox("getValue"),
+                    BaseId: BaseId,
+                    ArchPaperFolderId: ArchPaperFolderId,
+                    State:$("#State").combobox("getValue")
+                });
+            }
+        });
+    });
+
+    JQ.datagrid.datagrid({
+        JQIsSearch: false,
+        JQPrimaryID: 'Id',//主键的字段
+        JQID: 'MLGrid',//数据表格ID
+        JQDialogTitle: '文件信息',//弹出窗体标题
+        JQWidth: '600',//弹出窗体宽
+        JQHeight: '600',//弹出窗体高
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+        JQFields: ["Id"],//追加的字段名
+        url: mlurl,//请求的地址
+        checkOnSelect: true,//是否包含check
+        fitColumns: false,
+        nowrap: false,
+        toolbar: '#MLPanel',//工具栏的容器ID
+        JQExcludeCol: [1,8],//导出execl排除的列
+        columns: [[
+            { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+            { title: '序号', field: 'ByOrder', width: 40, align: 'center', sortable: true },
+            { title: '文件编号', field: 'FileNumber', width: 80, align: 'center', sortable: true },
+            { title: '责任者', field: 'Manager', width: 80, align: 'center', sortable: true, },
+            { title: '文件材料题名', field: 'FileName', width: 300, align: 'center', sortable: true },
+            { title: '日期', field: 'Time', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+            { title: '页数', field: 'PageNumber', width: 40, align: 'center', sortable: true },
+            { field: 'JQFiles', title: '附件', align: 'center', width: 40, JQIsExclude: true, JQRefTable: 'ArchShareFolderML' },
+            { title: '备注', field: 'Remark', width: 200, align: 'center', sortable: true },
+        ]]
+    });
+
+    var wjParam = function () {
+        return { FolderId: FolderId, ArchPaperFolderId: ArchPaperFolderId, BaseId: BaseId };
+    }
+
+    JQ.datagrid.datagrid({
+        JQIsSearch: false,
+        JQPrimaryID: 'AttachID',//主键的字段
+        JQID: 'WJGrid',//数据表格ID
+        JQDialogTitle: '文件信息',//弹出窗体标题
+        JQWidth: '600',//弹出窗体宽
+        JQHeight: '600',//弹出窗体高
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+        JQFields: ["AttachID"],//追加的字段名
+        url: wjurl,//请求的地址
+        checkOnSelect: true,//是否包含check
+        fitColumns: true,
+        nowrap: false,
+        toolbar: '#WJPannel',//工具栏的容器ID
+        JQExcludeCol: [1],//导出execl排除的列
+        columns: [[
+            { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+            {
+                title: '文件名称', field: 'AttachName', width: 140, align: 'left', sortable: true, formatter: function (data, item, index) {
+                    var url = window.top.rootPath;
+                    return "<a href=\"/GoldPM9_gdgzshcj/core/ProcessFile/Download?id=" + item.AttachID + "&type=attach\" target=\"_blank\">" + data + "</a>";
+                }
+            },
+            { title: '所属档案', field: 'ML', width: 100, align: 'center', sortable: true },
+            { title: '所属目录', field: 'JNML', width: 100, align: 'center', sortable: true },
+            { title: '创建时间', field: 'AttachDateUpload', width: 80, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+            { title: '创建人', field: 'AttachEmpName', width: 80, align: 'center', sortable: true }
+        ]]
+    });
+
+
+
+    function add() {
+        var data = $("#lefttree").treegrid("getSelected");
+        if (data == undefined) {
+            JQ.dialog.warning("请选择节点！");
+            return;
+        }
+
+        if (data.type == "2") {
+            JQ.dialog.warning("目录节点不允许添加子目录！！！");
+            return;
+        }
+
+        var Id = data.Id;
+        if (data.type == "-1") {
+            Id = 0;
+        }
+
+        var rootData = $("#lefttree").treegrid("getRoot");
+        var ArchFolderId = rootData.Id;
+        var divId = JQ.dialog.dialog({
+            title: "新增档案信息",
+            url: '@Url.Action("add", "ArchPaperFolderType", new {@area="Archive" })?Id=' + ArchFolderId + '&ParentId=' + Id,
+            width: '400',
+            height: '300',
+            JQID: 'lefttree',
+            JQLoadingType: 'treegrid',
+            iconCls: 'fa fa-plus'
+        });
+
+        window.top["_tree_" + divId] = function () {
+            $('#lefttree').treegrid('reload');
+        }
+    }
+
+    function update() {
+        debugger;
+        var data = $("#lefttree").treegrid("getSelected");
+        if (data == undefined) {
+            JQ.dialog.warning("请选择要修改的节点！！！");
+            return;
+        }
+
+        if (data.type == "-1") {
+            JQ.dialog.warning("项目节点不允许修改！！！");
+            return;
+        }
+
+        if (data.type == "2") {
+            JQ.dialog.warning("目录节点不允许修改！！！");
+            return;
+        }
+
+        JQ.dialog.dialog({
+            title: "新增档案信息",
+            url: '@Url.Action("edit", "ArchPaperFolderType", new {@area="Archive" })?&ParentId=' + data.Id + '&id=' + data.Id,
+            width: '400',
+            height: '300',
+            JQID: 'lefttree',
+            JQLoadingType: 'treegrid',
+            iconCls: 'fa fa-plus'
+        });
+    }
+
+    function del() {
+        var data = $("#lefttree").treegrid("getSelected");
+        if (data == undefined) {
+            JQ.dialog.warning("请选择要删除的节点！！！");
+            return;
+        }
+
+        if (data.type == "-1") {
+            JQ.dialog.warning("项目节点不允许删除！！！");
+            return;
+        }
+
+        if (data.type == "2") {
+            JQ.dialog.warning("目录节点不允许删除，请选择档案节点进行删除！！！");
+            return;
+        }
+
+        JQ.dialog.confirm("是否确认删除该节点下所有文件？", function () {
+            $.ajax({
+                url: '@Url.Action("delNode", "ArchPaperFolder", new { @area= "Archive"})?id=' + data.Id,
+                type:"POST",
+                success: function (data) {
+                    debugger;
+                    $("#lefttree").treegrid("reload");
+                }
+            });
+        }, null);
+    }
+
+
+    function addMl(flag) {
+        debugger;
+        var url = "";
+        var node = $("#lefttree").treegrid("getSelected");
+        if (!isNaN(node)) {
+            JQ.dialog.info("请选择");
+            return;
+        }
+        var mlDataId = node.Id;
+        if (flag > 1) {
+            var mlData = $("#MLGrid").datagrid("getChecked");
+            if (mlData.length == 0) {
+                JQ.dialog.info("请选择要修改的目录");
+                return;
+            }
+            mlDataId = mlData[0].Id;
+        }
+        var divId = "";
+        switch (flag) {
+            case 1:
+                divId = JQ.dialog.dialog({
+                    title: "添加文件",
+                    url: '@Url.Action("add","ArchShareFolderML",new {@area="Archive" })?FolderId=' + node.Id + '',
+                    width: '600',
+                    height: '600',
+                    JQID: 'ArchPaperFolderFileGrid',
+                    JQLoadingType: 'datagrid',
+                    iconCls: 'fa fa-plus'
+                });
+                break;
+            case 2:
+                divId = JQ.dialog.dialog({
+                    title: "修改文件",
+                    url: '@Url.Action("edit","ArchShareFolderML",new {@area="Archive" })?FolderId=' + node.Id + '&id=' + mlDataId + '',
+                    width: '600',
+                    height: '600',
+                    JQID: 'ArchPaperFolderFileGrid',
+                    JQLoadingType: 'datagrid',
+                    iconCls: 'fa fa-plus'
+                });
+                break;
+            case 3:
+                JQ.tools.ajax({
+                    doBackResult: true,
+                    url: '@Url.Action("del","ArchShareFolderML",new {@area="Archive" })?id=' + mlDataId + '',
+                });
+                $('#MLGrid').datagrid('reload');
+                break;
+        }
+
+        if (divId != "") {
+            window.top["_DialogCallback_" + divId] = function () {
+                $('#MLGrid').datagrid('reload');
+            }
+        }
+    }
+
+    function ExcelML() {
+        var opts = $("#MLGrid").datagrid("options");
+        JQ.tools.exportNewExcel(opts, 0);
+    }
+
+    function ExcelWJ() {
+        var opts = $("#WJGrid").datagrid("options");
+        JQ.tools.exportNewExcel(opts, 1);
+    }
+
+    function WJState(state) {
+        var rows = $("#WJGrid").datagrid("getSelections");
+        if (rows.length < 1) {
+            JQ.dialog.warning("请选择需要作废或取消作废的文件！！！");
+            return;
+        }
+        var ids = new Array();
+        for (var i = 0; i < rows.length; i++) {
+            ids.push(rows[i].AttachID);
+        }
+        JQ.dialog.confirm("是否确认作废或取消作废选中文件？", function () {
+            $.ajax({
+                url: '@Url.Action("WJState", "ArchPaperFolderType",new { @area="Archive"})',
+                data: {
+                    ids: ids,
+                    state:state
+                },
+                type:'POST',
+                success: function () {
+                    debugger;
+                    $("#WJGrid").datagrid("reload");
+                }
+            });
+        });
+    }
+
+    function WJDel() {
+         var rows = $("#WJGrid").datagrid("getSelections");
+        if (rows.length < 1) {
+            JQ.dialog.warning("请选择需要删除的文件！！！");
+            return;
+        }
+        var ids = new Array();
+        for (var i = 0; i < rows.length; i++) {
+            ids.push(rows[i].AttachID);
+        }
+        JQ.dialog.confirm("是否确认作删除中文件？", function () {
+            $.ajax({
+                url: '@Url.Action("WJDel", "ArchPaperFolderType",new { @area="Archive"})',
+                data: {
+                    ids: ids
+                },
+                type:'POST',
+                success: function () {
+                    debugger;
+                    $("#WJGrid").datagrid("reload");
+                }
+            });
+        });
+    }
+
+</script>
+
+<div id="treePanel" class="easyui-layout" style="overflow: hidden" fit="true">
+    <div data-options="region:'west',split:false" style="width:300px;">
+        <table id="lefttree"></table>
+    </div>
+
+    <div data-options="region:'center'" style="background:#eee;height:100%;">
+        <div id="WJ" style="height:100%;width:98%;" class="easyui-panel" data-options="region:'center'">
+            <table id="WJGrid"></table>
+        </div>
+
+        <div id="ML" style="height:100%;width:98%;" class="easyui-panel" data-options="region:'center'">
+            <table id="MLGrid"></table>
+        </div>
+    </div>
+
+    <div id="tbleft" style="padding:5px;height:auto;">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" JQPermissionName="add" onclick="add(1)">新增</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-pencil'" JQPermissionName="edit" onclick="update(2)">修改</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" JQPermissionName="del" onclick="del()">删除</a>
+    </div>
+
+    <div id="MLPanel" style="padding:5px;height:auto;">
+        <span JQPanel="mltoolbarPanel">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" id="fileadd" onclick="addMl(1)">新增</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-pencil'" id="fileedit" onclick="addMl(2)">修改</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" id="filedel" onclick="addMl(3)">删除</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-gbp'" id="filedel" onclick="ExcelML()">导出目录</a>
+        </span>
+        <input id="MJQSearch" style="width:250px;" />
+    </div>
+    <div id="WJPannel" style="padding:5px;height:auto;">
+        <span JQPanel="mltoolbarPanel">
+        </span>
+        <input id="WJQSearch" style="width:400px;padding-top:20px;" />
+        <br/>
+        <br />
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-gbp'" id="filedel" onclick="ExcelWJ()">导出文件</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-gbp'" id="filedel" onclick="WJState(1)">文件作废</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-gbp'" id="filedel" onclick="WJState(2)">取消作废</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-gbp'" id="filedel" onclick="WJDel()">删除</a>
+        图纸状态：<select id="State" name="State" class="easyui-combobox" style="width:80px;">
+            <option value="">全部</option>
+            <option value="有效" selected>有效</option>
+            <option value="无效">无效</option>
+        </select>
+    </div>
+</div>

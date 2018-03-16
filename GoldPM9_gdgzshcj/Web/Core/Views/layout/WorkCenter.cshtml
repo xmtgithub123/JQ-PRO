@@ -1,0 +1,363 @@
+﻿@{
+    Layout = null;
+}
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>个人中心</title>
+    <link href="@(Url.Content("~/Content/bootstrap.css"))" rel="stylesheet" />
+    <link href="@(Url.Content("~/Content/normalize.css"))" rel="stylesheet" />
+    <link href="@(Url.Content("~/Content/workcenter/myhome.css"))" rel="stylesheet" />
+    <style>
+        .author-info-box p {
+            margin: 0 0 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width:1200px;">
+        <div class="row mt-15">
+            <div class="col-xs-5 col-sm-4 col-md-3 pr-0">
+                <div class="jq-left-content">
+                    <div class="jq-left-top">
+                        <div class="jq-left-top-1">
+                            <div class="img-avatar-box">
+                                <div class="img-avatar-bg">
+                                    <img id="empavatar" src="@(Url.Action("GetAvatar", "user", new { @area = "Core" }))?id=@(ViewBag.EmpID)" alt="" class="img-avatar">
+                                    <div class="img-avatar-edit" onclick="changeAvatar()">更换头像</div>
+                                </div>
+                                <div class="author-info-box">
+                                    <p>@(DateTime.Now.ToString("yyyy年MM月dd日 ddd"))</p>
+                                    <p style="font-size: 18px;font-weight: 600;margin: 10px 0;">@(ViewBag.EmpInfo)</p>
+                                    <p title="最后登录地址"><i class="fa  fa-history" style="margin-right:8px;font-size:14px;color:#828282;"></i>@(ViewBag.LastIP)</p>
+                                    <p title="最后登录时间"><i class="fa fa-calendar-times-o" style="margin-right:8px;font-size:12px;color:#828282;"></i>@(ViewBag.LastDate)</p>
+
+                                </div>
+                                <div class="clearfix"></div>
+                                <div id="empsignbox" style="color: #444444;margin-top: 15px;font-size:12px;border:1px dashed #d0d0d0; display:block;min-height:50px;overflow:hidden;padding:10px;text-align:left;">
+                                    @{
+                                        var texts = ViewBag.Note.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                                        foreach (var text in texts)
+                                        {
+                                            <p style="margin-bottom:0px">@(text)</p>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="jq-left-top-2">
+                            <div class="jq-left-position-1">
+                                <img src="@(Url.Content("~/Content/workcenter/images/11.png"))" alt="">
+                                <div class="my-img-tag" style="cursor:default">@(ViewBag.JoinProjectAmount)</div>
+                            </div>
+                            <div class="jq-left-position-2" style="margin-left:5px;">
+                                <img src="@(Url.Content("~/Content/workcenter/images/22.png"))" alt="">
+                                <div class="my-img-tag" style="cursor:default">@(ViewBag.TaskAmount)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="jq-left-body" style="padding-bottom:3px;">
+                        <div class="jq-left-body-head">
+                            <div class="jq-shortcut-title">
+                                授权委托
+                            </div>
+                            <div class="jq-float-right" style="display:none">
+                                <a href="javascript:void(0)" style="color:white"><span class="fa fa-refresh " title="刷新" style="display:block;margin-top:10px; ">  </span></a>
+                            </div>
+                        </div>
+                        <div id="agentblock" class="carousel slide"></div>
+                    </div>
+                    <div class="jq-left-body">
+                        <div class="jq-left-body-head">
+                            <div class="jq-shortcut-title">快捷方式</div>
+                            <div class="jq-float-right">
+                                <span class="fa fa-cog jq-shortcut-icon1" title="设置" onclick="showShortcutSetting()"></span>
+                            </div>
+                        </div>
+                        <div id="divShortcuts" class="carousel slide">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-xs-7 col-sm-8 col-md-9">
+                <div class="row">
+                    <div class="col-xs-6 col-sm-6 col-md-3 prr-0" id="div_todotaskamount">
+                        <div class="jq-right-box">
+                            <img src="@(Url.Content("~/Content/workcenter/images/a4.png"))" alt="" style="height:120px; margin-bottom:15px;">
+                            <p id="todotaskamount"></p>
+                            <div class="img-tag">待办任务</div>
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-sm-6 col-md-3 prr-0 todoform" id="div_todoprojectamount">
+                        <div class="jq-right-box">
+                            <img src="@(Url.Content("~/Content/workcenter/images/a2.png"))" alt="" style="height:120px;margin-bottom:15px;">
+                            <p id="todoprojectamount">0</p>
+                            <div class="img-tag">项目表单</div>
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-sm-6 col-md-3 prr-0" id="div_todooaamount">
+                        <div class="jq-right-box">
+                            <img src="@(Url.Content("~/Content/workcenter/images/a1.png"))" alt="" style="height:120px;margin-bottom:15px;">
+                            <p id="todooaamount"></p>
+                            <div class="img-tag">办公表单</div>
+                        </div>
+                    </div>
+                    <div class="col-xs-6 col-sm-6 col-md-3 prr-0" id="div_todoexchrecamount">
+                        <div class="jq-right-box">
+                            <img src="@(Url.Content("~/Content/workcenter/images/a3.png"))" alt="" style="height:120px;margin-bottom:15px;">
+                            <p id="todoexchrecamount"></p>
+                            <div class="img-tag">项目收资</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <div class="row jq-top-2-wrap">
+                            <div class="col-sm-6 col-md-6 prr-0">
+                                <div class="panel panel-default" style="margin-bottom:15px">
+                                    <div class="panel-heading">
+                                        公告
+                                        <img src="@(Url.Content("~/Content/workcenter/images/icon11.png"))" alt="" class="pull-right">
+                                    </div>
+                                    <div class="panel-body" style="cursor:default">
+                                        <div id="carousel-example-generic" class="carousel slide " data-ride="carousel">
+                                            <div id="noticeblock" class="carousel-inner panel-carousel-inner" role="listbox">
+                                            </div>
+                                            <div class="btn-group pull-right" role="group" aria-label="...">
+                                                <button class="right carousel-control panel-carousel-control btn btn-default btn-xs" href="#carousel-example-generic" role="button" data-slide="prev">
+                                                    &larr;
+                                                    <span class="sr-only">上一条</span>
+                                                </button>
+                                                <button class="left carousel-control panel-carousel-control btn btn-default btn-xs" href="#carousel-example-generic" role="button" data-slide="next">
+                                                    &rarr;
+                                                    <span class="sr-only">下一条</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 col-md-6 prr-0 ">
+                                <div class="panel panel-default" style="margin-bottom:15px">
+                                    <div class="panel-heading">
+                                        讨论
+                                        <img src="@(Url.Content("~/Content/workcenter/images/icon22.png"))" alt="" class="pull-right">
+                                    </div>
+                                    <div class="panel-body ">
+                                        <ul id="discussblock" class="ul-jq-top-2 ul-limit-02"></ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row jq-project-collect">
+                            <div class="col-md-12 prr-0">
+                                <div class="panel panel-default  mb-15">
+                                    <div class="panel-heading">
+                                        我收藏的项目
+                                        <img src="@(Url.Content("~/Content/workcenter/images/icon44.png"))" alt="" class="pull-right">
+                                        <a href="javascript:void(0)" onclick="reloadFavouriteProjects();" style="color:white"><span class="fa fa-refresh pull-right" title="刷新 " style="margin:3px 18px 0px 0px">&nbsp;</span></a>
+                                    </div>
+                                    <div class="panel-body small" style="min-height:462px;padding:0px">
+                                        <div id="divFavouriteProjects" class="row"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 jq-news-center prr-0 ">
+                        <div class="jq-top-2-wrap">
+                            <div class="panel panel-default" style="margin-bottom:15px">
+                                <div class="panel-heading">
+                                    任务提醒
+                                    <img src="@(Url.Content("~/Content/workcenter/images/icon22.png"))" alt="" class="pull-right">
+                                </div>
+                                <div class="panel-body ">
+                                    <ul id="taskGanttblock" class="ul-jq-top-2 ul-limit-02"></ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                新闻中心
+                                <img src="@(Url.Content("~/Content/workcenter/images/icon33.png"))" alt="" class="pull-right">
+                            </div>
+                            <div class="panel-body" style="padding:0;">
+                                <div id="imgSilder" class="jq-news-center-box">
+                                    <div id="carousel-example" class="carousel slide" data-ride="carousel">
+                                        <ol id="img_indicators" class="carousel-indicators" style="margin-bottom:15px"></ol>
+                                        <div id="img_inner" class="carousel-inner" role="listbox" style="height:100%;position:relative;"></div>
+                                    </div>
+                                </div>
+                                <script type="text/javascript">
+                                    var _li, _indicators = document.getElementById("img_indicators"), _inner = document.getElementById("img_inner"), _div1, _img1, _div2, _span1;
+                                    @{
+                                        for (var i = 0; i < ViewBag.ImageNews.Count; i++)
+                                        {
+                                                <text>
+                                    _li = document.createElement("li");
+                                    _indicators.appendChild(_li);
+                                    _li.setAttribute("data-target", "#carousel-example");
+                                    _li.setAttribute("data-slide-to", "@(i)");
+                                    _div1 = document.createElement("div");
+                                    _inner.appendChild(_div1);
+                                    _div1.style.height = "100%";
+                                    if ("@(i)" == "0") {
+                                        _li.className = "active";
+                                        _div1.className = "item active";
+                                    }
+                                    else {
+                                        _div1.className = "item";
+                                    }
+                                    _img1 = document.createElement("img");
+                                    _div1.appendChild(_img1);
+                                    _img1.setAttribute("src", "@(Url.Action("ShowImage","OaNew",new { @area="OA" }))?path=" + "@(HttpUtility.UrlEncode(ViewBag.ImageNews[i].NewsImage))");
+                                    _img1.className = "img-responsive";
+                                    _img1.style.height = "100%";
+                                    _div2 = document.createElement("div");
+                                    _div1.appendChild(_div2);
+                                    _div2.className = "jq-news-mask";
+                                    _span1 = document.createElement("span");
+                                    _div2.appendChild(_span1);
+                                    _span1.appendChild(document.createTextNode("@(Html.Raw(ViewBag.ImageNews[i].NewsTitle))"));
+                                    </text>
+                                        }
+                                    }
+                                </script>
+                                <div class="jq-news-center-body">
+                                    <ul id="newsblock" class="clearfix" style="height:303px;overflow:auto;"></ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="NoticeList_Json" style="display:none">@(ViewBag.NoticeList)</div>
+    <div id="NewsList_Json" style="display:none">@(ViewBag.NewsList)</div>
+    <div id="DiscussList_Json" style="display:none">@(ViewBag.DiscussList)</div>
+    <div id="EmpAgents_Json" style="display:none">@(ViewBag.EmgAgents)</div>
+    <div id="TaskGantt_Json" style="display:none">@(ViewBag.TaskGanttList)</div>
+    <script src="@(Url.Content("~/Scripts/jquery.min.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/Bootstrap/bootstrap-switch-master/docs/js/bootstrap.min.js"))"></script>
+    <script src="@(Url.Content("~/Scripts/scroll.js"))"></script>
+    <link href="@(Url.Content("~/Content/fontawesome/css/font-awesome.min.css"))" rel="stylesheet" />
+    <script type="text/javascript" src="@(Url.Content("~/Scripts/signalR/jquery.signalR-2.2.1.min.js"))"></script>
+    <script type="text/javascript" src="@(Url.Content("~/signalr/hubs"))"></script>
+    <script type="text/javascript">
+        var currentIframeID = "@(Request.QueryString["a1b2c3wjpid"])";
+        $(function () {
+            $('#carousel-example-generic').carousel({
+                pause: true,
+                interval: false
+            });
+            window.refreshToDoForm();
+            window.reloadFavouriteProjects();
+            window.reloadShortcut();
+            $(window).resize(function () {
+                setTimeout(function () {
+                    resizeDiscuss();
+                    resizeFavouriteProjects();
+                }, 30);
+            });
+        });
+        $.connection.hub.qs = { empID: "@(ViewBag.EmpID)", agentFlows: "@(ViewBag.AgentFlow)" };
+        $.connection.hub.start();
+        $.connection.MessageMonitor.client.notify = function (data) {
+            switch (data.action) {
+                case "ChangeTodoOAAmount":
+                    //变更办公表单数量
+                    changeToDoOAAmount(data.amount);
+                    break;
+                case "ChangeTodoProjectAmount":
+                    //变更工程表单数量
+                    changeToDoProjectAmount(data.amount);
+                    break;
+                case "ChangeTodoTaskAmount":
+                    //变更待办任务数量
+                    console.log("变更待办任务数量:%d", data.amount);
+                    changeTodoTaskAmount(data.amount);
+                    break;
+                case "ChangeToDoExchRecAmount":
+                    //变更工程收资数量
+                    changeToDoExchRecAmount(data.amount);
+                    break;
+                case "ChangeMessageAmount":
+                    //变更首页的消息提醒数量
+                    window.top.reloadMessage(data.data);
+                    break;
+                case "ChangeMailAmount":
+                    //变更首页的消息提醒数量
+                    window.top.reloadMail(data.data);
+                    //获取出收件箱，并刷新
+                    window.parent.execute("收件箱", "loadGrid");
+                    break;
+                case "DWGSubmited":
+                    //CAD中提交图纸后，如果当前设计任务页面打开可实时刷新
+                    try {
+                        window.top._CallBactRefreshTask(data.taskID);
+                    } catch (err) { }
+                    break;
+                case "SchedulerRemind":
+                    //日程提醒
+                    if (data.type == "timer") {
+                        //定时器
+                        window.top.timerSchedulerInfo(data);
+                    }
+                    else if (data.type == "change") {
+                        //添加或更新
+                        window.top.changeSchedulerInfo(data.data);
+                    }
+                    else if (data.type == "remove") {
+                        //移除
+                        window.top.removeScheulerInfo(data.data.toString());
+                    }
+                    break;
+            }
+        };
+
+        window.disconnect = function () {
+            try {
+                $.connection.MessageMonitor.server.logout();
+            }
+            catch (err) { }
+        }
+    </script>
+    <script type="text/javascript">
+        window.urls = {
+            sitePath: "@(ViewBag.sitePath)",
+            todoTask: "@(Url.Action("TaskRemindList", "DesTask" ,new { @area="Design" }))",
+            todoTaskAmount: "@(Url.Action("TaskRemindTodoAmount", "DesTask" ,new { @area="Design" }))",
+            todoList: "@(Url.Action("TodoList", "PubFlow" ,new { @area="Core" }))",
+            todoListAmount: "@(Url.Action("GetAmount", "PubFlow" ,new { @area="Core" }))",
+            shortcutSetting: "@(Url.Action("ShortcutManage", "layout", new { @area= "Core" }))",
+            getShortcuts: "@(Url.Action("GetShortcuts", "layout", new { @area="Core" }))",
+            getFavouriteProjects: "@(Url.Action("GetFavouriteProjects", "layout",new { @area="Core" }))",
+            projectCenter: "@(Url.Action("Center","Project",new { @area="Project" }))",
+            switchAgent: "@(Url.Action("SwitchToAgentUser", "Layout",new { @area="Core" }))",
+            todoExchRecAmount: "@(Url.Action("ExchRecList", "DesReceive", new { @area = "Design" }))?Type=Single",  // 收资
+            noticeDetail: "@(Url.Action("Query", "OaNotice", new { @area="OA" }))",
+            newsDetail: "@(Url.Action("Query", "OaNew", new { @area= "OA" }))",
+            discussDetail: "@(Url.Action("ProjDiscussListView", "DesDiscuss", new { @area= "Design" }))",
+            discussInfo: "@(Url.Action("GetDiscussInfo", "DesDiscuss", new { @area= "Design" }))",
+            changeAvatar: "@(Url.Action("SetAvatar","User",new { @area="Core" }))?parentID=" + currentIframeID,
+            taskGanttAvatar: "@(Url.Action("editTask", "DesTask", new { @area= "Design" }))",//任务提醒
+            taskGanttCount: "@(Url.Action("GetDesTaskByCurrentUsers", "DesTask", new { @area= "Design" }))"
+        };
+        function openMainTab(title, url) {
+            window.top.addTab(title, url, "");
+        }
+    </script>
+    <script type="text/javascript" src="@(Url.Content("~/Scripts/JQ/workcenter.js"))"></script>
+</body>
+</html>

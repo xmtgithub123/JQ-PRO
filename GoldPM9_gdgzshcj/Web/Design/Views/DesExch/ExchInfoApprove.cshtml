@@ -1,0 +1,597 @@
+﻿@model DataModel.Models.DesExch
+@using JQ.Web;
+<style type="text/css">
+    .c8, .c8:hover {
+        background: rgba(0, 0, 0, 0) linear-gradient(to bottom, #698cba 0px, #577eb2 100%) repeat scroll 0 0;
+        border-color: #4b72a4;
+        color: #fff;
+    }
+
+    a.c8:hover {
+        background: #577eb2 none repeat scroll 0 0;
+        filter: none;
+    }
+
+    .c2, .c2:hover {
+        background: rgba(0, 0, 0, 0) linear-gradient(to bottom, #747474 0px, #676767 100%) repeat scroll 0 0;
+        border-color: #5f5f5f;
+        color: #fff;
+    }
+
+    a.c2:hover {
+        background: #676767 none repeat scroll 0 0;
+        filter: none;
+    }
+
+
+    .jq-panel .list-group-item {
+        border-bottom: 1px solid #dbdbdb;
+        padding: 10px 15px;
+    }
+
+    .jq-btn-success.l-btn {
+        background: #5cb85c;
+    }
+
+    .jq-btn-info.l-btn {
+        background: #5bc0de;
+    }
+
+    .jq-panel-heading {
+        font-weight: bold;
+    }
+
+    .jq-btn-block {
+        width: auto;
+    }
+
+    .jq-btn {
+        padding: 2px 12px;
+    }
+
+    .jq-panel {
+        margin: 10px 10px 20px 10px;
+    }
+
+        .jq-panel .list-group-item span.item-title {
+            display: inline-block;
+            float: left;
+            width: 60px;
+            text-align: left;
+            margin-right: 5px;
+        }
+
+        .jq-panel .list-group-item p.item-text {
+            padding-left: 70px;
+            text-indent: -0px;
+            color: #848484;
+        }
+</style>
+<script type="text/javascript">
+    var _flowInstance = null;
+    JQ.form.submitInit({
+        formid: 'DesExchform',//formid提交需要用到
+        buttonTypes: ['close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            //window.top.document.getElementById("@(Request.QueryString["iframeID"])").contentWindow.refreshGrid();
+            JQ.datagrid.autoRefdatagrid();
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "Design,Design.FlowProcessor.DesExchApprove",
+
+            onInit: function () {
+                _flowInstance = this;
+            },
+            isShowSave: false,
+            refID: "@(Model.Id)",
+            refTable: "DesExch",
+            beforeFormSubmit: function () {
+                //判断是否有提资人
+                var selectEmp = $("#DesExch_EmpDiv").find(".EmpSpecDiv");
+                if (selectEmp.length == 0) {
+                    JQ.dialog.warning("请选择收资人！！！");
+                    return false;
+                } else {
+                    var RecEmp = [];
+                    var result = true;
+                    $.each(selectEmp, function (i, e) {
+                        var empData = JSON.parse($(e).attr("data-emp"));
+                        if (empData.EmpName == "")
+                        {
+
+                            result= false;
+                        }
+                        RecEmp.push({ 'Id': empData.Id, 'RecSpecId': empData.SpecID, 'RecSpecName': empData.SpecName, 'RecEmpId': empData.EmpID, 'RecEmpName': empData.EmpName });
+                    })
+
+                    $("#JsonRows").val(JSON.stringify(RecEmp));
+                    if (result == false)
+                    {
+                        JQ.dialog.warning("请为专业选择收资人！！！");
+                        return false;
+                    }
+                }
+                getSelected();
+            },
+            onInit: function () {
+                window.SpecEmps = "";
+                try {
+                    window.SpecEmps = JSON.parse('@Html.Raw(ViewBag.SpecEmps)');
+                } catch (e) {
+
+                }
+
+                showMuliEmp();
+                setTimeout(function () {
+                    if ($("#selectEmp").css("display") == "none") {
+                        $(".EmpSpecDiv i").hide();
+                    }
+                }, 1500)
+
+            }
+        }
+        //},
+
+
+    });
+
+
+
+    function Save() {
+        var validate = Validate();
+        var vali = accept();
+        if (vali != false && validate != false) {
+            JQ.tools.ajax({
+                url: '@Url.Action("PostExchSave", "DesExch")',
+                data: $('#DesExchform').serialize(),
+                succesCollBack: function (data) {
+                    closeDialog();
+                }
+            });
+        }
+    }
+
+    function Validate()  //验证数据
+    {
+        var Vali = true;
+        if (!$("#ExchTitle").textbox("isValid")) {
+            Vali = false;
+            $("#ExchTitle").textbox("textbox").focus();
+        }
+        if (!$("#ExchContent").textbox("isValid")) {
+            Vali = false;
+            $("#ExchContent").textbox("textbox").focus();
+        }
+
+        return Vali;
+    }
+
+    function closeDialog() {
+        JQ.dialog.dialogClose();
+    }
+
+
+    function removeEmp(thisDiv) {
+        $(thisDiv).parent().remove();
+    }
+
+
+
+    // 设置相关控件的Disable属性，计划内的不可编辑、计划外的可编辑
+    function SetDisabled() {
+        var ReverseIdent = '@ViewBag.ReverseIdent';
+        if (ReverseIdent != "3")// 不是新增提资（计划内），对应控件不可编辑
+        {
+            $("#ExchSpecId").combobox({
+                readonly: true
+            });//提资专业
+            $("#ExchEmpId").combobox({
+                readonly: true
+            });//提资人
+            $('#ProjId').combogrid({
+                readonly: true
+            });
+        }
+
+    }
+    // 绑定下拉提资专业
+    $("#ExchSpecId").combobox({
+        required: true,
+        prompt: '下拉选择专业',
+        valueField: 'TaskSpecId',
+        editable: false,
+        value: '@Model.ExchSpecId',
+        textField: 'TaskName',
+        url: '@Url.Action("ComboSpec", "DesExch", new { @area = "Design" })?projID=@Model.ProjId&TaskGroupId=@Model.taskGroupId&IsTotal=1',
+        onLoadSuccess: function (data) {
+            if ($(this).combobox('getValue') == "0" || $(this).combobox('getValue') == 0) {
+                //$(this).combobox('setValue', "");
+            }
+        }
+
+
+    });
+
+    // 绑定提资人
+    $("#ExchEmpId").combobox({
+        prompt: '选择提资人员',
+        editable: false,
+        valueField: 'EmpID',
+        textField: 'EmpName',
+        value: '@Model.ExchEmpId',
+        url: '@Url.Action("GetAllPersonBySpecID", "DesExch", new { @area = "Design" })?SpecId=0',
+        onLoadSuccess: function (data) {
+            if ($(this).combobox('getValue') == "0" || $(this).combobox('getValue') == 0) {
+                $(this).combobox('setValue', "");
+            }
+        }
+
+    });
+
+
+    var selectValue = "";
+    var selectText = "";
+
+    JQ.combobox.common({
+        id: 'ProjId',
+        toolbar: '#tbProj',//工具栏的容器ID
+        url: '@Url.Action("combogridJson", "Project",new { @area="Project"})',//请求的地址
+        panelWidth: 550,
+        panelHeight: 385,
+        valueField: 'Id',
+        textField: 'ProjName',
+        editable: false,
+        multiple: false,
+        pagination: true,//是否分页
+        queryParams:
+            {
+                projId: '@Model.ProjId',
+                Words: $("#fullNameSearchProj").val()
+            },
+        columns: [[
+            { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true },
+            { title: '项目名称', field: 'ProjName', width: 260, align: 'center', sortable: true },
+            { title: '项目阶段', field: 'PhaseName', width: 140, align: 'center', sortable: true }
+        ]],
+        onSelect: function (val, row) {
+            $("#ProjNumber").text(row.ProjNumber);//项目编号
+            $("#ProjEmpName").text(row.ProjEmpName);//负责人名称
+            $("#DatePlanStart").datebox('setValue', row.DatePlanStart);
+            $("#DatePlanFinish").datebox('setValue', row.DatePlanFinish);
+            selectValue = row.Id;
+            selectText = row.ProjName;
+        },
+        onLoadSuccess: function () {
+            $("#PhaseID").text('@ViewBag.Phase');
+            $("#ProjNumber").text('@ViewBag.ProjNumber');
+            var selectRow = $(this).combogrid('grid').datagrid('getSelected');
+            if (selectRow != undefined) {
+                selectText = $(this).combogrid('getText');
+            }
+            if (selectRow == undefined) {
+                $(this).combogrid('setText', selectText);
+            }
+        }
+
+    });
+    $("#fullNameSearchProj").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '项目名称、项目编号',
+        onClickButton: function () {
+            JQ.datagrid.searchGrid(
+                {
+                    $dg: $("#ProjId").combogrid('grid'),
+                    loadingType: 'datagrid',
+                    queryParams:
+                             {
+                                 projId: '@Model.ProjId',
+                                 Words: $("#fullNameSearchProj").val()
+                             }
+                });
+        }
+
+    });
+    $("#DatePlanStart").datebox({
+        disabled: true
+    });
+    $("#DatePlanFinish").datebox({
+        disabled: true
+    });
+    SetDisabled();// 设置Disaled
+
+    function showMuliEmp() {
+        if (typeof (window.SpecEmps) != "undefined") {
+            if (window.SpecEmps.length > 0) {
+                var $contain = $("#DesExch_EmpDiv");
+                $contain.empty();
+                var emplist = Enumerable.From(window.SpecEmps).OrderBy("x=>x.SpecID").ToArray();
+                $.each(emplist, function (i, e) {
+                    $("<div class='EmpSpecDiv' data-Emp='" + JSON.stringify({ 'Id': e.Id, 'SpecID': e.SpecID, 'SpecName': e.SpecName, 'EmpName': e.EmpName, 'EmpID': e.EmpID }) + "'><span><" + e.SpecName + ">" + e.EmpName + "</span><i class='fa fa-times-circle' onclick=\"removeEmp(this)\"></i></div>").appendTo($contain);
+                })
+            }
+        }
+    }
+    $("#selectEmp").click(function () {
+        var selectEmp = $("#DesExch_EmpDiv").find(".EmpSpecDiv");
+        var empids = [];
+        if (selectEmp.length > 0) {
+
+            $.each(selectEmp, function (i, e) {
+                var empData = JSON.parse($(e).attr("data-emp"));
+                empids.push({ Id: 0, 'SpecID': empData.SpecID, 'EmpID': empData.EmpID });
+            })
+        }
+        var projID = $("#ProjId").combogrid("getValue");
+        JQ.dialog.dialog({
+            url: '@Url.Action("ExchSpecEmployee", "usercontrol", new { @area= "Core" })?empids=' + JSON.stringify(empids)+"&projID="+projID,
+            width: 450,
+            height: 600,
+            title: '请选择人员',
+            onClose: function () {
+                showMuliEmp();
+            }
+        });
+    })
+
+        JQ.treegrid.treegrid({
+            JQID: 'designFile',//数据表格ID
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+            idField: 'AttachID',
+            treeField: 'AttachName',
+            @{
+                if (ViewBag.State == 0)
+                {
+                    <text>
+            url: '@Url.Action("DesignAttachByTask", "DesExch")?taskId=@Model.ExchTaskId',//请求的地址
+            </text>
+                }
+                else
+                {
+                    <text>
+            url: '@Url.Action("ExchAttach", "DesExch")',//请求的地址
+            queryParams: { ExchId: '@Model.Id' },
+            </text>
+                }
+            }
+            pagination: false,
+            rownumbers: true,
+            fit: false,
+            lines: true,
+            singleSelect: false,
+            columns: [[
+                @{
+                    if(ViewBag.State==0)
+                    {
+                        <text>
+                            { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                        </text>
+
+                    }
+                }
+                {
+                    title: '文件名称', field: 'AttachName', width: 400, align: 'left', halign: 'center', sortable: true, formatter: function (value, row, index) {
+                        if (row.AttachExt == '.') {
+                            return row.AttachName;
+                        } else {
+                            return "<a  target=\"_blank\" href='@Url.Action("Download", "ProcessFile", new { @area = "Core" })?id=" + row.AttachID + "&type=attach&version=" + row.AttachVer + " '>" + row.AttachName + "</a> ";
+                        }
+                    }
+                },
+                {
+                    title: '文件版本', field: 'AttachVer', width: 100, align: 'center', sortable: true, formatter: function (value, row, index) {
+                        if (row.AttachExt == ".") {
+                            return "";
+                        } else {
+                            return value;
+                        }
+                    }
+                },
+                { title: '上传日期', field: 'AttachDateUpload', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '上传人', field: 'AttachEmpName', width: 100, align: 'center', sortable: true },
+            ]],
+        })
+
+
+    function getSelected() {
+        var getChecks = $('#designFile').treegrid("getChecked");
+        var AttachIDS = Enumerable.From(getChecks).Select("x=>x.AttachID").ToArray();
+        $("#AttachExchIds").val(AttachIDS);
+
+    }
+</script>
+<style type="text/css">
+    .EmpSpecDiv {
+        float: left;
+        line-height: 14px;
+        height: 14px;
+        font-size: 12px;
+        border: 1px solid #bbb;
+        position: relative;
+        padding: 4px 4px;
+        margin: 2px 4px;
+    }
+
+        .EmpSpecDiv i {
+            line-height: 14px;
+            float: right;
+            padding-left: 6px;
+        }
+</style>
+<div id="ExchInfoApprove" class="easyui-layout" fit="true">
+    @using (Html.BeginForm("PostExchSave", "DesExch", FormMethod.Post, new { @id = "DesExchform" }))
+    {
+        <div data-options="region:'center',border:false" style="border-right:1px solid #ccc;">
+            <div class="easyui-layout" data-options="fit:true">
+                <div id="DesLoadCenter" data-options="region:'center',border:false" style="width:900px;">
+                    @*<table id="RecSpecTable" style="width:100%;"></table>
+                        <div id="RecSpecTablePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+                            <span JQPanel="toolbarPanel">
+                                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="append();">添加</a>
+                                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" onclick="removexit();">删除</a>
+                            </span>
+                        </div>*@
+
+                    <table class="table table-bordered" style="width:100%;">
+                        <tr>
+                            <th style="width:13%;text-align:center;">
+                                <span>请选择收资人</span><br />
+                                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-search'" id="selectEmp" name="selectEmp" style="font-size:12px;">选择</a>
+                            </th>
+                            <td>
+                                <div id="DesExch_EmpDiv" style="display:block;padding: 5px 0px;" data-Emp="">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="text-align:center;">
+                                设计文件
+                                @{
+                                    if (ViewBag.State == 0)
+                                    {
+                                        <text>
+                                            <br />
+                                            <span style="color:red;">
+                                                （在文件上打√）
+                                            </span>
+                                            
+                                        </text>
+                                    }
+                                }
+
+                            </th>
+                            <td>
+                                <table id="designFile" style="height:220px;"></table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th style="text-align:center;">
+                                其它资料
+                            </th>
+                            <td>
+                                @{
+                                    var uploader = new DataModel.FileUploader();
+                                    uploader.RefID = Model.Id;
+                                    uploader.RefTable = "DesExch";
+                                    uploader.Name = "DesExchUpLoad";
+                                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                                }
+
+
+
+                            </td>
+                        </tr>
+                    </table>
+                    @*<div id="ExchTaskTab" class="easyui-tabs" data-options="fit:true" style="height:200px;">
+                        <div title="接收专业">
+                        </div>
+                        </div>*@
+
+
+                </div>
+            </div>
+        </div>
+        <div id="westRegion" data-options="region:'east',border:false" style="width:300px;">
+            <div>
+                @Html.HiddenFor(m => m.Id)
+                @Html.HiddenFor(m => m.taskGroupId)
+                @Html.HiddenFor(m => m.FlowId)
+                @Html.HiddenFor(m => m.ExchTaskId)
+                <input type="hidden" id="ReId" name="ReId" value="@Model.Id" />
+                <input type="hidden" name="JsonRows" id="JsonRows" />
+                <input type="hidden" name="ReverseIdent" value="@ViewBag.ReverseIdent" />
+                <input type="hidden" id="AttachExchIds" name="AttachExchIds" />
+
+                <div class="jq-panel jq-panel-default">
+                    <div class="jq-panel-heading">提资详情</div>
+                    <ul class="list-group">
+                        <li class="list-group-item clearfix">
+                            <span class="item-title">提资标题:</span><p class="item-text">
+                                <input name="ExchTitle" id="ExchTitle" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,2000]" value="@Model.ExchTitle" />
+                            </p>
+                        </li>
+                        <li class="list-group-item clearfix">
+                            <span class="item-title">提资内容:</span><p class="item-text">
+                                <input name="ExchContent" id="ExchContent" style="width:98%;height:80px;" class="easyui-textbox" data-options="required:true,multiline:true" validType="length[0,4000]" value="@Model.ExchContent" />
+                            </p>
+                        </li>
+                        <li class="list-group-item clearfix">
+                            <span class="item-title">提资期限:</span><p class="item-text">
+                                <input id="ExcLastPutTime" name="ExcLastPutTime" value="@ViewBag.ExcLastPutTime" style="width:150px;" class="easyui-datebox" validType="dateISO" />
+                            </p>
+                        </li>
+                        <li class="list-group-item clearfix">
+                            <span class="item-title">提资专业:</span><p class="item-text">
+                                <select id="ExchSpecId" name="ExchSpecId" class="easyui-combobox" style="width:98%;"></select>
+                            </p>
+                        </li>
+                        <li class="list-group-item clearfix">
+                            <span class="item-title">提资人:</span><p class="item-text">
+                                <select id="ExchEmpId" name="ExchEmpId" class="easyui-combobox" style="width:98%;"></select>
+                            </p>
+                        </li>
+                        @*<li class="list-group-item clearfix"><span class="item-title">优先级:</span><p class="item-text">@Html.DropDownListFor(m => m.ExchPriority, (IEnumerable<SelectListItem>)ViewBag.Priority, new { @class = "easyui-combobox", style = "width:100px" })</p></li>*@
+                    </ul>
+                </div>
+                @*<div class="jq-panel jq-panel-default">
+                    <div class="jq-panel-heading">任务详情</div>
+                    <ul class="list-group">
+                    <li class="list-group-item clearfix"><span class="item-title">任务名称:</span><p class="item-text">……</p></li>
+                    <li class="list-group-item clearfix"><span class="item-title">执行人员:</span><p class="item-text">……</p></li>
+                    <li class="list-group-item clearfix"><span class="item-title">计划开始:</span><p class="item-text">……</p></li>
+                    <li class="list-group-item clearfix"><span class="item-title">计划完成:</span><p class="item-text">……</p></li>
+                    </ul>
+                    </div>*@
+                <div class="jq-panel jq-panel-default">
+                    <div class="jq-panel-heading">项目详情</div>
+                    <ul class="list-group">
+                        <li class="list-group-item clearfix">
+                            <span class="item-title">项目名称:</span>
+                            <p>
+                                @*<select id="ProjId" name="ProjId" class="easyui-combogrid" style="width:98%;height:20px;float:right;"></select>*@
+                                <input id="ProjId" name="ProjId" class="easyui-combogrid" data-options="required:true,multiple:false" style="width:160px;height:20px;float:right;" value="@(@Model.ProjId==0 ? "" :@Model.ProjId.ToString())" />
+
+                            </p>
+
+
+                        </li>
+                        <li class="list-group-item clearfix">
+                            <span class="item-title">项目编号:</span>
+                            <p class="item-text">
+                                <label id="ProjNumber">@ViewBag.ProjNumber</label>
+                            </p>
+                        </li>
+                        <li class="list-group-item clearfix">
+                            <span class="item-title">负责人员:</span>
+                            <p class="item-text">
+                                <label id="ProjEmpName">@ViewBag.ProjEmpName</label>
+                            </p>
+                        </li>
+                        <li class="list-group-item clearfix">
+                            <span class="item-title">计划开始:</span>
+                            <p class="item-text">
+                                <input type="text" id="DatePlanStart" style="width:160px;" class="easyui-datebox" value="@ViewBag.DatePlanStart" />
+                            </p>
+                        </li>
+                        <li class="list-group-item clearfix">
+                            <span class="item-title">计划结束:</span>
+                            <p class="item-text">
+                                <input type="text" id="DatePlanFinish" style="width:160px;" class="easyui-datebox" value="@ViewBag.DatePlanFinish" />
+                            </p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div id="tbProj" style="padding:5px;height:auto; display:none;">
+            <input id="fullNameSearchProj" name="Words" style="width:250px;" />
+        </div>
+
+                                    }
+</div>

@@ -1,0 +1,153 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoFormProjectPublish", new { @area = "ISO" })',
+               addUrl = '@Url.Action("add")',
+               editUrl = '@Url.Action("edit")',
+               delUrl = '@Url.Action("del")';
+        var xml = '';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'IsoFormProjectPublishGrid',//数据表格ID
+                JQDialogTitle: '项目出版登记信息',//弹出窗体标题
+                JQWidth: '1224',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#IsoFormProjectPublishPanel',//工具栏的容器ID
+                singleSelect: false,
+                JQExcludeCol: [1,10,11,12],//导出execl排除的列
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                  {
+                      title: '项目名称', field: 'ProjName', width: "15%", align: 'left', sortable: false
+                  },
+                  {
+                      title: '项目编号', field: 'ProjNumber', width: "12%", align: 'left', sortable: false
+                  },
+                  {
+                      title: '项目负责人', field: 'ProjEmpName', width: "6%", align: 'center', sortable: false
+                  },
+                  {
+                      title: '阶段', field: 'PhaseIDs', width: "8%", align: 'center', sortable: false
+                  },
+                  {
+                      title: '申请人', field: 'CreatorEmpName', width: "6%", align: 'center', sortable: true
+                  },
+                  {
+                      title: '申请日期', field: 'CreationTime', width: "8%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT
+                  },
+                  {
+                      title: '出版内容', field: 'ColAttVal1', width: "15%", align: 'center', sortable: true
+                  },
+                  {
+                      title: '送图要求', field: 'FormReason', width: "12%", align: 'center', sortable: true
+                  }
+                   , {
+                       field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.EmpId)")
+                   },
+                  { title: 'FlowStatus', field: 'FlowStatus', halign: 'center', align: 'left', hidden: true },
+                  {
+                      field: 'opt', title: '操作', width: "40", align: 'center', JQIsExclude: true,
+                      formatter: function (value, row, index) {
+                          console.log(row);
+                          var title = "查看";
+                          if (row._EditStatus == 1) {
+                              title = "修改";
+                          }
+                          else if (row._EditStatus == 2) {
+                                title = "处理";
+                          }
+                          return '<a class="easyui-linkbutton" onclick="Info(' + row.FormID + ')">' + title + '</a>';
+                      }
+                  }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#IsoFormProjectPublishGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目名称、项目编号',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'IsoFormProjectPublishGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                KeyJQSearch: $("#JQSearch").val(),
+                                //ProjectPhase: $('#ProjectPhase').textbox('getValue'),
+                                //Special: $('#Special').textbox('getValue')
+                            }
+                        });
+                }
+            });
+        });
+
+        function StateMent() {
+            JQ.dialog.dialog({
+                title: "晒图复印扫描统计表",
+                url: "@(Url.Action("listStatement", "IsoFormProjectPublish", new { @area = "Iso" }))",
+                width: '1224',
+                height: '100%',
+                JQID: 'IsoFormProjectPublishGrid',
+                JQLoadingType: 'datagrid',
+                type: "POST",
+                //iconCls: 'fa fa-cogs'
+            });
+        }
+
+        function Info(Id) {
+            JQ.dialog.dialog({
+                title: '查看信息',
+                width: '1224',
+                height: '100%',
+                url: '@Url.Action("edit")?Id=' + Id,
+                onClose: function () {
+                    $("#IsoFormProjectPublishGrid").datagrid("reload");
+                }
+            });
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="IsoFormProjectPublishGrid"></table>
+    <div id="IsoFormProjectPublishPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+        <span jqpanel="toolbarPanel">
+
+        </span>
+        @*@BaseData.getBases(
+                                       new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{ Key:'PhaseID', Contract:'in',filedType:'Int'}" }
+           )*@
+        <input id="JQSearch" style="width:250px;" />
+        <a id="btn" href="#" class="easyui-linkbutton" onclick="StateMent()" data-options="iconCls:'fa fa-edit'">晒图复印扫描统计表</a>
+    </div>
+}
+

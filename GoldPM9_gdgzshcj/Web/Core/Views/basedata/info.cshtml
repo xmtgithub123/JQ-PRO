@@ -1,0 +1,83 @@
+﻿@model DataModel.Models.BaseData
+<script>
+    JQ.form.submitInit({
+        formid: 'ajaxform',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+    $('#ParentID').combotree({
+        url: '@Url.Action("girdjson", "basedata", new { @area = "Core" })?isContains=true&baseID=@ViewBag.parentid',
+        required: true,
+        onLoadSuccess: function (node, data) {
+            if ('@ViewBag.parentid' > 0) {
+                $('#ParentID').combotree('setValue', '@ViewBag.parentid');
+            }
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "basedata", FormMethod.Post, new { @id = "ajaxform" }))
+{
+    @Html.HiddenFor(m => m.BaseID)
+    <table class="table table-hover table-bordered">
+        <tr>
+            <th class="info">
+                上级节点：
+            </th>
+            <td>
+                <input name="ParentID" id="ParentID" class="easyui-textbox" style="width:80%" value="@ViewBag.parentid" />
+            </td>
+        </tr>
+        <tr>
+            <th class="info" style="width: 100px;">
+                数据名称：
+            </th>
+            <td>
+                <input name="BaseName" class="easyui-textbox" data-options="required:true" value="@Model.BaseName" style="width:95%" />
+            </td>
+        </tr>
+        <tr>
+            <th class="info">
+                扩展属性1：
+            </th>
+            <td>
+                <input name="BaseAtt1" id="urlParam" class="easyui-textbox" value="@Model.BaseAtt1" style="width:95%" />
+            </td>
+        </tr>
+        <tr>
+            <th class="info">
+                扩展属性2：
+            </th>
+            <td>
+                <input name="BaseAtt2" id="urlParam" class="easyui-textbox" value="@Model.BaseAtt2" style="width:95%" />
+            </td>
+        </tr>
+        <tr>
+            <th class="info">
+                扩展属性3：
+            </th>
+            <td>
+                <input name="BaseAtt3" id="urlParam" class="easyui-textbox" value="@Model.BaseAtt3" style="width:95%" />
+            </td>
+        </tr>
+        <tr>
+            <th class="info">
+                扩展属性4：
+            </th>
+            <td>
+                <input name="BaseAtt4" id="urlParam" class="easyui-textbox" value="@Model.BaseAtt4" style="width:95%" />
+            </td>
+        </tr>
+        <tr>
+            <th class="info">
+                扩展属性5：
+            </th>
+            <td>
+                <input name="BaseAtt5" id="urlParam" class="easyui-textbox" value="@Model.BaseAtt5" style="width:95%" />
+            </td>
+        </tr>
+
+    </table>
+}

@@ -1,0 +1,77 @@
+﻿@model DataModel.FlowControlPar
+<table style="width:100%;" cellpadding="5" id="flowpanelt">
+    <tr>
+        <td>
+            <div>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-hand-o-right',iconAlign:'right'" id="flowNextByA">提交下一步</a>
+                <select class="easyui-combobox" name="state" style="width:130px;">
+                    <option value="AL">吴俊鹏</option>
+                    <option value="AK">吴三</option>
+                </select>
+            </div>
+            <div>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-hand-o-right',iconAlign:'right'">提交跳一步</a>
+                <select class="easyui-combobox" name="state" style="width:130px;">
+                    <option value="AL">吴俊鹏</option>
+                    <option value="AK">吴三</option>
+                </select>
+            </div>
+            <div>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-hand-o-right',iconAlign:'right'">工作移交给</a>
+                <select class="easyui-combobox" name="state" style="width:130px;">
+                    <option value="AL">吴俊鹏</option>
+                    <option value="AK">吴三</option>
+                </select>
+            </div>
+            <div>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-hand-o-right',iconAlign:'right'">回退上一步</a>
+                <select class="easyui-combobox" name="state" style="width:130px;">
+                    <option value="AL">吴俊鹏</option>
+                    <option value="AK">吴三</option>
+                </select>
+            </div>
+        </td>
+        <td style="width:3px;"></td>
+        <td>
+            <input class="easyui-textbox" data-options="multiline:true,prompt:'请填写处理意见'" style="width:100%;height:100px">
+        </td>
+    </tr>
+</table>
+<script>
+    $(function () {
+        var formid = '@Model.formid';
+        var $form;
+        $.parser.parse($("#flowpanelt"));
+        $("#flowNextByA").click(function () {
+            if (JQ.tools.isNotEmpty(formid)) {
+                $form = $("#" + formid);
+            }
+            else {
+                $form = JQ.tools.findDialogInfo().$div.find("form:last");
+            }
+            JQ.form.submit({
+                $form: $form,
+                succesCollBack: function (backJson) {
+                    var refID = backJson.stateValue;
+                    if (refID == null || isNaN(refID) || parseInt(refID, 10) <= 0) {
+                        refID = '@Model.flowRefID';
+                    }
+                    if (parseInt(refID, 10) <= 0) {
+                        JQ.dialog.error("获取FlowRefID失败");
+                    }
+                    else {
+                        JQ.tools.ajax({
+                            url: '@Url.Action("flowsubnext")',
+                            data: {
+
+                            },
+                            succesCollBack: function (backdata) {
+
+                            }
+                        });
+                    }
+                }
+            });
+        });
+    });
+</script>

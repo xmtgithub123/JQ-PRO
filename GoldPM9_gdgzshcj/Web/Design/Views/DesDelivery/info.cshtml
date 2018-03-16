@@ -1,0 +1,112 @@
+﻿@model DataModel.Models.DesDelivery
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'DesDeliveryform',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "DesDelivery", FormMethod.Post, new { @area = "Design", @id = "DesDeliveryForm" }))
+{
+    @Html.HiddenFor(m => m.DeliveryID)
+    <table class="table table-bordered">
+	 
+                        <tr>
+                        <th width="10%">工程</th>
+                        <td width="40%">
+						<input name="ProjID" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.ProjID" />
+                        </td>
+                        <th width="10%">工程编号</th>
+                        <td width="40%">
+						<input name="ProjNumber" style="width:98%;" class="easyui-textbox"  data-options="required:true"  validType="length[0,100]" value="@Model.ProjNumber" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">工程名称</th>
+                        <td width="40%">
+						<input name="ProjName" style="width:98%;" class="easyui-textbox"   validType="length[0,100]" value="@Model.ProjName" />
+                        </td>
+                        <th width="10%">交付日期</th>
+                        <td width="40%">
+						<input name="DeliveryDate" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.DeliveryDate" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">交付方式</th>
+                        <td width="40%">
+						<input name="DeliveryTypeID" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.DeliveryTypeID" />
+                        </td>
+                        <th width="10%">交付专业</th>
+                        <td width="40%">
+						<input name="DeliveryPhase" style="width:98%;" class="easyui-textbox"   validType="length[0,100]" value="@Model.DeliveryPhase" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">交付阶段</th>
+                        <td width="40%">
+						<input name="DeliverySpec" style="width:98%;" class="easyui-textbox"   validType="length[0,100]" value="@Model.DeliverySpec" />
+                        </td>
+                        <th width="10%">交付卷册</th>
+                        <td width="40%">
+						<input name="DeliveryVol" style="width:98%;" class="easyui-textbox"   validType="length[0,1000]" value="@Model.DeliveryVol" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">设计人</th>
+                        <td width="40%">
+						<input name="DeliveryDesignEmpName" style="width:98%;" class="easyui-textbox"   validType="length[0,100]" value="@Model.DeliveryDesignEmpName" />
+                        </td>
+                        <th width="10%">晒图日期</th>
+                        <td width="40%">
+						<input name="DeliveryBlueDate" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.DeliveryBlueDate" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">接收单位</th>
+                        <td width="40%">
+						<input name="DeliveryCompany" style="width:98%;" class="easyui-textbox"   validType="length[0,100]" value="@Model.DeliveryCompany" />
+                        </td>
+                        <th width="10%">接收人</th>
+                        <td width="40%">
+						<input name="DeliveryRecEmpName" style="width:98%;" class="easyui-textbox"   validType="length[0,100]" value="@Model.DeliveryRecEmpName" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">份数</th>
+                        <td width="40%">
+						<input name="DeliveryDetailNum" style="width:98%;" class="easyui-numberspinner"   validType="length[0,10]" value="@Model.DeliveryDetailNum" />
+                        </td>
+                        <th width="10%">交付备注</th>
+                        <td width="40%">
+						<input name="DeliveryNote" style="width:98%;" class="easyui-textbox"   validType="length[0,1000]" value="@Model.DeliveryNote" />
+                        </td>
+                        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @Html.Action("uploadFile", "usercontrol", new
+           {
+               @area = "Core",
+               AttachRefID = Model.DeliveryID,
+               AttachRefTable = "DesDelivery"
+           })
+            </td>
+        </tr>
+    </table>
+	
+}
+
+
+

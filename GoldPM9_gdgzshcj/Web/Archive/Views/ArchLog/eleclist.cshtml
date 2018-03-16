@@ -1,0 +1,58 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'BaseLogID',//主键的字段
+                JQID: 'BaseLogGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                pagination: true,//是否分页
+                url: '@Url.Action("json","ArchLog",new { @area= "Archive", RefTable= ViewBag.RefTable })',//请求的地址
+                fitColumns: true,
+                nowrap: false,
+                checkOnSelect: false,//是否包含check
+                toolbar: '#BaseLogPanel',//工具栏的容器ID
+                columns: [[
+		                { title: '人员', field: 'EmpName', width: 100, align: 'center', sortable: true },
+                        { title: '日志日期', field: 'BaseLogDate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		                { title: '记录IP', field: 'BaseLogIP', width: 100, align: 'center', sortable: true },
+		                { title: '日志内容', field: 'BaseLogRefHTML', width: 400, align: 'center', sortable: true }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '人员、IP、内容',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BaseLogGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="BaseLogGrid"></table>
+    <div id="BaseLogPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'EmpName,BaseLogIP,BaseLogRefHTML', 'Contract': 'like' }"/>
+
+    </div>
+}
+

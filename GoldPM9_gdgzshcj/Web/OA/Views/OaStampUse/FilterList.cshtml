@@ -1,0 +1,108 @@
+﻿@using JQ.Web;
+<style type="text/css">
+    .rwpdialogdiv {
+        padding: 0px;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        $(".dialog-toolbar :last").hide();
+        JQ.datagrid.datagrid({
+            JQButtonTypes: [],//需要显示的按钮
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'BussProjectGrid',//数据表格ID
+            JQDialogTitle: '选择印章',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            singleSelect: true,
+            //JQCustomSearch: [  //自定义搜索的字段
+            //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+            //],
+            //JQExcludeCol: [1, 4, 10],//导出execl排除的列
+            //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+            //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+            JQFields: ["Id"],//追加的字段名
+            url: '@Url.Action("FilterJson", "OaStampUse", new { @area = "OA" })',//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#BussProjectPanel',//工具栏的容器ID
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '印章名称', field: 'StampName', width: "40%", align: 'center', sortable: true },
+                { title: '印章类型', field: 'StampTypeID', width: "15%", align: 'center', sortable: true },
+                {
+                    title: '印章状态', field: 'StampStatusID', width: "10%", align: 'center', sortable: true,
+                    formatter: function (val, row) {
+                        return val == "作废" ? "<span style='color:red'>作废</span>" : "<span style='color:green'>使用中</span>";
+                    }
+                },
+                {
+                    title: '最近借出记录', field: 'LoanRecord', width: "30%", align: 'center', sortable: true
+                }
+            ]],
+            onBeforeCheck: function (rowIndex, rowData) {
+                if (rowData["StampStatusID"] == '作废') {
+                    alert("该印章已作废!");
+                    $(".datagrid-row[datagrid-row-index=" + rowIndex + "] input[type='checkbox']").attr("disabled") = "disabled";
+                    return false;
+                }
+                if (rowData["LoanRecord"] != '') {
+                    alert("该印章正在使用中!");
+                    $(".datagrid-row[datagrid-row-index=" + rowIndex + "] input[type='checkbox']").attr("disabled") = "disabled";
+                    return false;
+                }
+            },
+
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '工程编号、工程名称',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid(
+            {
+                dgID: 'BussProjectGrid',
+                loadingType: 'datagrid',
+                queryParams: null
+            });
+            }
+        });
+    });
+
+
+    function selectProj() {
+        var row = $('#BussProjectGrid').datagrid('getSelections');
+        if (row.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        var ids = [];
+        var FlowModelID = [];
+        var _rows = [];
+        for (var i = 0; i < 1; i++) {
+            ids.push(row[0]["Id"]);
+            ids.push(row[0]['StampTypeID']);
+            ids.push(row[0]['StampName']);
+            FlowModelID.push(row[0]["FlowModelID"]);
+            _rows.push(row[0]);
+        }
+        _ProjCallBackSingLe(ids);
+        _ProjCallBackFlowModelID(FlowModelID);
+        JQ.dialog.dialogClose();
+    }
+
+
+</script>
+
+<table id="BussProjectGrid"></table>
+<div id="BussProjectPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+    <span jqpanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProj()">确定选择</a>
+    </span>
+    @*<span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>*@
+    @*<input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key:'ProjNumber,ProjName', Contract:'like'}" />*@
+</div>
+
+
+

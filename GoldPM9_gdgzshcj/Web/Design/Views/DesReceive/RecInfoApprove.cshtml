@@ -1,0 +1,266 @@
+﻿@model DataModel.Models.DesExchRec
+@using JQ.Web;
+<style type="text/css">
+    .c8, .c8:hover {
+        background: rgba(0, 0, 0, 0) linear-gradient(to bottom, #698cba 0px, #577eb2 100%) repeat scroll 0 0;
+        border-color: #4b72a4;
+        color: #fff;
+    }
+
+    a.c8:hover {
+        background: #577eb2 none repeat scroll 0 0;
+        filter: none;
+    }
+
+    .c2, .c2:hover {
+        background: rgba(0, 0, 0, 0) linear-gradient(to bottom, #747474 0px, #676767 100%) repeat scroll 0 0;
+        border-color: #5f5f5f;
+        color: #fff;
+    }
+
+    a.c2:hover {
+        background: #676767 none repeat scroll 0 0;
+        filter: none;
+    }
+
+    #ExchInfoApprove {
+        height: 555px;
+    }
+</style>
+<script type="text/javascript">
+    var _flowInstance = null;
+    JQ.form.submitInit({
+        formid: 'DesExchRecform',//formid提交需要用到
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+
+
+    $("#DesExchUpLoad").height("285px");//设置上传控件的高度
+    $("#DesExchUpLoad").width("99.5%");//设置上传控件的宽度
+    $("#DesExchUpLoad_upload").hide();//隐藏上传按钮
+    $("#DesExchUpLoad_delete").hide();//隐藏删除按钮
+    $("#DesExchUpLoad_toggle").hide();//隐藏所有版本
+    function Save() {
+        JQ.tools.ajax({
+            url: '@Url.Action("AgreeRec", "DesReceive")',
+            data: $('#DesExchRecform').serialize(),
+            succesCollBack: function (data) {
+                closeDialog();
+            }
+        });
+    }
+
+    function RefuseRec() {
+        var RecContent = $("#RecContent").textbox("getValue");
+        if (RecContent == "") {
+            JQ.dialog.info("请填写回退意见");
+            return;
+        }
+        JQ.tools.ajax({
+            url: '@Url.Action("RefuseRec", "DesReceive")',
+            data: $('#DesExchRecform').serialize(),
+            succesCollBack: function (data) {
+                closeDialog();
+            }
+        });
+    }
+    JQ.datagrid.datagrid({
+        JQPrimaryID: 'Id',//主键的字段
+        JQID: 'FlowExe',//数据表格ID
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+        url: "@Url.Action("GetFlowExe","PubFlow",new { @area="Core" })",
+        queryParams: { flowID: '@ViewBag.FlowID' },
+        singleSelect: true,
+        rownumbers: true,
+        columns: [[
+              { title: "节点名称", field: "FlowNodeName", width: 120, align: "center", halign: "center" },
+              { title: "动作", field: "ActionName", width: 90, align: "center", halign: "center" },
+              { title: "操作人", field: "ExeEmpName", width: 80, align: "center", halign: "center" },
+              {
+                  title: "操作时间", field: "NewExeActionDate", width: 160, align: "center", halign: "center",
+              },
+              { title: "意见", field: "ExeNote", width: 150, align: "left", halign: "center" }
+        ]]
+
+    });
+    var state = '@Model.RecStatus';
+    var FlowStatusName = '@ViewBag.FlowStatusName';
+    if (state != "0" || FlowStatusName.indexOf("退回") >= 0)//处理完成的或者提资审批处于退回状态的
+    {
+        $("#Save").linkbutton({
+            disabled: true
+        });
+        $("#Refuse").linkbutton({
+            disabled: true
+        });
+    }
+
+
+
+    function closeDialog() {
+        JQ.dialog.dialogClose();
+    }
+
+
+
+    JQ.treegrid.treegrid({
+        JQID: 'designFile',//数据表格ID
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+        idField: 'AttachID',
+        treeField: 'AttachName',
+        url: '@Url.Action("ExchAttach", "DesExch")',//请求的地址
+        queryParams: { ExchId: '@ViewBag.ExchId' },
+        pagination: false,
+        rownumbers: true,
+        fit: true,
+        lines: true,
+        singleSelect: false,
+        columns: [[
+            {
+                title: '文件名称', field: 'AttachName', width: 330, align: 'left', halign: 'center', sortable: true, formatter: function (value, row, index) {
+                    if (row.AttachExt == '.') {
+                        return row.AttachName;
+                    } else {
+                        return "<a  target=\"_blank\" href='@Url.Action("Download", "ProcessFile", new { @area = "Core" })?id=" + row.AttachID + "&type=attach&version=" + row.AttachVer + " '>" + row.AttachName + "</a> ";
+                    }
+                }
+            },
+                {
+                    title: '文件版本', field: 'AttachVer', width: 90, align: 'center', sortable: true, formatter: function (value, row, index) {
+                        if (row.AttachExt == ".") {
+                            return "";
+                        } else {
+                            return value;
+                        }
+                    }
+                },
+                { title: '上传日期', field: 'AttachDateUpload', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '上传人', field: 'AttachEmpName', width: 100, align: 'center', sortable: true },
+        ]],
+    })
+
+</script>
+
+@using (Html.BeginForm("AgreeRec", "DesExch", FormMethod.Post, new { @id = "DesExchRecform" }))
+{
+    <div id="ExchInfoApprove" class="easyui-layout" style="overflow:hidden;" fit="true">
+
+        <div data-options="region:'center',border:true">
+            <div class="easyui-layout" data-options="fit:true">
+
+                <div data-options="region:'center',border:true">
+                    <table id="designFile" style="height:290px;"></table>
+
+                </div>
+                <div data-options="region:'south',border:false" style="width:100%;">
+                    <div id="tabs" class="easyui-tabs" style="width:99.5%;height:300px;">
+                        <div title="流转信息">
+                            <table id="FlowExe"></table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div id="westRegion" data-options="region:'east',border:false" style="width:45%;overflow:scroll">
+            <div>
+                @Html.HiddenFor(m => m.Id)
+
+                <table class="table table-bordered" style="width:600px;overflow:scroll;margin-left:10px;">
+                    <tr>
+                        <th>提资标题</th>
+                        <td>
+                            <input name="ExchTitle" id="ExchTitle" style="width:98%;" data-options="readonly:true" class="easyui-textbox" validType="length[0,2000]" value="@ViewBag.ExchTitle" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>提资内容</th>
+                        <td>
+                            <input name="ExchContent" id="ExchContent" style="width:98%;height:60px;" data-options="readonly:true" class="easyui-textbox" value="@ViewBag.ExchContent" data-options="multiline:true" validType="length[0,4000]" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            项目名称
+                        </th>
+                        <td style="text-align:left;">
+                            <label id="projName">
+                                @ViewBag.ProjName
+                            </label>
+                        </td>
+
+                    </tr>
+                    <tr>
+                        <th>
+                            项目阶段
+                        </th>
+                        <td style="text-align:left;">
+                            <label id="PhaseName">
+                                @ViewBag.PhaseName
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            提资专业
+                        </th>
+                        <td style="text-align:left;">
+                            <label id="ExchSpecName">
+                                @ViewBag.ExchSpecName
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            提资人
+                        </th>
+                        <td style="text-align:left;">
+                            <label id="ExchEmpName">
+                                @ViewBag.ExchEmpName
+                            </label>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            处理意见
+                        </th>
+                        <td>
+                            <input name="RecContent" id="RecContent" style="width:98%;height:70px;" class="easyui-textbox" value="@Model.RecContent" data-options="multiline:true" validType="length[0,4000]" />
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align:center;" colspan="2">
+
+                            <a id="Save" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="Save();">同意</a>
+                            <a id="Refuse" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" onclick="RefuseRec()">回退</a>
+                        </td>
+                    </tr>
+                    <tr >
+                        <th>
+                            附件
+                        </th>
+                        <td>
+                            @{
+                                var uploader = new DataModel.FileUploader();
+                                uploader.RefID = Model.ExchId;
+                                uploader.RefTable = "DesExch";
+                                uploader.Name = "DesExchUpLoad";
+                                @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                            }
+                        </td>
+                    </tr>
+
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+
+
+
+                                }

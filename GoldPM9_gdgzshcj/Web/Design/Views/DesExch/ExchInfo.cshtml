@@ -1,0 +1,438 @@
+﻿@model DataModel.Models.DesExch
+@using JQ.Web;
+<script type="text/javascript">
+    function Save() {
+        var validate = Validate();
+        var vali = accept();
+        if (vali != false && validate != false) {
+            JQ.tools.ajax({
+                url: '@Url.Action("PostExchSave", "DesExch")',
+                data: $('#DesExchform').serialize(),
+                succesCollBack: function (data) {
+                    var info = JQ.tools.findDialogInfo();
+                    if (typeof (window["FormExchRefresh_" + info.parentid]) == "function") {
+                        window["FormExchRefresh_" + info.parentid]();
+                        window.top.$("#" + info.divid).dialog('close');
+                    }
+                    else {
+                        closeDialog();
+                    }
+                }
+            });
+        }
+    }
+    function Validate()  //验证数据
+    {
+        var Vali = true;
+        if (!$("#ExchTitle").textbox("isValid")) {
+            Vali = false;
+            $("#ExchTitle").textbox("textbox").focus();
+        }
+        if (!$("#ExchContent").textbox("isValid")) {
+            Vali = false;
+            $("#ExchContent").textbox("textbox").focus();
+        }
+        if (!$("#ExcLastPutTime").datebox("isValid")) {
+            Vali = false;
+            $("#ExcLastPutTime").datebox("textbox").focus();
+        }
+        if (editIndex != undefined) {
+            var RecSpec = $('#RecSpecTable').datagrid('getEditor', { index: editIndex, field: 'RecSpecId' });
+            if (!$(RecSpec.target).combobox('isValid')) {
+                Vali = false;
+                $(RecSpec.target).combobox('textbox').focus();
+                JQ.dialog.info("请选择收资专业！！");
+                return false;
+            }
+        }
+        if ($("#RecSpecTable").datagrid('getRows').length == 0)
+        {
+            JQ.dialog.info("请添加收资专业！！");
+            Vali = false;
+        }
+        return Vali;
+    }
+
+    function closeDialog() {
+        JQ.dialog.dialogClose();
+    }
+
+    $("#RecSpecTable").datagrid({
+        iconCls: 'icon-edit',
+        multiSelect: true,
+        rownumbers: true,
+        fitColumns: true,
+        toolbar: '#RecSpecTablePanel',
+        url: '@Url.Action("RecSpecAndEmp", "DesExch", new { @area = "Design" })?ExchId=@Model.Id',
+        columns: [[
+            { field: 'ck', checkbox: true, align: 'center' },
+        {
+            title: '收资专业', field: 'RecSpecId', width: 330, align: 'left', align: 'center',
+            formatter: function (val, row) {
+                return row.RecSpecName;
+            },
+            editor:
+                {
+                    type: 'combobox',
+                    options: {
+                        required: true,
+                        prompt: '下拉选择专业',
+                        valueField: 'TaskSpecId',
+                        editable: false,
+                        textField: 'TaskName',
+                        url: '@Url.Action("ComboSpec", "DesExch", new { @area = "Design" })?ProjId=@Request.QueryString["ProjId"]&TaskGroupId=@Request.QueryString["taskGroupId"]',
+                        onChange: function (newVal, oldVal) {
+                            if (newVal != "0" || newVal != 0) {
+                                if (editIndex != undefined) {
+                                    var RecEmp = $('#RecSpecTable').datagrid('getEditor', { index: editIndex, field: 'RecEmpId' });
+                                    $(RecEmp.target).combobox('setValue', '');
+                                    $(RecEmp.target).combobox('reload', '@Url.Action("GetAllPersonBySpecID", "DesExch", new { @area = "Design" })?SpecId=' + newVal);
+                                }
+                            }
+                        },
+                        onLoadSuccess: function (data) {
+                            if ($(this).combobox('getValue') == "0" || $(this).combobox('getValue') == 0) {
+                                $(this).combobox('setValue', "");
+                            }
+                        }
+                    }
+                }
+
+        },
+        {
+            title: '收资人', field: 'RecEmpId', width: 200, align: 'left', align: 'center',
+            formatter: function (val, row) {
+                return row.RecEmpName;
+            },
+            editor: {
+                type: 'combobox',
+                options:
+                    {
+                        prompt: '选择接收人员',
+                        editable: false,
+                        valueField: 'EmpID',
+                        textField: 'EmpName',
+                        url: '@Url.Action("GetAllPersonBySpecID", "DesExch", new { @area = "Design" })?SpecId=' + SpecID,
+                        onLoadSuccess: function (data) {
+                            if ($(this).combobox('getValue') == "0" || $(this).combobox('getValue') == 0) {
+                                $(this).combobox('setValue', "");
+
+                            }
+                        }
+
+                    }
+            }
+        }
+        ]],
+        onClickRow: onClickRow
+    })
+
+    function BindDesignEmp()
+    {
+        var SpecID = "0";
+        if (editIndex != undefined) {
+            SpecID=$(this).datagrid('getRows')[editIndex]['RecSpecId'];
+        }
+        //var url = '@Url.Action("GetAllPersonBySpecID", "DesExch", new { @area = "Design" })?SpecId=' + SpecID;
+        //return url;
+        return SpecID;
+    }
+
+    $("#ExchEmpId").combobox({
+        prompt: '选择提资人员',
+        editable: true,
+        value: '@Model.ExchEmpId',
+        valueField: 'EmpID',
+        textField: 'EmpName',
+        url: '@Url.Action("GetAllPersonBySpecID", "DesExch", new { @area = "Design" })?SpecId=@Model.ExchSpecId',
+        onLoadSuccess: function (data) {
+            if ($(this).combobox('getValue') == "0" || $(this).combobox('getValue') == 0) {
+                $(this).combobox('setValue', "");
+            }
+
+        }
+    });
+
+    var editIndex = undefined;
+    var SpecID = "0";
+    function endEditing() {
+        if (editIndex == undefined) { return true }
+        if ($('#RecSpecTable').datagrid('validateRow', editIndex)) {
+            var Special = $('#RecSpecTable').datagrid('getEditor', { index: editIndex, field: 'RecSpecId' });
+            var SpecialName = $(Special.target).combobox('getText');
+            var SpecialId = $(Special.target).combobox('getValue');
+            $('#RecSpecTable').datagrid('getRows')[editIndex]['RecSpecName'] = SpecialName;
+            $('#RecSpecTable').datagrid('getRows')[editIndex]['RecSpecId'] = SpecialId;
+            SpecID = $('#RecSpecTable').datagrid('getRows')[editIndex]['RecSpecId'];
+            var Emp = $('#RecSpecTable').datagrid('getEditor', { index: editIndex, field: 'RecEmpId' });
+            var EmpName = $(Emp.target).combobox('getText');
+            var EmpId = $(Emp.target).combobox('getValue');
+            $('#RecSpecTable').datagrid('getRows')[editIndex]['RecEmpName'] = EmpName;
+            $('#RecSpecTable').datagrid('getRows')[editIndex]['RecEmpId'] = EmpId;
+
+
+            $('#RecSpecTable').datagrid('endEdit', editIndex);
+            editIndex = undefined;
+            getRows();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function append() {
+        if (endEditing()) {
+            $('#RecSpecTable').datagrid('appendRow', { Id: 0, RecEmpId: 0, RecSpecId: 0 });
+            editIndex = $('#RecSpecTable').datagrid('getRows').length - 1;
+            $('#RecSpecTable').datagrid('selectRow', editIndex)
+                    .datagrid('beginEdit', editIndex);
+        }
+        else {
+            JQ.dialog.warning('请将当前信息填写完整，再添加记录');
+        }
+    }
+
+    function removexit() {
+        var rows = $("#RecSpecTable").datagrid('getSelections');
+        if (rows.length <= 0) {
+            JQ.dialog.warning('请选择要删除的行');
+            return;
+        }
+        for (var i = 0; i < rows.length; i++) {
+            var index = $("#RecSpecTable").datagrid('getRowIndex', rows[i]);
+            $('#RecSpecTable').datagrid('cancelEdit', index)
+                .datagrid('deleteRow', index);
+        }
+        editIndex = undefined;
+        if ($("#RecSpecTable").datagrid("getRows").length > 0) {
+            getRows();
+        }
+    }
+    function onClickRow(index) {
+        var editPermission = '@ViewBag.editPermission';
+        var addPermission = '@ViewBag.addPermission';
+        if (editPermission == "1"||addPermission=="1") {
+            if (editIndex != index) {
+
+                if (endEditing()) {
+                    editIndex = index;
+                    $('#RecSpecTable').datagrid('selectRow', index)
+                            .datagrid('beginEdit', index);
+                    getRows();
+                } else {
+                    $('#RecSpecTable').datagrid('selectRow', editIndex);
+                    JQ.dialog.warning('请将当前信息填写完整，再编辑其他信息');
+                }
+            }
+        }
+    }
+    function accept() {
+
+            if (endEditing()) {
+                $('#RecSpecTable').datagrid('acceptChanges');
+                getRows();
+            }
+            else {
+                JQ.dialog.warning('请将信息填写完整');
+                return false;
+            }
+    }
+
+    function getRows() {
+        var rows = $('#RecSpecTable').datagrid('getRows');
+        $("#JsonRows").val(JSON.stringify(rows));
+    }
+
+    $('#ProjId').combogrid({
+        panelWidth: 550,
+        panelHeight: 385,
+        value: '@Model.ProjId',
+        idField: 'Id',
+        textField: 'ProjName',
+        url: '@Url.Action("combogridJson", "Project",new { @area="Project"})?projId=@Model.ProjId',//请求的地址
+        editable: true,
+        pagination: true,           //是否分页
+        rownumbers: true,           //序号
+        collapsible: false,         //是否可折叠的
+        fit: true,
+        required: true,
+        method: 'post',
+        columns: [[
+            { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true },
+    { title: '项目名称', field: 'ProjName', width: 260, align: 'center', sortable: true },
+    { title: '项目阶段', field: 'PhaseName', width: 140, align: 'center', sortable: true }
+
+        ]],
+        keyHandler: {
+            up: function () {               //【向上键】押下处理
+                var selected = $('#ProjId').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    var index = $('#ProjId').combogrid('grid').datagrid('getRowIndex', selected);
+                    if (index > 0) {
+                        $('#ProjId').combogrid('grid').datagrid('selectRow', index - 1);
+                    }
+                }
+                else {
+                    var rows = $('#ProjId').combogrid('grid').datagrid('getRows');
+                    $('#ProjId').combogrid('grid').datagrid('selectRow', rows.length - 1);
+                }
+            },
+            down: function () {             //【向下键】押下处理
+                //取得选中行
+                var selected = $('#ProjId').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    var index = $('#ProjId').combogrid('grid').datagrid('getRowIndex', selected);
+                    if (index < $('#ProjId').combogrid('grid').datagrid('getData').rows.length - 1) {
+                        $('#ProjId').combogrid('grid').datagrid('selectRow', index + 1);
+                    }
+                } else {
+                    $('#ProjId').combogrid('grid').datagrid('selectRow', 0);
+                }
+            },
+            enter: function () {             //【回车键】押下处理
+                var row = $('#ProjId').combogrid('grid').datagrid('getSelected');
+                $('#ProjId').combogrid('hidePanel');
+            },
+            query: function (Words) {     //【动态搜索】处理
+                //设置查询参数
+                var queryPara = $('#ProjId').combogrid("grid").datagrid('options').queryParams;
+                queryPara.Words = Words;
+                $('#ProjId').combogrid("grid").datagrid('options').queryParams = queryPara;
+                //重新加载
+                var pager = $('#ProjId').combogrid('grid').datagrid('getPager');
+                pager.pagination('refresh');
+                pager.pagination('select', 1);
+                $('#ProjId').combogrid("grid").datagrid("reload");
+                $('#ProjId').combogrid("setValue", Words);                    //将查询条件存入隐藏域
+                $('#Words').val(Words);
+            }
+        },
+        onSelect: function (val, row) {
+        },
+        onLoadSuccess: function () {
+            var selectRow = $(this).combogrid('grid').datagrid('getSelected');
+            var Words=$("#Words").val();
+            if(selectRow==undefined)
+            {
+                if(Words=="")
+                {
+                    $(this).combogrid('setText','');
+                }
+            }
+        }
+
+    });
+    $('#ProjId').combogrid({
+        readonly: true
+    });
+    $("#ExchSpecId").combobox({
+        prompt: '下拉选择专业',
+        valueField: 'TaskSpecId',
+        editable: false,
+        textField: 'TaskName',
+        value: '@Model.ExchSpecId',
+        url: '@Url.Action("ComboSpec", "DesExch", new { @area = "Design" })?ProjId=@Request.QueryString["ProjId"]&TaskGroupId=@Request.QueryString["taskGroupId"]',
+        onLoadSuccess:function()
+        {
+            if($(this).combobox("getValue")=="0")
+            {
+                //$(this).combobox('setValue', "");
+                $(this).combobox('setText', "专业汇总");
+            }
+        }
+    });
+    $('#ExchSpecId').combobox({
+        readonly: true
+    });
+
+</script>
+<div id="bar" class="dialog-toolbar">
+    @Html.Raw(ViewBag.SaveInfo)
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-close'" onclick="closeDialog();">关闭</a>
+</div>
+
+@using (Html.BeginForm("PostExchSave", "DesExch", FormMethod.Post, new { @id = "DesExchform", @name = "" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    @Html.HiddenFor(m => m.taskGroupId)
+    <input type="hidden" name="JsonRows" id="JsonRows" />
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">提资标题</th>
+            <td width="90%">
+                <input name="ExchTitle" id="ExchTitle" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,2000]" value="@Model.ExchTitle" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">提资内容</th>
+            <td width="90%">
+                <input name="ExchContent" id="ExchContent" style="width:98%;height:60px;" class="easyui-textbox" data-options="required:true,multiline:true" validType="length[0,4000]" value="@Model.ExchContent" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                项目名称
+            </th>
+            <td>
+                <select id="ProjId" name="ProjId" class="easyui-combogrid" style="width:98%;"></select>
+                <input type="hidden" id="Words" name="Words" />
+
+            </td>
+        </tr>
+        <tr>
+            <th>
+                提资专业
+            </th>
+            <td>
+                <select id="ExchSpecId" name="ExchSpecId" class="easyui-combobox" style="width:98%;"></select>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                提资人
+            </th>
+            <td>
+                <select id="ExchEmpId" name="ExchEmpId" class="easyui-combobox" style="width:280px;"></select>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                提资期限
+            </th>
+            <td>
+                <input id="ExcLastPutTime" name="ExcLastPutTime" value="@ViewBag.ExcLastPutTime" style="width:200px;" class="easyui-datebox" validType="dateISO" />
+
+            </td>
+        </tr>
+        <tr>
+            <th>
+                提资优先级
+            </th>
+            <td>
+
+                @Html.DropDownListFor(m => m.ExchPriority, (IEnumerable<SelectListItem>)ViewBag.Priority, new { @class = "easyui-combobox", style = "width:200px" })
+
+            </td>
+        </tr>
+        <tr>
+            <th>
+                接收专业
+            </th>
+            <td>
+                <table id="RecSpecTable" style="width:95%;"></table>
+                <div id="RecSpecTablePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+                    <span JQPanel="toolbarPanel">
+                        @Html.Raw(ViewBag.Append)
+                        @Html.Raw(ViewBag.Remove)
+                    </span>
+                </div>
+            </td>
+        </tr>
+
+
+    </table>
+
+
+}
+
+

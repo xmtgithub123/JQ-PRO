@@ -1,0 +1,261 @@
+﻿@model DataModel.Models.OaEquipKeep
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'OaEquipKeepForm',//formid提交需要用到
+        docName: 'OaEquipKeep',
+        ExportName: '设备保修单',
+        buttonTypes: ['submit', 'close','exportForm'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        beforeFormSubmit:function(){
+            //$('#RepairReportEmpId').combotree('enable');
+        },
+        onBefore:function()
+        {
+            SetExport();
+        }
+    });
+
+    $(function () {
+        JQ.combotree.selEmp({ id: 'RepairReportEmpId', width: '200' });
+        JQ.combotree.selEmp({ id: 'RepairFlowEmpId', width: '200' });
+
+        var node = $("#RepairReportEmpId").combotree("setValue",@Model.RepairReportEmpId+"-"+ @ViewBag.RepairReportDepartId);
+
+        var node = @Model.RepairFlowEmpId+"-"+ @ViewBag.RepairFlowDepartId;
+
+        if(node!="0-0"){
+            $("#RepairFlowEmpId").combotree("setValue",node);
+        }
+    });
+
+    var requestUrl = '@Url.Action("combogridJson", "OaEquipment", new { @area = "Oa" })';
+    $('#cg').combogrid({
+        panelWidth: 650,
+        panelHeight: 400,
+        idField: 'Id',        //ID字段
+        textField: 'EquipName',    //显示的字段
+        url: requestUrl+ "?EquipOrOffice=" + @Request.QueryString["EquipOrOffice"],
+        fitColumns: true,
+        striped: true,
+        editable: true,
+        pagination: true,           //是否分页
+        rownumbers: true,           //序号
+        collapsible: false,         //是否可折叠的
+        fit: true,                  //自动大小
+        fitColumns: true,
+        method: 'post',
+        columns: [[
+                    { field: 'EquipNumber', title: '设备编号', width: 150 },
+                    { field: 'EquipName', title: '设备名称', width: 150 }
+        ]],
+        onLoadSuccess: function () {
+            if ('@Model.EquipID'!='0') {
+                $('#cg').combogrid('setValue', '@Model.EquipID');
+                var g = $('#cg').combogrid('grid');
+                var r = g.datagrid('getSelected');
+            }
+
+        },
+        keyHandler: {
+            up: function () {               //【向上键】押下处理
+                //取得选中行
+                var selected = $('#cg').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    //取得选中行的rowIndex
+                    var index = $('#cg').combogrid('grid').datagrid('getRowIndex', selected);
+                    //向上移动到第一行为止
+                    if (index > 0) {
+                        $('#cg').combogrid('grid').datagrid('selectRow', index - 1);
+                    }
+                } else {
+                    var rows = $('#cg').combogrid('grid').datagrid('getRows');
+                    $('#cg').combogrid('grid').datagrid('selectRow', rows.length - 1);
+                }
+            },
+            down: function () {             //【向下键】押下处理
+                //取得选中行
+                var selected = $('#cg').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    //取得选中行的rowIndex
+                    var index = $('#cg').combogrid('grid').datagrid('getRowIndex', selected);
+                    //向下移动到当页最后一行为止
+                    if (index < $('#cg').combogrid('grid').datagrid('getData').rows.length - 1) {
+                        $('#cg').combogrid('grid').datagrid('selectRow', index + 1);
+                    }
+                } else {
+                    $('#cg').combogrid('grid').datagrid('selectRow', 0);
+                }
+            },
+            enter: function () {             //【回车键】押下处理
+                var row = $('#cg').combogrid('grid').datagrid('getSelected');
+                $("input[name='EquipID']").val(row.Id)
+                //选中后让下拉表格消失
+                $('#cg').combogrid('hidePanel');
+            },
+            query: function (keyword) {     //【动态搜索】处理
+                //设置查询参数
+                var queryParams = $('#cg').combogrid("grid").datagrid('options').queryParams;
+                queryParams.keyword = keyword;
+                $('#cg').combogrid("grid").datagrid('options').queryParams = queryParams;
+                //重新加载
+                var pager = $('#cg').combogrid('grid').datagrid('getPager');
+                pager.pagination('refresh');
+                pager.pagination('select', 1);
+                $('#cg').combogrid("grid").datagrid("reload");
+                $('#cg').combogrid("setValue", keyword);                    //将查询条件存入隐藏域
+                $('#hdKeyword').val(keyword);
+            }
+        },
+        onSelect: function () {
+            var row = $('#cg').combogrid('grid').datagrid('getSelected');
+            $("input[name='EquipID']").val(row.Id);
+        }
+    });
+
+    function SetExport()
+    {
+        var row=$("#cg").combogrid('grid').datagrid('getSelected');
+        if(row!=undefined)
+        {
+            $("#RepairName").val(row.EquipName);
+        }
+        $("#RepairReportEmpName").val($("#RepairReportEmpId").combotree('getText'));
+        $("#RepairFlowEmpName").val($("#RepairFlowEmpId").combotree('getText'));
+    }
+
+</script>
+@using (Html.BeginForm("save", "OaEquipKeep", FormMethod.Post, new { @area = "Oa", @id = "OaEquipKeepForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+
+        <tr>
+            <th width="10%">设备名称</th>
+            <td colspan="3">
+                <input id="cg" style="width:98%" />
+                <input type="hidden" id="hdKeyword" />
+                <input type="hidden" name="EquipID" value="@Model.EquipID" />
+                <input type="hidden" name="RepairName" id="RepairName" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">设备维修金额(元)</th>
+            <td width="40%">
+                <input name="RepairMeoney" style="width:200px;" class="easyui-numberspinner" data-options="required:true,precision:2" validtype="length[0,18]" value="@Model.RepairMeoney" />
+            </td>
+            <th width="10%">设备维修日期</th>
+            <td width="40%">
+                <input name="RepairDate" class="easyui-datebox" style="width:200px;" data-options="validType:['dateISO']" value="@Model.RepairDate" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">登记人</th>
+            <td width="40%">
+                <select id="RepairReportEmpId" name="RepairReportEmpId" data-options="required:true"></select>
+                <input type="hidden" id="RepairReportEmpName" name="RepairReportEmpName" />
+            </td>
+            <th width="10%">经办人</th>
+            <td width="40%">
+                <select id="RepairFlowEmpId" name="RepairFlowEmpId" data-options="required:true"></select>
+                <input type="hidden" id="RepairFlowEmpName" name="RepairFlowEmpName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">保修日期</th>
+            <td width="40%">
+                <input name="FixDate" class="easyui-datebox" style="width:200px;"  value="@Model.FixDate" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">设备维修备注</th>
+            <td colspan="3">
+                <input name="RepairNote" style="width:98%;height:60px;" class="easyui-textbox" data-options="multiline:true" validtype="length[0,500]" value="@Model.RepairNote" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+    var uploader = new DataModel.FileUploader();
+    uploader.RefID = Model.Id;
+    uploader.RefTable = "OaEquipKeep";
+    uploader.Name = "UploadFile1";
+    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+}
+
+
+
+
+
+@*<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'OaEquipKeepForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "OaEquipKeep", FormMethod.Post, new { @area = "Oa", @id = "OaEquipKeepForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+ 
+                        <tr>
+                        <th width="10%">设备维修金额</th>
+                        <td width="40%">
+						<input name="RepairMeoney" style="width:98%;" class="easyui-numberspinner"   validType="length[0,16]" value="@Model.RepairMeoney" />
+                        </td>
+                        <th width="10%">设备维修日期</th>
+                        <td width="40%">
+						<input name="RepairDate" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.RepairDate" />
+                        </td>
+                        </tr>
+ 
+                        <tr>
+                        <th width="10%">设备维修备注</th>
+                        <td width="40%">
+						<input name="RepairNote" style="width:98%;" class="easyui-textbox"  data-options="required:true"  validType="length[0,500]" value="@Model.RepairNote" />
+                        </td>
+
+                            <th width="10%">设备维修保修期</th>
+                            <td width="40%">
+                                <input name="FixDate" style="width:98%;" class="easyui-datebox" data-options="required:true" validtype="length[0,23]" value="@Model.FixDate" />
+                            </td>
+
+                        </tr>
+ 
+                      
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "OaEquipKeep";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+	
+}*@
+
+
+

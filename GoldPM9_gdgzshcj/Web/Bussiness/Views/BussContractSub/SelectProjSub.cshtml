@@ -1,0 +1,92 @@
+﻿@using JQ.Web;
+<style type="text/css">
+    .rwpdialogdiv {
+        padding: 0px;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        $(".dialog-toolbar :last").hide();
+        JQ.datagird.datagird({
+            JQButtonTypes: [],//需要显示的按钮
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'SelectProjSubGrid',//数据表格ID
+            JQDialogTitle: '选择外包工程',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            singleSelect: false,
+            //JQCustomSearch: [  //自定义搜索的字段
+            //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+            //],
+            //JQExcludeCol: [1, 4, 10],//导出execl排除的列
+            //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+            //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+            JQFields: ["Id"],//追加的字段名
+            url: '@Url.Action("JsonSelectProjSub", "BussContractSub", new { @area = "Bussiness" })?CompanyType=@Request.Params["CompanyType"].ToString()',//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#SelectProjSubPanel',//工具栏的容器ID
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '外包项目编号', field: 'SubNumber', width: 150, align: 'center', sortable: true },
+                { title: '外包项目名称', field: 'SubName', width: 150, align: 'center', sortable: true },
+                { title: '外包金额', field: 'SubFee', width: 150, align: 'center', sortable: true },
+                { title: '计划开始时间', field: 'SubPlanFinishDate', width: 150, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '计划完成时间', field: 'SubFactFinishDate', width: 150, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+            ]],
+
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '外包项目编号、外包项目名称',
+            onClickButton: function () {
+                JQ.datagird.searchGrid(
+            {
+                dgID: 'SelectProjSubGrid',
+                loadingType: 'datagrid',
+                queryParams: null
+            });
+            }
+        });
+    });
+
+    function selectProjSub() {
+        var row = $('#SelectProjSubGrid').datagrid('getSelections');
+        if (row.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        var ids = [];
+        var _rows = [];
+        for (var i = 0; i < row.length; i++) {
+            ids.push(row[i]["Id"]);
+            _rows.push(row[i]);
+        }
+
+        _ProjSubCallBack(ids);
+        JQ.dialog.dialogClose();
+    }
+
+</script>
+
+<table id="SelectProjSubGrid"></table>
+<div id="SelectProjSubPanel" jqpanel="searchPanel" style="padding:5px;height:auto;">
+    <span jqpanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProjSub()">确定选择</a>
+    </span>
+    @*分割号*@
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+
+    <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key:'SubNumber,SubName', Contract:'like'}" />
+
+    @*<div class="moreSearchPanel">
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期开始'" JQWhereOptions="{ Key:'ConDate', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期结束'" JQWhereOptions="{ Key:'ConDate', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>*@
+</div>
+
+
+

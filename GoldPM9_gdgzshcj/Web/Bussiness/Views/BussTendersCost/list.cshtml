@@ -1,0 +1,115 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "BussTendersCost", new { @area= "Bussiness" })',
+          addUrl = '@Url.Action("add", "BussTendersCost", new {@area= "Bussiness" })',
+          editUrl = '@Url.Action("edit", "BussTendersCost", new {@area= "Bussiness" })',
+          delUrl = '@Url.Action("del", "BussTendersCost", new { @area = "Bussiness" })'
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")',//添加的路径
+                JQEditUrl: '@Url.Action("edit")',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussTendersCostGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQExcludeCol: [1, 18],//导出execl排除的列
+                frozenColumns: [[
+                    { field: 'ck', align: 'center', checkbox: true }, { title: "招标编号", field: "TendersNumber", halign: "left", width: "6%" },
+                    { title: "招标名称", field: "TendersName", halign: "left", width: "8%" },
+                    { title: '投标单位', field: 'CustName', width: "8%", align: 'left', sortable: true }, ]],
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussTendersCostPanel',//工具栏的容器ID
+                columns: [[
+                  { title: '标书费', field: 'TenderFee', width: "8%", align: 'right', halign: "center", sortable: true },
+		          { title: '标书费缴纳时间', field: 'TenderFeePayTime', width: "100px", align: 'center', halign: "center", sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		          { title: '招标代理费', field: 'TenderAgentFee', width: "8%", align: 'right', halign: "center", sortable: true },
+		          { title: '招标代理费缴纳时间', field: 'TenderAgentFeePayTime', width: "100px```", align: 'center', halign: "center", sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		          { title: '投标保证金缴纳金额', field: 'BidBondPay', width: "8%", align: 'right', halign: "center", sortable: true },
+		          { title: '投标保证金缴纳时间', field: 'BidBondPayTime', width: "100px", align: 'center', halign: "center", sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		          { title: '投标保证金退还金额', field: 'BidBondBack', width: "8%", align: 'right', halign: "center", sortable: true },
+		          { title: '投标保证金退还时间', field: 'BidBondBackTime', width: "100px", align: 'center', halign: "center", sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		          { title: '履约保证金缴纳金额', field: 'PerformanceBondPay', width: "8%", align: 'right', halign: "center", sortable: true },
+		          { title: '履约保证金缴纳时间', field: 'PerformanceBondPayTime', width: "100px", align: 'center', halign: "center", sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		          { title: '履约保证金退还金额', field: 'PerformanceBondBack', width: "8%", align: 'right', halign: "center", sortable: true },
+		          { title: '履约保证金退还时间', field: 'PerformanceBondBackTime', width: "100px", align: 'center', halign: "center", sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		          { title: '备注说明', field: 'CostNote', width: "12%", align: 'left', halign: "center", sortable: true },
+                  {
+                      field: 'JQFiles', title: '附件', align: 'center', width: "40px", JQIsExclude: true, JQExcludeFlag: "grid_files", JQRefTable: 'BussTendersCost', formatter: function (value, row) {
+                          return "<span id=\"grid_files_" + row.Id + "\"></span>"
+                      }
+                  }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '招标编号,招标名称,投标单位',
+                queryOptions: { 'Key': 'txtLike', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'BussTendersCostGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+
+            window.refreshGrid = function () {
+                $("#JQSearch").textbox("button").click();
+            }
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="BussTendersCostGrid"></table>
+    <div id="BussTendersCostPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            @BaseData.getBases(new Params() { isMult = true, engName = "BidState", queryOptions = "{ Key:'WinState', Contract:'in',filedType:'Int'}" })
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'txtLike', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            投标保证金缴纳时间
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'BidBondPayTimeS', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'BidBondPayTimeE', Contract:'<=',filedType:'Date' }">&nbsp;
+            投标保证金退还时间
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'BidBondBackTimeS', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'BidBondBackTimeE', Contract:'<=',filedType:'Date' }">&nbsp;
+
+            中标时间
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'WinTimeS', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'WinTimeE', Contract:'<=',filedType:'Date' }">&nbsp;
+
+            履约保证金缴纳时间
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'PerformanceBondPayTimeS', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'PerformanceBondPayTimeE', Contract:'<=',filedType:'Date' }">&nbsp;
+            履约保证金退还时间
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始时间'" validType="dateISO" JQWhereOptions="{ Key:'PerformanceBondBackTimeS', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束时间'" validType="dateISO" JQWhereOptions="{ Key:'PerformanceBondBackTimeE', Contract:'<=',filedType:'Date' }">&nbsp;
+
+            <select id="isStartSearch1" JQWhereOptions="{ Key:'BidBondBack', Contract:'in',filedType:'Int'}" class="easyui-combotree combotree-f combo-f textbox-f"  style="width: 200px; height: 28px; display: none;" data-options="onlyLeafCheck:true,cascadeCheck: false,multiple:true, data:[{id:0,text:'已退还'},{id:1,text:'未退还'}],prompt:'投标保证金是否退还',animate:true"></select>&nbsp;
+
+            <select id="isStartSearch2" JQWhereOptions="{ Key:'PerformanceBondBack', Contract:'in',filedType:'Int'}" class="easyui-combotree combotree-f combo-f textbox-f"  style="width: 200px; height: 28px; display: none;" data-options="onlyLeafCheck:true,cascadeCheck: false,multiple:true,data:[{id:0,text:'已退还'},{id:1,text:'未退还'}],prompt:'履约保证金是否退还',animate:true"></select>
+        </div>
+    </div>
+}
+

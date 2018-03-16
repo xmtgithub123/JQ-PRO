@@ -1,0 +1,268 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="openAddPage()">
+        <span class="fa fa-plus"></span>
+        <span>新增</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="deleteData()">
+        <span class="fa fa-minus"></span>
+        <span>删除</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="window.location.reload()">
+        <span class="fa fa-refresh"></span>
+        <span>刷新</span>
+    </div>
+    <div id="btnClose" class="headtoolbarbtn" style="display:none" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+    <div id="divnormalconditioncontent" style="float:left;line-height:36px;"></div>
+    <div style="float:right;margin-right:5px;">
+        <input type="text" id="txtSearchBox" class="yc_searchbox" />
+        <div class="headtoolbarbtn" style="margin-left:2px" onclick="query()">
+            <span class="fa fa-search"></span>
+            <span>查询</span>
+        </div>
+    </div>
+    <div id="div_senior_flag" class="yc_senior_expand"></div>
+</div>
+<div id="divseniorqueryblock" class="yc_normal_left_width" style="display:none">
+    <div id="divseniorqueryline" class="yc_senior_query_line"></div>
+    <div class="yc_normal_left_width yc_senior_query_inner">
+        <div id="divseniorconditioncontent" class="yc_senior_query_content">
+        </div>
+    </div>
+    <div class="yc_senior_query_line_r"></div>
+</div>
+<div id="divcontent" style="overflow:hidden">
+    <table id="grid"></table>
+</div>
+<div id="_divXml" style="display:none">@(ViewBag.Xml)</div>
+<link href="@(Url.Content("~/Content/chart/chart.datebox.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.datebox.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.formlist.js"))"></script>
+<script type="text/javascript">
+    //添加参数
+    var formList = null;
+    function init() {
+        //初始化grid
+        var xml = document.getElementById("_divXml").textContent;
+        YChart.remove(document.getElementById("_divXml"));
+        formList = new YChart.FormList({
+            xmlContent: xml,
+            txtKeywords: document.getElementById("txtSearchBox"),
+            normalCondition: document.getElementById("divnormalconditioncontent"),
+            seniorCondition: document.getElementById("divseniorconditioncontent"),
+            tableName: "@(ViewBag.TableName)",
+            referenceField: "@(Request.QueryString["referenceField"]??"")",
+            referenceID:"@(Request.QueryString["referenceID"] ??"")"
+        });
+        initGrid(formList.gridColumns);
+    }
+
+    function initGrid(gridColumns) {
+        gridColumns.push({
+            field: "StatusName", title: "审批状态", width: 120, align: "center", halign: "center", formatter: function (value, rowData) {
+                if (rowData.ProcessID == 0) {
+                    return "<span style=\"color:#999999\">无</span>";
+                }
+                else {
+                    return YChart.createElement("a", { href: "javascript:void(0)", className: "yc_a", onclick: "showProgress(" + rowData.ProcessID + ",'" + encodeURIComponent(rowData.ProcessName) + "')" }, null, value).outerHTML;
+                }
+            }
+        });
+        gridColumns.push({
+            field: "operatebuttons", title: "操作", width: 80, align: "center", halign: "center", formatter: function (value, rowData) {
+                var text = "";
+                switch (rowData.Status.toString()) {
+                    case "":
+                    case "@(JQ.BPM.Model.ProcessStatus.UnActivated.ToString("D"))":
+                        if (rowData.Creator.toString() == "@(ViewBag.CurrentUserID)") {
+                            rowData._EditStatus = 1;
+                            text = "编辑";
+                        } else {
+                            rowData._EditStatus = 2;
+                            text = "查看";
+                        }
+                        break;
+                    case "@(JQ.BPM.Model.ProcessStatus.Activated.ToString("D"))":
+                        if (rowData.TurnedActors) {
+                            var xml = YChart.loadXml(rowData.TurnedActors);
+                            if (YChart.selectSingleNode(xml, "TurnedActors[Actor='@(ViewBag.CurrentUserID)']")) {
+                                rowData._EditStatus = 3;
+                                text = "处理";
+                            }
+                        }
+                        if (text == "") {
+                            rowData._EditStatus = 4;
+                            text = "查看";
+                        }
+                        break;
+                    case "@(JQ.BPM.Model.ProcessStatus.Suppended.ToString("D"))":
+                    case "@(JQ.BPM.Model.ProcessStatus.Finished.ToString("D"))":
+                        rowData._EditStatus = 5;
+                        text = "查看";
+                        break;
+                }
+                return "<a href=\"javascript:void(0)\" class=\"yc_a\" onclick=\"openEditPage(" + rowData.ID + "," + rowData.FormTemplateID + "," + rowData.ProcessID + "," + rowData.FormTemplateIsTreeList+")\">" + text + "</a>";
+            }
+        });
+        $("#grid").datagrid({
+            rownumbers: true,
+            border: false,
+            idField: "ID",
+            width: "100%",
+            columns: [gridColumns],
+            pagination: true,
+            url: "@(Url.Action("GetList","Manage",new { @area="Form" }))?formTemplateID=@(ViewBag.FormTemplateID)",
+            method: "POST",
+            queryParams: getQueryParams(),
+            pageSize: 20
+        }).datagrid("getPager").pagination({
+            pageSize: 20,
+            pageList: [10, 15, 20, 25, 30, 50],
+            beforePageText: "第",
+            afterPageText: "页    共 {pages} 页",
+            displayMsg: "当前显示 {from} - {to} 条记录 共 {total} 条记录"
+        });
+    }
+
+    window.onResize = function (contentHeight) {
+        if (contentHeight <= 0) {
+            return;
+        }
+        $("#grid").datagrid("resize", { height: contentHeight });
+    }
+
+    window.onDialogLoaded = function () {
+        document.getElementById("btnClose").style.display = "";
+    }
+
+    init();
+
+    function getQueryParams() {
+        return { queryData: formList.getContitionData() };
+    }
+
+    function query() {
+        $("#grid").datagrid("load", getQueryParams());
+    }
+
+    function openAddPage() {
+        var width = @(ViewBag.Width) +40;
+        if (width < 600) {
+            width = 600;
+        }
+        else if (width > 1200) {
+            width = 1200;
+        }
+        var url =  "@(Url.Action("Edit","Manage",new { @area="Form" }))?formTemplateID=@(ViewBag.FormTemplateID)";
+        if (formList.referenceField && formList.referenceID) {
+            url += "&referenceField=" + formList.referenceField + "&referenceID=" + formList.referenceID;
+        }
+        new YChart.Dialog({
+            height: 680,
+            width: width,
+            icon: "fa-table",
+            title: "@(ViewBag.Name) 发起",
+            url: url,
+            api: {
+                refreshGrid: function () {
+                    if (frameElement.treeApi && frameElement.treeApi.refresh) {
+                        frameElement.treeApi.refresh();
+                    }
+                    else {
+                        query();
+                    }
+                }
+            }
+        });
+    }
+
+    function openEditPage(id, formTempalteID, processID,isListView) {
+        var width = @(ViewBag.Width) +40;
+        if (width < 600) {
+            width = 600;
+        }
+        else if (width > 1200) {
+            width = 1200;
+        }
+        var url = "";
+        if (isListView == "1") {
+            url = "@(Url.Action("TreeList", "Manage",new { @area="Form" }))?id=" + id + "&formTemplateID=" + formTempalteID + "&processID=" + processID;
+            width = 1000;
+        }
+        else {
+            url = "@(Url.Action("Edit","Manage",new { @area="Form" }))?id=" + id + "&formTemplateID=" + formTempalteID + "&processID=" + processID;
+        }
+        if (formList.referenceField && formList.referenceID) {
+            url += "&referenceField=" + formList.referenceField + "&referenceID=" + formList.referenceID;
+        }
+        new YChart.Dialog({
+            height: 680,
+            width: width,
+            icon: "fa-table",
+            title: "@(ViewBag.Name) 编辑",
+            url:url,
+            api: {
+                refreshGrid: function () {
+                    if (frameElement.treeApi && frameElement.treeApi.refresh) {
+                        frameElement.treeApi.refresh();
+                    }
+                    else {
+                        query();
+                    }
+                }
+            }
+        });
+        YChart.stopBubble();
+    }
+
+    function deleteData() {
+        var rows = $("#grid").datagrid("getChecked");
+        if (rows.length == 0) {
+            return;
+        }
+        YChart.Dialog.confirm("删除提示", "确定要删除选中的数据吗？", function (result) {
+            if (!result) {
+                return;
+            }
+            var xmlDocument = YChart.loadXml("<Root></Root>");
+            for (var i = 0; i < rows.length; i++) {
+                var xItem = xmlDocument.createElement("Item");
+                xmlDocument.documentElement.appendChild(xItem);
+                xItem.setAttribute("formTemplateID", rows[i].FormTemplateID);
+                xItem.setAttribute("id", rows[i].ID);
+            }
+            YChart.ajax({
+                url: "@(Url.Action("Delete","Manage",new { @area="Form" }))",
+                type: "POST",
+                data: { data: xmlDocument.documentElement.outerHTML },
+                success: function (result) {
+                    if (!result.Result) {
+                        YChart.Dialog.alert("删除提示", result.Message);
+                        return;
+                    }
+                    $("#grid").datagrid("reload");
+                }
+            });
+        });
+    }
+
+    function showProgress(processID, processName) {
+        new YChart.Dialog({
+            height: 600,
+            width: 800,
+            icon: "fa-th-list",
+            title: decodeURIComponent(processName),
+            url: "@(Url.Action("Progress", "Widget", new { @area="Process" }))?id=" + processID
+        });
+        YChart.stopBubble();
+    }
+
+</script>

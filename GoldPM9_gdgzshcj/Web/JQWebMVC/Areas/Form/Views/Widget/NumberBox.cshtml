@@ -1,0 +1,269 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <form id="form1">
+        <div id="div1" style="padding:5px;display:none">
+            <table class="documenttable" style="width:100%">
+                <tr>
+                    <th style="width:15%">名称</th>
+                    <td style="width:35%">
+                        <input type="text" id="txtName" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                    <th style="width:15%">
+                        字段
+                    </th>
+                    <td style="width:35%">
+                        <select id="listdatafield" class="yc_select">
+                            <option value="">无</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <th>必填</th>
+                    <td><input type="checkbox" id="cbIsRequire" /></td>
+                    <th></th>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th style="width:15%">宽度</th>
+                    <td style="width:35%"><input type="text" id="txtWidth" name="" class="yc_textbox" style="width:80%"> px</td>
+                    <th style="width:15%">小数位数</th>
+                    <td style="width:35%">
+                        <input type="text" id="txtPrecision" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                </tr>
+                <tr>
+                    <th>最小值</th>
+                    <td>
+                        <input type="text" id="txtMinValue" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                    <th>最大值</th>
+                    <td>
+                        <input type="text" id="txtMaxValue" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                </tr>
+                <tr>
+                    <th>内边距</th>
+                    <td colspan="3">
+                        上 <input type="text" id="txtPaddingTop" class="yc_textbox" style="width:32px" /> px
+                        右 <input type="text" id="txtPaddingRight" class="yc_textbox" style="width:32px" /> px
+                        下 <input type="text" id="txtPaddingBottom" class="yc_textbox" style="width:32px" /> px
+                        左 <input type="text" id="txtPaddingLeft" class="yc_textbox" style="width:32px" /> px
+                    </td>
+                </tr>
+                <tr>
+                    <th>外边距</th>
+                    <td colspan="3">
+                        上 <input type="text" id="txtMarginTop" class="yc_textbox" style="width:32px" /> px
+                        右 <input type="text" id="txtMarginRight" class="yc_textbox" style="width:32px" /> px
+                        下 <input type="text" id="txtMarginBottom" class="yc_textbox" style="width:32px" /> px
+                        左 <input type="text" id="txtMarginLeft" class="yc_textbox" style="width:32px" /> px
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        默认值
+                    </th>
+                    <td colspan="3">
+                        <input type="text" id="txtDefaultValue" name="" class="yc_textbox" style="width:90%">
+                    </td>
+                </tr>
+                <tr>
+                    <th>
+                        提示文本
+                    </th>
+                    <td colspan="3">
+                        <input type="text" id="txtPlaceHolder" name="" class="yc_textbox" style="width:90%">
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div id="div2" style="display:none;padding:5px;">
+            <table class="documenttable" style="width:100%">
+                <tr>
+                    <th style="width:15%">变量名称</th>
+                    <td style="width:35%">
+                        <input type="text" id="txtVariableName" name="" class="yc_textbox" style="width:80%">
+                    </td>
+                    <th style="width:15%">
+                    </th>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th>
+                        可编辑步骤
+                    </th>
+                    <td colspan="3" id="tdActivities"></td>
+                </tr>
+                <tr>
+                    <th>
+                        审批完成后
+                    </th>
+                    <td colspan="3">
+                        <input type="checkbox" id="cbIsEditableWhenPassed" /><label for="cbIsEditableWhenPassed">通过后可以编辑</label>
+                        <input type="checkbox" id="cbIsEditableWhenUnPassed" /><label for="cbIsEditableWhenUnPassed">不通过后可以编辑</label>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </form>
+</div>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.grid.js"))"></script>
+<script type="text/javascript">
+    window.onDialogLoaded = function () {
+        var yTab = new YChart.Tab({
+            container: "divcontent",
+            offsetHeight: 0,
+            tabs: [
+                {
+                    name: "controlproperty",
+                    title: "控件属性",
+                    element: "div1",
+                    closable: false
+                },
+                {
+                    name: "processproperty",
+                    title: "流程属性",
+                    element: "div2",
+                    closable: false
+                }
+            ]
+        });
+        YChart.registerNumberBox({
+            element: [document.getElementById("txtWidth"), document.getElementById("txtPaddingTop"), document.getElementById("txtPaddingRight"), document.getElementById("txtPaddingBottom"), document.getElementById("txtPaddingLeft"), document.getElementById("txtMarginTop"), document.getElementById("txtMarginRight"), document.getElementById("txtMarginBottom"), document.getElementById("txtMarginLeft"), document.getElementById("txtPrecision")],
+            precision: 0,
+            min: 0
+        });
+        YChart.registerNumberBox({
+            element: [document.getElementById("txtMinValue"), document.getElementById("txtMaxValue"), document.getElementById("txtDefaultValue")],
+            defaultValue: ""
+        });
+        var data = window.frameElement.api.getSource();
+        var source = data.source;
+        document.getElementById("txtName").value = source.element.getAttribute("id") || "";
+        var style = source.element.ownerDocument.defaultView.getComputedStyle(source.element);
+        document.getElementById("txtWidth").value = style.width.replace("px", "");
+        document.getElementById("txtPaddingTop").value = style.paddingTop.replace("px", "");
+        document.getElementById("txtPaddingRight").value = style.paddingRight.replace("px", "");
+        document.getElementById("txtPaddingBottom").value = style.paddingBottom.replace("px", "");
+        document.getElementById("txtPaddingLeft").value = style.paddingLeft.replace("px", "");
+        document.getElementById("txtMarginTop").value = style.marginTop.replace("px", "");
+        document.getElementById("txtMarginRight").value = style.marginRight.replace("px", "");
+        document.getElementById("txtMarginBottom").value = style.marginBottom.replace("px", "");
+        document.getElementById("txtMarginLeft").value = style.marginLeft.replace("px", "");
+        if ("defaultValue" in source) {
+            document.getElementById("txtMinValue").value = source.minValue;
+            document.getElementById("txtMaxValue").value = source.maxValue;
+            document.getElementById("txtDefaultValue").value = source.defaultValue;
+            document.getElementById("txtPlaceHolder").value = source.placeHolder;
+            document.getElementById("cbIsRequire").checked = source.isRequire == "1";
+        }
+        if ("precision" in source) {
+            document.getElementById("txtPrecision").value = source.precision;
+        }
+        else {
+            document.getElementById("txtPrecision").value = 0;
+        }
+        if (data.columns && data.columns.length > 0) {
+            var _listfield = document.getElementById("listdatafield");
+            for (var i = 0; i < data.columns.length; i++) {
+                var option = document.createElement("option");
+                option.setAttribute("value", data.columns[i].value);
+                option.appendChild(document.createTextNode(data.columns[i].name));
+                if (data.columns[i].value == source.dataField) {
+                    option.setAttribute("selected", "selected");
+                }
+                _listfield.appendChild(option);
+            }
+        }
+        if (source.inlineTableName) {
+            document.getElementById("txtVariableName").style.display = "none";
+        }
+        if (source.flow) {
+            document.getElementById("txtVariableName").value = source.flow.variableName;
+            document.getElementById("cbIsEditableWhenPassed").checked = source.flow.isEditableWhenPassed == "1";
+            document.getElementById("cbIsEditableWhenUnPassed").checked = source.flow.isEditableWhenUnPassed == "1";
+        }
+        if (data.processTemplateID || data.processTemplateVersionID) {
+            YChart.ajax({
+                url: "@(Url.Action("GetAllActivities", "Template",new { @area="Process" }))",
+                type: "POST",
+                data: { id: data.processTemplateID, versionID: data.processTemplateVersionID },
+                success: function (result) {
+                    var _tdActivities = document.getElementById("tdActivities");
+                    for (var i = 0; i < result.length; i++) {
+                        var checkbox = YChart.createElement("input", { type: "checkbox", id: "cb_a_" + i, value: result[i].Value }, { marginLeft: "5px" });
+                        _tdActivities.appendChild(checkbox);
+                        var lbl = YChart.createElement("label", { "for": "cb_a_" + i });
+                        lbl.appendChild(document.createTextNode(result[i].Text));
+                        _tdActivities.appendChild(lbl);
+                        if (source.flow) {
+                            for (var j = 0; j < source.flow.editableSteps.length; j++) {
+                                if (source.flow.editableSteps[j] == result[i].Value) {
+                                    checkbox.checked = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function sure() {
+        var name = document.getElementById("txtName").value;
+        if (name && window.frameElement.api.isExists(name)) {
+            alert("控件名称已经存在，无法保存！");
+            return;
+        }
+        var flow = {
+            variableName: YChart.trim(document.getElementById("txtVariableName").value),
+            isEditableWhenPassed: document.getElementById("cbIsEditableWhenPassed").checked ? "1" : "0",
+            isEditableWhenUnPassed: document.getElementById("cbIsEditableWhenUnPassed").checked ? "1" : "0",
+            editableSteps: []
+        };
+        //获取出选项
+        YChart.recuriseChildNodes(document.getElementById("tdActivities"), function (element) {
+            if (element.nodeType != 1 || element.tagName != "INPUT" || element.getAttribute("type") != "checkbox") {
+                return;
+            }
+            if (element.checked) {
+                flow.editableSteps.push(element.getAttribute("value"));
+            }
+        });
+        window.frameElement.api.saveData({
+            name: name,
+            style: {
+                width: document.getElementById("txtWidth").value,
+                padding: document.getElementById("txtPaddingTop").value + "px" + " " + document.getElementById("txtPaddingRight").value + "px" + " " + document.getElementById("txtPaddingBottom").value + "px" + " " + document.getElementById("txtPaddingLeft").value + "px",
+                margin: document.getElementById("txtMarginTop").value + "px" + " " + document.getElementById("txtMarginRight").value + "px" + " " + document.getElementById("txtMarginBottom").value + "px" + " " + document.getElementById("txtMarginLeft").value + "px"
+            },
+            property: {
+                dataField: YChart.getSelectedValue(document.getElementById("listdatafield")),
+                isRequire: document.getElementById("cbIsRequire").checked ? "1" : "0",
+                defaultValue: document.getElementById("txtDefaultValue").value,
+                placeHolder: document.getElementById("txtPlaceHolder").value,
+                precision: parseInt(document.getElementById("txtPrecision").value),
+                minValue: document.getElementById("txtMinValue").value,
+                maxValue: document.getElementById("txtMaxValue").value,
+                flow: flow
+            }
+        });
+        frameElement.closeDialog();
+    }
+</script>

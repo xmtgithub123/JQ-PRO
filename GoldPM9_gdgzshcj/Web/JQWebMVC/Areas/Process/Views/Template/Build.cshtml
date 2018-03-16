@@ -1,0 +1,76 @@
+﻿@{
+    Layout = null;
+}
+<html>
+<head>
+</head>
+<body>
+</body>
+</html>
+<link href="@(Url.Content("~/Content/chart/fonts/font-awesome.min.css"))" rel="stylesheet" />
+<link rel="stylesheet" href="@(Url.Content("~/Content/chart/chart.css"))" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.processbuilder.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.shape.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript">
+    var processTemplateID = "@(ViewBag.ProcessTemplateID ?? "0")";
+    var options = {
+        isViewMode: false
+    };
+    if (processTemplateID != "0") {
+        options.remote = {
+            url: "@(Url.Action("GetProcessTemplate", "Template",new { @area="Process" }))",
+            data: { id: processTemplateID },
+            method: "POST",
+        };
+    }
+    options.onSave = function (xml) {
+        YChart.ajax({
+            url: "@(Url.Action("SaveChart", "Template", new { @area = "Process" }))",
+            type: "POST",
+            data: { data: xml, id: processTemplateID },
+            success: function () {
+                YChart.Dialog.alert("提示", "保存成功！");
+            }
+        });
+    }
+    options.dialog = {
+        node: {
+            height: 450,
+            width: 550,
+            icon: "fa-circle-o",
+            url: "@(Url.Action("Node","Widget",new { @area="Process" }))"
+        },
+        activity: {
+            height: 450,
+            width: 550,
+            icon: "fa-calendar-o",
+            url: "@(Url.Action("Activity","Widget",new { @area="Process" }))"
+        },
+        process: {
+            height: 450,
+            width: 550,
+            icon: "fa-th-list",
+            title: "流程属性",
+            url: "@(Url.Action("Property","Widget",new { @area="Process" }))"
+        },
+        transition: {
+            height: 450,
+            width: 550,
+            icon: "fa-long-arrow-right",
+            title: "线条属性",
+            url: "@(Url.Action("Transition", "Widget",new { @area="Process" }))"
+        },
+        publish: {
+            height: 450,
+            width: 550,
+            icon: "fa-flag",
+            title: "流程发布",
+            url: "@(Url.Action("Publish", "Template",new { @area="Process" }))?processTemplateID=" + processTemplateID
+        }
+    }
+    var chart = new YChart.Process(options);
+</script>

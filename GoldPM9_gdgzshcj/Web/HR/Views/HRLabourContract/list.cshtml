@@ -1,0 +1,115 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "HRLabourContract",new { @area="Hr"})',
+               addUrl = '@Url.Action("add","HRLabourContract",new {@area="Hr" })',
+               editUrl = '@Url.Action("edit", "HRLabourContract",new {@area="Hr" })',
+               delUrl = '@Url.Action("del", "HRLabourContract", new { @area = "Hr" })';
+        $(function () {
+            var btnPer=@Html.Raw(ViewBag.permission);
+            JQ.datagrid.datagrid({
+                JQButtonTypes: [ 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'HRLabourContractGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '姓名',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: false,
+                nowrap: false,
+                toolbar: '#HRLabourContractPanel',//工具栏的容器ID
+                JQExcludeCol:[1,7],
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '部门', field: 'DepName', width: 100, align: 'center', sortable: true },
+		            { title: '员工', field: 'EmpName', width: 100, align: 'center', sortable: true },
+		            { title: '合同开始', field: 'StarDate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '合同结束', field: 'EndDate', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		            { title: '薪资', field: 'Salary', width: 100, align: 'center', sortable: true },
+                    {
+                        field: 'opt', title: '操作', width: 100, align: 'center', JQIsExclude: true,
+                        formatter: function (value, row, index) {
+                            if($.inArray("alledit",btnPer)!=-1||$.inArray("edit",btnPer)!=-1){
+                                return "<a href=\"javascript:void(0)\" onclick=\"openDetailDialog('" + row.Id + "','"+row.EmpID+"');\">修改</a>";
+                            }
+                        }
+                    }
+                ]],
+                rowStyler: function (index, row) {
+                    if (row.EmpName != undefined) {
+                        if (Date.jsonStringToDateString(row.EndDate, "yyyy-MM-dd") != "") {
+                            var timeNow = '@ViewBag.TimeNow';
+                            var difDay = Date.jsonStringToDate(row.EndDate).dateDiff("d", timeNow);
+                            if (difDay > -5) {
+                                return 'background-color:pink;color:blue;font-weight:bold;';
+                            }
+                        }
+                    }
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '姓名',
+                queryOptions: { 'Key': 'EmpName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'HRLabourContractGrid',
+                            loadingType: 'datagrid',
+                            queryParams: { StarDateEnd: $("#endDate").datebox("getValue"), EndDateEnd: $("#endDate1").datebox("getValue") }
+                        });
+                }
+            });
+        });
+        function openDetailDialog(rowID, empID) {
+            JQ.dialog.dialog({
+                title: "修改",
+                url: '@Url.Action("edit")' + '?Id=' + rowID + '&EmpID=' + empID,
+                width: '1024',
+                height: '100%',
+                JQID: 'HRLabourContractGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <table id="HRLabourContractGrid"></table>
+    <div id="HRLabourContractPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'EmpName', 'Contract': 'like' }" />
+        <div class="moreSearchPanel">
+            @BaseData.getBases(new Params() { isMult = false, engName = "department", isAll = "1", allVal = "0", allText = "全部", queryOptions = "{ Key:'DepID', Contract:'in',filedType:'Int'}" })
+            @BaseData.getBases(new Params() { isMult = false, engName = "EmpStatus", isAll = "1", allVal = "0", allText = "全部", queryOptions = "{ Key:'EmpStatusID', Contract:'in',filedType:'Int'}" })
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始日期'" JQWhereOptions="{ Key:'StarDateBegin', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endDate" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始日期'">&nbsp;
+            <input id="startTime1" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束日期'" JQWhereOptions="{ Key:'EndDateBegin', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endDate1" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束日期'">&nbsp;
+        </div>
+    </div>
+}
+

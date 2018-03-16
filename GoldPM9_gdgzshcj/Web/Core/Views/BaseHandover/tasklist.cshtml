@@ -1,0 +1,319 @@
+﻿@model DataModel.Models.BaseHandover
+@using JQ.Web;
+
+<div class="easyui-layout" data-options="fit:true">
+    <div data-options="region:'north',border:false" style="border-bottom-width:1px;overflow:hidden">
+        <div style="height:30px;padding:5px 0px;">
+            <div style="float:left;margin-left:5px;">
+                被移交人：<b>@ViewBag.HandEmpName</b>&nbsp;&nbsp;移交给:
+                <select id="HandEmpId" name="HandEmpId" class="easyui-combobox" data-options="panelHeight:'auto'">
+                    @{
+                        if (ViewBag.Emps != null)
+                        {
+                            foreach (var emp in ViewBag.Emps)
+                            {
+                                <option value="@(emp.Key)">@(emp.Value)</option>
+                            }
+                        }
+                    }
+                </select>
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="saveChange()">保存</a>
+            </div>
+            <div style="float:right;margin-right:5px">
+                <a id="itemStatusRemind" href="#" class="easyui-linkbutton" data-options="iconCls:'fa fa-play-circle-o',toggle: true,group:'type',selected:true" onclick="changeTaskStatus('Remind')">安排或在办</a>
+                <a id="itemStatusFinished" href="#" class="easyui-linkbutton" data-options="iconCls:'fa fa-check-circle',toggle: true,group:'type'" onclick="changeTaskStatus('Finished')">已完</a>
+                <a id="itemStatusBack" href="#" class="easyui-linkbutton" data-options="iconCls:'fa fa-minus-circle',toggle: true,group:'type'" onclick="changeTaskStatus('Back')">回退</a>
+                <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'ItemPath1,ItemPath2', Contract:'like'}" />
+            </div>
+        </div>
+    </div>
+    <div data-options="region:'center',border:false">
+        <table id="DesTaskGrid"></table>
+    </div>
+</div>
+<script type="text/javascript">
+
+    var requestUrl = '@Url.Action("TaskRemindListJson", "DesTask",new { @area="Design"})';
+
+    var queryParams = {
+        itemStatus: "Remind",
+        showAll: 0,
+        EmpID: (@(ViewBag.HandEmpId))
+    };
+
+    JQ.datagrid.datagrid({
+        JQID: 'DesTaskGrid',//数据表格ID
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+        url: requestUrl,//请求的地址
+        checkOnSelect: true,//是否包含check
+        selectOnCheck: false,
+        singleSelect: true,
+        fitColumns: false,
+        nowrap: false,
+        queryParams: queryParams,
+        JQSearch: {
+            id: 'JQSearch',
+            prompt: '任务路径',
+            loadingType: 'datagrid',//默认值为datagrid可以不传
+        },
+        columns: [[
+            { field: "ck", align: "center", checkbox: true, JQIsExclude: true },
+            {
+                title: '状态', field: 'ItemStatusName', width: 40, align: 'center', formatter: function (value, row, index) {
+                    var icon = "";
+                    var title = "";
+                    switch (row.ItemStatus) {
+                        case 0:
+                            title = "未启动";
+                            icon = "fa-circle-o";
+                            break;
+                        case 1:
+                            title = "已轮到";
+                            icon = "fa-dot-circle-o";
+                            break;
+                        case 2:
+                            title = "进行中";
+                            icon = "fa-play-circle";
+                            break;
+                        case 3:
+                            title = "已完成";
+                            icon = "fa-check-circle";
+                            break;
+                        case 4:
+                            title = "已停止";
+                            icon = "fa-minus-circle";
+                            break;
+                    }
+                    row.ItemStatusName = title;
+                    return "<i class=\"fa " + icon + "\" title=\"" + title + "\"></i>";
+                }
+            },
+		    {
+		        title: '任务路径', field: 'ItemPathText', width: '40%', align: 'left', formatter: function (value, row, index) {
+		            var itemPathText = "";
+		            if (row.ItemPath1 == "" || row.ItemPath2 == "") {
+		                itemPathText = row.ItemName.escapeHTML();
+		                row.ItemPathText = row.ItemName;
+		            } else {
+		                itemPathText = createTaskPath(row);
+		                row.ItemPathText = createTaskPathText(row);
+		            }
+		            return itemPathText;
+		        }
+		    },
+            { title: '任务负责人', field: 'ItemEmpName', width: '10%', align: 'center', sortable: true },
+		    { title: '计划开始', field: 'DatePlanStart', width: '10%', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		    { title: '计划结束', field: 'DatePlanFinish', width: '10%', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+		    { title: '实际完成', field: 'DateActualFinish', width: '10%', align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+            {
+                title: '操作', field: 'ItemAction', width: 80, align: 'center', formatter: function (value, row, index) {
+                    //return value;
+                    var title = value + "：" + row.ItemPathText.escapeHTML();
+                    return "<a href=\"javascript:void(0);\" class=\"easyui-linkbutton\" data-options=\"plain:true,iconCls:'fa fa-trash'\" onclick='openDialog(\"" + title + "\"," + row.ItemType + "," + row.ProjId + "," + row.TaskGroupId + "," + row.TaskSpecId + "," + row.TaskId + "," + row.TabId + ")'>" + value + "</a>";
+                }
+            }
+        ]]
+    });
+
+    $("#JQSearch").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '项目名称、任务名称',
+        onClickButton: function () {
+            JQ.datagrid.searchGrid({
+                dgID: 'DesTaskGrid',
+                loadingType: 'datagrid',
+                queryParams: queryParams
+            });
+        }
+    });
+
+    // 切换待办任务状态
+    function changeTaskStatus(status) {
+        queryParams.itemStatus = status;
+        JQ.datagrid.searchGrid({
+            dgID: 'DesTaskGrid',
+            loadingType: 'datagrid',
+            queryParams: queryParams
+        });
+    }
+
+    // 获取任务路径（纯文本）
+    function createTaskPathText(row) {
+        var jsonItemPath1 = row.ItemPath1;
+        var jsonItemPath2 = row.ItemPath2;
+
+        var separator = " ＞ ";
+        var arrItemPath1 = JSON.parse(jsonItemPath1);
+        var arrItemPath2 = JSON.parse(jsonItemPath2);
+
+        var path1 = (Enumerable.From(arrItemPath1).OrderBy("x=>x.rownum").Select(function (x) { return x.text; }).ToArray());
+        var path2 = (Enumerable.From(arrItemPath2).OrderBy("x=>x.rownum").Select(function (x) { return x.text; }).ToArray());
+        var path = [];
+        if (path1 != undefined && path1 != null) {
+            path.push(path1.join(separator));
+        }
+        if (path2 != undefined && path2 != null && path2.length > 0) {
+            path.push(path2.join(separator));
+        }
+
+        switch (row.ItemType) {
+            case 5:
+                path.push("{0}".format(row.ItemName));
+                break;
+        }
+
+        return path.join(separator);
+
+    }
+
+    // 获取任务路径（带LinkButton）
+    function createTaskPath(row) {
+        var jsonItemPath1 = row.ItemPath1;
+        var jsonItemPath2 = row.ItemPath2;
+
+        var separator = "<i class='fa fa-caret-right' style='margin: 0 5px;'></i>";
+        var arrItemPath1 = JSON.parse(jsonItemPath1);
+        var arrItemPath2 = JSON.parse(jsonItemPath2);
+
+        var path1 = (Enumerable.From(arrItemPath1).OrderBy("x=>x.rownum").Select(function (x) { return createLinkButton(x); }).ToArray());
+        var path2 = (Enumerable.From(arrItemPath2).OrderBy("x=>x.rownum").Select(function (x) { return createLinkButton(x); }).ToArray());
+        var path = [];
+        var pathExcel = [];
+        if (path1 != undefined && path1 != null) {
+            path.push(path1.join(separator));
+            pathExcel.push(path1.join('→'));
+        }
+        if (path2 != undefined && path2 != null && path2.length > 0) {
+            path.push(path2.join(separator));
+            pathExcel.push(path2.join('→'));
+        }
+
+        switch (row.ItemType) {
+            case 5:
+                path.push("<a href='javascript:void(0);' onclick=''>{0}</a>".format(row.ItemName));
+                pathExcel.push(row.ItemName);
+                break;
+        }
+        return path.join(separator);
+
+    }
+
+    function createLinkButton(data) {
+        //[{"rownum":1,"value":34,"text":"常州河海路110kV输变电2#主变扩建工程","active":"TaskGroup"},{...}]
+        var btn = "";
+        switch (data.active) {
+            case "Project":
+            case "TaskGroup":
+            case "Task":
+                btn = "<a href='javascript:void(0);' onclick=''>" + data.text + "</a>";
+                break;
+            default:
+                btn = "<a href='javascript:void(0);' onclick=''>" + data.text + "</a>";
+                break;
+        }
+        return btn;
+    }
+
+    function openDialog(title, itemType, projId, taskGroupId, taskSpecId, taskId, tabId) {
+        var url = "";
+        switch (itemType) {
+            case 1:
+                //  项目策划
+                if (tabId == 0) {
+                    url = '@Url.Action("PlanTableInfo", "DesTask", new { @area="Design"})?from=Remind&tabId=' + tabId + '&projID=' + projId + '&taskGroupId=' + taskGroupId;
+                } else {
+                    url = '@Url.Action("ProjectPlanInfo", "DesTask", new { @area="Design"})?from=Remind&tabId=' + tabId + '&projID=' + projId + '&taskGroupId=' + taskGroupId;
+                }
+                //window.top.addTab(title, url, "");
+                JQ.dialog.dialogIframe({
+                    title: title,
+                    url: url,
+                    width: 1200,
+                    height: 900,
+                    onClose: function () {
+                        $("#DesTaskGrid").datagrid("reload");
+                    }
+                });
+                break;
+            case 2:
+                //  专业策划
+                url = '@Url.Action("SpecPlanInfo", "DesTask", new { @area="Design"})?from=Remind&tabId=' + tabId + '&projID=' + projId + '&taskGroupId=' + taskGroupId + '&taskSpecId=' + taskSpecId;
+                //window.top.addTab(title, url, "");
+                JQ.dialog.dialogIframe({
+                    title: title,
+                    url: url,
+                    width: 1200,
+                    height: 900,
+                    onClose: function () {
+                        $("#DesTaskGrid").datagrid("reload");
+                    }
+                });
+                break;
+            case 3:
+                //  提交设计
+                url = '@Url.Action("TaskInfo", "DesTask",new { @area="Design"})?from=Remind&Id=' + taskId + '&ViewEmpID=@ViewBag.HandEmpId';
+                JQ.dialog.dialog({
+                    title: title,
+                    url: url,
+                    width: 1200,
+                    height: 900,
+                    onClose: function () {
+                        $("#DesTaskGrid").datagrid("reload");
+                    }
+                });
+                break;
+            case 4:
+                //  设计校审
+                url = '@Url.Action("TaskInfoApprove", "DesTask",new { @area="Design"})?from=Remind&Id=' + taskId + '&ViewEmpID=@ViewBag.HandEmpId';
+                JQ.dialog.dialog({
+                    title: title,
+                    url: url,
+                    width: 1200,
+                    height: 900,
+                    onClose: function () {
+                        $("#DesTaskGrid").datagrid("reload");
+                    }
+                });
+                break;
+            case 5:
+                //会签任务
+                debugger;
+                url = '@Url.Action("Edit", "DesMutiSign", new { @area="Design"})?from=Remind&Id=' + tabId + '&RecID=' + taskGroupId;
+                JQ.dialog.dialog({
+                    title: title,
+                    url: url,
+                    width: 800,
+                    height: 800,
+                    onClose: function () {
+                        $("#DesTaskGrid").datagrid("reload");
+                    }
+                });
+                break;
+        }
+    }
+
+    function saveChange() {
+        var empID = $("#HandEmpId").combobox("getValue");
+        if (!empID) {
+            return;
+        }
+        var $tbList = $("#DesTaskGrid");
+        var checkedItems = $tbList.datagrid("getChecked");
+        if (checkedItems.length == 0) {
+            return;
+        }
+        var list = [];
+        $.each(checkedItems, function (index, item) {
+            list.push(item);
+        });
+        JQ.tools.ajax({
+            url: '@Url.Action("TaskWorkBatchTransfer", "DesTask",new { @area="Design"})?fromEmpId=@(ViewBag.HandEmpId)&toEmpId=' + empID,
+            data: { TransferData: JSON.stringify(list) },
+            succesCollBack: function (backJson) {
+                $tbList.datagrid("reload");
+            }
+        });
+    }
+</script>

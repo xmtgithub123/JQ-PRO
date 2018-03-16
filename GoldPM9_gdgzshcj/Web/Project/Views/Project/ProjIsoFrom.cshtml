@@ -1,0 +1,224 @@
+﻿@model DataModel.Models.Project
+@{
+    Layout = null;
+}
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+    <link href="@(Url.Content("~/Content/fontawesome/css/font-awesome.min.css"))" rel="stylesheet" />
+    <link rel="stylesheet" href="@(Url.Content("~/Content/projhome.css"))" />
+    <title></title>
+</head>
+<body class="easyui-layout">
+    <div data-options="region:'north',border:false" style="height:60px;background-color:#F8F8F8;position:relative;overflow:hidden;border-bottom:1px solid #D2D2D2;">
+        <div style="float:left;">
+            <h1 id="divProjectTitle" style="margin:0px 0px 0px 20px;line-height:60px;">@("[" + Model.ProjNumber + "] " + Model.ProjName)</h1>
+        </div>
+        <div style="position:absolute;right:10px;bottom:0px;">
+            <ul id="divTabHead" class="jq_tab_header"></ul>
+        </div>
+    </div>
+    <div id="projecttree" data-options="region:'west',border:false,collapsible:true,split:true" style="width:220px;border-bottom:1px solid #D2D2D2;border-right:1px solid #D2D2D2;">
+    </div>
+    <div id="divTabContent" data-options="region:'center',border:false" style="border-bottom:1px solid #D2D2D2;"></div>
+    <script src="@(Url.Content("~/Scripts/jquery.min.js"))"></script>
+    <script type="text/javascript" src="@(Url.Content("~/Scripts/jquery.easyui.min.js"))"></script>
+    <link href="@(Url.Content("~/Content/themes/base/easyui.css"))" rel="stylesheet" />
+    <script src="@(Url.Content("~/Scripts/JQ/tab.js"))"></script>
+    <link rel="stylesheet" href="@(Url.Content("~/Scripts/dhtmlx/dhtmlx.css"))" />
+    <script type="text/javascript" src="@(Url.Content("~/Scripts/dhtmlx/dhtmlx.js"))"></script>
+</body>
+</html>
+<script type="text/javascript">
+    window.projectID = parseInt("@(ViewBag.ProjectID)");
+    window.taskGroupID = parseInt("@(ViewBag.TaskGroupID)");
+    window.tabID = "@(Request.QueryString["a1b2c3wjpid"] ?? "")";
+    window.top.updateTitleByID(window.tabID, "@(Model.ProjNumber) - 项目中心");
+    $.parser.onComplete = function () {
+        var myTreeView = new dhtmlXTreeView({
+            parent: "projecttree",
+            iconset: "font_awesome"
+        });
+        var tabs = [{ name: "index", title: "首页", baseUrl: "@(Url.Action("CenterIndex", "Project", new { @area = "Project" }))" }];
+        @{
+            if (ViewBag.ShowContract)
+            {
+                <text>
+        tabs.push({ name: "contract", title: "收款合同", baseUrl: "@(Url.Action("list", "busscontract",new { @area= "bussiness" }))" });
+        </text>
+            }
+            if (ViewBag.ShowContractSub)
+            {
+                <text>
+        tabs.push({ name: "subcontract", title: "付款合同", baseUrl: "@(Url.Action("list", "busscontractsub", new { @area= "bussiness" }))" });
+        </text>
+            }
+            if (ViewBag.ShowProduce)
+            {
+                <text>
+        tabs.push({ name: "design", title: "生产", baseUrl: "@(Url.Action("SpecPlanInfo","DesTask",new { @area="Design" }))" });
+        </text>
+            }
+             if (ViewBag.ShowProgress)
+            {
+                <text>
+        tabs.push({ name: "progress", title: "进度", baseUrl: "@(Url.Action("ProjectProgressInfo", "DesTask", new { @area="Design" }))" });
+        </text>
+
+            }
+            if (ViewBag.ShowArchive)
+            {
+                <text>
+        tabs.push({ name: "archive", title: "档案", baseUrl: "@(Url.Action("Center", "ArchElecProject", new { @area= "Archive" }))" });
+        </text>
+            }
+            if (ViewBag.ShowQuality)
+            {
+                <text>
+        tabs.push({ name: "quality", title: "质量", baseUrl: "@(Url.Action("ProjFormDetail", "ISOForm", new { @area= "ISO" }))" });
+        </text>
+            }
+             if (ViewBag.ShowLog)
+            {
+                <text>
+        tabs.push({ name: "event", title: "记事", baseUrl: "@(Url.Action("ProjEventList", "DesEvent", new { @area= "Design" }))" });
+        </text>
+            }
+        }
+        var cTab = new Tab({
+            head: document.getElementById("divTabHead"),
+            body: document.getElementById("divTabContent"),
+            tabs: tabs,
+            onSelected: function (tab) {
+                var nodeID = myTreeView.getSelectedId();
+                if (!nodeID) {
+                    return;
+                }
+                var userData = myTreeView.getUserData(nodeID);
+                if (!userData) {
+                    return;
+                }
+                reloadTab(cTab, tab, userData);
+            }
+        });
+        var toSelect;
+        var lastChoosed = null;
+        myTreeView.attachEvent("onSelect", function (nodeID, mode) {
+            if (!mode) {
+                return;
+            }
+            var userData = myTreeView.getUserData(nodeID);
+            if (!userData) {
+                return;
+            }
+            if (userData.taskgrouptype != 1) {
+                myTreeView.silent(function () {
+                    myTreeView.unselectItem(nodeID);
+                    if (lastChoosed) {
+                        myTreeView.selectItem(lastChoosed);
+                    }
+                });
+                return;
+            }
+            if (lastChoosed == nodeID) {
+                return;
+            }
+            reloadTab(cTab, cTab.getSelected(), userData);
+            lastChoosed = nodeID;
+        });
+        myTreeView.loadStruct("@(Url.Action("GetProjectTree2","Project",new { @area="Project" }))?projectID=@(Model.Id)", function () {
+            for (var i in myTreeView.items) {
+                if (myTreeView.items[i].userdata.projectid == window.projectID && (myTreeView.items[i].userdata.taskgroupid == window.taskGroupID || (myTreeView.items[i].userdata.taskgrouptype == 0 && window.taskGroupID == "0"))) {
+                    toSelect = myTreeView.items[i].id;
+                }
+                myTreeView.setItemText(myTreeView.items[i].id, decodeURIComponent(myTreeView.items[i].text.replace(/\+/g, " ")));
+            }
+            if (toSelect) {
+                myTreeView.selectItem(toSelect);
+            }
+            myTreeView.cont.style.width = "100%";
+            myTreeView.area.style.width = "";
+        });
+
+        // 自动折叠左侧项目树
+        var maxW = $(window.top.window).width();
+        if (maxW <= 1366) {
+            $('#projecttree').layout('collapse', 'west');
+        }
+    }
+
+    function reloadTab(cTab, tab, node) {
+        var url;
+        switch (node.taskgrouptype) {
+            case 0:
+                if (node.taskgroupid) {
+                    if (tab.name == "design" || tab.name == "quality" || tab.name == "event" || tab.name == "progress") {
+                        url = getTablUrl(tab, { projID: node.projectid, taskGroupId: node.taskgroupid });
+                    }
+                    else {
+                        url = getTablUrl(tab, { projectID: node.projectid, taskGroupID: node.taskgroupid, taskGroupType: 0 });
+                    }
+                }
+                break;
+            case 1:
+                if (tab.name == "design" || tab.name == "quality" || tab.name == "event" || tab.name == "gantt" || tab.name == "progress") {
+                    url = getTablUrl(tab, { tabId: 4, projID: node.projectid, taskGroupId: node.taskgroupid });
+                }
+                else {
+                    url = getTablUrl(tab, { projectID: node.projectid, taskGroupID: node.taskgroupid, phaseID: node.phaseid, taskGroupType: 1 });
+                }
+                break;
+            case 2:
+                if (tab.name == "design" || tab.name == "quality" || tab.name == "event" || tab.name == "progress") {
+                    url = getTablUrl(tab, { projID: node.projectid, taskGroupId: node.taskgroupid });
+                }
+                else {
+                    url = getTablUrl(tab, { projectID: node.projectid, taskGroupID: node.taskgroupid, phaseID: node.phaseid, taskGroupType: 2 });
+                }
+                break;
+        }
+        if (url && url != tab.url) {
+            tab.url = url;
+            cTab.refreshSelected();
+        }
+    }
+
+    function getTablUrl(tab, params) {
+        var str = "";
+        var index = 0;
+        params.from = "projectcenter";
+        for (var i in params) {
+            if (index == 0 && (tab.baseUrl && tab.baseUrl.indexOf("?") == -1)) {
+                str += "?";
+            }
+            else {
+                str += "&";
+            }
+            index++;
+            str += i + "=" + params[i];
+        }
+        switch (tab.name) {
+            case "index":
+            case "contract":
+            case "subcontract":
+            case "design":
+            case "quality":
+            case "event":
+            case "archive":
+            case "gantt":
+            case "progress":
+                //case "info":
+                return tab.baseUrl + str;
+                break;
+        }
+    }
+
+    window.redirect = function (projectID, taskGroupID) {
+        //var data=$("#
+    }
+</script>

@@ -1,0 +1,270 @@
+﻿
+@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+@model DataModel.Models.ProjManage
+@using JQ.Web;
+
+@section head {
+    @*<link rel="stylesheet" href="~/Scripts/jointjs/rappid.min.css" />*@
+
+    <style type="text/css">
+        .aui-btn {
+            padding: 10px 15px;
+            font-size: 13px;
+        }
+
+        .aui-btn-row:after {
+            border: 0;
+        }
+
+        .set-disabled {
+            pointer-events: none !important;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .aui-input-hook {
+            line-height: 34px;
+            text-align: left;
+            padding-left: 20px;
+            background: #efefef;
+        }
+
+        .aui-display-hook {
+            display: none;
+            width: 30%;
+            float: right;
+            font-size: 13px;
+            line-height: 33px;
+            margin-right: 6px;
+            padding: 3px 6px;
+        }
+
+        .aui-input-width {
+            width: 98%;
+        }
+
+        .table-select-show tr td {
+            padding: 5px !important;
+            font-size: small;
+            text-align: center;
+        }
+
+        .table-select-show tr td input {
+            padding: 5px;
+            width: 60px;
+            margin-bottom: 0;
+        }
+
+        .jq-text-disabled {
+            color: #898787;
+            width: 98%;
+            pointer-events: none;
+            background-color: #efefef !important;
+            border: 0;
+            font-size: 13px;
+        }
+        #dialog .checkbox {
+            margin: 0;
+        }
+    </style>
+}
+
+@section Body_Content{
+    <div class="aui-content" style="overflow:hidden">
+        <form id="ProjManageForm" class="aui-form">
+            <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+            <div class="aui-input-row">
+                <label class="aui-input-addon">项目名称</label>
+               @* <input type="button" id="selectProjNameBtn" namne="selectProjNameBtn" class="aui-btn aui-btn-block aui-btn-success p-0" style="width:32%;float:right;margin-right:6px;" onclick="SetProjectSelectBegin();" value="项目选择" />*@
+            </div>
+            <div class="row">
+                <input type="hidden" id="empid" name="empid" value="@(Request.QueryString["empid"])" />
+
+                <input type="hidden" id="EngineeringID" name="EngineeringID" value="@(Model.EngineeringID)" />
+                <div class="table-responsive" style="overflow:hidden">
+                    <table class="table table-select-show table-bordered" id="dgGrid" style="font-size:12px;">
+                        <thead>
+                            <tr>
+                                <th style="text-align:center;">项目编号</th>
+                                <th style="text-align:center;">项目名称</th>
+                              
+                            </tr>
+                        </thead>
+                        <tbody id="gridListShow" style="font-size:12px;">
+                           
+                        </tbody>
+                    </table>
+                </div>
+
+                <script id="listTp2" type="text/x-dot-template">
+                    {{~it:appendselectArrayInfoData:index}}
+                    <tr>
+                        <td>
+                        
+                            @*<input type="text" name="ProjNumber" id="ProjNumber" value="@ViewBag.ProjName" />*@
+                            <span id="ProjNumber" name="ProjNumber">{{=appendselectArrayInfoData.ProjNumber}}</span>
+                        </td>
+                        <td>
+                            @*<input type="text" name="EquipName" id="EquipName" value="@ViewBag.ProjName" />*@
+                            <span id="ProjName" name="ProjName">{{=appendselectArrayInfoData.ProjName}}</span>
+                        </td>
+                        
+                    </tr>
+                    {{~}}
+                </script>
+            </div>
+
+            
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;成本指标</label>
+                <textarea rows="6" name="Cost" id="Cost" style="width:98%;overflow:auto;" class="aui-input">@Model.Cost</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;安全目标</label>
+                <textarea rows="6" name="Safe" id="Safe" style="width:98%;overflow:auto;" class="aui-input">@Model.Safe</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;工期目标</label>
+                <textarea rows="6" name="Finished" id="Finished" style="width:98%;overflow:auto;" class="aui-input">@Model.Finished</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;资料目标</label>
+                <textarea rows="6" name="Doc" id="Doc" style="width:98%;overflow:auto;" class="aui-input">@Model.Doc</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;特殊要求</label>
+                <textarea rows="6" name="Note" id="Note" style="width:98%;overflow:auto;" class="aui-input">@Model.Note</textarea>
+            </div>
+
+
+
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+      
+        </div>
+
+
+    <script>
+        var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+        };
+        var datas;
+        $(function () {
+            //if (window.JinQuMobile == undefined) {
+            //    $('.hidden').css('display', 'block')
+            //    //validateFormBegin();
+            //     initFormBegin(JSON.stringify({
+            //         "AllowEditControls": "{}"
+            //    }));
+            //}
+
+
+        });
+        //表单初始化交互
+        function initFormBegin(params) {
+            //编辑界面显示设备明细
+           //alert(params)
+            console.log(params)
+            $.post('@Url.Action("ProjectPlanListJsonAll", "DesTask", new { @area= "Design" })' + "?InTaskGroupId=@Model.EngineeringID", function (_rData) {
+               // alert(_rData)
+                var rowData = JSON.parse(_rData);
+                console.log(rowData)
+                if (rowData.rows.length > 0) {
+
+                    var interText = doT.template($("#listTp2").text())
+                    $("#gridListShow").html(interText(rowData.rows));
+
+                }
+
+                $('#dgGrid tbody').append('<tr><td>@ViewBag.ProjNumber</td><td>@ViewBag.ProjName</td></tr>')
+            })
+
+           // alert('@ViewBag.ProjName')
+            params = params.replace(/[\r\n]/g, "");//去除换行
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+            //paramsObj.AllowEditControls = paramsObj.AllowEditControls
+            //    .replace("selectEng", "selectProjNameBtn");
+
+
+
+            $('form :input').addClass('jq-text-disabled');
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('ProjManageForm'));
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+        //表单验证交互
+        function validateFormBegin() {
+            //验证表单内容
+
+            var formVali = $('#ProjManageForm').validate({
+                //rules: {
+                //    EquipGetCustomer: 'required'
+                //},
+                //messages: {
+                //    EquipGetCustomer: '请输入外委单位'
+                //}
+            });
+
+            isValidate = formVali.form();
+            var formData = DomUtil.serialize(document.getElementById('ProjManageForm'));//json or
+            console.log(formData)
+               //alert(JSON.stringify(formData))
+              
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+
+
+        //不走验证流程
+        function noValidateFormBegin(params) {
+            var formData = DomUtil.serialize(document.getElementById('ProjManageForm'));//json or =&
+            //alert(JSON.stringify(formData))
+            //告诉移动端页面验证完毕
+
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+
+        //项目 - 选择项目
+        //function SetProjectSelectBegin() {
+        //    var selemp = {
+        //        empid: $('#empid').val(),
+        //        EngineeringID: $('#EngineeringID').val(),
+        //        ProjName: $('#ProjName').val()
+        //    }
+        //    if (window.JinQuMobile) {
+        //        window.JinQuMobile.ProjectSelectBegin(JSON.stringify(selemp), 'SetProjectSelectEnd');
+        //    }
+        //}
+        //function SetProjectSelectEnd(emp) {
+        //    //alert(emp)
+        //    emp = JSON.parse(emp);
+        //    //alert(emp.length)
+        //    //var arr = [];
+        //    //arr.push({ ProjName: emp.ProjName, ProjNumber: emp.ProjNumber })
+        //    //var interText = doT.template($("#listTp2").text())
+        //    //$("#gridListShow").html(interText(arr));
+
+           
+        //}
+    </script>
+}

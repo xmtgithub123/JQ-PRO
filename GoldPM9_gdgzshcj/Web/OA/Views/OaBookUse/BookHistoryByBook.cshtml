@@ -1,0 +1,160 @@
+﻿@using JQ.Web;
+
+<script type="text/javascript">
+    $(function () {
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'id',
+            JQID: 'menulist',
+            JQDialogTitle: '菜单信息',
+            JQWidth: '100%',
+            JQHeight: '100%',
+            JQLoadingType: 'treegrid',
+            url: '@Url.Action("GetJsonByPersonHistory", "OaBookUse", new { @area = "OA" })?BookID=' + @ViewBag.bookModel.Id,
+            toolbar: '#tbMenu',
+            animate: true,
+            columns: [[
+                 { title: '图书类别', field: 'BookTypeName', width: "7%", align: 'center', sortable: true },
+                { title: '图书名称', field: 'BookName', width: "15%", align: 'center', sortable: true },
+                { title: '图书编号', field: 'BookNameNumber', width: "15%", align: 'center', sortable: true },
+                 { title: '出版商', field: 'BookPublisher', width: "15%", align: 'center', sortable: true },
+                  { title: '作者', field: 'BookAuthor', width: "8%", align: 'center', sortable: true },
+                  { title: '借阅数量', field: 'LendCount', width: "5%", align: 'center', sortable: true },
+                  { title: '借阅人', field: 'ReturnEmpName', width: "10%", align: 'center', sortable: true },
+                      { title: '借阅时间', field: 'DateLend', width: "10%", align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                   {
+                       field: 'opt', title: '操作', width: "15%", align: 'center', JQIsExclude: true,
+                       formatter: function (value, row, index) {
+                           if (JQ.tools.DateTimeFormatterByT(row.DateReturnFact) != "") {
+                               return "已归还";
+                           }else  if (row.BookLoseType > 0) {
+                               return "遗失";
+                           }
+                           else {
+                               return "<a href=\"javascript:void(0)\" id=\"mb" + index + "\" dataid=\"" + row.Id + "\" flag=\"menubutton\"   >操作</a>";
+                               //return '<a btn  class="easyui-linkbutton"  data-options="iconCls:\'fa fa-check\'"   onclick="returnBackBook(' + row.Id + ')">归还</a><a btn  class="easyui-linkbutton"  data-options="iconCls:\'fa fa-check\'"   onclick="returnBackBook(' + row.Id + ')">遗失</a>';
+                           }
+                           
+                       }
+                   }
+            ]],
+            queryParams: {
+                EmpID: 0
+            }
+            ,
+            onLoadSuccess: function (value, row, index) {
+                $("a[btn]").linkbutton({ iconCls: 'fa fa-edit' });
+            }
+        });
+
+    });
+
+    $.extend($.fn.datagrid.defaults.view, {
+        onAfterRender: function () {
+            $("a[flag='menubutton']").mouseover(function () {
+                document.getElementById("mm3").setAttribute("rowid", this.getAttribute("dataid"));
+            }).menubutton({
+                iconCls: 'icon-edit',
+                menu: '#mm3'
+            });
+        }
+    });
+
+    //归还
+    function returnBackBook(Id) {
+        JQ.dialog.dialog({
+            title: "归还图书",
+            url: '@Url.Action("returnBackBook")' + '?borrID=' + Id,
+            width: '900',
+            height: '100%',
+            JQID: 'menulist',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-plus'
+        });
+    }
+
+    function menuHandler(item) {
+        var key = $("#mm3").attr("rowid");
+        switch (item.text) {
+            case "归还":
+                JQ.dialog.dialog({
+                    title: "归还图书",
+                    url: '@Url.Action("returnBackBook")' + '?borrID=' + key,
+                    width: '900',
+                    height: '100%',
+                    JQID: 'menulist',
+                    JQLoadingType: 'datagrid',
+                    iconCls: 'fa fa-plus'
+                });
+                break;
+            case "遗失":
+                if (!confirm("是否确定遗失该图书？")) {
+                    return;
+                }
+                $.ajax({
+                    url: "@(Url.Action("editIsBookLose", "OaBookUse", new { @area = "OA" }))",
+                    data: { BookLoseType: 1, Id: key },  //1 代表遗失
+                    type: "POST",
+                    success: function (result) {
+                        $("#menulist").datagrid("reload");
+                    }
+                });
+                break;
+            default:
+                break;
+        }
+    }
+
+    @*function menuHandler(item) {
+        var key = $("#mm3").attr("rowid");
+        switch (item.text) {
+            case "归还":
+                JQ.dialog.dialog({
+                    title: "归还图书",
+                    url: '@Url.Action("returnBackBook")' + '?borrID=' + key,
+                    width: '900',
+                    height: '100%',
+                    JQID: 'menulist',
+                    JQLoadingType: 'datagrid',
+                    iconCls: 'fa fa-plus'
+                });
+                break;
+            default:
+                break;
+        }
+    }*@
+
+    $.extend($.fn.datagrid.defaults.view, {
+        onAfterRender: function () {
+            $("a[flag='menubutton']").mouseover(function () {
+                document.getElementById("mm3").setAttribute("rowid", this.getAttribute("dataid"));
+            }).menubutton({
+                iconCls: 'icon-edit',
+                menu: '#mm3'
+            });
+        }
+    });
+
+</script>
+
+
+<div id="cc" class="easyui-layout" style="overflow: hidden" fit="true">
+    @*<div data-options="region:'west',split:false" style="width:250px;">
+            <div id="tt" class="easyui-tabs" data-options="fit:true" style="width:300px;height:100%;">
+                <div title="按人员选择" data-options="closable:false" style="overflow:auto;padding:2px;">
+                    <table id="lefttreeemp"></table>
+                </div>
+            </div>
+        </div>*@
+    <div data-options="region:'center'" style="background:#eee;">
+        <table id="menulist"> </table>
+    </div>
+</div>
+<div id="mm3" class="easyui-menu" style="width:80px;" data-options="onClick:menuHandler">
+    <div id="div1">归还</div>
+    <div id="div2">遗失</div>
+</div>
+
+@*<div id="mm3" class="easyui-menu" style="width:80px;" data-options="onClick:menuHandler">
+        <div id="div1">归还</div>
+    </div>*@
+

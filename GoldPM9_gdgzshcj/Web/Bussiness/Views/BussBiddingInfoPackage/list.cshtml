@@ -1,0 +1,68 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.treegrid.treegrid({
+                JQButtonTypes: ['add', 'edit', 'export'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")',//添加的路径
+                JQEditUrl: '@Url.Action("edit")',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussBiddingInfoPackageGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                //JQCustomSearch: [  //自定义搜索的字段
+                    //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+                //],
+                //JQExcludeCol: [1, 4, 10],//导出execl排除的列
+                //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+                //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+                //JQFields: ["", ""],//追加的字段名
+                url: '@Url.Action("json","BussBiddingInfoPackage",new { @area="Bussiness"})',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussBiddingInfoPackagePanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+				  		{ title: '主键', field: 'Id', width: 100, align: 'center', sortable: true  },
+		{ title: '主表ID', field: 'BussBiddingInfoID', width: 100, align: 'center', sortable: true  },		{ title: '包号', field: 'PackageNumber', width: 100, align: 'center', sortable: true  },
+		{ title: '投标进度', field: 'BiddingProgress', width: 100, align: 'center', sortable: true  },
+		{ title: '中标时间', field: 'WinTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+                 { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'userInfo' }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '筛选字段',
+                queryOptions: { 'Key': 'PackageNumber', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.treegrid.searchGrid(
+                        {
+                            dgID: 'BussBiddingInfoPackageGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="BussBiddingInfoPackageGrid"></table>
+    <div id="BussBiddingInfoPackagePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            
+        </span>
+
+        <input id="JQSearch" style="width:250px;" />
+
+    </div>
+}
+

@@ -1,0 +1,223 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            $("#TotalProduct").text(parseFloat($("#TotalProduct").text()).toFixed(2).toString());
+
+            $("#Dept").combobox({
+                prompt: '下拉选择部门',
+                valueField: 'id',
+                textField: 'text',
+                url: ' @Url.Action("treejson", "basedata", new { @area = "Core" })?engName=department',
+                onChange: function (newVal, oldVal) {
+                    if (newVal != "0") {
+                        var  Money= parseFloat($("#PerMoney").numberspinner('getValue'));
+                        var product = parseFloat($("#TotalProduct").text());
+                        var PerMoney = 0.00;
+                        if (product != 0)
+                        {
+                            PerMoney=Money / product;
+                        }
+                        
+                        $("#AllPersonBallance").datagrid("reload", '@Url.Action("GetPersonBalanceInfo", "PayBalanceUserAccount", new { @area= "Pay" })?DeptID=' + newVal + "&PerMoney="+PerMoney);
+                        //var PerMoney = parseFloat($("#PerMoney").numberspinner('getValue'));
+                        //if (PerMoney > 0) {
+                        //    var product = parseFloat($("#TotalProduct").text());
+                        //    var money = 0;
+                        //    if (product != 0) {
+                        //        money = PerMoney / product;
+                        //        var rows = $("#AllPersonBallance").datagrid("getRows");
+                        //        console.log(rows);
+                        //        if (rows.length > 0) {
+                        //            for (var index = 0; index < rows.length; index++) {
+                        //                var targetvalue = (parseFloat(rows[index]["EmpProduct"]) * money).toFixed(2);
+                        //                $('#AllPersonBallance').datagrid('updateRow', {
+                        //                    index: index,
+                        //                    row: {
+                        //                        EmpMoney: targetvalue
+                        //                    }
+                        //                });
+                        //                rows[index]["EmpMoney"] = parseFloat(rows[index]["EmpProduct"]) * money;
+                        //                $('#AllPersonBallance').datagrid('refreshRow', index);
+                        //            }
+                        //            //console.log(rows);
+                        //            ///$("#AllPersonBallance").datagrid("loadData", rows);
+                        //        }
+                        //    }
+                        //}
+                    }
+                }
+            });
+
+            $("#AllPersonBallance").datagrid({
+                iconCls: 'icon-edit',
+                multiSelect: true,
+                rownumbers: true,
+                fitColumns: true,
+                url: '@Url.Action("GetPersonBalanceInfo", "PayBalanceUserAccount", new { @area= "Pay" })',//请求的地址
+                height: '350',
+                columns: [[
+                     {
+                         field: 'ck', align: 'center', checkbox: true
+                     }, {
+
+                         title: '部门名称', field: 'DeptName', width: "25%", align: 'center'
+                     },
+                     {
+
+                         title: '姓名', field: 'EmpName', width: "25%", align: 'center'
+                     },
+                     {
+
+                         title: '产值', field: 'EmpProduct', width: "25%", align: 'right',
+                         formatter: function (val, row) {
+                             return parseFloat(row.EmpProduct).toFixed(2).toString();//显示二位小数
+                         }
+                     },
+                     {
+                         title: '金额', field: 'EmpMoney', width: "20%", align: 'right',
+                         formatter: function (val, row) {
+                             return parseFloat(row.EmpMoney).toFixed(2).toString();//显示二位小数
+                         }
+                     }
+                ]]
+            });
+
+            $("#PerMoney").numberspinner({
+                precision: 2,
+                onChange: function (newVal, oldVal) {
+                    if (isNaN(newVal)) {
+                        JQ.dialog.warning("请输入数字");
+                        $(this).numberspinner('setValue', '0.00');
+                        $("#Money").text("0.00");
+                    }
+                    else {
+                        var PerMoney = parseFloat($(this).numberspinner('getValue'));
+                        if (PerMoney < 0) {
+                            JQ.dialog.warning("不能为负值");
+                            $(this).numberspinner('setValue', '0.00');
+                            $("#Money").text("0.00");
+
+                        }
+                        else {
+                            if (PerMoney > 0) {
+                                var product = parseFloat($("#TotalProduct").text());
+                                var money = 0;
+                                if (product != 0) {
+                                    money = PerMoney / product;
+                                    var rows = $("#AllPersonBallance").datagrid("getRows");
+                                    if (rows.length > 0) {
+                                        for (var index = 0; index < rows.length; index++) {
+                                            var targetvalue = (parseFloat(rows[index]["EmpProduct"]) * money).toFixed(2);
+                                            $('#AllPersonBallance').datagrid('updateRow', {
+                                                index: index,
+                                                row: {
+                                                    EmpMoney: targetvalue
+                                                }
+                                            });
+                                        }
+                                    }
+                                    $("#Money").text(money.toFixed(6).toString());
+                                }
+                            }
+                            else {
+                                $(this).numberspinner('setValue', '0.00');
+                                $("#Money").text("0.00");
+                            }
+                        }
+                    }
+                }
+            });
+        })
+
+        function Balance() {
+            var product = parseFloat($("#TotalProduct").text());
+            if (product != 0) {
+                var PerMoney = parseFloat($("#PerMoney").numberspinner('getValue'));
+                if (PerMoney <= 0) {
+                    JQ.dialog.warning("请输入大于0的分配金额！！！");
+                }
+                else {
+                    var Name = $("#Name").textbox('getValue');
+                    if (Name != "") {
+                        var product = parseFloat($("#TotalProduct").text());
+                        var money = PerMoney / product;
+                        $.post('@Url.Action("Balance", "PayBalanceUserAccount",new { @area= "Pay" })', { Name: Name, money: money },
+                            function (result) {
+                                JQ.dialog.info("结算成功");
+                                $("#AllPersonBallance").datagrid("reload");
+                                $("#Name").textbox('setValue', '');
+                                $("#TotalProduct").text("0.00");
+                                $("#PerMoney").numberspinner("setValue", "0.00");
+                                $("#Money").text("0.00");
+                            });
+                    }
+                    else {
+                        JQ.dialog.warning("请输入批次名称！！！");
+                    }
+                }
+            }
+            else {
+                JQ.dialog.warning("当前产值为0，无法进行分配");
+            }
+        }
+
+
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <input type="hidden" name="JsonRows" id="JsonRows" />
+    <table class="table table-bordered" style="width:95%;">
+        <tr>
+            <td colspan="5">
+                <span style="font-size:16px;">本批次结算信息</span>
+            </td>
+        </tr>
+        <tr>
+            <th style="width:15%;">
+                总产值:
+            </th>
+            <td style="width:25%;">
+                <label id="TotalProduct">@ViewBag.TotalProduct</label>
+            </td>
+            <th style="width:18%">
+                查看部门:
+            </th>
+            <td colspan="2">
+                <select class="easyui-combobox" id="Dept" style="width:200px;"></select>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                本次分配奖金金额
+            </th>
+            <td>
+                <input id="PerMoney" name="PerMoney" style="width:120px;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,15]" value="0" />
+                <label id="Money" style="margin-left:40px;">0.00</label>元/产值
+            </td>
+            <th>
+                结算批次名称
+            </th>
+            <td colspan="2">
+                <input id="Name" style="width:200px;" class="easyui-textbox" />
+                <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" jqpermissionname="add" onclick="Balance();">正式结算</a>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="5">
+                <span style="font-size:16px;">所有人员结算信息</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="5">
+                <table id="AllPersonBallance"></table>
+            </td>
+        </tr>
+    </table>
+}
+

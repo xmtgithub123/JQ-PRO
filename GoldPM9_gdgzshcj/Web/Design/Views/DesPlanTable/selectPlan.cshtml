@@ -1,0 +1,81 @@
+﻿
+@using JQ.Web;
+<style type="text/css">
+    .rwpdialogdiv {
+        padding: 0px;
+    }
+</style>
+<script type="text/javascript">
+    $(function () {
+        window.top.selectProjectPlan = undefined;
+        $(".dialog-toolbar :last").hide();
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'desProjectPlan',//数据表格ID
+            JQDialogTitle: '选择工程',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            singleSelect: true,
+            pagination: true,
+            JQFields: ["Id"],//追加的字段名
+            url: '@Url.Action("JsonPlan", "DesPlanTable")',//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#BussProjectPanel',//工具栏的容器ID
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '项目编号', field: 'ProjNumber', width: '15%', align: 'left', },
+                { title: '项目名称', field: 'ProjName', width: '35%', align: 'center', },
+                { title: '项目阶段', field: 'PhaseName', width: '10%', align: 'center', },
+                { title: '设总', field: 'ProjEmpName', width: '10%', align: 'center', },
+                { title: '计划开始', field: 'DatePlanStart', width: '10%', align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '计划完成', field: 'DatePlanFinish', width: '10%', align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+            ]],
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '项目编号、项目名称',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid({
+                    dgID: 'desProjectPlan',
+                    loadingType: 'datagrid',
+                    queryParams: null
+                });
+            }
+        });
+    });
+
+    function selectProj() {
+        var row = $('#desProjectPlan').datagrid('getChecked');
+        if (row.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+       
+        window.top.selectProjectPlan = row[0];
+        JQ.dialog.dialogClose();
+    }
+
+</script>
+
+<table id="desProjectPlan"></table>
+<div id="BussProjectPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProj()">确定选择</a>
+    </span>
+    @*分割号*@
+    <span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>
+    @BaseData.getBases(new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{ Key:'TaskGroupPhaseId', Contract:'in',filedType:'Int'}" })
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key:'p.ProjNumber,p.ProjName', Contract:'like'}" />
+
+    @*<div class="moreSearchPanel">
+            <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期开始'" JQWhereOptions="{ Key:'ConDate', Contract:'>=',filedType:'Date' }">
+            至
+            <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '签订日期结束'" JQWhereOptions="{ Key:'ConDate', Contract:'<=',filedType:'Date' }">&nbsp;
+        </div>*@
+</div>
+
+
+

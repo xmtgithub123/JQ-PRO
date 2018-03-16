@@ -1,0 +1,382 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="sure()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div id="div1" style="display:none;padding:5px;">
+        <table class="documenttable" style="width:100%">
+            <tr>
+                <th style="width:15%">名称</th>
+                <td style="width:35%">
+                    <input type="text" id="txtName" name="" class="yc_textbox" style="width:80%">
+                </td>
+                <th style="width:15%">
+                    文本字段
+                </th>
+                <td style="width:35%">
+                    <select id="listtextfield" class="yc_select">
+                        <option value="">无</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>宽度</th>
+                <td><input type="text" id="txtWidth" name="" class="yc_textbox" style="width:80%"> px</td>
+                <th>
+                    值字段
+                </th>
+                <td>
+                    <select id="listvaluefield" class="yc_select">
+                        <option value="">无</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    选项设置
+                </th>
+                <td>
+                    <select id="listBaseData" class="yc_select" style="width:85%">
+                        <option>使用自定义选项</option>
+                    </select>
+                </td>
+                <th></th>
+                <td></td>
+            </tr>
+            <tr>
+                <th>
+                    选项间距
+                </th>
+                <td colspan="3">
+                    上 <input type="text" id="txtPaddingTop" class="yc_textbox" style="width:32px" /> px
+                    右 <input type="text" id="txtPaddingRight" class="yc_textbox" style="width:32px" /> px
+                    下 <input type="text" id="txtPaddingBottom" class="yc_textbox" style="width:32px" /> px
+                    左 <input type="text" id="txtPaddingLeft" class="yc_textbox" style="width:32px" /> px
+                </td>
+            </tr>
+            <tr>
+                <th>外边距</th>
+                <td colspan="3">
+                    上 <input type="text" id="txtMarginTop" class="yc_textbox" style="width:32px" /> px
+                    右 <input type="text" id="txtMarginRight" class="yc_textbox" style="width:32px" /> px
+                    下 <input type="text" id="txtMarginBottom" class="yc_textbox" style="width:32px" /> px
+                    左 <input type="text" id="txtMarginLeft" class="yc_textbox" style="width:32px" /> px
+                </td>
+            </tr>
+        </table>
+    </div>
+    <div id="div2" style="display:none;padding:5px">
+        <div class="yc_headtoolbar2" style="border:1px solid #EFEFEF;float:none">
+            <div style="float:left;width:5px">
+            </div>
+            <div class="headtoolbarbtn" style="height:28px;line-height:26px;" onclick="appendGridData()">
+                <span class="fa fa-plus"></span>
+                <span>添加</span>
+            </div>
+        </div>
+        <div id="div_rulegrid" style="margin-top:-1px"></div>
+    </div>
+    <div id="div3" style="display:none;padding:5px;">
+        <table class="documenttable" style="width:100%">
+            <tr>
+                <th style="width:15%">文本变量</th>
+                <td style="width:35%">
+                    <input type="text" id="txtTextVariableName" name="" class="yc_textbox" style="width:80%">
+                </td>
+                <th style="width:15%">值变量</th>
+                <td>
+                    <input type="text" id="txtValueVariableName" name="" class="yc_textbox" style="width:80%">
+                </td>
+            </tr>
+            <tr>
+                <th>
+                    可编辑步骤
+                </th>
+                <td colspan="3" id="tdActivities"></td>
+            </tr>
+            <tr>
+                <th>
+                    审批完成后
+                </th>
+                <td colspan="3">
+                    <input type="checkbox" id="cbIsEditableWhenPassed" /><label for="cbIsEditableWhenPassed">通过后可以编辑</label>
+                    <input type="checkbox" id="cbIsEditableWhenUnPassed" /><label for="cbIsEditableWhenUnPassed">不通过后可以编辑</label>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.grid.js"))"></script>
+<script type="text/javascript">
+    var temp = 0, groupName;
+    var yGrid = new YChart.Grid({
+        height: 258,
+        container: document.getElementById("div_rulegrid"),
+        idField: "id",
+        columns: [
+            {
+                title: "选项名称", width: 180, field: "name", align: "center", formatter: function (cell, rowData) {
+                    cell.appendChild(YChart.createElement("input", { id: "txtItemName" + rowData.id, type: "text", className: "yc_textbox", value: rowData.name }, { width: "160px" }));
+                }
+            },
+            {
+                title: "选项值", width: 180, field: "value", formatter: function (cell, rowData) {
+                    cell.appendChild(YChart.createElement("input", { id: "txtItemValue" + rowData.id, type: "text", className: "yc_textbox", value: rowData.value }, { width: "160px" }));
+                }
+            },
+            {
+                title: "默认选中", width: 100, field: "isChecked", align: "center", formatter: function (cell, rowData) {
+                    var checkbox = YChart.createElement("input", { id: "cbIsItemCheck" + rowData.id, type: "checkbox", dataid: rowData.id, checked: rowData.isChecked == "1" ? "checked" : "" });
+                    cell.appendChild(checkbox);
+                    YChart.attachEvent(cell, "click", function () {
+                        this.childNodes[0].checked = !this.childNodes[0].checked;
+                        if (this.childNodes[0].checked) {
+                            for (var i = 0; i < yGrid.datas.length; i++) {
+                                if (yGrid.datas[i].id == this.childNodes[0].getAttribute("dataid")) {
+                                    continue;
+                                }
+                                if (document.getElementById("cbIsItemCheck" + yGrid.datas[i].id).checked) {
+                                    document.getElementById("cbIsItemCheck" + yGrid.datas[i].id).checked = false;
+                                }
+                            }
+                        }
+                    });
+                    YChart.attachEvent(checkbox, "click", function () {
+                        if (this.checked) {
+                            for (var i = 0; i < yGrid.datas.length; i++) {
+                                if (yGrid.datas[i].id == this.getAttribute("dataid")) {
+                                    continue;
+                                }
+                                if (document.getElementById("cbIsItemCheck" + yGrid.datas[i].id).checked) {
+                                    document.getElementById("cbIsItemCheck" + yGrid.datas[i].id).checked = false;
+                                }
+                            }
+                        }
+                        YChart.stopBubble();
+                    });
+                }
+            }, {
+                title: "操作", width: 60, field: "OP", align: "center", formatter: function (cell, rowData) {
+                    var a = YChart.createElement("a", { href: "javascript:void(0)", className: "yc_a" }, null, "移除");
+                    a.setAttribute("dataid", rowData.id);
+                    a.onclick = function () {
+                        if (!confirm("确定要移除吗？")) {
+                            return;
+                        }
+                        yGrid.deleteData(this.getAttribute("dataid"));
+                    }
+                    cell.appendChild(a); 2
+                }
+            }
+        ]
+    });
+    function appendGridData() {
+        yGrid.appendData({
+            id: ++temp,
+            name: "",
+            value: ""
+        })
+    }
+
+    window.onDialogLoaded = function () {
+        var yTab = new YChart.Tab({
+            container: "divcontent",
+            offsetHeight: 0,
+            tabs: [
+                {
+                    name: "controlproperty",
+                    title: "控件属性",
+                    element: "div1",
+                    closable: false
+                },
+                {
+                    name: "items",
+                    title: "自定义选项",
+                    element: "div2",
+                    closable: false
+                },
+                {
+                    name: "processproperty",
+                    title: "流程属性",
+                    element: "div3",
+                    closable: false
+                }
+            ]
+        });
+        YChart.registerNumberBox({
+            element: [document.getElementById("txtPaddingTop"), document.getElementById("txtPaddingRight"), document.getElementById("txtPaddingBottom"), document.getElementById("txtPaddingLeft"), document.getElementById("txtMarginTop"), document.getElementById("txtMarginRight"), document.getElementById("txtMarginBottom"), document.getElementById("txtMarginLeft"), document.getElementById("txtWidth")],
+            precision: 0,
+            min: 0
+        });
+        var data = window.frameElement.api.getSource();
+        var source = data.source;
+        var style = source.element.ownerDocument.defaultView.getComputedStyle(source.element);
+        document.getElementById("txtName").value = source.element.getAttribute("id") || "";
+        document.getElementById("txtWidth").value = style.width.replace("px", "");
+        document.getElementById("txtMarginTop").value = style.marginTop.replace("px", "");
+        document.getElementById("txtMarginRight").value = style.marginRight.replace("px", "");
+        document.getElementById("txtMarginBottom").value = style.marginBottom.replace("px", "");
+        document.getElementById("txtMarginLeft").value = style.marginLeft.replace("px", "");
+        groupName = source.groupName;
+        if ("paddingTop" in source) {
+            document.getElementById("txtPaddingTop").value = source.paddingTop;
+            document.getElementById("txtPaddingRight").value = source.paddingRight;
+            document.getElementById("txtPaddingBottom").value = source.paddingBottom;
+            document.getElementById("txtPaddingLeft").value = source.paddingLeft;
+        }
+        else {
+            document.getElementById("txtPaddingTop").value = 0;
+            document.getElementById("txtPaddingRight").value = 0;
+            document.getElementById("txtPaddingBottom").value = 0;
+            document.getElementById("txtPaddingLeft").value = 0;
+        }
+        if ("items" in source) {
+            yGrid.setDatas(source.items);
+            for (var i = 0; i < source.items.length; i++) {
+                if (source.items[i].id > temp) {
+                    temp = source.items[i].id;
+                }
+            }
+        }
+        if (data.columns && data.columns.length > 0) {
+            var _textfield = document.getElementById("listtextfield");
+            var _valuefield = document.getElementById("listvaluefield");
+            for (var i = 0; i < data.columns.length; i++) {
+                var option1 = document.createElement("option");
+                option1.setAttribute("value", data.columns[i].value);
+                option1.appendChild(document.createTextNode(data.columns[i].name));
+                var option2 = option1.cloneNode(true);
+                if (data.columns[i].value == source.textField) {
+                    option1.setAttribute("selected", "selected");
+                }
+                _textfield.appendChild(option1);
+                if (data.columns[i].value == source.valueField) {
+                    option2.setAttribute("selected", "selected");
+                }
+                _valuefield.appendChild(option2);
+            }
+        }
+        YChart.ajax({
+            url: "@(Url.Action("GetBaseDataCategory", "Widget", new { @area = "Form" }))",
+            type: "POST",
+            dataType: "json",
+            async: false,
+            success: function (result) {
+                var _listBaseData = document.getElementById("listBaseData");
+                for (var i = 0; i < result.length; i++) {
+                    var opt = YChart.createElement("option", { value: result[i].ID }, null, result[i].Name);
+                    _listBaseData.appendChild(opt);
+                    if (source.baseDataID && source.baseDataID == result[i].ID.toString()) {
+                        opt.selected = true;
+                    }
+                }
+            }
+        });
+        if (source.inlineTableName) {
+            document.getElementById("txtValueVariableName").style.display = "none";
+            document.getElementById("txtTextVariableName").style.display = "none";
+        }
+        if (source.flow) {
+            document.getElementById("txtValueVariableName").value = source.flow.valueVariableName;
+            document.getElementById("txtTextVariableName").value = source.flow.textVariableName;
+            document.getElementById("cbIsEditableWhenPassed").checked = source.flow.isEditableWhenPassed == "1";
+            document.getElementById("cbIsEditableWhenUnPassed").checked = source.flow.isEditableWhenUnPassed == "1";
+        }
+        if (data.processTemplateID || data.processTemplateVersionID) {
+            YChart.ajax({
+                url: "@(Url.Action("GetAllActivities", "Template",new { @area="Process" }))",
+                type: "POST",
+                data: { id: data.processTemplateID, versionID: data.processTemplateVersionID },
+                success: function (result) {
+                    var _tdActivities = document.getElementById("tdActivities");
+                    for (var i = 0; i < result.length; i++) {
+                        var checkbox = YChart.createElement("input", { type: "checkbox", id: "cb_a_" + i, value: result[i].Value }, { marginLeft: "5px" });
+                        _tdActivities.appendChild(checkbox);
+                        var lbl = YChart.createElement("label", { "for": "cb_a_" + i });
+                        lbl.appendChild(document.createTextNode(result[i].Text));
+                        _tdActivities.appendChild(lbl);
+                        if (source.flow) {
+                            for (var j = 0; j < source.flow.editableSteps.length; j++) {
+                                if (source.flow.editableSteps[j] == result[i].Value) {
+                                    checkbox.checked = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    function sure() {
+        var name = document.getElementById("txtName").value;
+        if (name && window.frameElement.api.isExists(name)) {
+            alert("控件名称已经存在，无法保存！");
+            return;
+        }
+        var items = [];
+        for (var i = 0; i < yGrid.datas.length; i++) {
+            var itemName = document.getElementById("txtItemName" + yGrid.datas[i].id).value;
+            if (itemName == "") {
+                continue;
+            }
+            items.push({
+                id: yGrid.datas[i].id,
+                name: itemName,
+                value: document.getElementById("txtItemValue" + yGrid.datas[i].id).value,
+                isChecked: document.getElementById("cbIsItemCheck" + yGrid.datas[i].id).checked ? "1" : "0"
+            });
+        }
+        var flow = {
+            valueVariableName: YChart.trim(document.getElementById("txtValueVariableName").value),
+            textVariableName: YChart.trim(document.getElementById("txtTextVariableName").value),
+            isEditableWhenPassed: document.getElementById("cbIsEditableWhenPassed").checked ? "1" : "0",
+            isEditableWhenUnPassed: document.getElementById("cbIsEditableWhenUnPassed").checked ? "1" : "0",
+            editableSteps: []
+        };
+        //获取出选项
+        YChart.recuriseChildNodes(document.getElementById("tdActivities"), function (element) {
+            if (element.nodeType != 1 || element.tagName != "INPUT" || element.getAttribute("type") != "checkbox") {
+                return;
+            }
+            if (element.checked) {
+                flow.editableSteps.push(element.getAttribute("value"));
+            }
+        });
+        var opt = YChart.getSelectedOption(document.getElementById("listBaseData"));
+        window.frameElement.api.saveData({
+            name: name,
+            style: {
+                width: document.getElementById("txtWidth").value,
+                margin: document.getElementById("txtMarginTop").value + "px" + " " + document.getElementById("txtMarginRight").value + "px" + " " + document.getElementById("txtMarginBottom").value + "px" + " " + document.getElementById("txtMarginLeft").value + "px"
+            },
+            property: {
+                groupName: groupName,
+                textField: YChart.getSelectedValue(document.getElementById("listtextfield")),
+                valueField: YChart.getSelectedValue(document.getElementById("listvaluefield")),
+                paddingTop: document.getElementById("txtPaddingTop").value,
+                paddingRight: document.getElementById("txtPaddingRight").value,
+                paddingBottom: document.getElementById("txtPaddingBottom").value,
+                paddingLeft: document.getElementById("txtPaddingLeft").value,
+                baseDataID: opt.getAttribute("value"),
+                baseDataName: opt.textContent,
+                items: items,
+                flow: flow
+            }
+        });
+        frameElement.closeDialog();
+    }
+</script>

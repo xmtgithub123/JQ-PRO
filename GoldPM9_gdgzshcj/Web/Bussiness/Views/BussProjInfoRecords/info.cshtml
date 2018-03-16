@@ -1,0 +1,156 @@
+﻿@model DataModel.Models.BussProjInfoRecords
+@using JQ.Web;
+
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'BussProjInfoRecordsForm',//formid提交需要用到
+        buttonTypes: ['close'],//默认按钮
+        beforeFormSubmit: function () {
+            if(!window[_uploader_unique_id].isUploaded){
+                JQ.dialog.warning("还存在未上传完成的文件，无法保存！");
+                return false;
+            }
+            var _Id = $("#Id").val();
+            var _ProjCode = $("#ProjCode").val();
+            var bit=0;
+            $.ajax({
+                doBackResult: false,
+                url: '@Url.Action("GetProjCodeCount", "BussProjInfoRecords")',
+                data: { ProjCode: _ProjCode, Id: _Id },
+                async: false,
+                success: function (data) {
+                    bit=data
+                }
+            })
+            if (bit > 0) {
+                JQ.dialog.warning('存在相同的项目编号:[' + _ProjCode + "]");
+                return false;
+            }
+
+            $("#CustName").val($("#CustomerID").combobox("getText"));
+        },
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            var _tempFrame=window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+            if(_tempFrame){
+                _tempFrame.contentWindow.refreshGrid();
+            }
+            _flowInstance.$form.parent().dialog("close");
+        },
+        flow: {
+            flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+            flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+            url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+            instance: "_flowInstance",
+            processor: "Bussiness,Bussiness.FlowProcessor.BusinessProjectRecord",
+            refID: "@(Model.Id)",
+            refTable: "BussProjInfoRecords",
+            dataCreator:"@(ViewBag.CreatorEmpId )"
+        }
+    });
+
+    JQ.combobox.selEmp({ id: 'RecordsEmpId', width: "98%" });
+
+</script>
+
+@using (Html.BeginForm("save", "BussProjInfoRecords", FormMethod.Post, new { @area = "Bussiness", @id = "BussProjInfoRecordsForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <input type="hidden" id="CompanyType" name="CompanyType" value="FGS" />
+    <table class="table table-bordered">
+        <tr>
+            <th width="15%">项目编号</th>
+            <td width="35%">
+                <input id="ProjCode" name="ProjCode" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,50]" value="@Model.ProjCode" />
+            </td>
+            <th width="15%">项目名称</th>
+            <td width="35%">
+                <input name="ProjName" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,400]" value="@Model.ProjName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">预计启动时间</th>
+            <td width="35%">
+                <input name="PredictStartTime" class="easyui-datebox" validType="dateISO" value="@Model.PredictStartTime" />
+            </td>
+            <th width="15%">预计签合同时间</th>
+            <td width="35%">
+                <input name="PredictConcludeTime" class="easyui-datebox" validType="dateISO" value="@Model.PredictConcludeTime" />
+            </td>
+        </tr>
+
+        <tr>
+            <th width="15%">业主名称</th>
+            <td colspan="3">
+                <input id="CustomerID" name="CustomerID" style="width:98%;" />
+                <input id="CustName" name="CustName" isFirst="0" type="hidden" value="@(Model.CustName==""?"":Model.CustName.ToString())">
+                <script type="text/javascript">
+                    $(function () {
+                        $("#CustomerID").combobox({
+                            url: '@Url.Action("GetCustomerListComboboxWithCount", "BussCustomer", new { @area= "Bussiness" })?TopCount=10',
+                            valueField: 'Id',
+                            textField: 'CustName',
+                            mode:'remote',
+                            onBeforeLoad: function (param) {
+                                console.log(param)
+                                if ($("#CustName").attr("isFirst")=="0") {
+                                    param.q=$("#CustName").val();
+                                }
+                            },
+                            onLoadSuccess:function () {
+                                if ($("#CustomerID").combobox("getText")==""&&$("#CustName").attr("isFirst")=="0") {
+                                    $("#CustomerID").combobox("setText",$("#CustName").val());
+                                    $("#CustName").attr("isFirst","1");
+                                }
+                            }
+                        })
+                    })
+                </script>
+            </td>
+        </tr>
+
+        <tr>
+            <th width="15%">项目信息来源</th>
+            <td colspan="3">
+                <textarea name="InfoSource" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.InfoSource</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">项目概述</th>
+            <td colspan="3">
+                <textarea name="ProjSummarize" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,1000]">@Model.ProjSummarize</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">备案人</th>
+            <td width="35%">
+                <select id="RecordsEmpId" name="RecordsEmpId" JQvalue="@Model.RecordsEmpId" data-options="required:true"></select>
+            </td>
+            <th width="15%">备案时间</th>
+            <td width="35%">
+                <input name="RecordTime" class="easyui-datebox" data-options="required:true,validType:['dateISO']" value="@Model.RecordTime" />
+            </td>
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "BusinessInfoRecord";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+
+    <div id="tbCustomer" style="padding:5px;height:auto; display:none;">
+        <input id="fullNameSearchCustomer" style="width:250px;" JQWhereOptions="{ Key: 'CustName', 'Contract': 'like' }" />
+    </div>
+                    }

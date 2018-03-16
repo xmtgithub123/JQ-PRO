@@ -1,0 +1,46 @@
+﻿@using JQ.Web;
+<style>
+    .wdplane {
+        height: 100%;
+        text-align: center;
+        overflow: hidden;
+    }
+
+        .wdplane a {
+            margin-top: 87px;
+            margin-left: 10px;
+        }
+</style>
+<div class="wdplane">
+    <a name="ProjNote" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="ProjNote()">项目记事</a>
+    <a name="DocUpload" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="DocUpload()">项目资料分类上传</a>
+</div>
+<script type="text/javascript">
+    // 填写项目记事
+    function ProjNote() {
+        JQ.dialog.dialogIframe({
+            title: "项目记事",
+            //title: "填写项目记事",
+            @*url: '@Url.Action("add", "DesEvent", new { @area = "design" })?taskGroupId=@ViewBag.EngineeringID&empId=@Request["empId"]',*@
+            url: '@Url.Action("ProjEventList", "DesEvent", new { @area = "design" })?taskGroupId=@ViewBag.EngineeringID&empId=@Request["empId"]&projID=@Request["projID"]',
+            width: '1200',
+            height: '100%',
+            JQID: 'ProjTable',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-list',
+        });
+    }
+
+    // 资料分类上传
+    function DocUpload() {
+        JQ.dialog.dialog({
+            title: "项目资料分类上传",
+            url: '@Url.Action("treelist", "ArchElecProject", new { @area = "archive" })?ProjID=@ViewBag.ProjID',
+            width: '1200',
+            height: '100%',
+            JQID: 'ProjTable',
+            JQLoadingType: 'datagrid',
+            iconCls: 'fa fa-list',
+        });
+    }
+</script>

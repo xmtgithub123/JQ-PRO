@@ -1,0 +1,65 @@
+﻿@using JQ.Web;
+
+<script type="text/javascript">
+    $(function () {
+        JQ.datagrid.datagrid({
+            pagination: true,
+            JQButtonTypes: [],//需要显示的按钮
+            JQPrimaryID: 'FlowID',//主键的字段
+            JQID: 'FileDataGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            singleSelect: false,
+            url: "@(Url.Action("GetFormsByProjID1", "IsoForm", new { @area = "Iso" }))",
+            checkOnSelect: true,//是否包含check
+            toolbar: '#FilePanel',//工具栏的容器ID
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: "表单标题", field: "FlowTitle", width: "40%", align: "left", halign: "center" },
+                { title: "流程名称", field: "FlowName", width: "13%", align: "left", halign: "center" },
+                { title: "发起日期", field: "CreationTime", width: "10%", align: "center",sortable:true, halign: "center", formatter: JQ.tools.DateTimeFormatterByT },
+                { title: "发起人", field: "CreatorEmpName", width: "10%", align: "center", halign: "center" },
+                {
+                    title: "进度", field: "FlowStatusName", width: "13%", align: "left", halign: "center", formatter: function (value, rowData) {
+                        var a = document.createElement("a");
+                        a.setAttribute("href", "javascript:void(0)");
+                        a.appendChild(document.createTextNode(value));
+                        a.setAttribute("onclick", "openProgressDialog(" + rowData.FlowId + ",'" + encodeURIComponent(rowData.FlowName) + "');");
+                        return a.outerHTML;
+                    }
+                },
+                {
+                    title: "操作", field: "CZ", width: "8%", align: "center", halign: "center", formatter: function (value, row, index) {
+                        return '<a btn  class="easyui-linkbutton"  data-options="iconCls:\'fa fa-check\'"   onclick="Edit(' + row.ID + ')">' + row.NodeState + '</a>';
+                    }
+                }
+            ]],
+            queryParams: { projectID:@Request.Params["projId"], phaseID:@Request.Params["phaseID"] },
+        });
+    });
+
+    function selectProj() {
+        var node = $("#FileDataGrid").datagrid('getSelections');
+        if (node == "" || node == null) {
+            JQ.dialog.warning("请选择报出时的表单!!!");
+        }
+        else {
+            BDCallBack(node);
+            JQ.dialog.dialogClose();
+        }
+    }
+
+    function closedialog() {
+        JQ.dialog.dialogClose();
+    }
+</script>
+
+<table id="FileDataGrid"></table>
+<div id="FilePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProj()">确定选择</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="closedialog()">关闭</a>
+    </span>
+</div>

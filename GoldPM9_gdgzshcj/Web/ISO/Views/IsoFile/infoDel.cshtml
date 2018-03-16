@@ -1,0 +1,91 @@
+﻿@model DataModel.Models.IsoFile
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoFileForm',//formid提交需要用到
+        buttonTypes: @Html.Raw(ViewBag.editPermission),//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+  
+    });
+</script>
+@using (Html.BeginForm("saveDel", "IsoFile", FormMethod.Post, new { @area = "Iso", @id = "IsoFileForm" }))
+{
+    @Html.HiddenFor(m => m.FileID)
+    <table class="table table-bordered">
+        @*<tr>
+            <td colspan="4" style="padding: 15px; font-size: 20px; text-align: center; font-weight: bold; border: none;">
+                新增文件
+            </td>
+
+        </tr>*@
+        <tr>
+            <th width="10%">文件编号</th>
+            <td width="40%">
+                <input id="FileNumber" name="FileNumber" style="width:98%;" class="easyui-textbox" value="@Model.FileNumber" data-options="required:true" />
+            </td>
+            <th width="10%">文件名称</th>
+            <td width="40%">
+                <input id="FileName" name="FileName" style="width:98%;" class="easyui-textbox" value="@Model.FileName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">当前版本号</th>
+            <td width="40%">
+                <input id="FileVersion" name="FileVersion" style="width:98%;" class="easyui-textbox" value="@Model.FileVersion" />
+            </td>
+            <th width="10%">状态</th>
+            <td width="40%">
+                @Html.DropDownListFor(f => f.FileIsModules, ViewData["statusdata"] as IEnumerable<SelectListItem>, new { @class = "easyui-combobox", editable = "false" })
+                @*, new { @class = "easyui-combobox", editable = "false" }*@
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">类型</th>
+            <td width="40%">
+                @Html.DropDownListFor(f => f.FileType, ViewData["typedata"] as IEnumerable<SelectListItem>, new { @class = "easyui-combobox", editable = "false" })
+                @*, new { @class = "easyui-combobox", editable = "false" }*@
+            </td>
+            <th width="10%">发布人</th>
+            <td width="40%">
+                <input id="FileTypeName" name="FileTypeName" style="width:98%;" readonly="readonly" class="easyui-textbox" value="@Model.FileTypeName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">实施日期</th>
+            <td width="40%">
+                <input id="FileDate" name="FileDate" style="width:98%;" class="easyui-datebox" validtype="length[0,16]" value="@Model.FileDate" />
+            </td>
+            <th width="10%">作废日期</th>
+            <td width="40%">
+                <input name="FileZFDate" style="width:98%;" class="easyui-datebox" validtype="length[0,16]" value="@Model.FileZFDate" data-options="required:true" />
+            </td>
+        </tr>
+        <tr>
+            <th width="20%">
+                文件说明
+            </th>
+            <td colspan="3">
+                <textarea rows="3" cols="80" name="FileNote" id="FileNote" style="width:99%;height:80px;">@Model.FileNote</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.FileID;
+                    uploader.RefTable = "IsoFile";
+                    uploader.Name = "UploadFile1";
+
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+
+                    }

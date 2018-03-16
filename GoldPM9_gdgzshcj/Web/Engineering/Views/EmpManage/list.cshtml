@@ -1,0 +1,208 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "EmpManage",new { @area="Engineering"})',
+               addUrl = '@Url.Action("add","EmpManage",new {@area= "Engineering" })',
+               editUrl = '@Url.Action("edit", "EmpManage",new {@area= "Engineering" })',
+               delUrl = '@Url.Action("del", "EmpManage", new { @area = "Engineering" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl + "?type=1", //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                idField: 'Id',
+                JQID: 'EmpManageGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQExcludeCol: [1,2, 10,11],//导出execl排除的列
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '工程名称',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: false,
+                nowrap: false,
+                toolbar: '#EmpManagePanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { field: 'Id', align: 'center', hidden:true },
+		            { title: '工程名称', field: 'ProjName', width: 250, align: 'center', sortable: true },
+		            { title: '工程阶段', field: 'ProjPhase', width: 250, align: 'center', sortable: true },
+		            {
+		                title: '项目经理', field: 'EngineeringEmpName', width: 120, align: 'center', sortable: true, formatter: function (value, row, index) {
+		                    return '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;" onclick="Pro(\'' + row.EngineeringId + '\',\'' + row.EngineeringEmpName + '\',\'' + row.Id + '\')">' + row.EngineeringEmpName + '</a>';
+		                }
+		            },
+		            {
+		                title: '安全员', field: 'SafeEmpName', width: 120, align: 'center', sortable: true, formatter: function (value, row, index) {
+		                    return '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;" onclick="Safe(\'' + row.EngineeringId + '\',\'' + row.SafeEmpName + '\',\'' + row.Id + '\')">' + row.SafeEmpName + '</a>';
+		                }
+		            },
+		            {
+		                title: '采购员', field: 'CGEmpName', width: 120, align: 'center', sortable: true, formatter: function (value, row, index) {
+		                    return '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;" onclick="CG(\'' + row.EngineeringId + '\',\'' + row.CGEmpName + '\',\'' + row.Id + '\')">' + row.CGEmpName + '</a>';
+		                }
+		            },
+		            {
+		                title: '技术员', field: 'JSEmpName', width: 120, align: 'center', sortable: true, formatter: function (value, row, index) {
+		                    return '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;" onclick="JS(\'' + row.EngineeringId + '\',\'' + row.JSEmpName + '\',\'' + row.Id + '\')">' + row.JSEmpName + '</a>';
+		                }
+		            },
+		            { title: '文档员', field: 'WDEmpName', width: 120, align: 'center', sortable: true },
+		            { title: '现场负责人', field: 'XCEmpName', width: 120, align: 'center', sortable: true },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 120, JQIsExclude: true, JQRefTable: 'EmpManage' },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrentEmpID)")
+                    },
+                    {
+                        title: '操作', field: 'EngineeringId', width: 155, align: 'center', sortable: true, formatter: function (value, row, index) {
+                            var html = '';
+                            html += '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;" onclick="ProjNote(' + row.EngineeringId + ',' + row.DesTaskGroupId + ')">记事</a>';
+                            html += '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;" onclick="WD(' + row.Id + ')">资料上传</a>'
+                                  + '<a class="easyui-linkbutton" style="margin:0 5px 0 5px;" onclick="Weekly(' + row.EngineeringId + ',\'' + '[' + row.ProjNumber + ']' + row.ProjName + ' 周报列表\')">周报</a>';
+                            //}
+
+                            return html;
+                        }
+                    }
+                ]],
+                onLoadSuccess: function (data) {
+                    $(".datagrid-header-check").html("");
+                    $('#EmpManageGrid').datagrid('clearSelections');
+                    // 加载完毕后获取所有的checkbox遍历
+                    if (data.rows.length > 0) {
+                        // 循环判断操作为新增的不能选择
+                        for (var i = 0; i < data.rows.length; i++) {
+                            //根据operate让某些行不可选
+                            if (data.rows[i].FlowID && 1 != data.rows[i]._EditStatus) {
+                                $("input[type='checkbox']")[i].disabled = true;
+                            }
+                        }
+                    }
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    // 根据FlowID值,单击单选行不可用
+                    if (rowData.FlowID && 1 != rowData._EditStatus) {
+                        $('#EmpManageGrid').datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onSelectAll: function (rows) {
+                    // 根据FlowID值,全选时某些行不选中
+                    $.each(rows, function (i, n) {
+                        if (n.FlowID && 1 != n._EditStatus) {
+                            $('#EmpManageGrid').datagrid('unselectRow', i);
+                        }
+                    });
+                }
+            });
+        });
+        function ProjNote(engid, DesTaskGroupId) {
+            debugger;
+            JQ.dialog.dialogIframe({
+                title: "项目记事",
+                //title: "填写项目记事",
+                url: '@Url.Action("ProjEventList", "DesEvent", new { @area = "design" })?fromType=1&taskGroupId=' + DesTaskGroupId + '&projID=' + engid,//+ '&empId=' + id,
+                width: '1200',
+                height: '100%',
+                JQID: 'ProjTable',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-list',
+            });
+        }
+
+        function Pro(EngineeringId, name, id) {
+            JQ.dialog.dialogIframe({
+                title: "目标策划",
+                url: '@Url.Action("list", "ProjManage", new { @area = "engineering" })?inType=2&EngineeringId=' + EngineeringId + '&name=' + name + '&empid=' + id,
+                width: '1200',
+                height: '100%',
+                JQID: 'ProjTabled',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-list',
+            });
+        }
+
+        function WD(tid) {
+            JQ.dialog.dialog({
+                title: "资料上传",
+                url: '@Url.Action("ProjDesReceiveList", "DesReceive", new { @area = "engineering" })?taskGroupId=' + tid,
+                width: '1200',
+                height: '100%',
+                JQID: 'WDTabled',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-list',
+            });
+        }
+
+
+        function JS(EngineeringId,name,id) {
+            JQ.dialog.dialogIframe({
+                title: "实施策划",
+                url: '@Url.Action("list", "SSManage", new { @area = "engineering" })?inType=2&EngineeringId=' + EngineeringId + '&name=' + name + '&empid=' + id,
+                width: '1200',
+                height: '100%',
+                JQID: 'SSTabled',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-list',
+            });
+        }
+
+        function Safe(EngineeringId, name,id) {
+            JQ.dialog.dialogIframe({
+                title: "安全策划",
+                url: '@Url.Action("list", "SafeManage", new { @area = "engineering" })?inType=2&EngineeringId=' + EngineeringId + '&name=' + name + '&empid=' + id,
+                width: '1200',
+                height: '100%',
+                JQID: 'SafeTabled',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-list',
+            });
+        }
+
+        function CG(EngineeringId, name,id) {
+            JQ.dialog.dialogIframe({
+                title: "采购策划",
+                url: '@Url.Action("list", "CGManage", new { @area = "engineering" })?inType=2&EngineeringId=' + EngineeringId + '&name=' + name + '&empid=' + id,
+                width: '1200',
+                height: '100%',
+                JQID: 'CGTabled',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-list',
+            });
+        }
+
+        function Weekly(engid, title) {
+            JQ.dialog.dialog({
+                title: title,
+                url: '@Url.Action("weeklist", "EmpManage", new { @area = "engineering" })?taskGroupId=' + engid,
+                width: '1200',
+                height: '100%',
+                JQID: 'ProjTable',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-list',
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="EmpManageGrid"></table>
+    <div id="EmpManagePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'EngineeringEmpName', 'Contract': 'like' }" />
+
+    </div>
+}
+

@@ -1,0 +1,218 @@
+﻿@model DataModel.Models.HREmployee
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'HREmployeeForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            //if (data.stateValue < 0) {
+            //    return false;
+            //}
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源           
+        }
+        //, beforeFormSubmit: function () {
+
+        //}
+    });
+</script>
+@using (Html.BeginForm("save", "HREmployee", FormMethod.Post, new { @area = "Hr", @id = "HREmployeeForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">	 
+        <tr>
+            <th width="10%">
+                姓名
+            </th>
+            <td width="40%">
+		    <input name="EmpName" style="width:98%;" class="easyui-textbox" data-options="required:true"   validType="length[0,10]" value="@Model.EmpName" />
+            </td>
+            <th width="10%">
+                身份证
+            </th>
+            <td width="40%">
+		    <input name="EmpIder" style="width:98%;" class="easyui-textbox"   validType="length[0,200]" value="@Model.EmpIder" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                性别
+            </th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+               {
+                   isMult = false,
+                   controlName = "EmpSexID",
+                   isRequired = true,
+                   engName = "Sex",
+                   width = "98%",
+                   ids = Model.EmpSexID.ToString()
+               })
+            </td>
+            <th width="10%">
+                出生年月
+            </th>
+            <td width="40%">
+                <input name="EmpBirthday" style="width:98%;" class="easyui-datebox" validType="length[0,20]" value="@Model.EmpBirthday" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                民族
+            </th>
+            <td width="40%">
+                <input name="EmpNation" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.EmpNation" />
+            </td>
+            <th width="10%">
+                员工状态
+            </th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+               {
+                   isMult = false,
+                   controlName = "EmpStatusID",
+                   isRequired = true,
+                   engName = "EmpStatus",
+                   width = "98%",
+                   ids = Model.EmpStatusID.ToString()
+               })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                部门
+            </th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+               {
+                   isMult = false,
+                   controlName = "DepID",
+                   isRequired = true,
+                   engName = "department",
+                   width = "98%",
+                   ids = Model.DepID.ToString()
+               })
+            </td>
+            <th width="10%">
+                职务
+            </th>
+            <td width="40%">
+                <input name="EmpPost" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.EmpPost" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                入职日期
+            </th>
+            <td width="40%">
+                <input name="EmpJoinDate" style="width:98%;" class="easyui-datebox" validType="length[0,20]" value="@Model.EmpJoinDate" />
+            </td>
+            <th width="10%">
+                离职日期
+            </th>
+            <td width="40%">
+                <input name="EmpLiveDate" style="width:98%;" class="easyui-datebox" validType="length[0,20]" value="@Model.EmpLiveDate" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                户口地址
+            </th>
+            <td width="40%">
+                <input name="EmpAccountsAddress" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.EmpAccountsAddress" />
+            </td>
+            <th width="10%">
+                居住地址
+            </th>
+            <td width="40%">
+                <input name="EmpHomeAddress" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.EmpHomeAddress" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                手机号
+            </th>
+            <td width="40%">
+                <input name="EmpPhoneNumber" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.EmpPhoneNumber" />
+            </td>
+            <th width="10%">
+                最高学历
+            </th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+               {
+                   isMult = false,
+                   controlName = "LastEducationID",
+                   isRequired = true,
+                   engName = "LastEducation",
+                   width = "98%",
+                   ids = Model.LastEducationID.ToString()
+               })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                院校
+            </th>
+            <td width="40%">
+                <input name="School" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.School" />
+            </td>
+            <th width="10%">
+                专业
+            </th>
+            <td width="40%">
+                <input name="Specil" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.Specil" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                紧急联系人
+            </th>
+            <td width="40%">
+                <input name="UrgenContactPerson" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.UrgenContactPerson" />
+            </td>
+            <th width="10%">
+                紧急联系人电话
+            </th>
+            <td width="40%">
+                <input name="UrgenContactPersonTel" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.UrgenContactPersonTel" />
+            </td>
+        </tr>
+        <tr>
+            <th>年休假天数</th>
+            <td>
+                <input name="VacationDays" style="width:98%;" class="easyui-textbox" validtype="length[0,10]" value="@Model.VacationDays" />
+            </td>
+            <th>年休假剩余天数</th>
+            <td>
+                <input name="VacationDays1" style="width:98%;" class="easyui-textbox" readonly validtype="length[0,10]" value="@Model.VacationDays1" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">
+                备注
+            </th>
+            <td width="40%" colspan="3">
+                <textarea name="Note" style="width:90%;height:100px;font-size:12px;" validType="length[0,500]" >@Model.Note</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "HREmployee";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+	
+}
+
+
+

@@ -1,0 +1,80 @@
+﻿@model DataModel.Models.HRAchievement
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'HRAchievementForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+</script>
+@using (Html.BeginForm("save", "HRAchievement", FormMethod.Post, new { @area = "Hr", @id = "HRAchievementForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+        <th width="10%">员工</th>
+        <td width="40%">
+		    @ViewBag.DropDownBoxEmp
+        </td>
+        <th width="10%">日期</th>
+        <td width="40%">
+		<input name="AchievementDate" style="width:98%;" class="easyui-datebox"   validType="length[0,23]" value="@Model.AchievementDate" />
+        </td>
+        </tr>
+ 
+        <tr>
+        <th width="10%">性质</th>
+        <td width="40%">
+            @BaseData.getBase(new Params()
+           {
+               isMult = false,
+               controlName = "AchievementNatureID",
+               isRequired = true,
+               engName = "AchievementNature",
+               width = "98%",
+               ids = Model.AchievementNatureID.ToString()
+           })
+        </td>
+        <th width="10%">级别</th>
+        <td width="40%">
+		    @BaseData.getBase(new Params()
+           {
+               isMult = false,
+               controlName = "AchievementLevelID",
+               isRequired = true,
+               engName = "AchievementLevel",
+               width = "98%",
+               ids = Model.AchievementLevelID.ToString()
+           })
+        </td>
+        </tr>
+ 
+        <tr>
+        <th width="10%">内容</th>
+        <td width="40%" colspan="3">
+            <textarea name="Content" style="width:98%;height:50px;">@Model.Content</textarea>
+        </td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "HRAchievement";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+	
+}
+
+
+

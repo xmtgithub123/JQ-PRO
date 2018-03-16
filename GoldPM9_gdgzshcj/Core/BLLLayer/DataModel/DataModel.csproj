@@ -1,0 +1,475 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{99EF246D-A5E3-4411-AF05-3B9578F12284}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>DataModel</RootNamespace>
+    <AssemblyName>DataModel</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="EntityFramework">
+      <HintPath>..\..\..\Lib\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BarModel.cs" />
+    <Compile Include="BaseEnum.cs" />
+    <Compile Include="EmpSession.cs" />
+    <Compile Include="Flow.cs" />
+    <Compile Include="HelperClass.cs" />
+    <Compile Include="infoTask.cs" />
+    <Compile Include="Models\AllBaseEmployee.cs" />
+    <Compile Include="Models\ArchBorrow.cs" />
+    <Compile Include="Models\ArchElecDocuments.cs" />
+    <Compile Include="Models\ArchElecFile.cs" />
+    <Compile Include="Models\ArchElecProject.cs" />
+    <Compile Include="Models\ArchPaper.cs" />
+    <Compile Include="Models\ArchPaperFile.cs" />
+    <Compile Include="Models\ArchPaperFolder.cs" />
+    <Compile Include="Models\ArchPaperFolderType.cs" />
+    <Compile Include="Models\ArchPaperRelationElec.cs" />
+    <Compile Include="Models\ArchProjectFolder.cs" />
+    <Compile Include="Models\ArchProjectFolderFile.cs" />
+    <Compile Include="Models\ArchShareFolder.cs" />
+    <Compile Include="Models\ArchShareFolderFile.cs" />
+    <Compile Include="Models\ArchShareFolderML.cs" />
+    <Compile Include="Models\ArchTemplateFolder.cs" />
+    <Compile Include="Models\BaseAttach.cs" />
+    <Compile Include="Models\BaseAttachGroup.cs" />
+    <Compile Include="Models\BaseAttachVer.cs" />
+    <Compile Include="Models\BaseConfig.cs" />
+    <Compile Include="Models\BaseData.cs" />
+    <Compile Include="Models\BaseDataSystem.cs" />
+    <Compile Include="Models\BaseEmpAgen.cs" />
+    <Compile Include="Models\BaseEmployee.cs" />
+    <Compile Include="Models\BaseEmpPermission.cs" />
+    <Compile Include="Models\BaseEmpTeam.cs" />
+    <Compile Include="Models\BaseFeedBack.cs" />
+    <Compile Include="Models\BaseHandover.cs" />
+    <Compile Include="Models\BaseLog.cs" />
+    <Compile Include="Models\BaseMenu.cs" />
+    <Compile Include="Models\BaseMenuPermissionByEmp.cs" />
+    <Compile Include="Models\BaseMenuPermissionByRole.cs" />
+    <Compile Include="Models\BaseNameSpace.cs" />
+    <Compile Include="Models\BasePageConfig.cs" />
+    <Compile Include="Models\BaseQualification.cs" />
+    <Compile Include="Models\BaseRestDay.cs" />
+    <Compile Include="Models\BusProjContractRelation.cs" />
+    <Compile Include="Models\BussBiddingCost.cs" />
+    <Compile Include="Models\BussBiddingInfo.cs" />
+    <Compile Include="Models\BussBiddingInfoPackage.cs" />
+    <Compile Include="Models\BussContract.cs" />
+    <Compile Include="Models\BussContractModel.cs" />
+    <Compile Include="Models\BussContractOther.cs" />
+    <Compile Include="Models\BussContractOtherFeeFact.cs" />
+    <Compile Include="Models\BussContractOtherInvoice.cs" />
+    <Compile Include="Models\BussContractSub.cs" />
+    <Compile Include="Models\BussCustomer.cs" />
+    <Compile Include="Models\BussCustomerEvaluate.cs" />
+    <Compile Include="Models\BussCustomerEvaluateDetail.cs" />
+    <Compile Include="Models\BussCustomerLinkMan.cs" />
+    <Compile Include="Models\BussCustomerRemember.cs" />
+    <Compile Include="Models\BussFeeFact.cs" />
+    <Compile Include="Models\BussFeeInvoice.cs" />
+    <Compile Include="Models\BussFeePlan.cs" />
+    <Compile Include="Models\BussProjInfoRecords.cs" />
+    <Compile Include="Models\BussSubFeeFact.cs" />
+    <Compile Include="Models\BussSubFeeInvoice.cs" />
+    <Compile Include="Models\BussTendersCost.cs" />
+    <Compile Include="Models\BussTendersInfo.cs" />
+    <Compile Include="Models\BussTendersInfoDetail.cs" />
+    <Compile Include="Models\CGManage.cs" />
+    <Compile Include="Models\DesDelivery.cs" />
+    <Compile Include="Models\DesDiscuss.cs" />
+    <Compile Include="Models\DesDiscussGroup.cs" />
+    <Compile Include="Models\DesDiscussReply.cs" />
+    <Compile Include="Models\DesEvent.cs" />
+    <Compile Include="Models\DesEventAlert.cs" />
+    <Compile Include="Models\DesEventGroup.cs" />
+    <Compile Include="Models\DesExch.cs" />
+    <Compile Include="Models\DesExchAttach.cs" />
+    <Compile Include="Models\DesExchRec.cs" />
+    <Compile Include="Models\DesFlow.cs" />
+    <Compile Include="Models\DesFlowNode.cs" />
+    <Compile Include="Models\DesMutiSign.cs" />
+    <Compile Include="Models\DesMutiSignAttach.cs" />
+    <Compile Include="Models\DesMutiSignRec.cs" />
+    <Compile Include="Models\DesPlanTable.cs" />
+    <Compile Include="Models\DesTask.cs" />
+    <Compile Include="Models\DesTaskAttachEx.cs" />
+    <Compile Include="Models\DesTaskCheck.cs" />
+    <Compile Include="Models\DesTaskCheckAttach.cs" />
+    <Compile Include="Models\DesTaskCheckImage.cs" />
+    <Compile Include="Models\DesTaskCheckTalk.cs" />
+    <Compile Include="Models\DesTaskFeeDetails.cs" />
+    <Compile Include="Models\DesTaskFlowExe.cs" />
+    <Compile Include="Models\DesTaskGantt.cs" />
+    <Compile Include="Models\DesTaskGroup.cs" />
+    <Compile Include="Models\DesTaskSplitFile.cs" />
+    <Compile Include="Models\EmpManage.cs" />
+    <Compile Include="Models\FileCatalog.cs" />
+    <Compile Include="Models\FileDetail.cs" />
+    <Compile Include="Models\Flow.cs" />
+    <Compile Include="Models\FlowModel.cs" />
+    <Compile Include="Models\FlowModelNode.cs" />
+    <Compile Include="Models\FlowMultiSign.cs" />
+    <Compile Include="Models\FlowNode.cs" />
+    <Compile Include="Models\FlowNodeExe.cs" />
+    <Compile Include="Models\FlowTest.cs" />
+    <Compile Include="Models\HRAchievement.cs" />
+    <Compile Include="Models\HRAptitudeManager.cs" />
+    <Compile Include="Models\HREmployee.cs" />
+    <Compile Include="Models\HREmpWinManager.cs" />
+    <Compile Include="Models\HREquipmentLedger.cs" />
+    <Compile Include="Models\HRLabourContract.cs" />
+    <Compile Include="Models\HRSalary.cs" />
+    <Compile Include="Models\HRVitae.cs" />
+    <Compile Include="Models\IsoBCD.cs" />
+    <Compile Include="Models\IsoBCRWTZD.cs" />
+    <Compile Include="Models\IsoBGSJRWTZD.cs" />
+    <Compile Include="Models\IsoCheck.cs" />
+    <Compile Include="Models\IsoConstructionCoordination.cs" />
+    <Compile Include="Models\IsoConstructionSet.cs" />
+    <Compile Include="Models\IsoConsultRecord.cs" />
+    <Compile Include="Models\IsoDesignReturn.cs" />
+    <Compile Include="Models\IsoDWGZLXD.cs" />
+    <Compile Include="Models\IsoFBSJCH.cs" />
+    <Compile Include="Models\IsoFile.cs" />
+    <Compile Include="Models\IsoForm.cs" />
+    <Compile Include="Models\IsoFormNode.cs" />
+    <Compile Include="Models\IsoGCCLTJD.cs" />
+    <Compile Include="Models\IsoGCDZKCTJDJZ.cs" />
+    <Compile Include="Models\IsoRemark.cs" />
+    <Compile Include="Models\IsoRWPSTZD.cs" />
+    <Compile Include="Models\IsoSJBGD.cs" />
+    <Compile Include="Models\IsoSJCH.cs" />
+    <Compile Include="Models\IsoSJJSD.cs" />
+    <Compile Include="Models\IsoSJPSJYB.cs" />
+    <Compile Include="Models\IsoSJTJTGD.cs" />
+    <Compile Include="Models\IsoTechnologyChange.cs" />
+    <Compile Include="Models\IsoXMCB.cs" />
+    <Compile Include="Models\IsoZYZDJYB.cs" />
+    <Compile Include="Models\Mapping\AllBaseEmployeeMap.cs" />
+    <Compile Include="Models\Mapping\ArchBorrowMap.cs" />
+    <Compile Include="Models\Mapping\ArchElecDocumentsMap.cs" />
+    <Compile Include="Models\Mapping\ArchElecFileMap.cs" />
+    <Compile Include="Models\Mapping\ArchElecProjectMap.cs" />
+    <Compile Include="Models\Mapping\ArchPaperFileMap.cs" />
+    <Compile Include="Models\Mapping\ArchPaperFolderMap.cs" />
+    <Compile Include="Models\Mapping\ArchPaperFolderTypeMap.cs" />
+    <Compile Include="Models\Mapping\ArchPaperMap.cs" />
+    <Compile Include="Models\Mapping\ArchPaperRelationElecMap.cs" />
+    <Compile Include="Models\Mapping\ArchProjectFolderFileMap.cs" />
+    <Compile Include="Models\Mapping\ArchProjectFolderMap.cs" />
+    <Compile Include="Models\Mapping\ArchShareFolderFileMap.cs" />
+    <Compile Include="Models\Mapping\ArchShareFolderMap.cs" />
+    <Compile Include="Models\Mapping\ArchShareFolderMLMap.cs" />
+    <Compile Include="Models\Mapping\ArchTemplateFolderMap.cs" />
+    <Compile Include="Models\Mapping\BaseAttachGroupMap.cs" />
+    <Compile Include="Models\Mapping\BaseAttachMap.cs" />
+    <Compile Include="Models\Mapping\BaseAttachVerMap.cs" />
+    <Compile Include="Models\Mapping\BaseConfigMap.cs" />
+    <Compile Include="Models\Mapping\BaseDataMap.cs" />
+    <Compile Include="Models\Mapping\BaseDataSystemMap.cs" />
+    <Compile Include="Models\Mapping\BaseEmpAgenMap.cs" />
+    <Compile Include="Models\Mapping\BaseEmployeeMap.cs" />
+    <Compile Include="Models\Mapping\BaseEmpPermissionMap.cs" />
+    <Compile Include="Models\Mapping\BaseEmpTeamMap.cs" />
+    <Compile Include="Models\Mapping\BaseFeedBackMap.cs" />
+    <Compile Include="Models\Mapping\BaseHandoverMap.cs" />
+    <Compile Include="Models\Mapping\BaseLogMap.cs" />
+    <Compile Include="Models\Mapping\BaseMenuMap.cs" />
+    <Compile Include="Models\Mapping\BaseMenuPermissionByEmpMap.cs" />
+    <Compile Include="Models\Mapping\BaseMenuPermissionByRoleMap.cs" />
+    <Compile Include="Models\Mapping\BaseNameSpaceMap.cs" />
+    <Compile Include="Models\Mapping\BasePageConfigMap.cs" />
+    <Compile Include="Models\Mapping\BaseQualificationMap.cs" />
+    <Compile Include="Models\Mapping\BaseRestDayMap.cs" />
+    <Compile Include="Models\Mapping\BusProjContractRelationMap.cs" />
+    <Compile Include="Models\Mapping\BussBiddingCostMap.cs" />
+    <Compile Include="Models\Mapping\BussBiddingInfoMap.cs" />
+    <Compile Include="Models\Mapping\BussBiddingInfoPackageMap.cs" />
+    <Compile Include="Models\Mapping\BussContractMap.cs" />
+    <Compile Include="Models\Mapping\BussContractModelMap.cs" />
+    <Compile Include="Models\Mapping\BussContractOtherFeeFactMap.cs" />
+    <Compile Include="Models\Mapping\BussContractOtherInvoiceMap.cs" />
+    <Compile Include="Models\Mapping\BussContractOtherMap.cs" />
+    <Compile Include="Models\Mapping\BussContractSubMap.cs" />
+    <Compile Include="Models\Mapping\BussCustomerEvaluateDetailMap.cs" />
+    <Compile Include="Models\Mapping\BussCustomerEvaluateMap.cs" />
+    <Compile Include="Models\Mapping\BussCustomerLinkManMap.cs" />
+    <Compile Include="Models\Mapping\BussCustomerMap.cs" />
+    <Compile Include="Models\Mapping\BussCustomerRememberMap.cs" />
+    <Compile Include="Models\Mapping\BussFeeFactMap.cs" />
+    <Compile Include="Models\Mapping\BussFeeInvoiceMap.cs" />
+    <Compile Include="Models\Mapping\BussFeePlanMap.cs" />
+    <Compile Include="Models\Mapping\BussProjInfoRecordsMap.cs" />
+    <Compile Include="Models\Mapping\BussSubFeeFactMap.cs" />
+    <Compile Include="Models\Mapping\BussSubFeeInvoiceMap.cs" />
+    <Compile Include="Models\Mapping\BussTendersCostMap.cs" />
+    <Compile Include="Models\Mapping\BussTendersInfoDetailMap.cs" />
+    <Compile Include="Models\Mapping\BussTendersInfoMap.cs" />
+    <Compile Include="Models\Mapping\CGManageMap.cs" />
+    <Compile Include="Models\Mapping\DesDeliveryMap.cs" />
+    <Compile Include="Models\Mapping\DesDiscussGroupMap.cs" />
+    <Compile Include="Models\Mapping\DesDiscussMap.cs" />
+    <Compile Include="Models\Mapping\DesDiscussReplyMap.cs" />
+    <Compile Include="Models\Mapping\DesEventAlertMap.cs" />
+    <Compile Include="Models\Mapping\DesEventGroupMap.cs" />
+    <Compile Include="Models\Mapping\DesEventMap.cs" />
+    <Compile Include="Models\Mapping\DesExchAttachMap.cs" />
+    <Compile Include="Models\Mapping\DesExchMap.cs" />
+    <Compile Include="Models\Mapping\DesExchRecMap.cs" />
+    <Compile Include="Models\Mapping\DesFlowMap.cs" />
+    <Compile Include="Models\Mapping\DesFlowNodeMap.cs" />
+    <Compile Include="Models\Mapping\DesMutiSignAttachMap.cs" />
+    <Compile Include="Models\Mapping\DesMutiSignMap.cs" />
+    <Compile Include="Models\Mapping\DesMutiSignRecMap.cs" />
+    <Compile Include="Models\Mapping\DesPlanTableMap.cs" />
+    <Compile Include="Models\Mapping\DesTaskAttachExMap.cs" />
+    <Compile Include="Models\Mapping\DesTaskCheckAttachMap.cs" />
+    <Compile Include="Models\Mapping\DesTaskCheckImageMap.cs" />
+    <Compile Include="Models\Mapping\DesTaskCheckMap.cs" />
+    <Compile Include="Models\Mapping\DesTaskCheckTalkMap.cs" />
+    <Compile Include="Models\Mapping\DesTaskFeeDetailsMap.cs" />
+    <Compile Include="Models\Mapping\DesTaskGanttMap.cs" />
+    <Compile Include="Models\Mapping\DesTaskGroupMap.cs" />
+    <Compile Include="Models\Mapping\DesTaskMap.cs" />
+    <Compile Include="Models\Mapping\EmpManageMap.cs" />
+    <Compile Include="Models\Mapping\FileCatalogMap.cs" />
+    <Compile Include="Models\Mapping\FileDetailMap.cs" />
+    <Compile Include="Models\Mapping\FlowMap.cs" />
+    <Compile Include="Models\Mapping\FlowModelMap.cs" />
+    <Compile Include="Models\Mapping\FlowModelNodeMap.cs" />
+    <Compile Include="Models\Mapping\FlowMultiSignMap.cs" />
+    <Compile Include="Models\Mapping\FlowNodeExeMap.cs" />
+    <Compile Include="Models\Mapping\FlowNodeMap.cs" />
+    <Compile Include="Models\Mapping\HRAchievementMap.cs" />
+    <Compile Include="Models\Mapping\HRAptitudeManagerMap.cs" />
+    <Compile Include="Models\Mapping\HREmployeeMap.cs" />
+    <Compile Include="Models\Mapping\HREmpWinManagerMap.cs" />
+    <Compile Include="Models\Mapping\HREquipmentLedgerMap.cs" />
+    <Compile Include="Models\Mapping\HRLabourContractMap.cs" />
+    <Compile Include="Models\Mapping\HRSalaryMap.cs" />
+    <Compile Include="Models\Mapping\HRVitaeMap.cs" />
+    <Compile Include="Models\Mapping\IsoBCDMap.cs" />
+    <Compile Include="Models\Mapping\IsoBCRWTZDMap.cs" />
+    <Compile Include="Models\Mapping\IsoBGSJRWTZDMap.cs" />
+    <Compile Include="Models\Mapping\IsoCheckMap.cs" />
+    <Compile Include="Models\Mapping\IsoConstructionCoordinationMap.cs" />
+    <Compile Include="Models\Mapping\IsoConstructionSetMap.cs" />
+    <Compile Include="Models\Mapping\IsoConsultRecordMap.cs" />
+    <Compile Include="Models\Mapping\IsoDesignReturnMap.cs" />
+    <Compile Include="Models\Mapping\IsoDWGZLXDMap.cs" />
+    <Compile Include="Models\Mapping\IsoFBSJCHMap.cs" />
+    <Compile Include="Models\Mapping\IsoFileMap.cs" />
+    <Compile Include="Models\Mapping\IsoFormMap.cs" />
+    <Compile Include="Models\Mapping\IsoFormNodeMap.cs" />
+    <Compile Include="Models\Mapping\IsoGCCLTJDMap.cs" />
+    <Compile Include="Models\Mapping\IsoGCDZKCTJDJZMap.cs" />
+    <Compile Include="Models\Mapping\IsoRemarkMap.cs" />
+    <Compile Include="Models\Mapping\IsoSJBGDMap.cs" />
+    <Compile Include="Models\Mapping\IsoRWPSTZDMap.cs" />
+    <Compile Include="Models\Mapping\IsoSJCHMap.cs" />
+    <Compile Include="Models\Mapping\IsoSJJSDMap.cs" />
+    <Compile Include="Models\Mapping\IsoSJPSJYBMap.cs" />
+    <Compile Include="Models\Mapping\IsoSJTJTGDMap.cs" />
+    <Compile Include="Models\Mapping\IsoXMCBMap.cs" />
+    <Compile Include="Models\Mapping\IsoTechnologyChangeMap.cs" />
+    <Compile Include="Models\Mapping\IsoZYZDJYBMap.cs" />
+    <Compile Include="Models\Mapping\ModelExchangeMap.cs" />
+    <Compile Include="Models\Mapping\ModelExchangeReceiveMap.cs" />
+    <Compile Include="Models\Mapping\ModelIsoCheckMap.cs" />
+    <Compile Include="Models\Mapping\ModelReceiveMap.cs" />
+    <Compile Include="Models\Mapping\ModelTreeMap.cs" />
+    <Compile Include="Models\Mapping\ModelVolCatalogMap.cs" />
+    <Compile Include="Models\Mapping\OaBBSMap.cs" />
+    <Compile Include="Models\Mapping\OaBookMap.cs" />
+    <Compile Include="Models\Mapping\OaBookStockMap.cs" />
+    <Compile Include="Models\Mapping\OaBookUseMap.cs" />
+    <Compile Include="Models\Mapping\OaCarMap.cs" />
+    <Compile Include="Models\Mapping\OaCarUseMap.cs" />
+    <Compile Include="Models\Mapping\OaDiaryMap.cs" />
+    <Compile Include="Models\Mapping\OaEquipDealMap.cs" />
+    <Compile Include="Models\Mapping\OaEquipGetMap.cs" />
+    <Compile Include="Models\Mapping\OaEquipKeepMap.cs" />
+    <Compile Include="Models\Mapping\OaEquipmentMap.cs" />
+    <Compile Include="Models\Mapping\OaEquipRepairMap.cs" />
+    <Compile Include="Models\Mapping\OaEquipReturnMap.cs" />
+    <Compile Include="Models\Mapping\OaEquipStockMap.cs" />
+    <Compile Include="Models\Mapping\OaEquipUseMap.cs" />
+    <Compile Include="Models\Mapping\OaFileReceiveMap.cs" />
+    <Compile Include="Models\Mapping\OaFileSendMap.cs" />
+    <Compile Include="Models\Mapping\OaMailMap.cs" />
+    <Compile Include="Models\Mapping\OaMailReadMap.cs" />
+    <Compile Include="Models\Mapping\OaMeetingRoomMap.cs" />
+    <Compile Include="Models\Mapping\OaMeetingUseMap.cs" />
+    <Compile Include="Models\Mapping\OaMessMap.cs" />
+    <Compile Include="Models\Mapping\OaMessReadMap.cs" />
+    <Compile Include="Models\Mapping\OaNewMap.cs" />
+    <Compile Include="Models\Mapping\OaNewsReadMap.cs" />
+    <Compile Include="Models\Mapping\OaNoticeMap.cs" />
+    <Compile Include="Models\Mapping\OaRemindMap.cs" />
+    <Compile Include="Models\Mapping\OaStampInfoMap.cs" />
+    <Compile Include="Models\Mapping\OaStampLendMap.cs" />
+    <Compile Include="Models\Mapping\OaStampUseMap.cs" />
+    <Compile Include="Models\Mapping\PayBalanceChangeHistMap.cs" />
+    <Compile Include="Models\Mapping\PayBalanceEngineeringMap.cs" />
+    <Compile Include="Models\Mapping\PayBalanceLotMap.cs" />
+    <Compile Include="Models\Mapping\PayBalanceUserAccountMap.cs" />
+    <Compile Include="Models\Mapping\PayModelMap.cs" />
+    <Compile Include="Models\Mapping\ProjCostItemMap.cs" />
+    <Compile Include="Models\Mapping\ProjCostMap.cs" />
+    <Compile Include="Models\Mapping\ProjCostModelMap.cs" />
+    <Compile Include="Models\Mapping\ProjectAuxiliaryMap.cs" />
+    <Compile Include="Models\Mapping\ProjectDynamicMap.cs" />
+    <Compile Include="Models\Mapping\ProjectFavouriteMap.cs" />
+    <Compile Include="Models\Mapping\ProjectFenBuMap.cs" />
+    <Compile Include="Models\Mapping\ProjectMap.cs" />
+    <Compile Include="Models\Mapping\ProjManageMap.cs" />
+    <Compile Include="Models\Mapping\ProjSubMap.cs" />
+    <Compile Include="Models\Mapping\SafeManageMap.cs" />
+    <Compile Include="Models\Mapping\SSManageMap.cs" />
+    <Compile Include="Models\Mapping\TotalContractMap.cs" />
+    <Compile Include="Models\Mapping\TripMap.cs" />
+    <Compile Include="Models\Mapping\VacationMap.cs" />
+    <Compile Include="Models\Mapping\View_EmpQualificationMap.cs" />
+    <Compile Include="Models\Mapping\View_FlowOnHandMap.cs" />
+    <Compile Include="Models\Mapping\View_FlowRemindMap.cs" />
+    <Compile Include="Models\Mapping\View_FormMap.cs" />
+    <Compile Include="Models\Mapping\View_MenuPermitMap.cs" />
+    <Compile Include="Models\Mapping\V_SystemTableFKeyMap.cs" />
+    <Compile Include="Models\Mapping\V_SystemTableStructureMap.cs" />
+    <Compile Include="Models\Mapping\V_SystemTableXtypeMap.cs" />
+    <Compile Include="Models\ModelExchange.cs" />
+    <Compile Include="Models\ModelExchangeReceive.cs" />
+    <Compile Include="Models\ModelIsoCheck.cs" />
+    <Compile Include="Models\ModelReceive.cs" />
+    <Compile Include="Models\ModelTree.cs" />
+    <Compile Include="Models\ModelVolCatalog.cs" />
+    <Compile Include="Models\OaBBS.cs" />
+    <Compile Include="Models\OaBook.cs" />
+    <Compile Include="Models\OaBookStock.cs" />
+    <Compile Include="Models\OaBookUse.cs" />
+    <Compile Include="Models\OaCar.cs" />
+    <Compile Include="Models\OaCarUse.cs" />
+    <Compile Include="Models\OaDiary.cs" />
+    <Compile Include="Models\OaEquipDeal.cs" />
+    <Compile Include="Models\OaEquipGet.cs" />
+    <Compile Include="Models\OaEquipKeep.cs" />
+    <Compile Include="Models\OaEquipment.cs" />
+    <Compile Include="Models\OaEquipRepair.cs" />
+    <Compile Include="Models\OaEquipReturn.cs" />
+    <Compile Include="Models\OaEquipStock.cs" />
+    <Compile Include="Models\OaEquipUse.cs" />
+    <Compile Include="Models\OaFileReceive.cs" />
+    <Compile Include="Models\OaFileSend.cs" />
+    <Compile Include="Models\OaMail.cs" />
+    <Compile Include="Models\OaMailRead.cs" />
+    <Compile Include="Models\OaMeetingRoom.cs" />
+    <Compile Include="Models\OaMeetingUse.cs" />
+    <Compile Include="Models\OaMess.cs" />
+    <Compile Include="Models\OaMessRead.cs" />
+    <Compile Include="Models\OaNew.cs" />
+    <Compile Include="Models\OaNewsRead.cs" />
+    <Compile Include="Models\OaNotice.cs" />
+    <Compile Include="Models\OaRemind.cs" />
+    <Compile Include="Models\OaStampInfo.cs" />
+    <Compile Include="Models\OaStampLend.cs" />
+    <Compile Include="Models\OaStampUse.cs" />
+    <Compile Include="Models\PayBalanceChangeHist.cs" />
+    <Compile Include="Models\PayBalanceEngineering.cs" />
+    <Compile Include="Models\PayBalanceLot.cs" />
+    <Compile Include="Models\PayBalanceUserAccount.cs" />
+    <Compile Include="Models\PayModel.cs" />
+    <Compile Include="Models\PJParames.cs" />
+    <Compile Include="Models\ProjCost.cs" />
+    <Compile Include="Models\ProjCostItem.cs" />
+    <Compile Include="Models\ProjCostModel.cs" />
+    <Compile Include="Models\Project.cs" />
+    <Compile Include="Models\ProjectAuxiliary.cs" />
+    <Compile Include="Models\ProjectDynamic.cs" />
+    <Compile Include="Models\ProjectFavourite.cs" />
+    <Compile Include="Models\ProjectFenBu.cs" />
+    <Compile Include="Models\ProjIRNote.cs" />
+    <Compile Include="Models\ProjManage.cs" />
+    <Compile Include="Models\ProjSub.cs" />
+    <Compile Include="Models\SafeManage.cs" />
+    <Compile Include="Models\Scheduler.cs" />
+    <Compile Include="Models\Shortcut.cs" />
+    <Compile Include="Models\SSManage.cs" />
+    <Compile Include="Models\TotalContract.cs" />
+    <Compile Include="Models\Trip.cs" />
+    <Compile Include="Models\Vacation.cs" />
+    <Compile Include="Models\View_EmpQualification.cs" />
+    <Compile Include="Models\View_FlowOnHand.cs" />
+    <Compile Include="Models\View_FlowRemind.cs" />
+    <Compile Include="Models\View_Form.cs" />
+    <Compile Include="Models\View_MenuPermit.cs" />
+    <Compile Include="Models\V_SystemTableFKey.cs" />
+    <Compile Include="Models\V_SystemTableStructure.cs" />
+    <Compile Include="Models\V_SystemTableXtype.cs" />
+    <Compile Include="Models\Weekly.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="RemindInfo.cs" />
+    <Compile Include="SpecSelect.cs" />
+    <Compile Include="Upload.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="CodeTemplates\ReverseEngineerCodeFirst\Context.tt" />
+    <None Include="CodeTemplates\ReverseEngineerCodeFirst\Entity.tt" />
+    <None Include="CodeTemplates\ReverseEngineerCodeFirst\Mapping.tt" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{3259AA49-8AA1-44D3-9025-A0B520596A8C}" />
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,670 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.BussContract
+
+
+@section head {
+    <style type="text/css">
+        .aui-btn {
+            padding: 10px 15px;
+            font-size: 13px;
+        }
+
+        .aui-btn-row:after {
+            border: 0;
+        }
+
+        .jq-text-disabled {
+            color: #898787;
+            width: 98%;
+            pointer-events: none;
+            background-color: #efefef !important;
+            border: 0;
+            font-size: 13px;
+        }
+
+        .set-disabled {
+            pointer-events: none !important
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            display: block;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .aui-input-hook {
+            line-height: 34px;
+            text-align: left;
+            padding-left: 20px;
+            background: #efefef;
+        }
+
+        .aui-display-hook {
+            display: none;
+            width: 30%;
+            float: right;
+            font-size: 13px;
+            line-height: 33px;
+            margin-right: 6px;
+            padding: 3px 6px;
+        }
+
+        .aui-input-width {
+            width: 98%;
+        }
+
+        .hiddenShow {
+            height: 0;
+        }
+
+        .aui-input-row label.aui-input-addon {
+            min-width: 90px;
+        }
+
+        .set-selected-icon select {
+            float: right;
+            margin-right: 5px;
+            border: 0;
+            margin-bottom: 0;
+        }
+
+        .set-selected-icon i {
+            position: absolute;
+            right: 25px;
+            top: 15px;
+        }
+        /*.aui-input-row input, .aui-input-row select, .set-selected-icon .aui-input-addon {
+            color: #9e9e9e;
+        }*/
+
+        .aui-input-row-position {
+            position: relative;
+            display: table;
+            padding: 6px 0;
+        }
+
+        .aui-input-row label.aui-input-addon {
+            font-size: 14px;
+        }
+
+        .error-border {
+            border: 1px solid red !important;
+        }
+
+        .aui-input-check-disable {
+            font-size: 12px !important;
+            font-weight: normal !important;
+        }
+
+            .aui-input-check-disable label {
+                line-height: 45px;
+                margin-right: 15px;
+            }
+
+            .aui-input-check-disable input[type="checkbox"] {
+                width: auto;
+                line-height: 45px;
+            }
+    </style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="BussContractForm" class="aui-form">
+            <div class="aui-input-row">
+                <input type="hidden" id="CompanyType" name="CompanyType" value="CJ" />
+                <input id="FatherID" name="FatherID" type="hidden" value="@Model.FatherID" />
+                <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;合同编号：</label>
+                <input type="text" id="ConNumber" class="aui-input" name="ConNumber" value="@Model.ConNumber" />
+            </div>
+            <div class="aui-input-row">
+                <b class="aui-input-addon aui-text-danger">*</b>
+                <label class="aui-input-addon">&nbsp;&nbsp;合同名称：</label>
+                @*<div class="aui-input-block">@Model.ConName</div>*@
+                <textarea rows="2" name="ConNameText" id="ConNameText" style="width:98%;" class="aui-input" data-options="multiline:true">@Model.ConName</textarea>
+                <input type="hidden" id="ConName" class="aui-input" name="ConName" value="@Model.ConName" />
+            </div>
+            <div class="aui-input-row set-selected-icon">
+                <b class="aui-input-addon aui-text-danger">*</b>
+                <label class="aui-input-addon">&nbsp;&nbsp;合同类别</label>
+                <input type="hidden" id="ConType_i" name="ConType_i" value="@Model.ConType" />
+                @BaseData.getBaseSelect(new Params()
+               {
+                   controlName = "ConType",
+                   isRequired = true,
+                   engName = "ContractType",
+                   width = "98%",
+                   ids = Model.ConType.ToString()
+               })
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;是否分包</label>
+                <input type="hidden" name="name" id="ConStreamNumberValue" value="@Model.ConStreamNumber" />
+                <select id="ConStreamNumber" name="ConStreamNumber" class="aui-input" style="width:98%;">
+                    <option value="0">否</option>
+                    <option value="1">是</option>
+                </select>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;合同金额(元)：</label>
+                <input type="text" id="ConFee" class="aui-input" name="ConFee" value="@Model.ConFee" />
+            </div>
+            @*<div class="aui-input-row">
+                    <label class="aui-input-addon">&nbsp;&nbsp;合同类型</label>
+                    <select id="ColAttVal1" name="ColAttVal1" class="aui-input" style="width:98%;" value="@Model.ColAttVal1">
+                        <option value="0">补充合同</option>
+                        <option value="1">变更合同</option>
+                    </select>
+                </div>*@
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目名称：</label>
+                <input type="hidden" id="HideprojIDs" value="@(ViewData["ProjIDs"])" />
+                <input type="hidden" name="ProjTable_Data" id="ProjTable_Data" />
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="ProjSubTableGrid" style="font-size:12px;">
+                    <thead>
+                        <tr>
+                            <th>
+                                <div class="checkAll" style="margin:0">
+                                    <input type="checkbox" name="name" value="" />
+                                </div>
+                            </th>
+                            <th>项目编号</th>
+                            <th>项目名称</th>
+                            <th>合同金额(元)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gridList" style="font-size:12px;"></tbody>
+                </table>
+            </div>
+
+            <script id="listTpl" type="text/x-dot-template">
+                {{~it:appendProjectGetInfoData:index}}
+                <tr id="tr_{{=index}}">
+
+                    <td>
+                        <div class="checkbox" style="margin:0">
+                            <input type="checkbox" name="subBox" value="" />
+                        </div>
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.ProjNumber}}
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.ProjName}}
+                    </td>
+                    <td>
+                        {{=appendProjectGetInfoData.ConFee}}
+                    </td>
+                </tr>
+                {{~}}
+            </script>
+
+            <div class="aui-input-row set-selected-icon">
+                <b class="aui-input-addon aui-text-danger">*</b>
+                <label class="aui-input-addon">&nbsp;&nbsp;合同履行方式</label>
+                <input type="hidden" id="ConFulfilType_i" name="ConFulfilType_i" value="@Model.ConFulfilType" />
+                @BaseData.getBaseSelect(new Params()
+               {
+                   controlName = "ConFulfilType",
+                   isRequired = true,
+                   engName = "ConDealWays",
+                   width = "98%",
+                   ids = Model.ConFulfilType.ToString()
+               })
+                <i class="aui-input-addon aui-iconfont aui-icon-rounddown"></i>
+            </div>
+            <div class="aui-input-row set-selected-icon">
+                <b class="aui-input-addon aui-text-danger">*</b>
+                <label class="aui-input-addon">&nbsp;&nbsp;合同状态</label>
+                <input type="hidden" id="ConStatus_i" name="ConStatus_i" value="@Model.ConStatus" />
+                @BaseData.getBaseSelect(new Params()
+                   {
+                       controlName = "ConStatus",
+                       isRequired = true,
+                       engName = "ConStatus",
+                       width = "98%",
+                       ids = Model.ConStatus.ToString()
+                   })
+                <i class="aui-input-addon aui-iconfont aui-icon-rounddown"></i>
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;客户名称</label>
+                <input id="CustID" name="CustID" style="width:98%;" type="hidden" />
+                <div class="aui-input-block" id="CustNameText" style="width:63%;display:inline-block;">@Model.CustName</div>
+                <input id="CustName" name="CustName" type="hidden" class="aui-input" value="@Model.CustName">
+                <input type="button" id="CustomerBtn" namne="CustomerBtn" class="aui-btn aui-btn-block aui-btn-success p-0" value="选择名称" style="width:32%;float:right;margin-right:8px;" onclick="selectCustName();" />
+            </div>
+
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;联系人</label>
+                <input id="CustLinkId" name="CustLinkId" style="width:98%;" type="hidden" />
+                <input id="CustLinkManName" name="CustLinkManName" type="text" class="aui-input" value="@Model.CustLinkManName">
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;联系电话</label>
+                <input id="CustLinkManTel" name="CustLinkManTel" type="text" class="aui-input" value="@Model.CustLinkManTel">
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;邮箱</label>
+                <input id="CustLinkManWeb" name="CustLinkManWeb" type="text" class="aui-input" value="@Model.CustLinkManWeb">
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;结算金额(元)</label>
+                <input id="ConBalanceFee" name="ConBalanceFee" type="text" class="aui-input" value="@Model.ConBalanceFee">
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;登记人</label>
+                <div class="aui-input-block" id="CreateEmpNameText">@Model.CreateEmpName</div>
+                <input id="CreateEmpName" name="CreateEmpName" type="hidden" class="aui-input jq-text-disabled" value="@Model.CreateEmpName">
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;登记日期</label>
+                <input type="date" id="CreateDate" name="CreateDate" class="aui-input" value="@Model.CreateDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;付款条件</label>
+                <textarea rows="6" name="ConPay" id="ConPay" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.ConPay</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;审核意见：</label>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-bordered" id="SHYJTableTableGrid" style="font-size:12px;">
+                    <thead>
+                        <tr>
+                            <th>审核意见</th>
+                            <th>操作人</th>
+                        </tr>
+                    </thead>
+                    <tbody id="gridListSHYJTable" style="font-size:12px;"></tbody>
+                </table>
+            </div>
+
+            <script id="listTplSHYJTable" type="text/x-dot-template">
+                {{~it:appendSHYJInfoData:index}}
+                <tr id="tr_{{=index}}">
+
+
+                    <td>
+                        <input type="hidden" name="name" value="{{=appendSHYJInfoData.Id}}" />
+                        <input type="hidden" name="name" value="{{=appendSHYJInfoData.CZRID}}" />
+                        {{=appendSHYJInfoData.SHYJ}}
+                    </td>
+                    <td>
+                        {{=appendSHYJInfoData.CZR}} &nbsp;&nbsp;{{=appendSHYJInfoData.CZRQ}} &nbsp;&nbsp;
+                    </td>
+                </tr>
+                {{~}}
+            </script>
+            @{ if (Model.Id == 0 && Model.FatherID == 0)
+                {
+                    <div class="aui-input-row">
+                        <label class="aui-input-addon">&nbsp;&nbsp;收款计划：</label>
+                        <input type="hidden" name="PlanTable_Data" id="PlanTable_Data" />
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="planTableGrid" style="font-size:12px;">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <div class="checkAll" style="margin:0">
+                                            <input type="checkbox" name="name" value="" />
+                                        </div>
+                                    </th>
+                                    <th>项目名称</th>
+                                    <th>合同金额(元)</th>
+                                    <th>计划收款日期</th>
+                                    <th>收费说明</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gridListplanTable" style="font-size:12px;"></tbody>
+                        </table>
+                    </div>
+
+                    <script id="listTplplanTable" type="text/x-dot-template">
+                        {{~it:appendplanInfoData:index}}
+                        <tr id="tr_{{=index}}">
+                            <td>
+                                <div class="checkbox" style="margin:0">
+                                    <input type="checkbox" name="subBox" value="" />
+                                </div>
+                            </td>
+                            <td>
+                                {{=appendplanInfoData.ProjNumber}}
+                            </td>
+                            <td>
+                                {{=appendplanInfoData.ProjName}}
+                            </td>
+                            <td>
+                                {{=appendplanInfoData.ConFee}}
+                            </td>
+                        </tr>
+                        {{~}}
+                    </script>
+                }
+            }
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;备注</label>
+                <textarea rows="6" name="ConNote" id="ConNote" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.ConNote</textarea>
+            </div>
+            @{if (Model.FatherID != 0)
+                {
+                    <div class="aui-input-row">
+                        <label class="aui-input-addon">&nbsp;&nbsp;主合同编号</label>
+                        <input type="text" id="ConMainNumber" name="ConMainNumber" class="aui-input" value="@Model.ConMainNumber" />
+                    </div>
+                }
+            }
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;签订日期</label>
+                <input type="date" id="ConDate" name="ConDate" class="aui-input" value="@Model.ConDate.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;归档盒号</label>
+                <input type="text" id="ConFileNumber" name="ConFileNumber" class="aui-input" value="@Model.ConFileNumber" />
+            </div>
+
+            @*<div class="aui-input-row">
+                    <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+                </div>*@
+
+            <input type="hidden" id="SHYJ" name="SHYJ" />
+        </form>
+        <div class="aui-dialog aui-hidden" id="dialog" style="top:50%;">
+            <div class="aui-dialog-header">选择客户名称</div>
+            <div class="aui-dialog-body aui-text-left">
+                <div class="aui-card aui-noborder" style="margin-bottom:0;">
+
+                    <ul class="aui-list-view aui-self-list-view" id="gridList_2" style="max-height:250px;overflow-y:auto;margin-bottom:0;"></ul>
+                    <!--模板-->
+                    <script id="listTpl_2" type="text/x-dot-template">
+                        {{~it:appendInfoData:index}}
+                        <li class="aui-list-view-cell aui-im" tapmode data-uid="{{=appendInfoData.Id}}" style="padding:5px;">
+                            <div class="radio" style="margin-top:0;margin-bottom:5px;">
+                                <input type="hidden" name="optionsRadios" id="{{=appendInfoData.Id}}" value="{{=appendInfoData.Id}}" />
+                                <input type="radio" name="optionsRadios" id="{{=appendInfoData.Id}}" value="{{=appendInfoData.Id}}_{{=appendInfoData.CustName}}" />
+                            </div>
+                            <div class="aui-img-body">
+                                <div style="margin-bottom: 5px;">
+                                    <label style="display:inline">{{=appendInfoData.CustName == '' ? '未填写': appendInfoData.CustName}}</label>
+                                </div>
+                            </div>
+                        </li>
+                        {{~}}
+                    </script>
+                </div>
+            </div>
+
+            <div class="aui-dialog-footer">
+                <div class="aui-dialog-btn aui-text-danger" tapmode onclick="cancel()">取消</div>
+                <div class="aui-dialog-btn aui-text-info" tapmode onclick="confirm()">确定</div>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/javascript">
+        var projData;
+        var SHYJData;
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                //initFormBegin(JSON.stringify({
+                //    "Result": true,
+                //    "Message": null,
+                //    "NodeName": "发起审批",
+                //    //"AllowEditControls": "ProjNumber;ProjName;ProjEmpId;ProjTypeID;ColAttType2;ProjAreaID;ColAttType1;ProjPropertyID;ProjVoltID;TaskBasisName;TaskBasisNumber;CustName;ProjTaskSource;ProjDepId;ProjJoinDepIds;CreatorEmpName;DateCreate;DatePlanStart;DatePlanFinish;ProjTaskSource;ProjFeeSource;DatePlanDeliver;ProjDemand;ProjNoteOther;btnAddUnit;btnRemoveUnit;UploadFile1;btnChoice;btnInput;ProjPhaseGrid{ProjNumber,ProjName,ProjEmpId,ProjTypeID,DatePlanStart,DatePlanFinish,ProjPhaseIds,ProjFee,ProjDemand,ProjNoteOther,ProjVoltID,ColAttType3,ColAttVal3,ColAttVal4,ColAttVal5,ProjPhaseInfo};ColAttType4;ProjTaskContent;ProjCostGrid{ModelTempFee,ModelFactFee};btnImportUnit;btnDownImportExcel;CustID;CustLinkId;CustLinkTel;CustLinkWeb;ColAttVal1",
+                //    "SignControls": "",
+                //    "AllowEditControls":"{}"
+                //}));
+                //initFormBegin();
+            }
+        })
+
+        //替换字符
+        function replace(str) {
+            re = new RegExp("&quot;", "g");
+            var newstart = str.replace(re, '"');
+            return newstart;
+        }
+        //表单初始化
+        function initFormBegin(params) {
+            //alert(params)
+            $('#ConStreamNumber').val($('#ConStreamNumberValue').val());
+            //合同类别
+            $('#ConType').val($('#ConType_i').val())
+            //合同履行方式
+            $('#ConFulfilType').val($('#ConFulfilType_i').val())
+            //合同状态
+            $('#ConStatus').val($('#ConStatus_i').val())
+
+
+            var ConBalanceFeeValue = parseFloat($('#ConBalanceFee').val());
+            $('#ConBalanceFee').val(ConBalanceFeeValue.toFixed(2));
+
+
+            var ConFeeValue = parseFloat($('#ConFee').val())
+            $('#ConFee').val(ConFeeValue.toFixed(2))
+            //签订日期
+            var ConDate = $('#ConDate').val();
+
+            if ((ConDate == '1900-01-01')) {
+                $('#ConDate').val('');
+            }
+
+            //获取数据
+            $.post('@Url.Action("GetProjList", "BussContract", new { @area= "Bussiness" })', {
+                projIDs: '@(ViewData["ProjIDs"])',
+                ConID:'@Model.Id',
+            }, function (_rData) {
+                console.log(JSON.parse(_rData))
+                projData = JSON.parse(_rData).rows
+                var appendProjectGetInfoData = JSON.parse(_rData).rows
+                if (appendProjectGetInfoData.length > 0) {
+                    var interText = doT.template($("#listTpl").text())
+                    $("#gridList").html(interText(appendProjectGetInfoData));
+                }
+                else {
+                    console.log('暂无数据')
+                }
+            })
+
+            //审核意见
+            var json_data = '@Model.SHYJ';
+            if (json_data != '') {
+                json_data = JSON.parse(replace(json_data));
+                SHYJData = json_data
+                var appendSHYJInfoData = json_data.rows
+                if (appendSHYJInfoData.length > 0) {
+                    var interText = doT.template($("#listTplSHYJTable").text())
+                    $("#gridListSHYJTable").html(interText(appendSHYJInfoData));
+                }
+            }
+
+            //去除换行
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+
+
+            //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('BussContractForm'));
+
+
+            //付款条件，替换换行符
+            var ConPayValue = $('#ConPay').val();
+            ConPayValue = ConPayValue.replace(/[\r\n]/g, "")
+            $('#ConPay').val(ConPayValue);
+
+            //备注，替换换行符
+            var ConNoteValue = $('#ConNote').val();
+            ConNoteValue = ConNoteValue.replace(/[\r\n]/g, "")
+            $('#ConNote').val(ConNoteValue);
+
+
+            if (paramsObj.AllowEditControls == "{}") {
+                $('#ConPay,#ConNote,#ConNameText').removeClass('jq-text-disabled').removeAttr('readonly')
+                $("#ConPay,#ConNote").css({
+                    overflow: 'auto',
+                })
+            }
+            else {
+
+                $('#ConPay,#ConNote').removeClass('jq-text-disabled').attr("readonly", "readonly")
+                $("#ConPay,#ConNote,#ConNameText").css({
+                    overflow: 'auto',
+                    background: '#efefef',
+                    color: '#898787'
+                })
+            }
+
+
+
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+        function validateFormBegin() {
+            var formVali = $('#BussContractForm').validate({
+                rules: {
+                    ConName: 'required',//合同名称
+                    ConType: 'required',//合同类型
+                    ConFulfilType: 'required',//合同履行方式
+                    ConStatus: 'required',//合同状态
+                    ConNote: { //备注
+                        required: false,
+                        maxlength: 100
+                    },
+                },
+                messages: {
+                    ConName: '请输入合同名称',
+                    ConType: '请输入合同名称',
+                    ConFulfilType: '请输入合同履行方式',
+                    ConStatus: '请输入合同状态',
+                    ConNote: {
+                        maxlength: '内容长度必须介于0-100之间'
+                    }
+                }
+            });
+
+            $('#ConName').val($('#ConNameText').val())
+            $('#ProjTable_Data').val(JSON.stringify(projData));
+            $('#SHYJ').val(JSON.stringify(SHYJData));
+
+            isValidate = formVali.form();
+            if (isValidate) {
+                var formData = DomUtil.serialize(document.getElementById('BussContractForm'));//json or =&
+                console.log(formData)
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin(params) {
+            $('#ConName').val($('#ConNameText').val())
+            $('#ProjTable_Data').val(JSON.stringify(projData));
+            $('#SHYJ').val(JSON.stringify(SHYJData));
+            var formData = DomUtil.serialize(document.getElementById('BussContractForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+
+        function selectCustName() {
+            //alert(1)
+            $.post('@Url.Action("GetCustomerListComboboxWithCount", "BussCustomer", new { @area= "Bussiness" })' + "?TopCount=10", function (_rData) {
+                alert(_rData)
+                console.log(JSON.parse(_rData))
+                var appendInfoData = JSON.parse(_rData);
+                if (appendInfoData.length > 0) {
+                    var interText = doT.template($("#listTpl_2").text())
+                    $("#gridList_2").html(interText(appendInfoData));
+                    $('body').append('<div class="aui-mask"></div>');
+                    $(".aui-dialog.aui-hidden").removeClass('aui-hidden');
+                }
+                else {
+                    $.alert('暂无数据');
+                    $('#gridList_2').html('');
+                }
+            })
+
+        }
+        //信息弹出框-----------------------------------------------------------------------
+        function cancel() {
+            $('div').removeClass("aui-mask")
+            $('.aui-dialog').addClass("aui-hidden")
+        }
+        function confirm() {
+
+            var radioValueLength = $(".radio input[type='radio']:checked").length;
+            if (radioValueLength > 0) {
+                $('div').removeClass('aui-mask');
+                $('.aui-dialog').addClass("aui-hidden");
+                var radioValue = $(".radio input[type='radio']:checked").val();
+                console.log(radioValue)
+
+                //var carId = $(".radio input[type='radio']:checked").attr('id');
+                var radioValue = radioValue.split('_');
+                console.log(radioValue)
+
+                $('#CustID').val(radioValue[0]);
+                $('#CustName').val(radioValue[1])
+                $('#CustNameText').text(radioValue[1])
+
+                var url;
+                var custid = $('#CustID').val();
+                if (isNaN(custid)) {
+                    custid = -1;
+                    url = '@Url.Action("getLinkManCombobox", "BussCustomerLinkMan", new { @area = "Bussiness" })?CustID=' + custid;
+                }
+                else {
+                    url = '@Url.Action("getLinkManCombobox", "BussCustomerLinkMan", new { @area = "Bussiness" })?CustID='+custid
+                }
+                $.ajax({
+                    type: 'POST',
+                    url: url,
+                    data: '',
+                    success: function (data) {
+                        //console.log(data)
+                        var jsondata = JSON.parse(data);
+                        console.log(jsondata)
+                        $('#CustLinkId').val(jsondata[0].Id);
+                        $('#CustLinkManName').val(jsondata[0].CustLinkManName);
+                        $('#CustLinkManTel').val(jsondata[0].linkTel);
+                        $('#CustLinkManWeb').val(jsondata[0].linkWeb);
+                    }
+                })
+
+
+            }
+            else {
+                $.alert('请选择一条数据');
+            }
+        }
+    </script>
+}

@@ -1,0 +1,55 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title></title>
+    <style type="text/css">
+        .yc_inlinetable {
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+            .yc_inlinetable th {
+                background-color: #F2F2F2;
+                text-align: center;
+                height: 32px;
+                border: 1px solid #999999;
+                outline: none;
+            }
+
+            .yc_inlinetable td {
+                height: 40px;
+                border: 1px solid #999999;
+                outline: none;
+            }
+
+        .p_normaltext {
+            line-height: 15px;
+            padding: 0px;
+            font-size: 13px;
+            -webkit-margin-before: 0px;
+            -webkit-margin-after: 0px;
+            -webkit-margin-start: 0px;
+            -webkit-margin-end: 0px;
+        }
+    </style>
+    <link href="@(Url.Content("~/Content/chart/fonts/font-awesome.min.css"))" rel="stylesheet" />
+</head>
+<body>
+</body>
+</html>
+<script type="text/javascript">
+    window.setContent = function (html) {
+        document.body.innerHTML = html;
+        print();
+        setTimeout(function () {
+            afterPrint();
+        }, 200);
+    }
+</script>

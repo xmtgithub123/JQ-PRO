@@ -1,0 +1,242 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "ArchElecFile",new { @area="Archive"})';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'ElecFileGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id", "ArchProjId", "ArchElecFileId", "FK_ArchElecFile_ArchProjId.ProjectId"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                fitColumns: true,
+                nowrap: false,
+                JQExcludeCol: [1, 12],
+                toolbar: '#ElecFilePanel',//工具栏的容器ID
+                columns: [[
+                        { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                        { title: '项目编号', field: 'ElecNumber', JQfield: 'FK_ArchElecFile_ArchProjId.ElecNumber', width: 100, align: 'center' },
+		                { title: '项目名称', field: 'ElecName', JQfield: 'FK_ArchElecFile_ArchProjId.ElecName', width: 100, align: 'center' },
+		                { title: '项目经理', field: 'ProjEmpName', JQfield: 'FK_ArchElecFile_ArchProjId.ProjEmpName', width: 100, align: 'center' },
+		                { title: '项目阶段', field: 'PhaseName', JQfield: 'FK_ArchElecFile_ArchProjId.PhaseName', width: 100, align: 'center' },
+		                { title: '文件名称', field: 'ElecFileName', width: 200, align: 'center', sortable: true },
+                        { title: '文件类型', field: 'ElecExt', width: 100, align: 'center', sortable: true },
+                        {
+                            title: "文件大小", field: "ElecSize", width: "100", align: "right", halign: "center", formatter: function (value, row) {
+                                row.ElecSize = getFileSizeText(value)
+                                return row.ElecSize;
+                            }
+                        },
+                        //{ title: '文件大小', field: 'ElecSize', width: 100, align: 'center', sortable: true },
+                        { title: '电子文件版本', field: 'ElecFileVersionId', width: 100, align: 'center', sortable: true },
+                        { title: '上传时间', field: 'CreationTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                        { title: '上传人', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true },
+                        {
+                            field: 'ProjectId', title: '操作', width: 100, align: 'center', JQIsExclude: true,
+                            formatter: function (value, row, index) {
+                                return "<a href=\"javascript:Handler(" + row.ArchProjId + "," + row.ProjectId + "," + row.ArchElecFileId + ")\">打开目录</a>";
+                            }
+                        }
+                ]],
+                onRowContextMenu: function (e, index, row) { //右键时触发事件
+                    var $m = $('#fileMenu'),
+                        itemState = $m.menu('getItem', $('#setState')[0]),
+                        text = '加入/移除申请';
+                    $.data(document.body, "selectTempData", row);//把临时数据存在缓存中
+                    $m.menu('setText', {
+                        target: itemState.target,
+                        text: text
+                    });
+                    $m.menu('show', {
+                        left: e.pageX,
+                        top: e.pageY
+                    });
+                    e.preventDefault();
+                }
+            });
+            $("#JQElecSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '文件名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ElecFileGrid',
+                            loadingType: 'datagrid',
+                        });
+                }
+            });
+        });
+        function getFileSizeText(size) {
+            if (!size && size != 0) {
+                return "";
+            }
+            var st = "";
+            if (size >= 1024 * 1024 * 1024) {
+                st = (size / 1024 / 1024 / 1024).toFixed(2) + "GB";
+            } else if (size >= 1024 * 1024) {
+                st = (size / 1024 / 1024).toFixed(2) + "MB";
+            } else if (size >= 1024) {
+                st = (size / 1024).toFixed(2) + "KB";
+            } else {
+                st = size + "B";
+            }
+            return st;
+        }
+        function downfile() {
+            var row = $("#ElecFileGrid").datagrid("getSelections");
+            if (row.length <= 0) {
+                JQ.dialog.info("请选择");
+                return;
+            }
+
+            var parm;
+            $.each(row, function (i, n) {
+                if (i == 0) {
+                    parm = "id=" + n["Id"];
+
+                } else {
+                    parm += "&id=" + n["Id"];
+                }
+            });
+            @*Url = '@Url.Action("DownFile", "ArchElecFile", new { @area = "Archive" })?';
+            downurlfile(Url + parm);
+            $('#ElecFileGrid').datagrid('reload');*@
+
+            var result;
+            Url = '@Url.Action("IsHavePermissionDown", "ArchElecProject", new { @area = "Archive"})';
+            $.ajax({
+
+                url: Url,
+                data: parm,
+                async: false,
+                type: "POST",
+                success: function (result) {
+                    //debugger;
+                    if (result.stateType == "0") {
+                        Url = '@Url.Action("DownFile", "ArchElecFile", new { @area = "Archive" })?';
+                        downurlfile(Url + parm);
+                        $('#ElecFileGrid').datagrid('reload');
+
+                    }
+                    else {
+                        JQ.dialog.info(result.validationResults[0].ErrorMessage + "没有权限下载，需要申请");
+                    }
+                }
+            });
+        }
+
+        function downurlfile(url) {
+            var _a = document.createElement("a");
+            _a.setAttribute("href", url);
+            document.body.appendChild(_a);
+            _a.click();
+            document.body.removeChild(_a);
+        }
+
+
+        function Handler(ArchProjId, ProjID, rowid) {
+            JQ.dialog.dialog({
+                title: "查看",
+                url: '@Url.Action("treelist", "ArchElecProject",new { @area="Archive"})' + '?IsRead=1&Id=' + ArchProjId + '&ProjID=' + ProjID + '&rowid=' + rowid,
+                width: '1200',
+                height: '600',
+                JQID: 'ElecFileGrid',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+
+        var TempData = new Array();
+        function menuHandler(item) {
+            var data = $.data(document.body, "selectTempData");//获取临时数据
+            if (JQ.tools.isJson(data)) {
+                switch (item.id) {
+                    case "setState":
+                        if ($.inArray(data.Id, TempData) == -1) {
+                            TempData.push(data.Id);
+                            JQ.dialog.show("加入申请成功！");
+                        } else {
+                            TempData.pop(data.Id);
+                            JQ.dialog.show("移除申请成功！");
+                        };
+                        break;
+                    case "view":
+                        if (data.ElecExt == ".pdf") {
+                            JQ.dialog.dialogIframe({
+                                title: "查看",
+                                url: '@Url.Action("pdfView", "ArchElecFile", new { @area="Archive"})' + '?Id=' + data.Id,
+                                width: '1000',
+                                height: '100%',
+                                iconCls: 'fa fa-plus'
+                            });
+                        }
+                        else {
+                            JQ.dialog.info("只能预览PDF文件");
+                        }
+                        break;
+                }
+            }
+            $.data(document.body, "selectTempData", null);//清空临时数据
+            return false;
+        }
+
+        function apply() {
+            var row = $("#ElecFileGrid").datagrid("getSelections");
+            var arr = [];
+            if (row.length > 0) {
+                $.each(row, function (i, n) {
+                    arr.push(n.Id);
+                });
+            }
+            var idArr = Enumerable.From(TempData).Union(arr).Distinct().ToArray();
+
+            if (idArr.length <= 0) {
+                JQ.dialog.info("请选择");
+                return;
+            }
+            //debugger;
+            //alert(idArr.join(","));
+            JQ.dialog.dialog({
+                title: "查看",
+                url: '@Url.Action("add", "IsoFormArchive", new { @area= "Iso" })' + '?Ids=' + idArr.join(","),
+                width: '800',
+                height: '600',
+                iconCls: 'fa fa-plus'
+            });
+        }
+
+        window.refreshGrid = function () {
+            $("#JQElecSearch").textbox("button").click();
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="ElecFileGrid"></table>
+    <div id="ElecFilePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="apply()">发起申请</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-pencil'" onclick="downfile()" JQPermissionName="CanEdit">下载</a>
+        </span>
+
+        <input id="JQElecSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'ElecFileName', 'Contract': 'like' }" />
+
+    </div>
+
+    <div id="fileMenu" class="easyui-menu" data-options="onClick:menuHandler" style="width:100px;display: none;">
+        <div id="setState"></div>
+        <div id="view">预览文件</div>
+    </div>
+    <input type="hidden" id="ExportType" name="ExportType" value="1" />
+}
+

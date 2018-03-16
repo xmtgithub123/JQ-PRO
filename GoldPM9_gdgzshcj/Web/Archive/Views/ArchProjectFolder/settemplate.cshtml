@@ -1,0 +1,81 @@
+﻿@model DataModel.Models.ArchProjectFolder
+@using JQ.Web;
+
+   @using (Html.BeginForm("save", "ArchProjectFolder", FormMethod.Post, new { @area = "Archive", @id = "ArchShareFolderForm" }))
+   {
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+        <tr>
+            <th width="15%">项目名称</th>
+            <td width="35%">
+                <input name="FolderProjectName" readonly="readonly" class="easyui-textbox" style="width:98%;" value="@ViewBag.ProjName" />
+                <input name="FolderProjectId" type="hidden" value="@ViewBag.ProjID" />
+            </td>
+        </tr>
+        <tr>
+            <th width="15%">模板</th>
+            <td width="35%">
+                <input name="FolderTemplateId" id="FolderTemplateId" style="width:98%;" class="easyui-combobox" data-options="required:true" validType="length[0,100]"  />
+                <input type="hidden" name="FolderName" id="FolderName" />
+            </td>
+        </tr>
+        <tr height="300">
+            <th width="15%">模板目录</th>
+            <td width="35%">
+                <table id="lefttree"></table>
+            </td>
+        </tr>
+    </table>
+
+<script type="text/javascript">
+    function showMbMuLu(MbId) {
+        var myurls = '@Url.Action("treejson", "ArchTemplateFolder", new { @area= "Archive"})';
+        myurls += "?MbId=" + MbId;
+        $('#lefttree').treegrid({
+            url: myurls,
+            idField: 'id',
+            treeField: 'text',
+            border: 0,
+            toolbar: '#tbleft',
+            fit: true,
+            animate: true,
+            singleSelect: true,
+            columns: [[
+               { title: '', field: 'text', width: 300, align: 'left' }
+            ]]
+        });
+    }
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'ArchShareFolderForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }
+        });
+        debugger;
+        var tempId=@Model.FolderTemplateId;
+        var myUrl = '@Url.Action("ddldatasource", "ArchTemplateFolder", new { @area="Archive"})';
+        $('#FolderTemplateId').combobox({
+            url: myUrl,
+            valueField: 'id',
+            textField: 'text',
+            editable: false,
+            onSelect: function (row) {
+                debugger;
+                $('#FolderName').val(row.text);
+                showMbMuLu(row.id);
+            },
+            onLoadSuccess:function(){
+                if (tempId != 0){
+                    $("#FolderTemplateId").combobox("select",tempId);
+                }
+            }
+        });
+    })
+</script>
+}
+
+
+
+

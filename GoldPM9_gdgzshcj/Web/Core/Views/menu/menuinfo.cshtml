@@ -1,0 +1,214 @@
+﻿@model DataModel.Models.BaseMenu
+<script>
+    var count = 0;//标签
+    JQ.form.submitInit({
+        formid: 'ajaxform',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        }
+    });
+    $('#MenuIsMust').bootstrapSwitch({
+        onText: '是',
+        offText: '否',
+        size: 'small',
+        state: '@Model.MenuIsMust' == 'True' ? true : false
+    });
+    $('#MenuIsSecond').bootstrapSwitch({
+        onText: '二级权限',
+        offText: '非二级权限',
+        size: 'small',
+        state: '@Model.MenuIsSecond' == 'True' ? true : false
+    });
+    $('#ParentID').combotree({
+        url: '@Url.Action("menujson", "menu", new { @area = "Core" })?isAll=true',
+        onLoadSuccess: function (node, data) {
+            if ('@Model.ParentID' > 0) {
+                $('#ParentID').combotree('setValue', '@Model.ParentID');
+            }
+        }
+    });
+    $('#areaValue').combobox({
+        data: JQ.combobox.ajaxByCombobox({
+            url: '@Url.Action("areajson")',
+            pusuParames: { Value: '', Text: '===请选择区域===' }
+        }),
+        valueField: 'Value',
+        textField: 'Text',
+        editable: false,
+        onLoadSuccess: function (data) {
+            $(this).combobox('setValue', '@ViewBag.areaValue');
+            loadControlValue('@ViewBag.areaValue');
+        },
+
+        onSelect: function (row) {
+            loadControlValue(row.Value);
+        }
+    });
+
+    $("#icon").click(function () {
+        JQ.dialog.dialog({
+            title: '请选择菜单小图标',
+            iconCls: 'fa fa-search',
+            width: '95%',
+            height: '95%',
+            url: '@Url.Action("iconlist", "usercontrol", new { @area="Core"})'
+        });
+    });
+
+    $("#remove").click(function () {
+        $("#icon").removeClass();
+        $("#MenuImageUrl").val('');
+    });
+    function loadControlValue(areaValue) {
+        $('#controlValue').combobox({
+            data: JQ.combobox.ajaxByCombobox({
+                url: '@Url.Action("controljson")?areaValue=' + areaValue,
+                pusuParames: { Value: '', Text: '==请选择控件器==' }
+            }),
+            valueField: 'Value',
+            textField: 'Text',
+            editable: false,
+            onLoadSuccess: function (data) {
+                $(this).combobox('setValue', '@ViewBag.controlValue');
+                loadActionValue('@ViewBag.controlValue');
+            },
+            onSelect: function (row) {
+                loadActionValue(row.Value);
+            }
+        });
+    };
+    function loadActionValue(controlValue) {
+        $('#actionValue').combobox({
+            data: JQ.combobox.ajaxByCombobox({
+                url: '@Url.Action("actionjson")?controlValue=' + controlValue,
+                pusuParames: { Value: '', Text: '===请选择动作===' }
+            }),
+            valueField: 'Value',
+            textField: 'Text',
+            editable: false,
+            onLoadSuccess: function (data) {
+                $(this).combobox('setValue', '@ViewBag.actionValue');
+            },
+            onSelect: function (row) {
+            }
+        });
+    }
+
+    var items = $("input[name='Permit']");
+    $.each(items, function (index, item) {
+        var p = $("#MenuPermissions").val();
+        if ((item.value & p) == item.value) $(item).attr("checked", 'checked');
+    });
+
+    items.click(function () {
+        var pvalue = 0;
+        var chkitems = $("input[name='Permit']:checked");
+        $.each(chkitems, function (index, item) {
+            pvalue = pvalue ^ item.value;
+        });
+        $("#MenuPermissions").val(pvalue);
+    });
+</script>
+@using (Html.BeginForm("savemenu", "menu", FormMethod.Post, new { @id = "ajaxform" }))
+{
+    @Html.HiddenFor(m => m.MenuID)
+    <table class="table table-hover table-bordered">
+        <tr>
+            <th style="width: 100px;">
+                菜单名称
+            </th>
+            <td>
+                <input name="MenuName" class="easyui-textbox" data-options="required:true" value="@Model.MenuName" style="width:200px" />
+            </td>
+        </tr>
+        <tr>
+            <th style="width: 100px;">
+                英文标识
+            </th>
+            <td>
+                <input name="MenuNameEng" class="easyui-textbox" data-options="required:true" value="@Model.MenuNameEng" style="width:200px" />
+            </td>
+        </tr>
+        <tr>
+            <th style="width: 100px;">
+                菜单排序
+            </th>
+            <td>
+                <input name="MenuOrder" class="easyui-textbox" data-options="required:true" value="@Model.MenuOrder" style="width:200px" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                父级菜单
+            </th>
+            <td>
+                <input name="ParentID" id="ParentID" class="easyui-textbox" style="width:260px" />
+            </td>
+        </tr>
+
+        <tr>
+            <th>
+                路径参数
+            </th>
+            <td>
+                <input name="urlParam" id="urlParam" class="easyui-textbox" value="@ViewBag.urlParam" style="width:260px" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                菜单图标
+            </th>
+            <td>
+                <input type="hidden" id="MenuImageUrl" name="MenuImageUrl" value="@(!Model.MenuImageUrl.Contains("fa")?"fa fa-file":Model.MenuImageUrl)" />
+                <span style="cursor:pointer" class="@(!Model.MenuImageUrl.Contains("fa")?"fa fa-file":Model.MenuImageUrl)" id="icon">选择</span>
+                &nbsp;&nbsp;
+                <span style="cursor:pointer" id="remove" class="fa fa-times">清空</span>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                配置项
+            </th>
+            <td>
+                <input id="MenuIsSecond" name="MenuIsSecond" type="checkbox" value="true" @MvcHtmlString.Create(Model.MenuIsSecond ? " checked='checked' " : "") />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                选择路径
+            </th>
+            <td>
+                <select id="areaValue" name="areaValue" style="width:130px;"></select>
+                <select id="controlValue" name="controlValue" style="width:130px;"></select>
+                <select id="actionValue" name="actionValue" style="width:130px;"></select>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                快捷方式
+            </th>
+            <td>
+                <input id="MenuIsMust" name="MenuIsMust" type="checkbox" value="true" @MvcHtmlString.Create(Model.MenuIsMust ? " checked='checked' " : "") />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                菜单权限
+            </th>
+            <td>
+                <input type="hidden" name="MenuPermissions" id="MenuPermissions" value="@Model.MenuPermissions">
+                新增<input type="checkbox" name="Permit" value="1" id="add">
+                修改<input type="checkbox" name="Permit" value="2" id="edit">
+                删除<input type="checkbox" name="Permit" value="4" id="del">
+                导出<input type="checkbox" name="Permit" value="8" id="export">
+                个人<input type="checkbox" name="Permit" value="16" id="emp">
+                部门<input type="checkbox" name="Permit" value="32" id="dep">
+                全部<input type="checkbox" name="Permit" value="64" id="allview">
+                维护<input type="checkbox" name="Permit" value="128" id="alledit">
+                 下载<input type="checkbox" name="Permit" value="256" id="allDown">
+            </td>
+        </tr>
+    </table>
+}

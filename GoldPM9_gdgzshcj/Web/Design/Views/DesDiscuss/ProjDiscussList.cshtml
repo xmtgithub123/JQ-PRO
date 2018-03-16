@@ -1,0 +1,110 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "DesDiscuss", new { @area="Design"})';
+        addUrl = '@Url.Action("add", "DesDiscuss", new {@area= "Design" })?taskGroupId=@ViewBag.taskGroupId',
+            delUrl = '@Url.Action("del", "DesDiscuss", new { @area = "Design" })';
+        editUrl = '@Url.Action("edit", "DesDiscuss", new { @area = "Design" })';
+        $(function () {
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '标题',
+                onClickButton: function () {
+                    refreshGrid();
+                }
+            });
+
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'DesDiscussGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '600',//弹出窗体宽
+                JQHeight: '400',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,datagrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#DesDiscussPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+		            { title: '标题', field: 'TalkTitle', width: "60%", halign: 'center', align: 'left', sortable: true },
+                    { title: '回复/阅读', field: 'HY', width: 100, halign: 'center', align: 'center', sortable: true },
+                    { title: '创建人姓名', field: 'CreatorEmpName', width: 80, halign: 'center', align: 'center', sortable: true },
+		            {
+		                title: '创建时间', field: 'CreationTime', width: 80, halign: 'center', align: 'center', sortable: true, formatter: function (value,row,index) {
+		                    row.CreationTime = JQ.tools.DateTimeFormatterByT(value, row, index);
+		                    return row.CreationTime;
+		                }
+		            },
+                    {
+                        title: '操作', field: 'CZ', width: 60, halign: 'center', align: 'center', sortable: true, formatter: function (value, row, index) {
+                            var _titleName = "[" + row.TalkTitle + "]";
+                            return "<a class=\"easyui-linkbutton\" data-options=\"plain:true,iconCls:'fa fa-trash'\" onclick='openProjDiscussInfo(\"" + _titleName + "\"," + row.Id + ")'>查看</a>";
+                        }
+                    }
+
+                ]],
+                queryParams: getQueryParameters(),
+                JQExcludeCol: [1, 6]
+            });
+
+
+
+        });
+
+        window.refreshGrid = function () {
+            var query = getQueryParameters();
+            query.text = $("#JQSearch").textbox("getText");
+            $("#DesDiscussGrid").datagrid("load", query);
+        }
+
+        function getQueryParameters() {
+            return { taskGroupId: '@ViewBag.taskGroupId' };
+        }
+
+        function openProjDiscussInfo(title, id) {
+
+            @*window.top.addTab("帖子:" + title, '@Url.Action("ProjDiscussListView")?id=' + id, "");*@
+
+            @*JQ.dialog.dialog({
+                title: '项目信息备案明细',
+                width: '1024',
+                height: '100%',
+                url: '@Url.Action("ProjDiscussListView")?Id=' + id,
+                onClose: function () {
+                    //$("#BussProjInfoRecordsGrid").datagrid("reload");
+                }
+            });*@
+            window.top.JQ.dialog.dialogIframe({
+                title: title + " - 讨论",
+                url: '@Url.Action("ProjDiscussListView")?id=' + id,
+                width: 830,
+                height: 680,
+                iconCls: "fa fa-file"
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+
+    <table id="DesDiscussGrid"></table>
+    <div id="DesDiscussPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" />
+
+    </div>
+}
+

@@ -1,0 +1,376 @@
+﻿@using JQ.Web;
+<script type="text/javascript">
+
+    $(function () {
+
+        ////验证是否有下载权限
+        //var alldown = "@ViewBag.allDown";
+
+        //if(alldown=="0")
+        //{
+        //    $("#httpDown").hide();
+        //}
+    });
+
+
+    $('#lefttree').treegrid({
+        url: '@Url.Action("treejson", "ArchElecProject", new { @area= "Archive", ProjID = ViewBag.ProjID })',
+        idField: 'id',
+        treeField: 'text',
+        border: 0,
+        toolbar: '#tbleft',
+        fit: true,
+        animate: true,
+        singleSelect: true,
+        columns: [[
+           { title: '<b>选择节点</b>', field: 'text', width: 240, align: 'left' }
+        ]],
+        onLoadSuccess: function (row, data) {
+        },
+        onSelect: function (node) {
+            $("#AttID").val(node.id);
+            //alert($("#AttID").val());
+            $('#ArchElecFileGrid').datagrid('load', {
+                refid: node.id
+            });
+        }
+    });
+    JQ.datagrid.datagrid({
+        JQPrimaryID: 'Id',//主键的字段
+        JQID: 'ArchElecFileGrid',//数据表格ID
+        JQDialogTitle: '信息',//弹出窗体标题
+        JQWidth: '768',//弹出窗体宽
+        JQHeight: '100%',//弹出窗体高
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+        JQFields: ["Id", "ElecFileType", "ElecFileVersionId"],//追加的字段名
+        url: '@Url.Action("dirjson", "ArchElecFile",new { @area="Archive", refid = ViewBag.ArchElecFileId })',//请求的地址
+        checkOnSelect: true,//是否包含check
+        fitColumns: true,
+        nowrap: false,
+        toolbar: '#ArchElecFilePanel',//工具栏的容器ID
+        columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                { title: '文件名称', field: 'ElecFileName', width: 200, align: 'center', sortable: true },
+                { title: '文件类型', field: 'ElecExt', width: 100, align: 'center', sortable: true },
+                {
+                    title: "文件大小", field: "ElecSize", width: "10%", align: "right", halign: "center", formatter: function (value, row) {
+                        row.ElecSize = getFileSizeText(value)
+                        return row.ElecSize;
+                    }
+                },
+                { title: '电子文件版本', field: 'ElecFileVersionId', width: 100, align: 'center', sortable: true },
+                { title: '上传时间', field: 'CreationTime', width: 100, align: 'center', sortable: true, formatter: JQ.tools.DateTimeFormatterByT },
+                { title: '上传人', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true },
+        ]]
+    });
+    $("#fullNameSearch").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '文件名称',
+        onClickButton: function () {
+            JQ.datagrid.searchGrid(
+                {
+                    dgID: 'ArchElecFileGrid',
+                    loadingType: 'datagrid',
+                    queryParams: {
+                        refid: $("#AttID").val()
+                    }
+                });
+        }
+    });
+    function save(flag) {
+        var id = $("#lefttree").treegrid("getSelected").id;
+        if (isNaN(id)) {
+            JQ.dialog.info("请选择");
+            return;
+        }
+        var Url = '';
+        if (flag == 1) {
+            Url = '@Url.Action("add", "ArchElecProject", new {@area="Archive" })';
+            JQ.dialog.dialog({
+                title: "目录",
+                url: Url + '?ParentId=' + id + '&ProjectId=' + '@ViewBag.ProjID',
+                width: '600',
+                height: '400',
+                JQID: 'lefttree',
+                JQLoadingType: 'treegrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+        else if (flag == 2) {
+            Url = '@Url.Action("edit", "ArchElecProject", new {@area="Archive" })';
+            JQ.dialog.dialog({
+                title: "目录",
+                url: Url + '?Id=' + id + '&ProjectId=' + '@ViewBag.ProjID',
+                width: '600',
+                height: '400',
+                JQID: 'lefttree',
+                JQLoadingType: 'treegrid',
+                iconCls: 'fa fa-plus'
+            });
+        }
+        else {
+            Url = '@Url.Action("del", "ArchElecProject", new { @area = "Archive", })';
+            JQ.tools.ajax({
+                doBackResult: true,
+                url: Url,
+                data: 'Id=' + id
+            });
+            $('#lefttree').treegrid('reload');
+            return;
+        }
+    }
+
+
+    function del() {
+        var row = $("#ArchElecFileGrid").datagrid("getSelections");
+        if (row.length <= 0) {
+            JQ.dialog.info("请选择");
+            return;
+        }
+
+        var parm;
+        $.each(row, function (i, n) {
+            if (i == 0) {
+                parm = "id=" + n["Id"];
+
+            } else {
+                parm += "&id=" + n["Id"];
+            }
+        });
+
+        Url = '@Url.Action("del", "ArchElecFile", new { @area = "Archive"})';
+        JQ.tools.ajax({
+            doBackResult: true,
+            url: Url,
+            data: parm
+        });
+        $('#ArchElecFileGrid').datagrid('reload');
+    }
+
+   
+
+    function downurl(url) {
+        var _a = document.createElement("a");
+        _a.setAttribute("href", url);
+        document.body.appendChild(_a);
+        _a.click();
+        document.body.removeChild(_a);
+    }
+
+    function down() {
+        var row = $("#ArchElecFileGrid").datagrid("getSelections");
+        if (row.length <= 0) {
+            JQ.dialog.info("请选择");
+            return;
+        }
+
+        var parm;
+        $.each(row, function (i, n) {
+            if (i == 0) {
+                parm = "id=" + n["Id"];
+
+            } else {
+                parm += "&id=" + n["Id"];
+            }
+        });
+       //验证用户是否有权限下载数据
+        var result;
+        Url = '@Url.Action("IsHavePermissionDown", "ArchElecProject", new { @area = "Archive"})';
+        $.ajax({
+
+            url: Url,
+            data: parm,
+            async: false,
+            type: "POST",
+            success: function (result) {
+                //debugger;
+                if (result.stateType == "0") {
+                    Url = '@Url.Action("DownFile", "ArchElecFile", new { @area = "Archive" })?';
+                    downurl(Url + parm);
+                    $('#ArchElecFileGrid').datagrid('reload');
+
+                }
+                else {
+                    JQ.dialog.info(result.validationResults[0].ErrorMessage + "没有权限下载，需要申请");
+                }
+            }
+        });
+
+          
+       
+
+    }
+
+    //验证是否有权限下载
+    function IsHavePermissionDown(parm) {
+       
+        var result;
+        Url = '@Url.Action("IsHavePermissionDown", "ArchElecProject", new { @area = "Archive"})';
+        $.ajax({
+            
+            url: Url,
+            data: parm,
+            async: false,
+            type: "POST",
+            success: function (result) {
+                debugger;
+                if (result.Result == false) {
+                    JQ.dialog.error(result.Message);
+                    return result;
+                }
+            }
+        });
+
+
+       
+    }
+
+
+    $("#httpUpload").click(function () {
+
+        var id = $("#lefttree").treegrid("getSelected").id;
+        if (isNaN(id)) {
+            JQ.dialog.info("请选择");
+            return;
+        }
+
+        var divid = getMathNo();
+        if (window.top.$("#" + divid).size() <= 0) {
+            window.top.$("body").append("<div class='rwpdialogdiv' id='" + divid + "'></div>");
+        }
+        var paraJosn = {
+            iconCls: 'fa fa-upload',
+            title: "<b>文件上传</b>",
+            content: '<iframe id="uploadIframe" frameborder="0" scrolling="no" style="width:100%;height:99%" src="@Url.Action("uploadByHttp", "usercontrol", new { @area = "Core", })?AttachRefID=0&AttachRefTable=ElecFile"></iframe>',
+            width: '608',
+            height: '353',
+            resizable: false,
+            maximizable: false,
+            collapsible: false,
+            modal: true,
+            onClose: function () {
+                Url = '@Url.Action("save", "ArchElecFile", new { @area = "Archive", })';
+                JQ.tools.ajax({
+                    doBackResult: true,
+                    url: Url,
+                    data: 'ProjID=@ViewBag.ArchProjID&Id=' + id
+                });
+                $('#ArchElecFileGrid').datagrid('reload');
+                window.top.$("#" + divid).parent().remove();
+            }
+        };
+        var dialog = window.top.$("#" + divid).dialog(paraJosn);
+    });
+
+    function getMathNo() {
+        var d = new Date();
+        var sp = "";
+        var month = d.getMonth() + 1;
+        var strDate = d.getDate();
+        if (month >= 1 && month <= 9) {
+            month = "0" + month;
+        }
+        if (strDate >= 0 && strDate <= 9) {
+            strDate = "0" + strDate;
+        }
+        var math = Math.floor(Math.random() * (1000000 + 1));
+        var cd = d.getHours() + sp + d.getMinutes() + sp + d.getSeconds() + sp + d.getMilliseconds();
+        return math + sp + cd;
+    };
+
+    function applyTree() {
+        var row = $("#ArchElecFileGrid").datagrid("getSelections");
+        var arr = [];
+        if (row.length > 0) {
+            $.each(row, function (i, n) {
+                arr.push(n.Id);
+            });
+        }
+        if (arr.length <= 0) {
+            JQ.dialog.info("请选择");
+            return;
+        }
+        JQ.dialog.dialog({
+            title: "查看",
+            url: '@Url.Action("add", "IsoFormArchive", new { @area= "Iso" })' + '?Ids=' + arr.join(","),
+            width: '800',
+            height: '600',
+            iconCls: 'fa fa-plus'
+        });
+    }
+
+    function showSign() {
+        var row = $("#ArchElecFileGrid").datagrid("getSelections");
+        var arr = [];
+        if (row.length > 0) {
+            $.each(row, function (i, n) {
+                arr.push(n);
+            });
+        }
+        if (arr.length <= 0) {
+            JQ.dialog.info("请选择");
+            return;
+        }
+
+        var data = arr[0];
+        debugger;
+        JQ.dialog.dialog({
+            title: "查看",
+            url: '@Url.Action("TaskAttachSplitFilesList", "DesTask", new { @area = "Design" })?AttachID=' + data.ElecFileType + '&AttachVer=' + data.ElecFileVersionId,
+            width: '800',
+            height: '600',
+            iconCls: 'fa fa-plus'
+        });
+    }
+
+    function getFileSizeText(size) {
+        if (!size && size != 0) {
+            return "";
+        }
+        var st = "";
+        if (size >= 1024 * 1024 * 1024) {
+            st = (size / 1024 / 1024 / 1024).toFixed(2) + "GB";
+        } else if (size >= 1024 * 1024) {
+            st = (size / 1024 / 1024).toFixed(2) + "MB";
+        } else if (size >= 1024) {
+            st = (size / 1024).toFixed(2) + "KB";
+        } else {
+            st = size + "B";
+        }
+        return st;
+    }
+
+    window.refreshGrid = function () {
+        $("#JQSearch").textbox("button").click();
+    }
+</script>
+@RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+<div id="treePanel" class="easyui-layout" style="overflow: hidden" fit="true">
+    <div data-options="region:'west',split:false" style="width:250px;">
+        <table id="lefttree"></table>
+    </div>
+    <div data-options="region:'center'" style="background:#eee;">
+        <table id="ArchElecFileGrid"> </table>
+    </div>
+    <div id="tbleft" style="padding:5px;">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="save(1)" JQPermissionName="CanEdit">新增</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-pencil'" onclick="save(2)" JQPermissionName="CanEdit">修改</a>
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" onclick="save(3)" JQPermissionName="CanEdit">删除</a>
+    </div>
+    <div id="ArchElecFilePanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" onclick="applyTree()">发起申请</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" id="httpUpload" JQPermissionName="CanEdit">上传</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-pencil'" id="httpDown"  onclick="down()"   >下载</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" onclick="del()"  JQPermissionName="CanEdit">删除</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-share-square-o'" onclick="showSign()">查看签名</a>
+        </span>
+        <input id="startTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '开始日期'" JQWhereOptions="{ Key:'LastModificationTime', Contract:'>=',filedType:'Date' }">
+        至
+        <input id="endTime" type="text" class="easyui-datebox" style="width:110px" data-options="prompt: '结束日期'" JQWhereOptions="{ Key:'LastModificationTime', Contract:'<=',filedType:'Date' }">&nbsp;
+        <input id="fullNameSearch" value="" style="width:250px;" JQWhereOptions="{ Key: 'ElecFileName', 'Contract': 'like' }" />
+        <input type="hidden" value="0" id="AttID" JQWhereOptions="{ Key: 'ArchElecFileId', 'Contract': '=',filedType:'Int' }" />
+    </div>
+</div>

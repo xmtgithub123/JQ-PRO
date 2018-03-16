@@ -1,0 +1,16 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+
+@section head {
+
+}
+
+@section Body_Content{
+    <div id="ProjectProgressInfoTab" class="easyui-tabs" data-options="fit:true">
+        <div title="节点进度" href="@Url.Action("ProjectProgressInfoOrg", "DesTask")?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId"></div>
+        <div title="策划进度" href="@Url.Action("ProjectProgressInfoPlan", "DesTask")?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId"></div>
+        <div title="文件进度" href="@Url.Action("ProjectProgressInfoAttach", "DesTask")?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId&taskId=0"></div>
+        <div title="提资进度" href="@Url.Action("ProjectProgressInfoExch", "DesExch")?projID=@ViewBag.projID&taskGroupId=@ViewBag.taskGroupId"></div>
+    </div>
+}

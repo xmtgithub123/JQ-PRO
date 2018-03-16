@@ -1,0 +1,92 @@
+﻿
+@using JQ.Web;
+
+<script type="text/javascript">
+        $(function () {
+            JQ.datagrid.datagrid({
+                //JQButtonTypes: ['add', 'edit', 'del', 'export', 'moreSearch'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")',//添加的路径
+                JQEditUrl: '@Url.Action("edit")',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+
+                JQID: 'selectTaskGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+
+                singleSelect: true,
+                url: '@Url.Action("selectTaskJson", "ProjFeeDetail", new { @area="Project"})',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#selectTaskPanel',//工具栏的容器ID
+                //JQMergeCells: { fields: ['ck', 'FlowProgress'], Only: 'ColAttType5' },
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                  { title: '项目编号', field: 'ProjNumber', width: "12%", halign: 'center', align: 'left', },
+	              { title: '项目名称', field: 'ProjName', width: "20%", halign: 'center', align: 'left', },
+                  { title: '负责人', field: 'ProjPhaseEmpName', width: "80", halign: 'center', align: 'left', },
+                  { title: '项目阶段', field: 'ProjPhaseName', width: "15%", halign: 'center', align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                  { title: '计划开始', field: 'DatePlanStart', width: "15%", halign: 'center', align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                  { title: '计划结束', field: 'DatePlanFinish', width: "15%", halign: 'center', align: 'center', formatter: JQ.tools.DateTimeFormatterByT },
+                ]],
+
+                onLoadSuccess: function (rowIndex, rowData) {
+
+                },
+
+
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号,项目名称',
+                //queryOptions: { 'Key': 'ProjNumber', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'selectTaskGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+
+        });
+
+
+        function selectProj() {
+            var checkItem = $("#selectTaskGrid").datagrid("getChecked");
+            if (checkItem.length == 0) {
+                return JQ.dialog.warning("请至少选择一项！");
+            }
+
+            window.TaskItem = checkItem;
+            JQ.dialog.dialogClose();
+        }
+</script>
+
+
+
+<table id="selectTaskGrid"></table>
+<div id="selectTaskPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-save'" onclick="selectProj()">确定选择</a>
+    </span>
+
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'g.ProjNumber,g.ProjName', 'Contract': 'like' }" />
+
+    @*<div class="moreSearchPanel">
+
+        @BaseData.getBases(new Params() { isMult = true, engName = "ProjProperty", queryOptions = "{ Key:'ProjPropertyID', Contract:'in',filedType:'Int'}" })
+        @BaseData.getBases(new Params() { isMult = true, engName = "ProjectVolt", queryOptions = "{ Key:'ProjVoltID', Contract:'in',filedType:'Int'}" })
+
+        <input id="startTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '下达时间开始'" JQWhereOptions="{ Key:'DateCreate', Contract:'>=',filedType:'Date' }">
+        至
+        <input id="endTime" type="text" class="easyui-datebox" validtype="dateISO" style="width:110px" data-options="prompt: '下达时间结束'" JQWhereOptions="{ Key:'DateCreate', Contract:'<=',filedType:'Date' }">&nbsp;
+
+    </div>*@
+</div>
+

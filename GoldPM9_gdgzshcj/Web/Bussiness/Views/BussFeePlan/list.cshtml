@@ -1,0 +1,93 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        $(function () {
+            JQ.treegrid.treegrid({
+                JQButtonTypes: ['add', 'edit', 'export'],//需要显示的按钮
+                JQAddUrl: '@Url.Action("add")',//添加的路径
+                JQEditUrl: '@Url.Action("edit")',//编辑的路径
+                JQDelUrl: '@Url.Action("del")',//删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'BussFeePlanGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '768',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                //JQCustomSearch: [  //自定义搜索的字段
+                    //{ value: 'DepartmentName', key: '人员部门', type: 'string' }//type支持三种类型string,datetime,combox,默认为string,combox必须提供engname
+                //],
+                //JQExcludeCol: [1, 4, 10],//导出execl排除的列
+                //JQMergeCells: { fields: ['DepartmentName', 'EmpName', 'EmpLogin'], Only: 'DepartmentName' },//当字段值相同时会自动的跨行(只对相邻有效)
+                //JQEnableFilter: true,//是否启用表格字段检索，只支持当页数据
+                //JQFields: ["", ""],//追加的字段名
+                url: '@Url.Action("json","BussFeePlan",new { @area="Bussiness"})',//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#BussFeePlanPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+				  		{ title: '自增', field: 'Id', width: 100, align: 'center', sortable: true  },
+		{ title: '计划收款金额(元)', field: 'FeeMoney', width: 100, align: 'center', sortable: true  },
+		{ title: '类型', field: 'FeeType', width: 100, align: 'center', sortable: true  },
+		{ title: '项目ID', field: 'PorjID', width: 100, align: 'center', sortable: true  },
+		{ title: '收款合同ID', field: 'ConID', width: 100, align: 'center', sortable: true  },		{ title: '备注说明', field: 'FeeNote', width: 100, align: 'center', sortable: true  },
+		{ title: '计划收款日期', field: 'FeeDate', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '是否完成', field: 'IsFinished', width: 100, align: 'center', sortable: true  },
+		{ title: '关联表ID', field: 'FormTableID', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展类别1', field: 'ColAttType1', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展类别2', field: 'ColAttType2', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展时间1', field: 'ColAttDate1', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '扩展时间2', field: 'ColAttDate2', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '扩展系数1', field: 'ColAttFloat1', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展系数2', field: 'ColAttFloat2', width: 100, align: 'center', sortable: true  },
+		{ title: '最后修改时间', field: 'LastModificationTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '最后修改人ID', field: 'LastModifierEmpId', width: 100, align: 'center', sortable: true  },
+		{ title: '最后修改人姓名', field: 'LastModifierEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '创建时间', field: 'CreationTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '创建人ID', field: 'CreatorEmpId', width: 100, align: 'center', sortable: true  },
+		{ title: '创建人姓名', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '流程ID', field: 'FlowID', width: 100, align: 'center', sortable: true  },
+		{ title: '审批结束时间', field: 'FlowTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '代理人ID', field: 'AgenEmpId', width: 100, align: 'center', sortable: true  },
+		{ title: '代理人姓名', field: 'AgenEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '创建部门', field: 'CreatorDepId', width: 100, align: 'center', sortable: true  },
+		{ title: '创建部门姓名', field: 'CreatorDepName', width: 100, align: 'center', sortable: true  },
+		{ title: '删除人员', field: 'DeleterEmpId', width: 100, align: 'center', sortable: true  },
+		{ title: '删除人员姓名', field: 'DeleterEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '删除日期', field: 'DeletionTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+                 { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'userInfo' }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '筛选字段',
+                queryOptions: { 'Key': 'FeeNote', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.treegrid.searchGrid(
+                        {
+                            dgID: 'BussFeePlanGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="BussFeePlanGrid"></table>
+    <div id="BussFeePlanPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" />
+
+    </div>
+}
+

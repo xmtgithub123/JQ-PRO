@@ -1,0 +1,406 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.EmpManage
+
+@section head {
+ <style type="text/css">
+
+    .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+
+    .p-15 {
+        padding: 15px;
+    }
+
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+    .error {
+        color: red;
+        font-size: 14px;
+        display: inline-block;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+     .aui-dialog {
+         z-index: 999;
+     }
+     .error-border {
+         border: 1px solid red !important;
+     }
+</style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="EmpManageForm" class="aui-form">
+           
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目名称</label>
+                <input id="Id" name="Id" type="hidden" value="@Model.Id" />
+                <input id="EngineeringId" name="EngineeringId" type="hidden" value="@Model.EngineeringId" />
+                <input id="ProjPhase" name="ProjPhase" type="hidden"  value="@Model.ProjPhase" />
+                <input id="DesTaskGroupId" name="DesTaskGroupId" type="hidden"  value=@Model.DesTaskGroupId />
+                <input id="type" name="type" type="hidden"  value="@Request["type"]" />
+                <input id="ProjName" name="ProjName" style="width:98%;" class="aui-input" type="hidden" value="@Model.ProjName" />
+                <div class="aui-input-block" id="ProjNameText" style="width: 60%;display:inline-block;">@Model.ProjName</div>
+                <input type="button" id="selectProjNameBtn" namne="selectProjNameBtn" class="aui-btn aui-btn-block aui-btn-success p-0" style="width:32%;float:right;margin-right:6px;" onclick="SetProjectSelectBegin();" value="项目选择" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目编号</label>
+                <div class="aui-input-block" style="width: 98%; display:inline-block;">@Model.ProjNumber</div>
+                <input name="ProjNumber" id="ProjNumber" type="hidden" class="aui-input" value="@Model.ProjNumber" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目经理</label>
+                <input id="EngineeringEmpId" name="EngineeringEmpId" type="hidden"  style="width:98%;"  class="aui-input" value="@(Model.EngineeringEmpName)" />
+                <input type="hidden" id="values" />
+                <input type="hidden" name="EngineeringEmpIdName" value="@(Model.EngineeringEmpName)" />
+                <div class="aui-input-block" style="width: 60%; display:inline-block;" id="EngineeringEmpIdText">@Model.EngineeringEmpName</div>
+                <input type="button" id="useLeaderBtn" namne="useLeaderBtn" class="aui-btn aui-btn-block aui-btn-success p-0" value="选择人员" style="width:32%;float:right;margin-right:8px;" onclick="SetUseEmpBegin('EngineeringEmpId',0);" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;安全员</label>
+                <input id="SafeEmpId" name="SafeEmpId" style="width:98%;" type="hidden"  class="aui-input" value="@(Model.SafeEmpId)" />
+                <input id="SafeEmpName" name="SafeEmpName" style="width:98%;" type="hidden" class="aui-input" value="" />
+                <input id="SafeEmpIdName" name="SafeEmpIdName" style="width:98%;" type="hidden" class="aui-input" value="" />
+                <div class="aui-input-block" style="width: 60%; display:inline-block;" id="SafeEmpIdText"></div>
+                <input type="button" id="useLeaderBtn" namne="useLeaderBtn" class="aui-btn aui-btn-block aui-btn-success p-0" value="选择人员" style="width:32%;float:right;margin-right:8px;" onclick="SetUseEmpBegin('SafeEmpId',0);" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;采购员</label>
+                <input id="CGEmpId" name="CGEmpId" style="width:98%;"  type="hidden" class="aui-input" value="@(Model.CGEmpId)" />
+                <input id="CGEmpIdNmae" name="CGEmpIdNmae" style="width:98%;" type="hidden" class="aui-input" value="" />
+                <input id="CGEmpName" name="CGEmpName" style="width:98%;" type="hidden" class="aui-input" value="" />
+                <div class="aui-input-block" style="width: 60%; display:inline-block;" id="CGEmpNameText"></div>
+                <input type="button" id="useLeaderBtn" namne="useLeaderBtn" class="aui-btn aui-btn-block aui-btn-success p-0" value="选择人员" style="width:32%;float:right;margin-right:8px;" onclick="SetUseEmpBegin('CGEmpId',0);" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;技术员</label>
+                <input id="JSEmpId" name="JSEmpId" style="width:98%;" type="hidden"  class="aui-input" value="@(Model.JSEmpId)" />
+                <input id="JSEmpIdName" name="JSEmpIdName" style="width:98%;" type="hidden" class="aui-input" value="" />
+                <input id="JSEmpName" name="JSEmpName" style="width:98%;" type="hidden" class="aui-input" value="" />
+                <div class="aui-input-block" style="width: 60%; display:inline-block;" id="JSEmpNameText"></div>
+                <input type="button" id="useLeaderBtn" namne="useLeaderBtn" class="aui-btn aui-btn-block aui-btn-success p-0" value="选择人员" style="width:32%;float:right;margin-right:8px;" onclick="SetUseEmpBegin('JSEmpId',0);" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;文档员</label>
+                <input id="WDEmpId" name="WDEmpId" style="width:98%;" type="hidden"  class="aui-input" value="@(Model.WDEmpId)" />
+                <input id="WDEmpName" name="WDEmpName" style="width:98%;" type="hidden" class="aui-input" value="" />
+                <input id="WDEmpIdName" name="WDEmpIdName" style="width:98%;" type="hidden" class="aui-input" value="" />
+                <div class="aui-input-block" style="width: 60%; display:inline-block;" id="WDEmpNameText"></div>
+                <input type="button" id="useLeaderBtn" namne="useLeaderBtn" class="aui-btn aui-btn-block aui-btn-success p-0" value="选择人员" style="width:32%;float:right;margin-right:8px;" onclick="SetUseEmpBegin('WDEmpId',0);" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;现场负责人</label>
+                <input id="XCEmpId" name="XCEmpId" style="width:98%;" type="hidden"  class="aui-input" value="@(Model.XCEmpId)" />
+                <input id="XCEmpName" name="XCEmpName" style="width:98%;" type="hidden" class="aui-input" value="" />
+                <input id="XCEmpIdName" name="XCEmpIdName" style="width:98%;" type="hidden" class="aui-input" value="" />
+                <div class="aui-input-block" style="width: 60%; display:inline-block;" id="XCEmpNameText"></div>
+                <input type="button" id="useLeaderBtn" namne="useLeaderBtn" class="aui-btn aui-btn-block aui-btn-success p-0" value="选择人员" style="width:32%;float:right;margin-right:8px;" onclick="SetUseEmpBegin('XCEmpId',0);" />
+            </div>
+
+
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+
+        
+    </div>
+    <script type="text/javascript">
+        var _webconfig = {
+            serverUrl: '@Url.Content("~")'
+        };
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                initFormBegin(JSON.stringify({
+                    "AllowEditControls": "{}"
+                }));
+               // initFormBegin();
+            }
+
+        })
+
+        //页面初始化
+        function initFormBegin(params) {
+            var url = _webconfig.serverUrl + '/Core/usercontrol/employeeJson';
+            $.ajax({
+                type: 'POST',
+                url: url,
+                data: '',
+                success: function (data) {
+                    console.log(JSON.parse(data))
+                    var objData = JSON.parse(data)
+                    var SafeEmpId = $('#SafeEmpId').val();//安全员
+                    var CGEmpId = $('#CGEmpId').val();//采购员
+                    var JSEmpId = $('#JSEmpId').val();//技术员
+                    var WDEmpId = $('#WDEmpId').val();//文档员
+                    var XCEmpId = $('#XCEmpId').val();//现场负责人
+
+                    for (var i = 0; i < objData.length; i++) {
+                        var objOne = objData[i];
+                        if (objOne.EmpID == SafeEmpId) {//安全员
+                            $('#SafeEmpName,#SafeEmpIdName').val(objOne.EmpName)
+                            $('#SafeEmpIdText').text(objOne.EmpName)
+                        }
+                        if (objOne.EmpID == CGEmpId) {//采购员
+                            $('#CGEmpName,#CGEmpIdNmae').val(objOne.EmpName)
+                            $('#CGEmpNameText').text(objOne.EmpName)
+
+                        }
+                        if (objOne.EmpID == JSEmpId) {//采购员
+                            $('#JSEmpName,#JSEmpIdName').val(objOne.EmpName)
+                            $('#JSEmpNameText').text(objOne.EmpName)
+                        }
+                        if (objOne.EmpID == WDEmpId) {//文档员
+                            $('#WDEmpName,#WDEmpIdName').val(objOne.EmpName)
+                            $('#WDEmpNameText').text(objOne.EmpName)
+                        }
+                        if (objOne.EmpID == XCEmpId) {//现场负责人
+                            $('#XCEmpName,#XCEmpIdName').val(objOne.EmpName)
+                            $('#XCEmpNameText').text(objOne.EmpName)
+                        }
+                    }
+
+                }
+            })
+
+            
+            var StartDate = $('#StartDate').val();
+            var EndDate = $('#EndDate').val();
+            if ((StartDate == '1900-01-01')) {
+                $('#StartDate').val('');
+            }
+            if ((EndDate == '1900-01-01')) {
+                $('#EndDate').val('');
+            }
+
+            
+            //去除换行
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+
+            var paramsObj = JSON.parse(params);
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+           // paramsObj.AllowEditControls = paramsObj.AllowEditControls.replace("StampID", "selectProjNameBtn");
+
+
+           
+            //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('EmpManageForm'));
+
+
+            
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#EmpManageForm').validate({
+                rules: {
+                    ProjName: 'required',//项目名称
+                    ProjNumber: 'required',//项目编号
+                    EngineeringEmpId: 'required',//项目经理
+                    SafeEmpId: 'required',//安全员
+                    JSEmpId: 'required',//技术员
+                    WDEmpId: 'required',//文档员
+                    XCEmpId: 'required',//现场负责人
+                },
+                messages: {
+
+                    ProjName: '请输入印章名称', //项目名称
+                    ProjNumber: '请输入项目编号', //项目编号
+                    EngineeringEmpId: '请输入项目经理', //项目经理
+                    SafeEmpId: '请输入安全员', //安全员
+                    JSEmpId: '请输入技术员', //技术员
+                    WDEmpId: '请输入文档员', //文档员
+                    XCEmpId: '请输入现场负责人', //现场负责人
+
+                }
+            });
+
+
+            isValidate = formVali.form();
+            if (isValidate) {
+                var formData = DomUtil.serialize(document.getElementById('EmpManageForm'));//json or =&
+                console.log(JSON.stringify(formData))
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+            var formData = DomUtil.serialize(document.getElementById('EmpManageForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+        //项目 - 选择项目
+        function SetProjectSelectBegin() {
+            var selemp = {
+                ProjName: $('#ProjName').val()
+            }
+            if (window.JinQuMobile) {
+                window.JinQuMobile.ProjectSelectBegin(JSON.stringify(selemp), 'SetProjectSelectEnd');
+            }
+        }
+        function SetProjectSelectEnd(emp) {
+            emp = JSON.parse(emp);
+            $("#ProjNumber").val(emp.ProjNumber) //项目编号
+            $('#ProjName').val(emp.ProjName);//项目名称
+            $('#ProjNameText').text(emp.ProjName);//项目名称
+        }
+
+        //人选择
+        function SetUseEmpBegin(IdName, n) {
+            // 1. 取页面已有人员信息
+            var selemp = {
+                IdName: IdName,
+                ids: $('#' + IdName).val(),
+                names: $('#' + IdName + 'Name').val(),
+                isSingleSelect: n   //0：单选   1：多选
+            }
+            // alert(JSON.stringify(selemp))
+            if (window.JinQuMobile) {
+                window.JinQuMobile.EmpSelectBegin(JSON.stringify(selemp), 'SetSelectInfoEnd');
+            }
+
+        }
+        //选择人员与部门共用的回调处理
+        function SetSelectInfoEnd(emp) {
+            //alert(emp)
+            emp = JSON.parse(emp);
+            var empRows = emp.rows;
+            var idName = emp.IdName;
+            //alert(idName)
+            var dataPushNameValue = [], dataPushIDValue = [];
+            for (var i = 0; i < empRows.length; i++) {
+                dataPushNameValue.push(empRows[i].names)
+                dataPushIDValue.push(empRows[i].ids)
+            }
+            if (idName == 'EngineeringEmpId') {
+                $('#EngineeringEmpId,#EngineeringEmpIdName').val(dataPushNameValue);
+                $('#EngineeringEmpIdText').text(dataPushNameValue);
+                //$('#EmpDepIDNameText').text(dataPushNameValue);
+            }
+            if (idName == 'SafeEmpId') {
+                $('#SafeEmpId').val(dataPushIDValue)
+                $('#SafeEmpName,#SafeEmpIdName').val(dataPushNameValue);
+                $('#SafeEmpIdText').text(dataPushNameValue);
+                //$('#EmpDepIDNameText').text(dataPushNameValue);
+            }
+            if (idName == 'CGEmpId') {
+                $('#CGEmpId').val(dataPushIDValue)
+                $('#CGEmpIdNmae,#CGEmpName').val(dataPushNameValue);
+                $('#CGEmpNameText').text(dataPushNameValue);
+                //$('#EmpDepIDNameText').text(dataPushNameValue);
+            }
+            if (idName == 'JSEmpId') {
+                $('#JSEmpId').val(dataPushIDValue)
+                $('#JSEmpIdName,#JSEmpName').val(dataPushNameValue);
+                $('#JSEmpNameText').text(dataPushNameValue);
+                //$('#EmpDepIDNameText').text(dataPushNameValue);
+            }
+            if (idName == 'WDEmpId') {
+                $('#WDEmpId').val(dataPushIDValue)
+                $('#WDEmpName,#WDEmpIdName').val(dataPushNameValue);
+                $('#WDEmpNameText').text(dataPushNameValue);
+            
+            }
+            if (idName == 'XCEmpId') {
+                $('#XCEmpId').val(dataPushIDValue)
+                $('#XCEmpName,#XCEmpIdName').val(dataPushNameValue);
+                $('#XCEmpNameText').text(dataPushNameValue);
+
+            }
+        }
+    </script>
+}

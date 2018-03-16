@@ -1,0 +1,844 @@
+﻿@model DataModel.Models.Project
+@using JQ.Web;
+<script type="text/javascript">
+
+    $("#Variety").val(@ViewBag.Variety);
+    $("#ChildModelId").val(@ViewBag.ChildModelId);
+    $("#strMainId").val(@Model.Id);
+    $(function () {
+        var Id = $("#strMainId").val();
+        if (Id != "") {
+            $("#btnChoice").attr("style", "border: 1px solid #DDD;	background-color: #F5F5F5; color:#ACA899" );
+        }
+
+        //提交页面
+        JQ.form.submitInit({
+            formid: 'ProjectForm',//formid提交需要用到
+            docName: 'ProjectTask',
+            ExportName: '项目任务书',
+            buttonTypes: ['close'],//默认按钮
+            beforeFormSubmit: function () {
+                EndEdit();
+                var datas = $("#ProjPhaseGrid").datagrid("getData");
+                if (datas.rows.length == 0) {
+                    JQ.dialog.warning("请先输入项目子项!");
+                    return false;
+                }
+                var sTime = $("#DatePlanStart").datebox('getValue');
+                var eTime = $("#DatePlanFinish").datebox('getValue');
+                if (sTime != "" && eTime != "") {
+                    var assigntime = new Date(parseInt(Date.parse(sTime), 10));
+                    var deadlinetime = new Date(parseInt(Date.parse(eTime), 10));
+                    if (assigntime > deadlinetime) {
+                        JQ.dialog.warning("项目计划开始时间不能大于计划结束时间!");
+                        return false;
+                    }
+                }
+
+                for (var i = 0; i < datas.rows.length; i++) {
+                    var t1 = datas.rows[i].DatePlanStart;
+                    var t2 = datas.rows[i].DatePlanFinish;
+                    if (t1 != "" && t2 != "") {
+                        var assigntime = new Date(parseInt(Date.parse(t1), 10));
+                        var deadlinetime = new Date(parseInt(Date.parse(t2), 10));
+                        if (assigntime > deadlinetime) {
+                            JQ.dialog.warning("子项计划开始时间不能大于计划结束时间!");
+                            return false;
+                        }
+                    }
+                    if (t1 != "") {
+                        var Ct1 = new Date(parseInt(Date.parse(t1), 10));
+                        if (sTime != "") {
+                            var Pt1 = new Date(parseInt(Date.parse(sTime), 10));
+                            if (Pt1 > Ct1) {
+                                JQ.dialog.warning("子项计划开始时间不能早于项目的计划开始时间!");
+                                return false;
+                            }
+                        }
+                        if (eTime != "") {
+                            var Pt2 = new Date(parseInt(Date.parse(eTime), 10));
+                            if (Ct1 > Pt2) {
+                                JQ.dialog.warning("子项计划开始时间不能晚于项目的计划结束时间!");
+                                return false;
+                            }
+                        }
+                    }
+                    if (t2 != "") {
+                        var Ct2 = new Date(parseInt(Date.parse(t2), 10));
+                        if (sTime != "") {
+                            var Pt1 = new Date(parseInt(Date.parse(sTime), 10));
+                            if (Pt1 > Ct2) {
+                                JQ.dialog.warning("子项计划结束时间不能早于项目的计划开始时间!");
+                                return false;
+                            }
+                        }
+                        if (eTime != "") {
+                            var Pt2 = new Date(parseInt(Date.parse(eTime), 10));
+                            if (Ct2 > Pt2) {
+                                JQ.dialog.warning("子项计划结束不能晚于项目的开始结束时间!");
+                                return false;
+                            }
+                        }
+                    }
+
+                }
+
+                $("#HiddenProjPhaseGridData").val(JSON.stringify(datas.rows));
+
+                //联系人
+                $("#CustLinkMan").val($("#CustLinkId").combobox("getText"));
+                $("#CustName").val($("#CustID").combobox("getText"));
+            },
+            flow: {
+                flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+                flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+                url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+                instance: "_flowInstance",
+                processor: "Project,Project.FlowProcessor.ProjectProcessor",
+                onInit: function () {
+                    _flowInstance = this;
+                },
+                refID: "@(ViewBag.ChildModelId)",
+                bridgeID: "@(Model.Id)",
+                guid: "@(ViewBag.Guid)",
+                refTable: "Project",
+                onLoaded: function () {
+                    $("#stepOrder").val(this.stepOrder);
+                }
+            },
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                var _tempFrame = window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+                if (_tempFrame) {
+                    _tempFrame.contentWindow.refreshGrid();
+                }
+                _flowInstance.$form.parent().dialog("close");
+            }
+        });
+
+        //保存时，后台可直接取出项目负责人姓名
+        if ($('#ProjEmpId').val() == 0)
+            $('#ProjEmpId').val("");
+        $('#ProjEmpId').combobox({
+            data:@Html.Raw(ViewBag.Qualification),
+            valueField: 'EmpID',
+            textField: 'EmpName',
+            editable: true,
+            onHidePanel: function () {
+                comBoxHidePanel(this);
+
+                $('#ProjEmpName').val($("#ProjEmpId").combobox("getText"));
+            }
+        });
+
+        if ($('#FProjEmpId').val() == 0)
+            $('#FProjEmpId').val("");
+        $('#FProjEmpId').combobox({
+            data:@Html.Raw(ViewBag.Qualification),
+            valueField: 'EmpID',
+            textField: 'EmpName',
+            editable: true,
+            onHidePanel: function () {
+                comBoxHidePanel(this);
+
+                $('#FProjEmpName').val($("#FProjEmpId").combobox("getText"));
+            }
+        });
+
+        //阶段表格扩展页面初始编辑状态
+        $.extend($.fn.datagrid.defaults.view, {
+            onAfterRender: function (target) {
+                if (target.id == "ProjPhaseGrid"&&@Model.Id>0) {
+                    var getRows = $(target).datagrid("getRows");
+
+                    $.each(getRows, function (i, n) {
+                        $(target).datagrid("beginEdit", i);
+                    });
+                }
+            }
+        });
+
+        //阶段表格
+        JQ.datagrid.datagrid({
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'ProjPhaseGrid',//数据表格ID
+            fit: false,
+            pagination: false,
+            height: '300',
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            url: '@Url.Action("jsonPhase", "Project",new { @area="Project"})?projId=@Model.Id' + '&childmodelId=' + $("#ChildModelId").val(),//请求的地址
+            toolbar: '#ProjPhaseGridPanel',//工具栏的容器ID
+            buttonTypes: [""],
+            singleSelect: false,
+            multiple: false,
+            columns: [[
+                { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                {
+                    title: '项目编号', field: 'ProjNumber', width: 100, align: 'left',
+                    editor: {
+                        type: 'textbox',
+                        options: {
+                            required: true
+                        }
+                    }
+                },
+                {
+                    title: '项目名称', field: 'ProjName', width: 200, align: 'left',
+                    editor: {
+                        type: 'textbox',
+                        options: {
+                            required: true
+                        }
+                    }
+                },
+                {
+                    title: '项目负责人', field: 'ProjEmpId', width: 100, align: 'center', formatter: function (value, row, index) {
+                        row.ProjEmpName = JQ.tools.strGetValName(@Html.Raw(ViewBag.Qualification), "EmpID", "EmpName", "0", value, ",", "。");
+                        return row.ProjEmpName;
+                    },
+                    editor: {
+                        type: 'combobox',
+                        options: {
+                            required: true,
+                            editable: true,
+                            data: @Html.Raw(ViewBag.Qualification),
+                            panelHeight: '150',
+                            valueField: 'EmpID',
+                            textField: 'EmpName',
+                            onHidePanel: function () {
+                                comBoxHidePanel(this);
+                                //获取编辑行索引
+                                var rowIndex = $(this).closest("tr .datagrid-row").attr("datagrid-row-index");
+
+                                var row = $("#ProjPhaseGrid").datagrid("getRows")[rowIndex];
+
+                                if (row != undefined) {
+                                    row.ProjEmpName = $(this).combobox("getText");
+                                }
+                            }
+                        }
+                    }
+                },
+
+                {
+                    title: '副项目负责人', field: 'FProjEmpId', width: 100, align: 'center', formatter: function (value, row, index) {
+                        row.FProjEmpName = JQ.tools.strGetValName(@Html.Raw(ViewBag.Qualification), "EmpID", "EmpName", "0", value, ",", "。");
+                        return row.FProjEmpName;
+                    },
+                    editor: {
+                        type: 'combobox',
+                        options: {
+                            required: false,
+                            editable: true,
+                            data: @Html.Raw(ViewBag.Qualification),
+                            panelHeight: '150',
+                            valueField: 'EmpID',
+                            textField: 'EmpName',
+                            onHidePanel: function () {
+                                comBoxHidePanel(this);
+
+                                //获取编辑行索引
+                                var rowIndex = $(this).closest("tr .datagrid-row").attr("datagrid-row-index");
+
+                                var row = $("#ProjPhaseGrid").datagrid("getRows")[rowIndex];
+
+                                if (row != undefined) {
+                                    row.FProjEmpName = $(this).combobox("getText");
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    title: '类型', field: 'ProjTypeID', width: 150, align: 'center',
+                    formatter: function (value, row, index) {
+                        row.ProjTypeName = JQ.tools.strGetValName(@Html.Raw(ViewData["ProjTypeItem"]), "id", "text", "0", value, ",", "。");
+                        return row.ProjTypeName;
+                    },
+                    editor: {
+                        type: 'combotree',
+                        options: {
+                            required: true,
+                            editable: false,
+                            prompt: "请选择类型",
+                            data: @Html.Raw(ViewData["ProjTypeIds"]),
+                            panelHeight: '150', valueField: 'id', textField: 'text',
+                            onBeforeSelect: function (node) {
+                                if (node.BaseAtt2 == "1") {
+                                    JQ.dialog.warning('请选择子项!!!');
+                                    return false;
+                                }
+                            },
+                            onChange: function (newValue,oldValue) {
+                                //获取编辑行索引
+                                var rowIndex = $(this).closest("tr .datagrid-row").attr("datagrid-row-index");
+
+                                var row = $("#ProjPhaseGrid").datagrid("getRows")[rowIndex];
+
+                                if (row != undefined) {
+                                    row.ProjTypeName = $(this).combotree("getText");
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    title: '计划开始时间', field: 'DatePlanStart', width: 100, align: 'center', formatter: JQ.tools.DateTimeFormatterByT,
+                    editor: {
+                        type: 'datebox'
+                    }
+                },
+                {
+                    title: '计划完成时间', field: 'DatePlanFinish', width: 100, align: 'center', formatter: JQ.tools.DateTimeFormatterByT,
+                    editor: {
+                        type: 'datebox'
+                    }
+                },
+                {
+                    title: '阶段', field: 'ProjPhaseIds', width: 150, align: 'center', formatter: function (value, row, index) {
+                        var _value = JQ.tools.strGetValName(@Html.Raw(ViewData["ProjPhaseIds"]), "value", "text", "0", value, ",", "、");
+                        return _value;
+                    },
+                    editor: {
+                        type: "combobox",
+                        options: {
+                            required: true,
+                            editable: false,
+                            multiple: true,
+                            data: @Html.Raw(ViewBag.ProjPhaseIds),
+                            panelHeight: '150',
+                            valueField: 'value',
+                            textField: 'text',
+                            onChange: function (newValue,oldValue) {
+                                //获取编辑行索引
+                                var rowIndex = $(this).closest("tr .datagrid-row").attr("datagrid-row-index");
+
+                                var row = $("#ProjPhaseGrid").datagrid("getRows")[rowIndex];
+
+                                if (row != undefined) {
+                                    row.ProjPhaseName = $(this).combobox("getText");
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    title: '投资额(元)', field: 'ProjFee', width: 100, align: 'left',
+                    editor: {
+                        type: 'numberbox',
+                        options: {
+                            precision: 2
+                        }
+                    }
+                },
+                {
+                    title: '工程内容说明', field: 'ProjDemand', width: 200, align: 'left',
+                    editor: {
+
+                        type: 'textbox',
+                    }
+                },
+                {
+                    title: '备注', field: 'ProjNoteOther', width: 200, align: 'left',
+                    editor: {
+                        type: 'textbox',
+                    }
+                }
+            ]],
+            onClickRow: function (rowIndex, rowData) {
+                $("#ProjPhaseGrid").datagrid("uncheckAll");
+                $("#ProjPhaseGrid").datagrid("checkRow", rowIndex);
+            }
+        });
+
+        $("#projId").val(@Model.Id);
+        $("#ProjEmpName").val("@(Model.ProjEmpName)");
+    });
+
+    //阶段表格-保存时关闭编辑状态，否则取不到值
+    function EndEdit() {
+        var getRows = $("#ProjPhaseGrid").datagrid("getRows");
+
+        $.each(getRows, function (p, m) {
+            m.ProjEmpId = m.ProjEmpId == "" ? 0 : m.ProjEmpId;
+            m.FProjEmpId = m.FProjEmpId == "" ? 0 : m.FProjEmpId;
+            $("#ProjPhaseGrid").datagrid("endEdit", p);
+        });
+    }
+    //阶段表格-添加行
+    function Add(rowdata) {
+        if (rowdata == null) {
+            rowdata={
+                ProjFee:0, //默认值
+                ProjTypeID: "",
+                ProjNumber: $("#ProjNumber").textbox("getValue"),
+                ProjName: $("#ProjName").textbox("getValue"),
+                ProjEmpId: $("#ProjEmpId").combobox("getValue"),
+                FProjEmpId: $("#FProjEmpId").combobox("getValue"),
+                ProjTypeID: $("#ProjTypeID").combotree("getValue"),
+
+            };
+        }
+        var rowIndex = $('#ProjPhaseGrid').datagrid("getRows").length || 0;
+        $('#ProjPhaseGrid').datagrid('appendRow', rowdata);
+        $('#ProjPhaseGrid').datagrid('beginEdit', rowIndex);
+    }
+
+    //阶段表格-删除行
+    function Del()
+    {
+        var row = $('#ProjPhaseGrid').datagrid('getSelections');
+        if (row.length==0) {
+            JQ.dialog.warning("请至少选择一项！！！");
+            return;
+        }
+
+        JQ.dialog.confirm("你确定要删除吗？", function () {
+            $.each(row,function (i,e) {
+                var _getIndex=$("#ProjPhaseGrid").datagrid("getRowIndex",e);
+                $('#ProjPhaseGrid').datagrid('deleteRow',_getIndex);
+            });
+        })
+    }
+
+    function SelectMainProject()
+    {
+        JQ.dialog.dialog({
+            title: "选择项目信息",
+            url: '@Url.Action("MainListInfo", "Project", new { @area = "Project" })?CompanyType=FGS&TypeId=1',
+            width: '1024',
+            height: '100%',
+            iconCls: 'fa fa-plus',
+        });
+    }
+
+    var _ProjMainBack = function (projId) {
+        $("#projId").val(projId);
+        if( $("#strMainId").val()>0)
+        {
+            $("#strMainId").val(projId);
+        }
+        $("#ProjNumber").textbox({editable:false});
+        $("#ProjName").textbox({editable:false});
+        $("#btnChoice").removeAttr("style");
+        $("#btnInput").attr("style", "border: 1px solid #DDD;	background-color: #F5F5F5; color:#ACA899");
+        debugger;
+        $.ajax({
+            url: '@Url.Action("GetJsonByProject", "Project", new { @area = "Project" })?Id='+projId,
+            type: "POST",
+            success: function (result) {
+                var obj=JSON.parse(result)
+
+                $("#ProjNumber").textbox('setValue',obj.ProjNumber);
+                $("#ProjName").textbox('setValue',obj.ProjName);
+
+                if(obj.ProjEmpId!="0")  $("#ProjEmpId").combobox('setValue',obj.ProjEmpId);
+                if(obj.ProjTypeID!="0")   $("#ProjTypeID").combotree('setValue',obj.ProjTypeID);
+
+                if(obj.ProjPropertyID!="0")  $("#ProjPropertyID").combotree('setValue',obj.ProjPropertyID);
+                if(obj.ProjVoltID!="0")   $("#ProjVoltID").combotree('setValue',obj.ProjVoltID);
+                if(obj.ColAttType2!="0")   $("#ColAttType2").combotree('setValue',obj.ColAttType2);
+                if(obj.ProjAreaID!="0")  $("#ProjAreaID").combotree('setValue',obj.ProjAreaID);
+                if(obj.ColAttType1!="0")  $("#ColAttType1").combotree('setValue',obj.ColAttType1);
+                if(obj.ColAttType4!="0")  $("#ColAttType4").combotree('setValue',obj.ColAttType4);
+
+                $("#TaskBasisName").textbox('setValue',obj.TaskBasisName);
+                $("#TaskBasisNumber").textbox('setValue',obj.TaskBasisNumber);
+
+                $("#CustID").combobox("setValue",obj.CustId);
+                $("#CustID").combobox("setText",obj.CustName);
+                $("#CustName").val(obj.CustName);
+                $("#CustLinkId").combobox("setText",obj.CustLinkMan);
+                $("#CustLinkTel").textbox("setValue",obj.CustLinkTel);
+                $("#CustLinkWeb").textbox("setValue",obj.CustLinkWeb);
+
+                if(obj.ProjTaskSource!="0")  $("#ProjTaskSource").combotree('setValue',obj.ProjTaskSource);
+                if(obj.ProjDepId!="0") $("#ProjDepId").combotree('setValue',obj.ProjDepId);
+                if(obj.ProjJoinDepIds!="0") {
+                    $("#ProjJoinDepIds").combotree('setValues',obj.ProjJoinDepIds);
+                }
+
+                $("#CreatorEmpName").textbox('setText',obj.CreatorEmpName);
+                $("#DateCreate").datebox('setValue',obj.DateCreate);
+                $("#DatePlanStart").datebox('setValue',obj.DatePlanStart);
+                $("#DatePlanFinish").datebox('setValue',obj.DatePlanFinish);
+
+                $("#ProjTaskContent").textbox('setValue',obj.ProjTaskContent);
+                $("#ProjFeeSource").textbox('setValue',obj.ProjFeeSource);
+                $("#DatePlanDeliver").datebox('setValue',obj.DatePlanDeliver);
+                $("#ColAttVal1").textbox('setValue',obj.ColAttVal1);
+                $("#ProjDemand").textbox('setValue',obj.ProjDemand);
+                $("#ProjNoteOther").textbox('setValue',obj.ProjNoteOther);
+            }
+        });
+
+    }
+
+    function SelectCustomProject()
+    {
+        $("#ProjNumber").textbox('setText','');
+        $("#ProjName").textbox('setText','');
+
+        $("#ProjNumber").textbox({editable:true});
+        $("#ProjName").textbox({editable:true});
+
+        $("#btnChoice").attr("style", "border: 1px solid #DDD;	background-color: #F5F5F5; color:#ACA899" );
+        $("#btnInput").removeAttr("style");
+        $("#projId").val("0");
+    }
+</script>
+@using (Html.BeginForm("save", "Project", FormMethod.Post, new { @area = "Project", @id = "ProjectForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <input type="hidden" id="CompanyType" name="CompanyType" value="" />
+    <table class="table table-bordered">
+
+        <div style="width:100%;text-align:center;font-size:20px;font-weight:bold;">
+            <a>项目任务书</a>
+        </div>
+        <div style="float:right;margin-right:20px;margin-top:20px;">
+        </div>
+        <tr>
+            <th width="10%" rowspan="2">项目编号</th>
+            <td width="40%" rowspan="2">
+                <input name="ProjNumber" id="ProjNumber" style="width:98%;" class="easyui-textbox" data-options="required:true" missingMessage="请输入项目编号" value="@Model.ProjNumber" />
+            </td>
+            <th width="10%" rowspan="2">项目名称</th>
+            <td width="40%">
+                <input name="ProjName" id="ProjName" style="width:98%;" class="easyui-textbox" data-options="required:true" validtype="length[0,200]" value="@Model.ProjName" />
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <div id="div_btns">
+                    <a class="easyui-linkbutton" name="btnChoice" id="btnChoice" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="SelectMainProject()">选择项目</a>
+                    <a class="easyui-linkbutton" name="btnInput" id="btnInput" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="SelectCustomProject()">自定义输入项</a>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">项目负责人</th>
+            <td width="40%">
+                <input id="ProjEmpId" name="ProjEmpId" class="easyui-combobox" data-options="required:true" value="@Model.ProjEmpId" />
+                <input type="hidden" id="ProjEmpName" name="ProjEmpName" />
+            </td>
+            <th width="10%">副项目负责人</th>
+            <td width="40%">
+                <input type="text" id="FProjEmpId" name="FProjEmpId" class="easyui-combobox" value="@Model.FProjEmpId" />
+                <input type="hidden" id="FProjEmpName" name="FProjEmpName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">项目性质</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ProjPropertyID",
+               isRequired = true,
+               engName = "ProjProperty",
+               width = "98%",
+               ids = Model.ProjPropertyID.ToString()
+           })
+            </td>
+            <th width="10%">项目类型</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ProjTypeID",
+               isRequired = true,
+               engName = "ProjectType",
+               width = "98%",
+               isVerify = true,
+               typeId = "1",
+               ids = Model.ProjTypeID.ToString()
+           })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">任务类型</th>
+            <td width="40%">
+                <div style="float:left">
+                    @(BaseData.getBase(new Params()
+                {
+                    controlName = "ColAttType2",
+                    isRequired = false,
+                    engName = "ProjectTask",
+                    width = "120px",
+                    ids = Model.ColAttType2.ToString()
+                }))
+                </div>
+                <div style="float:left;line-height:26px">区域：</div>
+                <div style="float:left">
+                    @(BaseData.getBase(new Params()
+                {
+                    controlName = "ProjAreaID",
+                    isRequired = true,
+                    engName = "ProjectArea",
+                    width = "120px",
+                    ids = Model.ProjAreaID.ToString()
+                }))
+                </div>
+
+            </td>
+            <th width="10%">任务形式</th>
+            <td width="40%">
+                <div style="float:left">
+                    @(BaseData.getBase(new Params()
+                {
+                    controlName = "ColAttType1",
+                    engName = "TaskType",
+                    width = "120px",
+                    ids = Model.ColAttType1.ToString()
+                }))
+                </div>
+                <div style="float:left;line-height:26px">紧急程度：</div>
+                <div style="float:left;">
+                    @(BaseData.getBase(new Params()
+                {
+                    controlName = "ColAttType4",
+                    engName = "ProjectUrgency",
+                    width = "120px",
+                    ids = Model.ColAttType4.ToString()
+                }))
+                </div>
+
+            </td>
+        </tr>
+
+        <tr>
+            <th width="10%">任务依据</th>
+            <td width="40%"><input name="TaskBasisName" id="TaskBasisName" style="width:98%;" class="easyui-textbox" validtype="length[0,50]" value="@Model.TaskBasisName" /></td>
+            <th width="10%">依据编号</th>
+            <td width="40%"><input name="TaskBasisNumber" id="TaskBasisNumber" style="width:98%;" class="easyui-textbox" validtype="length[0,50]" value="@Model.TaskBasisNumber" /></td>
+        </tr>
+        <tr>
+            <th width="10%">客户单位</th>
+            <td width="40%" colspan="3">
+                <input id="CustID" name="CustID" style="width:98%;" />
+                <input id="CustName" name="CustName" type="hidden" isFirst="0" value="@Model.CustName" />
+                <script type="text/javascript">
+                    $(function () {
+                        $("#CustID").combobox({
+                            url: '@Url.Action("GetCustomerListComboboxWithCount", "BussCustomer", new { @area = "Bussiness" })?TopCount=10',
+                            valueField: 'Id',
+                            textField: 'CustName',
+                            mode:'remote',
+                            onBeforeLoad:function (param) {
+                                if ($("#CustName").attr("isFirst")=="0") {
+                                    param.q=$("#CustName").val();
+                                }
+                            },
+                            onLoadSuccess:function () {
+                                if ($("#CustID").combobox("getText")==""&&$("#CustName").attr("isFirst")=="0") {
+                                    $("#CustID").combobox("setText",$("#CustName").val());
+                                    $("#CustName").attr("isFirst","1");
+                                }
+                            },
+                            onHidePanel:function(){
+                                $("#CustLinkId").combobox("setValue","");
+                                $("#CustLinkTel").textbox("setValue","");
+                                $("#CustLinkWeb").textbox("setValue","");
+                                var custid=$("#CustID").combobox("getValue");
+                                if(isNaN(custid)){
+                                    custid=-1;
+                                    url='@Url.Action("getLinkManCombobox", "BussCustomerLinkMan", new { @area = "Bussiness" })?CustID='+custid;
+                                }else{
+                                    url='@Url.Action("getLinkManCombobox", "BussCustomerLinkMan", new { @area = "Bussiness" })?CustID='+custid;
+                                }
+                                //加载联系人
+                                $("#CustLinkId").combobox({
+                                    url:url,
+                                    valueField: 'Id',
+                                    textField: 'CustLinkManName',
+                                    editable:true,
+                                    onLoadSuccess:function () {
+                                        var data= $(this).combobox("getData");
+                                        if (data.length>0) {
+                                            $(this).combobox("setValue",data[0].Id);
+                                            $("#CustLinkTel").textbox("setValue",data[0].linkTel);
+                                            $("#CustLinkWeb").textbox("setValue",data[0].linkWeb);
+                                        }
+                                    },
+                                    onSelect:function (item) {
+                                        //加载联系人
+                                        $("#CustLinkTel").textbox("setValue",item.linkTel);
+                                        $("#CustLinkWeb").textbox("setValue",item.linkWeb);
+                                    }
+                                })
+                            }
+                        })
+
+                    })
+                </script>
+            </td>
+
+        </tr>
+        <tr>
+            <th>联系人</th>
+            <td>
+                <input id="CustLinkId" name="CustLinkId" style="width:98%;" />
+                <input id="CustLinkMan" name="CustLinkMan" type="hidden" value="@Model.CustLinkMan">
+                <script type="text/javascript">
+                    $(function () {
+                        $("#CustLinkId").combobox({
+                            url: '@Url.Action("getLinkManCombobox", "BussCustomerLinkMan", new { @area = "Bussiness" })?CustID=@Model.CustID',
+                            valueField: 'Id',
+                            textField: 'CustLinkManName',
+                            onSelect:function (item) {
+                                //加载联系人
+                                $("#CustLinkTel").textbox("setValue",item.linkTel);
+                                $("#CustLinkWeb").textbox("setValue",item.linkWeb);
+                            },
+                            filter:function (q, row) {
+                                $("#CustLinkTel").textbox("setValue","");
+                                $("#CustLinkWeb").textbox("setValue","");
+                                return true;
+                            },
+                            onLoadSuccess:function () {
+                                $("#CustLinkId").combobox("setText",$("#CustLinkMan").val());
+                            },
+                        })
+
+                    })
+                </script>
+            </td>
+            <th>联系电话</th>
+            <td>
+                <input id="CustLinkTel" name="CustLinkTel" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@Model.CustLinkTel" />
+            </td>
+        </tr>
+        <tr>
+            <th>邮箱</th>
+            <td>
+                <input id="CustLinkWeb" name="CustLinkWeb" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@Model.CustLinkWeb" />
+            </td>
+            <th width="10%">任务来源</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ProjTaskSource",
+               // isRequired = true,
+               engName = "ProjTaskSource",
+               width = "98%",
+               ids = Model.ProjTaskSource.ToString()
+           })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">主办部门</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "ProjDepId",
+               isRequired = true,
+               engName = "department",
+               width = "98%",
+               ids = Model.ProjDepId.ToString()
+           })
+            </td>
+            <th width="10%">协办部门</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               isMult = true,
+               controlName = "ProjJoinDepIds",
+               isRequired = false,
+               engName = "department",
+               width = "98%",
+               ids = Model.ProjJoinDepIds.ToString()
+           })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">计划编制人</th>
+            <td width="40%"><input name="CreatorEmpName" id="CreatorEmpName" style="width:98%;" class="easyui-textbox" data-options="editable:false" validtype="length[0,100]" value="@Model.CreatorEmpName" /></td>
+            <th width="10%">下达时间</th>
+            <td width="40%"><input name="DateCreate" id="DateCreate" class="easyui-datebox" validtype="length[0,23]" value="@Model.DateCreate" /></td>
+        </tr>
+        <tr>
+            <th width="10%">计划开始</th>
+            <td width="40%"><input name="DatePlanStart" id="DatePlanStart" class="easyui-datebox" validtype="length[0,23]" value="@Model.DatePlanStart" /></td>
+            <th width="10%">计划结束</th>
+            <td width="40%"><input name="DatePlanFinish" id="DatePlanFinish" class="easyui-datebox" validtype="length[0,23]" value="@Model.DatePlanFinish" /></td>
+        </tr>
+        <tr>
+            <td colspan="4" id="tduploader">
+                <input id="fileuploder" name="fileuploder" type="file" style="display:none" />
+                <table id="ProjPhaseGrid" bookmark="ProjPhaseGrid"></table>
+                <input type="hidden" id="HiddenProjPhaseGridData" name="HiddenProjPhaseGridData" />
+                <div id="ProjPhaseGridPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+                    <span JQPanel="toolbarPanel">
+                        <a class="easyui-linkbutton" name="btnAddUnit" data-options="plain:true,iconCls:'fa fa-plus'" onclick="Add(null)">新增</a>
+                        <a class="easyui-linkbutton" name="btnRemoveUnit" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="Del()">删除</a>
+                    </span>
+                </div>
+                <div id="tbCustomer" style="padding:5px;height:auto; display:none;">
+                    <input id="fullNameSearchCustomer" style="width:250px;" JQWhereOptions="{ Key: 'CustName', 'Contract': 'like' }" />
+                </div>
+                <div id="tbCustLinkMan" style="padding:5px;height:auto; display:none;">
+                    <input id="fullNameSearchCustLinkMan" style="width:250px;" JQWhereOptions="{ Key: 'CustLinkManName', 'Contract': 'like' }" />
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">任务内容</th>
+            <td colspan="3" width="100%">
+                <textarea name="ProjTaskContent" id="ProjTaskContent" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,500]">@Model.ProjTaskContent</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th>资金来源</th>
+            <td colspan="3">
+                <textarea name="ProjFeeSource" id="ProjFeeSource" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,500]">@Model.ProjFeeSource</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">综合进度要求</th>
+            <td colspan="3">
+                <div style="float:left; width:15%;">
+                    <span style="float:left; width:300px; margin:10px;">交付时间</span>
+                    <input name="DatePlanDeliver" id="DatePlanDeliver" style="width:100%;" class="easyui-datebox" validtype="length[0,23]" value="@Model.DatePlanDeliver" />
+                </div>
+                <div style="float:left; width:85%;">
+                    <textarea name="ColAttVal1" id="ColAttVal1" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,500]">@Model.ColAttVal1</textarea>
+                </div>
+            </td>
+        </tr>
+
+        <tr>
+            <th>其他</th>
+            <td colspan="3">
+                <textarea name="ProjDemand" id="ProjDemand" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,500]">@Model.ProjDemand</textarea>
+            </td>
+        </tr>
+        <tr>
+            <th>备注</th>
+            <td colspan="3">
+                <textarea name="ProjNoteOther" id="ProjNoteOther" style="width:99%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,500]">@Model.ProjNoteOther</textarea>
+            </td>
+        </tr>
+        <tr id="SignTd">
+            <th></th>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = ViewBag.ChildModelId;
+                    uploader.RefTable = "Project";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+
+    </table>
+    <input id="HiddenProjPhaseGridData" name="HiddenProjPhaseGridData" type="hidden" />
+    <input type="hidden" id="projId" name="projId" value="0" />
+    <input type="hidden" id="stepOrder" name="stepOrder" />
+    <input type="hidden" id="ChildModelId" name="ChildModelId" />
+                    }

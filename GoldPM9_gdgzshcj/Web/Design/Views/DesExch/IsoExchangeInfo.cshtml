@@ -1,0 +1,102 @@
+﻿
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'IsoExchangeInfoForm',//formid提交需要用到
+        docName: 'IsoDesExch',
+        ExportName: '设计条件提供单',
+        buttonTypes: ['close', 'exportForm'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        onBefore: function (resultArr) {
+            resultArr.push({ Key: "Permission", Value: @ViewBag.Permission });
+        }
+    });
+
+    $(function () {
+        $.ajax({
+            url: '@Url.Action("RecSpecAndEmp", "DesExch", new { @area = "Design" })?ExchId=@ViewBag.DesExchModel.Id',
+            dataType: "json",
+            type:"POST",
+            success: function (result, status, xhr) {
+                var specId = '@Request.Params["RecSpecId"]';
+                var specItem = Enumerable.From(result.rows).Where("x=>x.RecSpecId=" + specId + "").FirstOrDefault();
+                $("#JSSpecName").text(specItem.RecSpecName);
+                $("#JSTime").text(specItem.RecTime);
+            }
+        });
+    });
+
+</script>
+<form id="IsoExchangeInfoForm">
+    <table class="table table-bordered">
+
+        <div style="width:100%;text-align:center;font-size:20px;font-weight:bold;margin-top:10px;">
+            <a>设计条件提供单</a>
+        </div>
+        <div style="float:left;margin-left:20px;margin-top:10px;">
+            表<label>@ViewBag.TableNumber</label>
+        </div>
+        <div style="float:right;margin-right:20px;margin-top:10px;margin-bottom:10px;">
+            编号<input id="Number" name="Number" style="width:140px;" class="easyui-textbox" validtype="length[0,50]" />
+        </div>
+        <tr>
+            <th>工程名称</th>
+            <td colspan="3">
+                <span id="ProjName" name="ProjName" bookmark="ProjName">@ViewBag.ProjName</span>
+            </td>
+            <th>工程编号</th>
+            <td>
+                <span id="ProjNumber" name="ProjNumber" bookmark="ProjNumber">@ViewBag.ProjNumber</span>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">提供专业</th>
+            <td width="25%">
+                <span id="TGSpecName" name="TGSpecName" bookmark="TGSpecName">@ViewBag.DesExchModel.ExchSpecName</span>
+            </td>
+            <th width="10%">专业负责人</th>
+            <td width="25%">
+                <span id="TGSpecHeader" name="TGSpecHeader" bookmark="TGSpecHeader">@ViewBag.TGSpecHeader</span>
+            </td>
+            <th width="10%">提供日期</th>
+            <td width="20%">
+                <span id="TGTime" name="TGTime" bookmark="TGTime">@ViewBag.CreationTime</span>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">接受专业</th>
+            <td width="25%">
+                <span id="JSSpecName" name="JSSpecName" bookmark="JSSpecName"></span>
+            </td>
+            <th width="10%">专业负责人</th>
+            <td width="25%">
+                <span id="JSSpecHeader" name="JSSpecHeader" bookmark="JSSpecHeader">@ViewBag.JSSpecHeader</span>
+            </td>
+            <th width="10%">接受日期</th>
+            <td width="20%">
+                <span id="JSTime" name="JSTime" bookmark="JSTime"></span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="6" bookmark="ExchContent">
+                设计条件（主要控制数据及文字说明、所附文件及简图的名称）：
+                <br>
+                <div id="TZNR" name="TZNR" style="height:500px;" bookmark="TZNR">@ViewBag.DesExchModel.ExchContent</div>
+            </td>
+        </tr>
+        <tr>
+            <th>设计人/日期</th>
+            <td colspan="2"><span id="TZR_EmpName" name="TZR_EmpName" bookmark="TZR_EmpName" style="padding-right:20px;">@ViewBag.DesExchModel.ExchEmpName</span><span id="TZTime" name="TZTime" bookmark="TZTime">@ViewBag.CreationTime</span></td>
+            <th>校核人（专业负责人）/日期</th>
+            <td colspan="2"><span id="JHR_EmpName" name="JHR_EmpName" bookmark="JHR_EmpName" style="padding-right:20px;">@ViewBag.JHR</span><span id="JHTime" name="JHTime" bookmark="JHTime">@ViewBag.JHTime</span></td>
+        </tr>
+        <tr>
+            <th>审核人/日期</th>
+            <td colspan="2"><span id="SHR_EmpName" name="SHR_EmpName" bookmark="SHR_EmpName" style="padding-right:20px;">@ViewBag.SHR</span><span id="SHTime" name="SHTime" bookmark="SHTime">@ViewBag.SHTime</span></td>
+            <th>审定人/日期</th>
+            <td colspan="2"><span id="SDR_EmpName" name="SDR_EmpName" bookmark="SDR_EmpName" style="padding-right:20px;">@ViewBag.SDR</span><span id="SDTime" name="SDTime" bookmark="SDTime">@ViewBag.SDTime</span></td>
+        </tr>
+    </table>
+</form>

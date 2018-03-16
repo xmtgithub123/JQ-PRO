@@ -1,0 +1,29 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>@ViewBag.Title</title>
+    @RenderPage("~/Areas/Core/Views/Shared/_Header.cshtml")
+    <script type="text/javascript">
+        JQ.Flow && (JQ.Flow.sitePath = "@(ViewBag.sitePath)");
+        window.onload = function () {
+            $("#loading").fadeOut(2000);
+        }
+    </script>
+    <style>
+    </style>
+    @RenderSection("head", false)
+</head>
+<body class="easyui-layout" data-options="fit:true">
+    <div id="loading" class="loading">
+        <div><span></span></div>
+    </div>
+    
+    @*<div class="moreSearchButton" style="display:none;">
+        <a class="l-btn l-btn-plain"><span class="l-btn-left"><span class="l-btn-text fa fa-search-plus" style="font-size:14px"></span><span style="font-size:12px"></span></span></a>
+    </div>*@
+    @RenderSection("Body_Content", true)
+</body>
+</html>

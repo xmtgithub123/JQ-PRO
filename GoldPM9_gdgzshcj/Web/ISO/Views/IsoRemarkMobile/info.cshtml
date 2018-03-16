@@ -1,0 +1,291 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Mobile/_Layout.cshtml";
+}
+
+@using JQ.Web;
+@model DataModel.Models.IsoRemark
+
+@section head {
+    <style type="text/css">
+    .aui-btn {
+        padding: 10px 15px;
+        font-size: 13px;
+    }
+
+    .aui-btn-row:after {
+        border: 0;
+    }
+    .p-15{
+        padding:15px;
+    }
+
+
+    .set-disabled {
+        pointer-events: none !important
+    }
+
+        .error {
+            color: red;
+            font-size: 14px;
+        }
+
+    .hidden {
+        display: none;
+    }
+
+    .aui-input-hook {
+        line-height: 34px;
+        text-align: left;
+        padding-left: 20px;
+        background: #efefef;
+    }
+
+    .aui-display-hook {
+        display: none;
+        width: 30%;
+        float: right;
+        font-size: 13px;
+        line-height: 33px;
+        margin-right: 6px;
+        padding: 3px 6px;
+    }
+
+    .aui-input-width {
+        width: 98%;
+    }
+
+    .hiddenShow {
+        height: 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        min-width: 90px;
+    }
+
+    .set-selected-icon select {
+        float: right;
+        margin-right: 5px;
+        border: 0;
+        margin-bottom: 0;
+    }
+
+    .set-selected-icon i {
+        position: absolute;
+        right: 25px;
+        top: 15px;
+    }
+    .aui-input-row-position {
+        position: relative;
+        display: table;
+        padding: 6px 0;
+    }
+
+    .aui-input-row label.aui-input-addon {
+        font-size: 14px;
+    }
+
+    .jq-text-disabled {
+        color: #898787;
+        width: 98%;
+        pointer-events: none;
+        background-color: #efefef !important;
+        border: 0;
+        font-size: 13px;
+    }
+    .aui-input-check-disable {
+        font-size: 12px !important;
+        font-weight: normal !important;
+    }
+
+    .aui-input-check-disable label {
+        line-height: 45px;
+        margin-right: 15px;
+    }
+
+        .aui-input-check-disable input[type="checkbox"], .aui-input-check-disable input[type="radio"] {
+            width: auto;
+            margin: 0 5px 0 0;
+            line-height: 45px;
+        }
+</style>
+}
+
+@section Body_Content{
+    <div class="aui-content">
+        <form id="IsoRemarkForm" class="aui-form">
+            <div class="p-15">
+               表 <label>@Model.TableNumber</label><input type="hidden" name="TableNumber" value="@Model.TableNumber" />
+                <br />编号 <input id="Number" name="Number" type="text" class="aui-input" style="display:inline;min-width: 60px;max-width: 60%;border: 1px solid #dbdbdb; border-radius: 6px;padding: 3px 6px;margin:0 3px;text-align:center;" class="form-control" validType="length[0,200]" value="@Model.Number" />
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目编号</label>
+                <input type="hidden" id="Id" name="Id" value="@Model.Id" />
+               @* <input name="ProjNumber" id="ProjNumber" type="text" class="aui-input" value="@Model.ProjNumber" style="width:60%;margin-right:15px;text-overflow: ellipsis;" />*@
+                <div class="aui-input-block">@Model.ProjNumber</div>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;项目名称</label>
+                <input type="hidden" id="ProjId" name="ProjId" value="@Model.ProjId" />
+                <input name="ProjName" id="ProjName" type="hidden" class="aui-input" value="@Model.ProjName" />
+                <input type="hidden" name="ProjPhaseId" id="ProjPhaseId" value="@Model.ProjPhaseId" />
+                <input type="hidden" name="ProjPhaseName" id="ProjPhaseName" value="@Model.ProjPhaseName" />
+                <div class="aui-input-block">@Model.ProjName</div>
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp;时间</label>
+                <input type="date" id="Time" name="Time" class="aui-input" value="@Model.Time.ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="aui-input-row aui-input-check-disable">
+                <label class="aui-input-addon">&nbsp;&nbsp;地点</label>
+               @* <input type="hidden" id="Address" name="Address" class="aui-input" value="@Model.Address" />*@
+                <textarea rows="1" name="Address" id="Address" style="width:98%;" class="aui-input">@Model.Address</textarea>
+                @*<div class="aui-input-block">@Model.Address</div>*@
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;相关单位人员</label>
+                <textarea rows="6" name="UnitEmpName" id="UnitEmpName" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.UnitEmpName</textarea>
+            </div>
+            <div class="aui-input-row">
+                <label class="aui-input-addon">&nbsp;&nbsp;内容及结论意见</label>
+                <textarea rows="6" name="Note" id="Note" style="width:98%;" class="aui-input" data-options="multiline:true" validType="length[0,500]">@Model.Note</textarea>
+            </div>
+
+            @*<div class="aui-input-row">
+                <div class="aui-btn aui-btn-block aui-btn-success p-0" onclick="validateFormBegin()">提交</div>
+            </div>*@
+        </form>
+    </div>
+    <script type="text/javascript">
+
+        $(function () {
+            if (window.JinQuMobile == undefined) {
+                //initFormBegin(JSON.stringify({
+                //    "Result": true,
+                //    "Message": null,
+                //    "NodeName": null,
+                //    "AllowEditControls": "{}",
+                //    "SignControls": "DesignName(签名)",
+                //    "SignControls": null,
+                //    //"AllowEditControls":""
+
+                //}));
+                //initFormBegin();
+            }
+
+        })
+        //页面初始化
+        function initFormBegin(params) {
+            //alert(params)
+            //去除换行
+            //alert(window.location.href)
+            params = params.replace(/[\r\n]/g, "");
+            params = params.replace(/\s/g, "");
+            var paramsObj = JSON.parse(params);
+
+
+            //按钮替换
+            paramsObj.AllowEditControls = paramsObj.AllowEditControls || '-';
+
+            //清除时间审批时，默认为1900-01-01改为空
+            var Time = $('#Time').val();;
+            if ((Time == '1900-01-01')) {
+                $('#Time').val('');
+            }
+        
+
+             //设置表单不可编辑样式及只读
+            $('form :input').addClass('jq-text-disabled').attr("readonly", "readonly");
+            DomUtil.setCtrlsReadonly(paramsObj.AllowEditControls, document.getElementById('IsoRemarkForm'));
+
+            //相关单位人员，替换换行符
+            var UnitEmpNameValue = $('#UnitEmpName').val();
+            UnitEmpNameValue = UnitEmpNameValue.replace(/[\r\n]/g, "")
+            $('#UnitEmpName').val(UnitEmpNameValue);
+
+
+            //内容及结论意见，替换换行符
+            var NoteValue = $('#Note').val();
+            NoteValue = NoteValue.replace(/[\r\n]/g, "")
+            $('#Note').val(NoteValue);
+
+
+            if (paramsObj.AllowEditControls == "{}") {
+
+                $('#UnitEmpName,#Note,#ProjName,#Address').removeClass('jq-text-disabled')
+                $("#UnitEmpName,#Note,#ProjName,#Address").css({
+                    overflow: 'auto',
+                })
+            }
+            else {
+                $('#UnitEmpName,#Note,#ProjName,#Address').removeClass('jq-text-disabled').attr("readonly", "readonly")
+                $("#UnitEmpName,#Note,#ProjName,#Address").css({
+                    overflow: 'auto',
+                    background: '#efefef',
+                    color: '#898787'
+                })
+            }
+
+
+           
+
+            //告诉移动端页面初始完完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.FormEnd();
+            }
+        }
+
+
+         
+        /*----------------------------------------------------------------------------------------------*/
+        //表单验证交互
+
+        function validateFormBegin() {
+            var formVali = $('#IsoRemarkForm').validate({
+                rules: {
+                    //Number:'required',//编号
+                    //ProjectName: 'required',//项目名称
+                    //ColAttVal2:'required',//变更原因
+                    //ModifyContent: { //修改内容
+                    //    required: false,
+                    //    maxlength: 500
+                    //},
+                    //FormNote: { // 监理单位意见
+                    //    required: false,
+                    //    maxlength: 500
+                    //}
+                },
+                messages: {
+                    //Number:'请输入编号',
+                    //ProjectName: '请输入项目名称 ',
+                    //ColAttVal2:'请输入变更原因',
+                    //ModifyContent: {
+                    //    maxlength: '内容长度必须介于0-500之间'
+                    //},
+                    //FormNote: {
+                    //    maxlength: '内容长度必须介于0-500之间'
+                    //}
+                }
+            });
+            isValidate = formVali.form();
+            if (isValidate) {
+                var formData = DomUtil.serialize(document.getElementById('IsoRemarkForm'));//json or =&
+                console.log(formData)
+                //告诉移动端页面初始完完毕
+                if (window.JinQuMobile) {
+                    window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+                }
+            }
+        }
+
+        /*----------------------------------------------------------------------------------------------*/
+        //不走验证流程
+        function noValidateFormBegin() {
+            var formData = DomUtil.serialize(document.getElementById('IsoRemarkForm'));//json or =&
+            //告诉移动端页面验证完毕
+            if (window.JinQuMobile) {
+                window.JinQuMobile.validateFormEnd(JSON.stringify(formData));
+            }
+        }
+
+    </script>
+}

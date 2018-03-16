@@ -1,0 +1,49 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout1.cshtml";
+}
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="save()">
+        <span class="fa fa-check"></span>
+        <span>确定</span>
+    </div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+</div>
+<div id="divcontent">
+    <div style="margin:5px">
+        <table class="documenttable">
+            <tr>
+                <th style="width:80px">名称</th>
+                <td style="width:280px"><input type="text" id="txtProcessTemplateName" placeholder="请输入流程模版名称" class="yc_textbox" style="width:270px" value="@(ViewBag.Name)"></td>
+            </tr>
+        </table>
+    </div>
+</div>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript">
+    document.getElementById("txtProcessTemplateName").focus();
+    function save() {
+        var v = YChart.trim(document.getElementById("txtProcessTemplateName").value);
+        if (v == "") {
+            YChart.showTip(document.getElementById("txtProcessTemplateName"), "请输入流程模版名称");
+            return;
+        }
+        YChart.ajax({
+            url: "@(Url.Action("Save", "Template",new { @area= "Process" }))?id=@(ViewBag.ID)",
+            data: { name: v },
+            type: "POST",
+            success: function (data) {
+                if (data.Result == false) {
+                    alert(data.Message);
+                }
+                else {
+                    frameElement.api.refreshGrid();
+                    frameElement.closeDialog();
+                }
+            }
+        });
+    }
+</script>

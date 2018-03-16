@@ -1,0 +1,52 @@
+﻿
+@model DataModel.Models.BaseEmployee
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'ajaxform',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.datagrid.autoRefdatagrid();//刷新上一级数据表格，必须在close窗体前调用
+            JQ.dialog.dialogClose();
+        }
+    });
+    $(function () {
+        //@*$("#EmpID").val('@ViewBag.EmpID');*@
+
+    });
+
+    $("#PayManageCoeff").numberspinner({ precision: 2 });
+    $("#PaySkillCoeff").numberspinner({ precision: 2 });
+</script>
+
+@using (Html.BeginForm("saveCoeff", "PayPasssWord", FormMethod.Post, new { @area = "Pay", @id = "ajaxform" }))
+{
+    @Html.HiddenFor(m => m.EmpID)
+    <table class="table table-bordered">
+        <tbody>
+            <tr>
+                <th>
+                    姓名：
+                    @*<input id="EmpID" name="EmpID" type="hidden" />*@
+                </th>
+                <td>
+                    @Model.EmpName
+                </td>
+            </tr>
+            <tr>
+                <th>管理系数：</th>
+                <td>
+                    <input id="PayManageCoeff" name="PayManageCoeff" style="width:98%;" class="easyui-numberspinner" validtype="length[0,10]" value="@Model.PayManageCoeff" />
+                </td>
+            </tr>
+            <tr>
+                <th>技能系数：</th>
+                <td>
+                    <input id="PaySkillCoeff" name="PaySkillCoeff" style="width:98%;" class="easyui-numberspinner" validtype="length[0,10]" value="@Model.PaySkillCoeff" />
+
+                </td>
+            </tr>
+        </tbody>
+    </table>
+}
+

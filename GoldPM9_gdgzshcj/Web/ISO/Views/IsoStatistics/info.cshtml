@@ -1,0 +1,95 @@
+﻿@using JQ.Web;
+
+<script type="text/javascript">
+    var requestUrl = '@Url.Action("jsonList", "IsoStatistics", new { @area="ISO"})';
+    $(function () {
+        debugger;
+
+        JQ.datagrid.datagrid({
+            JQButtonTypes: ['export'],//需要显示的按钮
+            JQPrimaryID: 'Id',//主键的字段
+            JQID: 'ISOCheckStatisticsInfoGrid',//数据表格ID
+            JQDialogTitle: '信息',//弹出窗体标题
+            JQWidth: '1024',//弹出窗体宽
+            JQHeight: '100%',//弹出窗体高
+            JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+            JQFields: ["Id"],//追加的字段名
+            url: requestUrl,//请求的地址
+            checkOnSelect: true,//是否包含check
+            toolbar: '#ISOCheckInfoPanel',//工具栏的容器ID
+            JQExcludeCol: [1, 9],
+            JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+            columns: [[
+              { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+              { title: '项目编号', field: 'ProjNumber', width: "12%", halign: 'center', align: 'left', },
+              { title: '项目名称', field: 'ProjName', width: "18%", halign: 'center', align: 'left', },
+              { title: '阶段', field: 'PhaseName', width: '6%', align: 'center', },
+              { title: '专业', field: 'SpecialtyName', width: '6%', align: 'center', },
+              { title: '任务名称', field: 'TaskName', width: "16%", halign: 'center', align: 'left', },
+              { title: '设计人', field: 'TaskEmpName', width: '6%', align: 'center', },
+              { title: '校审意见', field: 'CheckNote', width: "16%", halign: 'center', align: 'left', },
+              { title: '提出人', field: 'CheckEmpIDName', width: '6%', align: 'center',  },
+              {
+                  title: '提出日期', field: 'CheckDate', width: '10%', align: 'center', formatter: function (value,row,index) {
+                      row.CheckDate = JQ.tools.DateTimeFormatterByT(value, row, index);
+                      return row.CheckDate;
+                  }
+              }
+            ]],
+            queryParams:
+                {
+                    PhaseID: "@ViewBag.PhaseID",
+                    SpecialID: "@ViewBag.SpecialID",
+                    CheckType: "@ViewBag.CheckType",
+                    IsoCheckModelId: "@ViewBag.IsoCheckModelId"
+                }
+        });
+        $("#JQSearch").textbox({
+            buttonText: '筛选',
+            buttonIcon: 'fa fa-search',
+            height: 25,
+            prompt: '项目名称、任务名称',
+            onClickButton: function () {
+                JQ.datagrid.searchGrid({
+                    dgID: 'ISOCheckStatisticsInfoGrid',
+                    loadingType: 'datagrid',
+                    queryParams: {
+                        PhaseID: "@ViewBag.PhaseID",
+                        SpecialID: "@ViewBag.SpecialID",
+                        CheckType: "@ViewBag.CheckType",
+                        IsoCheckModelId: "@ViewBag.IsoCheckModelId"
+                    }
+                });
+            }
+        });
+    });
+
+    function closedialog() {
+        JQ.dialog.dialogClose();
+    }
+    //提交前验证
+</script>
+
+
+<table id="ISOCheckStatisticsInfoGrid"></table>
+<div id="ISOCheckInfoPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+        <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-close'" onclick="closedialog()">关闭</a>
+    </span>
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'p.ProjName,p.ProjNumber,TaskName', 'Contract': 'like' }" />
+    <div class="moreSearchPanel">
+        @*@BaseData.getBases(
+            new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{ Key:'PhaseID', Contract:'in',filedType:'Int'}", })*@
+
+        @*@BaseData.getBases(
+            new Params() { isMult = true, engName = "Special", queryOptions = "{ Key:'SpecialID', Contract:'in',filedType:'Int'}", })*@
+
+        @*@BaseData.getBaseDataSystem(
+            new Params() { isMult = true, engName = "NodeType", queryOptions = "{ Key:'CheckType', Contract:'in',filedType:'Int'}", })*@
+
+    </div>
+</div>
+
+
+
+

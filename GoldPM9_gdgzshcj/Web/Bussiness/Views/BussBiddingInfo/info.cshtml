@@ -1,0 +1,381 @@
+﻿@model DataModel.Models.BussBiddingInfo
+@using JQ.Web;
+
+<script type="text/javascript">
+    var x=0
+    var json_data="";
+    $(function () {
+        $("#Items").hide();
+        $("#IsTemporary").combobox({
+            onChange:function(data)
+            {
+                if(data=="1"){
+                    $("#bzs").show();
+                    $("#bzs1").show();
+                } else {
+                    $("#TemporaryMoney").numberbox("setValue", 0);
+                    $("#bzs").hide();
+                    $("#bzs1").hide();
+                }
+            },
+            onLoadSuccess:function(data){
+                var isBZJ='@Model.IsTemporary';
+                if (isBZJ == "0") {
+                    $("#bzs").hide();
+                    $("#bzs1").hide();
+                }else{
+                    $("#bzs").show();
+                    $("#bzs1").show();
+                }
+            }
+        });
+
+        JQ.form.submitInit({
+            formid: 'BussBiddingInfoForm',//formid提交需要用到
+            buttonTypes: [ 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                var _tempFrame=window.top.document.getElementById("@(Request.QueryString["iframeID"])");
+                if(_tempFrame){
+                    _tempFrame.contentWindow.refreshGrid();
+                }
+                _flowInstance.$form.parent().dialog("close");
+            },
+            beforeFormSubmit: function () {
+                debugger
+                $("#CustName").val($("#BiddingCustomerID").combobox("getText"));
+                var data=$('#packageTable').datagrid("getData");
+
+                try{
+                    recuriseData(data.rows);
+                    $("#LHTTable").val(JSON.stringify(data))
+
+                }catch (e)
+                {
+                    JQ.dialog.warning("请先输入正确的信息!");
+                    return false;
+                }
+                var step = this.stepOrder;
+                //var isT = $('#IsTemporary').combobox('getValue');
+                //if (isT == "1" && Number(step)== 1 ) {
+                //    if ($('#SC').children()[1].outerHTML.indexOf('收据') < 0) {
+                //        alert('请上传有关保证金收据的附件');
+                //        return false;
+                //    }
+                //}
+                //return false;
+            }
+            ,flow:{
+                flowNodeID: "@(Request.QueryString["flowNodeID"]==null? 0 : int.Parse(Request.QueryString["flowNodeID"]))",
+                flowMultiSignID: "@(Request.QueryString["flowMultiSignID"] ==null? 0 : int.Parse(Request.QueryString["flowMultiSignID"]))",
+                url: "@(Url.Action("FlowWidget", "PubFlow",new { @area="Core"} ))",
+                instance: "_flowInstance",
+                processor: "Bussiness,Bussiness.FlowProcessor.BussBiddingInfo",
+                onInit: function () {
+                    _flowInstance = this;
+                },
+                refID: "@(Model.Id)",
+                refTable: "BussBiddingInfo",
+                dataCreator: "@(ViewBag.CreatorEmpId)"
+            }
+        });
+
+        JQ.combobox.selEmp({ id: 'BiddingManageID', required: false });
+        JQ.combobox.selEmp({ id: 'Delegator', required: false });
+
+
+        $("#EmpDepID").combotree({
+            onChange:function(newValue,oldValue){
+                debugger;
+                $("#BiddingDeptName").val($("#EmpDepID").combotree("getText"));
+            }
+        });
+
+        $("#CoOrganizer").combotree({
+            onChange:function(newValue,oldValue){
+                $("#CoOrganizerName").val($("#CoOrganizer").combotree("getText"));
+            }
+        });
+
+        var requestUrl = '@Url.Action("GetCustomerList", "BussCustomer", new { @area= "Bussiness" })';
+       
+        console.log(requestUrl)
+
+        var data = replace('@Model.LHTTable');
+        if (data != "") {
+            json_data = JSON.parse(data);
+            console.log(json_data)
+        }
+    });
+
+    //替换字符
+    function replace(str) {
+        re = new RegExp("&quot;", "g");
+        var newstart = str.replace(re, '"');
+        return newstart;
+    }
+
+
+    $('#packageTable').datagrid({
+        JQPrimaryID: 'Id',//主键的字段
+        JQID: 'packageTable',//数据表格ID
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+        toolbar: '#planTablePanel',//工具栏的容器ID
+        pagination: false,
+        data:json_data,
+        columns: [[
+            { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+            {
+                field: "LHT", title: "联合体", width: 400, align: "center", formatter: function (value, rowData,index) {
+                    rowData.Id=index;
+                    return "<input type=\"text\" id=\"LHT" + index + "\"  style=\"width:98%;text-align:left;height:16px \" value=\"" + decodeURIComponent(value).replace(/\+/g, " ") + "\" />";
+                }
+            },
+            {
+                field: "LXR", title: "联系人", width: 300, align: "center", formatter: function (value, rowData,index) {
+                    return "<input type=\"text\" id=\"LXR" + index + "\"  style=\"width:98%;text-align:left;height:16px \" value=\"" + decodeURIComponent(value).replace(/\+/g, " ") + "\" />";
+                }
+            }
+        ]]
+    });
+
+    function DelRow() {
+        var rows = $('#packageTable').datagrid("getSelections");
+        var copyRows = [];
+        for (var j = 0; j < rows.length; j++) {
+            copyRows.push(rows[j]);
+        }
+        for (var i = 0; i < copyRows.length; i++) {
+            var index = $('#packageTable').datagrid('getRowIndex', copyRows[i]);
+            $('#packageTable').datagrid('deleteRow', index);
+        }
+    }
+
+    function AddRow() {
+        x--;
+        var _data = {"LHT": "", "LXR": ""}
+        $('#packageTable').datagrid('appendRow', _data);
+    }
+
+    function recuriseData(data) {
+        for (var i = 0; i < data.length; i++) {
+            data[i].Id=data[i].Id;
+            data[i].LHT=$("#LHT" + data[i].Id).val();
+            data[i].LXR=$("#LXR" + data[i].Id).val();
+        }
+    }
+</script>
+
+@using (Html.BeginForm("save", "BussBiddingInfo", FormMethod.Post, new { @area = "Bussiness", @id = "BussBiddingInfoForm" }))
+{
+
+    @Html.HiddenFor(m => m.Id)
+
+    @Html.DropDownList("Items");
+    <input type="hidden" id="CompanyType" name="CompanyType" value="FGS" />
+    <table class="table table-bordered">
+        <tr>
+            <th width="10%">投标编号</th>
+            <td width="40%">
+                <input name="BiddingNumber" id="BiddingNumber" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,50]" value="@Model.BiddingNumber" />
+            </td>
+            <th width="10%">项目名称</th>
+            <td width="40%">
+                <input name="EngineeringName" id="EngineeringName" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,50]" value="@Model.EngineeringName" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">招标单位</th>
+            <td colspan="3">
+                <input id="BiddingCustomerID" name="BiddingCustomerID" style="width:98%;" />
+                <input id="CustName" name="CustName" type="hidden" isFirst="0" value="@(Model.CustName==""?"":Model.CustName.ToString())">
+                <script type="text/javascript">
+                    $(function () {
+                        $("#BiddingCustomerID").combobox({
+                            url: '@Url.Action("GetCustomerListComboboxWithCount", "BussCustomer", new { @area= "Bussiness" })?TopCount=10',
+                            valueField: 'Id',
+                            textField: 'CustName',
+                            mode:'remote',
+                            onBeforeLoad:function (param) {
+                                if ($("#CustName").attr("isFirst")=="0") {
+                                    param.q=$("#CustName").val();
+                                }
+                            },
+                            onLoadSuccess:function () {
+                                if ($("#BiddingCustomerID").combobox("getText")==""&&$("#CustName").attr("isFirst")=="0") {
+                                    $("#BiddingCustomerID").combobox("setText",$("#CustName").val());
+                                    $("#CustName").attr("isFirst","1");
+                                }
+                            }
+                        })
+                    })
+                </script>
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">招标代理</th>
+            <td colspan="3">
+                <input name="ZBDL" id="ZBDL" style="width:98%;" class="easyui-textbox" validType="length[0,50]" value="@Model.ZBDL" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">报名时间</th>
+            <td width="40%">
+                <input id="EntryTime" name="EntryTime" class="easyui-datebox" validType="dateISO" value="@Model.EntryTime" />
+            </td>
+            <th width="10%">开标日期</th>
+            <td width="40%">
+                <input name="BiddingOpeningTime" class="easyui-datebox" validType="dateISO" value="@Model.BiddingOpeningTime" />
+            </td>
+
+        </tr>
+        <tr>
+            <th width="10%">开标地点</th>
+            <td colspan="3">
+                <input name="KBAddress" id="KBAddress" style="width:98%;" class="easyui-textbox" validType="length[0,50]" value="@Model.KBAddress" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">等级</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "BiddingBatch",
+               isMult = false,
+               isRequired = true,
+               engName = "TBLevel",
+               ids = Model.BiddingBatch.ToString()
+           })
+            </td>
+            <th width="10%">投标保证金</th>
+            <td width="40%">
+                <select id="IsTemporary" class="easyui-combobox" name="IsTemporary" data-options="value:@Model.IsTemporary,editable:false">
+                    <option value="0">否</option>
+                    <option value="1">是</option>
+                </select>
+            </td>
+        </tr>
+        <tr id="bzs">
+            <th width="10%">保证金金额</th>
+            <td width="40%">
+                <input class="easyui-numberbox" style="width:180px;" id="TemporaryMoney" name="TemporaryMoney" data-options="min:0,precision:2" value="@Model.TemporaryMoney" />
+            </td>
+            <th width="10%">保证金是否退回</th>
+            <td width="40%">
+                <select id="TemporaryIsBack" class="easyui-combobox" name="TemporaryIsBack" style="width:180px;" data-options="value:@Model.TemporaryIsBack,editable:false">
+                    <option value="0">否</option>
+                    <option value="1">是</option>
+                </select>
+            </td>
+        </tr>
+        <tr id="bzs1">
+            <th width="10%">保证金退还日期</th>
+            <td width="40%">
+                <input class="easyui-datebox" style="width:180px;" id="ReturnDate" name="ReturnDate" value="@ViewBag.ReturnDate" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">投标状态</th>
+            <td width="40%">
+                @BaseData.getBase(new Params()
+           {
+               controlName = "BidStatus",
+               isMult = false,
+               isRequired = false,
+               engName = "BiddingProgress",
+               ids = Model.BidStatus.ToString()
+           })
+            </td>
+            <th width="10%">状态时间</th>
+            <td width="40%">
+                <input id="BidStatusTime" name="BidStatusTime" class="easyui-datebox" validType="dateISO" value="@Model.BidStatusTime" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                主办部门
+                <input id="BiddingDeptName" name="BiddingDeptName" type="hidden" value="@Model.BiddingDeptName" />
+            </th>
+            <td>
+                @BaseData.getBase(new Params()
+           {
+               controlName = "EmpDepID",
+               isMult = true,
+               isRequired = false,
+               engName = "department",
+               ids = Model.BiddingDeptId.ToString()
+           })
+            </td>
+            <th width="10%">
+                协办部门
+                <input id="CoOrganizerName" name="CoOrganizerName" type="hidden" value="@Model.CoOrganizerName" />
+            </th>
+            <td>
+                @BaseData.getBase(new Params()
+           {
+               controlName = "CoOrganizer",
+               isMult = true,
+               isRequired = false,
+               engName = "department",
+               ids = Model.CoOrganizer.ToString()
+           })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">项目负责人</th>
+            <td>
+                <input id="ProjManager" name="ProjManager" class="easyui-textbox" value="@Model.ProjManager" />
+            </td>
+            <th width="10%"></th>
+            <td></td>
+        </tr>
+        <tr>
+            <th width="10%">商务联系人</th>
+            <td>
+                <select id="Delegator" name="Delegator" JQvalue="@Model.Delegator"></select>
+            </td>
+            <th width="10%">技术联系人</th>
+            <td>
+                <select id="BiddingManageID" name="BiddingManageID" JQvalue="@Model.BiddingManageID"></select>
+            </td>
+        </tr>
+        <Tr>
+            <td colspan="4">
+                <table id="packageTable"></table>
+                <div id="planTablePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+                    <span JQPanel="toolbarPanel">
+                        <a class="easyui-linkbutton" name="btnAddUnit" data-options="plain:true,iconCls:'fa fa-plus'" onclick="AddRow()">新增</a>
+                        <a class="easyui-linkbutton" name="btnRemoveUnit" data-options="plain:true,iconCls:'fa fa-minus-circle'" onclick="DelRow()">删除</a>
+                    </span>
+                </div>
+            </td>
+        </Tr>
+        <tr>
+            <th width="10%">信息来源</th>
+            <td colspan="3">
+                @Html.TextAreaFor(model => Model.BiddingSourse, new { @style = "width:98%;height:80px" })
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">备注</th>
+            <td colspan="3">
+                @Html.TextAreaFor(model => Model.BiddingNote, new { @style = "width:98%;height:80px" })
+            </td>
+
+        </tr>
+        <tr id="SC">
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "BussBiddingInfo";
+                    uploader.Name = "UploadFile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <input type="hidden" id="LHTTable" name="LHTTable" />
+}

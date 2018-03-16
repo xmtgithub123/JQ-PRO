@@ -1,0 +1,95 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+	 var requestUrl = '@Url.Action("json", "IsoForm",new { @area="Iso"})',
+            addUrl = '@Url.Action("add","IsoForm",new {@area="Iso" })',
+            editUrl = '@Url.Action("edit", "IsoForm",new {@area="Iso" })',
+            delUrl = '@Url.Action("del", "IsoForm", new { @area = "Iso" })';
+        $(function () {
+            JQ.treegrid.treegrid({
+                JQButtonTypes: ['add', 'edit','del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'FormID',//主键的字段
+                JQID: 'IsoFormGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["FormID"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#IsoFormPanel',//工具栏的容器ID
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+				  		{ title: '自增', field: 'FormID', width: 100, align: 'center', sortable: true  },		{ title: '工程', field: 'ProjID', width: 100, align: 'center', sortable: true  },		{ title: '子项', field: 'EngID', width: 100, align: 'center', sortable: true  },		{ title: '阶段', field: 'PhaseID', width: 100, align: 'center', sortable: true  },		{ title: '专业', field: 'SpecID', width: 100, align: 'center', sortable: true  },		{ title: '任务分组', field: 'TaskGroupID', width: 100, align: 'center', sortable: true  },		{ title: '调整节点ID', field: 'TaskID', width: 100, align: 'center', sortable: true  },		{ title: '类别', field: 'FormTypeID', width: 100, align: 'center', sortable: true  },
+		{ title: '表单日期', field: 'FormDate', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '表单名称', field: 'FormName', width: 100, align: 'center', sortable: true  },
+		{ title: '原因', field: 'FormReason', width: 100, align: 'center', sortable: true  },
+		{ title: '备注', field: 'FormNote', width: 100, align: 'center', sortable: true  },
+		{ title: '链接', field: 'FormLinkURL', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展类别', field: 'ColAttType1', width: 100, align: 'center', sortable: true  },		{ title: '扩展类别', field: 'ColAttType2', width: 100, align: 'center', sortable: true  },		{ title: '扩展类别', field: 'ColAttType3', width: 100, align: 'center', sortable: true  },		{ title: '扩展类别', field: 'ColAttType4', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展类别', field: 'ColAttType5', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展值', field: 'ColAttVal1', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展值2', field: 'ColAttVal2', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展值', field: 'ColAttVal3', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展值', field: 'ColAttVal4', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展值', field: 'ColAttVal5', width: 100, align: 'center', sortable: true  },
+		{ title: '扩展时间1', field: 'ColAttDate1', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '扩展时间2', field: 'ColAttDate2', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '扩展时间3', field: 'ColAttDate3', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '扩展时间4', field: 'ColAttDate4', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '扩展时间5', field: 'ColAttDate5', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '扩展', field: 'FormCtlXml', width: 100, align: 'center', sortable: true  },
+		{ title: '关联表名', field: 'RefTable', width: 100, align: 'center', sortable: true  },
+		{ title: '关联ID', field: 'RefID', width: 100, align: 'center', sortable: true  },
+		{ title: '流程ID', field: 'FlowID', width: 100, align: 'center', sortable: true  },
+		{ title: '审批结束时间', field: 'FlowTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '最后修改时间', field: 'LastModificationTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '最后修改人ID', field: 'LastModifierEmpId', width: 100, align: 'center', sortable: true  },
+		{ title: '最后修改人姓名', field: 'LastModifierEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '创建时间', field: 'CreationTime', width: 100, align: 'center', sortable: true , formatter: JQ.tools.DateTimeFormatterByT },
+		{ title: '创建人ID', field: 'CreatorEmpId', width: 100, align: 'center', sortable: true  },
+		{ title: '创建人姓名', field: 'CreatorEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '代理人ID', field: 'AgenEmpId', width: 100, align: 'center', sortable: true  },
+		{ title: '代理人姓名', field: 'AgenEmpName', width: 100, align: 'center', sortable: true  },
+		{ title: '创建部门', field: 'CreatorDepId', width: 100, align: 'center', sortable: true  },
+		{ title: '创建部门姓名', field: 'CreatorDepName', width: 100, align: 'center', sortable: true  },
+                 { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'IsoForm' }
+                ]]
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '筛选字段',
+                queryOptions: { 'Key': 'FormName', 'Contract': 'like' },
+                onClickButton: function () {
+                    JQ.treegrid.searchGrid(
+                        {
+                            dgID: 'IsoFormGrid',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoFormGrid"></table>
+    <div id="IsoFormPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" />
+
+    </div>
+}
+

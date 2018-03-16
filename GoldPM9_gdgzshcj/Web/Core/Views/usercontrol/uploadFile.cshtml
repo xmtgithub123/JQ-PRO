@@ -1,0 +1,244 @@
+﻿@model DataModel.Upload
+<style type="text/css">
+    .lines-both .datagrid-body td {
+    }
+
+    .lines-no .datagrid-body td {
+        border-right: 1px dotted transparent;
+        border-bottom: 1px dotted transparent;
+    }
+
+    .lines-right .datagrid-body td {
+        border-bottom: 1px dotted transparent;
+    }
+
+    .lines-bottom .datagrid-body td {
+        border-right: 1px dotted transparent;
+    }
+
+
+    ##tt' + '@ViewBag.guid .datagrid-header {
+        position: absolute;
+        visibility: hidden;
+    }
+</style>
+<script type="text/javascript">
+    function getMathNo() {
+        var d = new Date();
+        var sp = "";
+        var month = d.getMonth() + 1;
+        var strDate = d.getDate();
+        if (month >= 1 && month <= 9) {
+            month = "0" + month;
+        }
+        if (strDate >= 0 && strDate <= 9) {
+            strDate = "0" + strDate;
+        }
+        var math = Math.floor(Math.random() * (1000000 + 1));
+        var cd = d.getHours() + sp + d.getMinutes() + sp + d.getSeconds() + sp + d.getMilliseconds();
+        return math + sp + cd;
+    };
+    function downloadUrl() {
+        var rows = $('#' + '@ViewBag.tid').datagrid("getChecked");
+        var path = '';
+        if (rows && rows != null && rows.length > 0) {
+            for (var i = 0; i < rows.length; i++) {
+                if (rows[i].UrL && rows[i].UrL.length > 0) {
+                    path += ((i > 0 ? "|" : "") + rows[i].UrL);
+                }
+            };
+            DownloadFile(path);
+        };
+    };
+    function delFile() {
+        JQ.dialog.confirm("您是否确定删除", function () {
+            var rows = $('#' + '@ViewBag.tid').datagrid("getChecked");
+            if (rows && rows != null && rows.length > 0) {
+                var data = JSON.stringify(rows);
+                JQ.tools.ajax({
+                    type: 'POST',
+                    url: '@Url.Action("delFiles")?refTable=@Model.AttachRefTable',
+                    data: { parames: data },
+                    succesCollBack: function (backJson) {
+                        $('#' + '@ViewBag.tid').datagrid('reload');
+                    }
+                });
+            }
+        });
+    }
+    function reloadTB() {
+        $('#' + '@ViewBag.tid').datagrid('reload');
+    }
+    $('#' + '@ViewBag.tid').datagrid({
+        url: '@Url.Action("json")',
+        fit: true,
+        pagination: false,
+        singleSelect: false,
+        checkOnSelect: true,
+        showHeader: false,
+        toolbar: '#' + '@ViewBag.tbid',
+        border: 1,
+        queryParams: {
+            AttachRefTable: '@Model.AttachRefTable',
+            AttachRefID: '@Model.AttachRefID'
+        },
+        columns: [[
+           { field: 'ck', align: 'center', checkbox: true },
+           { title: '文件名', field: 'FileName', width: 250, align: 'left' },
+           { title: '最后修改时间', field: 'FileDate', width: 120, align: 'center', formatter: JQ.tools.DateTimeFormatter },
+           {
+               title: '操作', field: 'AttachID', width: 65, align: 'center', formatter: function (val, row) {
+                   return "<a target='_blank' href='" + row.UrL + "'>预览</a>";
+               }
+           }
+        ]],
+        onLoadSuccess: function () {
+            $('#' + '@ViewBag.tid').datagrid('getPanel').removeClass('lines-both lines-no lines-right lines-bottom').addClass('lines-no');
+        }
+    });
+    $("#httpUpload").click(function () {
+        var divid = getMathNo();
+        if (window.top.$("#" + divid).size() <= 0) {
+            window.top.$("body").append("<div class='rwpdialogdiv' id='" + divid + "'></div>");
+        }
+        var paraJosn = {
+            iconCls: 'fa fa-upload',
+            title: "<b>文件上传</b>",
+            content: '<iframe id="uploadIframe" frameborder="0" scrolling="no" style="width:100%;height:99%" src="@Url.Action("uploadByHttp")?AttachRefID=@Model.AttachRefID&AttachRefTable=@Model.AttachRefTable"></iframe>',
+            //toolbar: "#tool_bar_ByUp",
+            width: '608',
+            height: '353',
+            resizable: false,
+            maximizable: false,
+            collapsible: false,
+            modal: true,
+            onClose: function () {
+                $('#' + '@ViewBag.tid').datagrid('reload');
+                window.top.$("#" + divid).parent().remove();
+            }
+        };
+        var dialog = window.top.$("#" + divid).dialog(paraJosn);
+    });
+</script>
+<script type="text/javascript">
+    var topWin = window;
+    while (topWin.parent && topWin.parent != topWin) {
+        try {
+            if (topWin.parent.document.domain != document.domain) break;
+        }
+        catch (e) { break; }
+        topWin = topWin.parent;
+    }
+    function DownloadFile(FileUrL) {
+        var flag = topWin.TransmittingFile("HttpDown", "@Model.FtpServer", "@Model.FtpServerPort", "@Model.FtpLogin", "@Model.FtppassWord", "@Model.EmpID", "@Model.FileFilter", "@Model.FileMaxLength", FileUrL, "@Model.IsJinquDwg");
+        alert(flag);
+        return false;
+    }
+    function Upload() {
+        var flag = topWin.TransmittingFile("FtpUp", "@Model.FtpServer", "@Model.FtpServerPort", "@Model.FtpLogin", "@Model.FtppassWord", "@Model.EmpID", "@Model.FileFilter", "@Model.FileMaxLength", "", "@Model.IsJinquDwg");
+        if (flag) {
+            F.util.alert("上传成功!");
+            $('#' + '@ViewBag.tid').datagrid('reload');
+            //document.getElementById("<%=btnRefresh.ClientID %>").click();
+            return true;
+        }
+        return false;
+    }
+
+    function FtpClipBoard() {
+        var flag = topWin.TransmittingFile("FtpClipBoard", "@Model.FtpServer", "@Model.FtpServerPort", "@Model.FtpLogin", "@Model.FtppassWord", "@Model.EmpID", "@Model.FileFilter", "@Model.FileMaxLength", "", "@Model.IsJinquDwg");
+        if (flag) {
+            return true;
+        }
+        return false;
+    }
+
+    function FtpSync() {
+        if (SyncDir == undefined) return false;
+        var flag = topWin.TransmittingFile("FtpSync", "@Model.FtpServer", "@Model.FtpServerPort", "@Model.FtpLogin", "@Model.FtppassWord", "@Model.EmpID", "@Model.FileFilter", "@Model.FileMaxLength", SyncDir, "@Model.IsJinquDwg");
+        if (flag) {
+            $('#' + '@ViewBag.tid').datagrid('reload'); //document.getElementById("<%=btnRefresh.ClientID %>").click();
+            return true;
+        }
+        return false;
+    }
+
+    function OpenFolder() {
+        if (SyncDir == undefined) return false;
+        topWin.OpenFolder(SyncDir);
+    }
+
+    function UpFtpSync() {
+        var flag = topWin.TransmittingFile("FtpSync", "@Model.FtpServer", "@Model.FtpServerPort", "@Model.FtpLogin", "@Model.FtppassWord", "@Model.EmpID", "@Model.FileFilter", "@Model.FileMaxLength", "", "@Model.IsJinquDwg");
+        if (flag) {
+            $('#' + '@ViewBag.tid').datagrid('reload'); //document.getElementById("<%=btnRefresh.ClientID %>").click();
+            return true;
+        }
+        return false;
+    }
+</script>
+<script type="text/javascript">
+    function TransmittingFile(Action, FtpServer, FtpServerPort, FtpLogin, FtppassWord, EmpID, FileFilter, FileMaxLength, FileList, IsJinquDwg) {
+        try {
+            var result = window.external.TransmittingFile(Action, FtpServer, FtpServerPort, FtpLogin, FtppassWord, EmpID, FileFilter, FileMaxLength, FileList, IsJinquDwg);
+            if (result == "OK") return true;
+        }
+        catch (e) { }
+        return false;
+    }
+    function OpenFolder(FilePath) {
+        try {
+            window.external.OpenFolder(FilePath);
+        }
+        catch (e) { }
+        return false;
+    }
+    function CreateFolder(DirPath) {
+        try {
+            window.external.CreateFolder(DirPath);
+        }
+        catch (e) { }
+        return false;
+    }
+    function SignDwg(xml) {
+        try {
+            window.external.SignDwg(xml);
+        }
+        catch (e) { }
+        return false;
+    }
+</script>
+<div style="width:100%;height:250px;align-content:center">
+    <table id="@ViewBag.tid"></table>
+</div>
+<div id="@ViewBag.tbid" style="height:auto;" uploadtoolbar="1">
+    <span style="margin-right:10px; margin-left:10px; font-weight:bolder;">
+        @if (!string.IsNullOrEmpty(Model.title))
+        {
+            <span>@Model.title</span>
+        }
+    </span>
+    @if (Model.isUpload)
+    {
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-upload'" style="display:none" action="upload" onclick="return Upload()">上传</a>
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-upload'" action="upload" id="httpUpload">外网上传</a>
+    }
+    @if (Model.isDownload)
+    {
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-download'" action="download" onclick="downloadUrl()">下载</a>
+    }
+    @if (Model.isDelete)
+    {
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-close'" action="delete" onclick="delFile()">删除</a>
+    }
+    @if (Model.isSync)
+    {
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-folder-open'" action="syncfolder">同步目录</a>
+    }
+    @if (Model.isOpn)
+    {
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-folder-open'" action="openfolder">打开目录</a>
+    }
+
+    <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-refresh'" action="refresh" onclick='reloadTB()'>刷新</a>
+</div>

@@ -1,0 +1,169 @@
+﻿
+@model DataModel.Models.BussCustomerLinkMan
+@using JQ.Web;
+<script type="text/javascript">
+    $(function () {
+        JQ.form.submitInit({
+            formid: 'BussCustomerLinkManForm',//formid提交需要用到
+            buttonTypes: ['submit', 'close'],//默认按钮
+            succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+                var tab = $('#mainTab').tabs('getSelected');
+                var index = $('#mainTab').tabs('getTabIndex', tab);
+                var link = $("#mainTab").find("iframe")[index].contentWindow.document.getElementById("LinkMan");
+                //if (window.top.document.getElementById("linkMan")!=null) {
+                //    JQ.datagrid.autoRefdatagrid();
+                //}
+
+                if (link != null) {
+                    link.contentWindow.location.reload();
+                }
+                else {
+                    JQ.datagrid.autoRefdatagrid();
+                }
+
+                //JQ.datagrid.autoRefdatagrid();
+                JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+            }
+        });
+    });
+    var selectText="";
+    var selectValue="";
+    JQ.combobox.common({
+        id: 'CustID',
+        toolbar: '#tbCustomer',//工具栏的容器ID
+        url: '@Url.Action("GetCustomerList", "BussCustomer", new { @area= "Bussiness" })',
+        panelWidth: 650,
+        panelHeight: 320,
+        valueField: 'Id',
+        textField: 'CustName',
+        editable: false,
+        multiple: false,
+        pagination: true,//是否分页
+        queryParams:{TypeID:@Model.CustLinkManType,CustID:@Model.CustID},
+        columns: [[
+                    { field: 'Id', hidden: true },
+                    { field: 'CustName', title: '单位名称', width: 150 },
+                    { field: 'CustAddress', title: '单位地址', width: 400 }
+        ]],
+        onSelect: function (val, row) {
+            selectValue=row.Id;
+            selectText=row.CustName;
+        },
+
+        onLoadSuccess: function () {
+            var selectRow=$(this).combogrid('grid').datagrid('getSelected');
+            if(selectRow!=undefined)
+            {
+                selectText=$(this).combogrid('getText');
+            }
+            if(selectRow==undefined)
+            {
+                $(this).combogrid('setText',selectText);
+            }
+        }
+    });
+
+    @if(!string.IsNullOrEmpty(Request.QueryString["CustID"]))
+    {
+        <text>
+             $("#CustID").combogrid({readonly:true});
+        </text>
+    }
+    $("#fullNameSearchCustomer").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '客户名称',
+        onClickButton: function () {
+            JQ.datagrid.searchGrid(
+                {
+                    $dg:$("#CustID").combogrid('grid'),
+                    loadingType: 'datagrid',
+                    queryParams:
+                {
+                    TypeID:@Model.CustLinkManType,
+                                 CustID:'@Model.CustID',
+                                 keyWord:$("#fullNameSearchCustomer").val()
+                             }
+            });
+        }
+
+    });
+</script>
+@using (Html.BeginForm("save", "BussCustomerLinkMan", FormMethod.Post, new { @area = "Bussiness", @id = "BussCustomerLinkManForm" }))
+{
+    @Html.HiddenFor(m=>m.CustLinkManType)
+    @Html.HiddenFor(m => m.Id)
+    <table class="table table-bordered">
+
+        <tr>
+            <th width="10%">姓名</th>
+            <td width="40%">
+                <input name="CustLinkManName" style="width:98%;" class="easyui-textbox" data-options="required:true" validType="length[0,100]" value="@Model.CustLinkManName" />
+            </td>
+            <th width="10%">性别</th>
+            <td width="40%">
+                @Html.DropDownListFor(m=>m.CustLinkManSex, (IEnumerable<SelectListItem>)ViewBag.Gender,new { @class="easyui-combobox",width="260px"})
+            </td>
+
+        </tr>
+        <tr>
+            <th width="10%">
+                客户单位
+            </th>
+            <td colspan="3">
+                <input id="CustID" name="CustID" data-options="required:true,multiple:false" style="width:99%;" value="@(@Model.CustID==0 ? "" :@Model.CustID.ToString())" />
+            </td>
+        </tr>
+        <tr>
+            <th width="10%">部门</th>
+            <td width="40%">
+                <input name="CustLinkManDepartMent" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@Model.CustLinkManDepartMent" />
+            </td>
+            <th width="10%">职务</th>
+            <td width="40%">
+                <input name="CustLinkManJob" style="width:98%;" class="easyui-textbox" validType="length[0,100]" value="@Model.CustLinkManJob" />
+            </td>
+        </tr>
+
+
+        <tr>
+            <th width="10%">联系电话</th>
+            <td width="40%">
+                <input name="CustLinkManTel" style="width:98%;" class="easyui-textbox" validType="length[0,200]" value="@Model.CustLinkManTel" />
+            </td>
+            <th width="10%">网络联系方式</th>
+            <td width="40%">
+                <input name="CustLinkManWeb" style="width:98%" class="easyui-textbox" validType="length[0,200]" value="@Model.CustLinkManWeb" />
+            </td>
+        </tr>
+
+        <tr>
+
+            <th width="10%">备注</th>
+            <td width="90%" colspan="3">
+                <input name="CustLinkManNote" style="width:98%;height:80px;" class="easyui-textbox" data-options="multiline:true" validType="length[0,2000]" value="@Model.CustLinkManNote" />
+            </td>
+        </tr>
+
+        <tr>
+            <th>
+                上传附件
+            </th>
+            <td colspan="3">
+                @{
+                    var uploader = new DataModel.FileUploader();
+                    uploader.RefID = Model.Id;
+                    uploader.RefTable = "LinkMan";
+                    uploader.Name = "uploadfile1";
+                    @(Html.Partial("~/Areas/Core/Views/UserControl/FileUploader.cshtml", uploader))
+                }
+            </td>
+        </tr>
+    </table>
+    <div id="tbCustomer" style="padding:5px;height:auto; display:none;">
+        <input id="fullNameSearchCustomer" style="width:250px;" />
+    </div>
+
+                    }
+

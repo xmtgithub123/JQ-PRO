@@ -1,0 +1,673 @@
+﻿@model DataModel.Models.PayBalanceEngineering
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.form.submitInit({
+        formid: 'PayBalanceTechInfoForm',//formid提交需要用到
+        buttonTypes: ['submit', 'close'],//默认按钮
+        succesCollBack: function (data) {//成功回调函数,data为服务器返回值
+            JQ.dialog.dialogClose();//关闭窗体放在最后一步执行，以避免找不到事件源
+        },
+        beforeFormSubmit:function()
+        {
+            accept();
+        }
+    });
+
+    //本次分配产值
+    $("#EngAmountArrange").numberspinner({
+        precision: 2,
+        required: true,
+        onChange:function(newVal,oldVal)
+        {
+            if(isNaN(newVal)||newVal==""||newVal=="0"||newVal==0)
+            {
+                $(this).numberspinner('setValue','0');
+            }
+            else
+            {
+                SetDistributeProduct();
+            }
+        }
+    });
+
+    // 设总所得产值
+    $("#ProjEmpTotal").numberspinner({
+        precision: 2,
+        readonly: true
+    });
+
+    //公司提奖比例
+    $("#CompanyPercent").numberspinner({
+        precision: 2,
+        required: true,
+        onChange:function(newVal,oldVal)
+        {
+            if(isNaN(newVal)||newVal==""||newVal=="0"||newVal==0)
+            {
+                $(this).numberspinner('setValue','0');
+            }
+            else
+            {
+                SetDistributeProduct();
+            }
+        }
+    });
+
+    // 工程类别比例
+
+    $("#EngiTypePercent").numberspinner({
+        precision: 2,
+        required: true,
+        onChange:function(newVal,oldVal)
+        {
+            if(isNaN(newVal)||newVal=="")
+            {
+                $(this).numberspinner('setValue','0');
+            }
+            else
+            {
+                SetDistributeProduct();
+            }
+        }
+    });
+    //工程难度系数
+    $("#EngiHardPercent").numberspinner({
+        precision: 2,
+        required: true,
+        onChange:function(newVal,oldVal)
+        {
+            if(isNaN(newVal)||newVal==""||newVal=="0"||newVal==0)
+            {
+                $(this).numberspinner('setValue','0');
+            }
+            else
+            {
+                SetDistributeProduct();
+            }
+        }
+    });
+    // 设总比例
+    $("#ProjEmpPercent").numberspinner({
+        precision: 2,
+        required: true,
+        onChange:function(newVal,oldVal)
+        {
+            if(isNaN(newVal)||newVal==""||newVal=="0"||newVal==0)
+            {
+                $(this).numberspinner('setValue','0');
+            }
+            else
+            {
+                SetDistributeProduct();
+            }
+        }
+    });
+
+
+    //剩余产值
+    $("#ElseProduct").numberspinner({
+        precision: 2,
+        readonly: true,
+        onChange:function(newVal,oldVal)
+        {
+            //$("#PayBalanceTechInfoGrid").datagrid('reload');
+            SetChangeProduct();
+        }
+    });
+
+
+    //设置分配产值
+    function SetDistributeProduct()
+    {
+        var EngAmountArrange=parseFloat($("#EngAmountArrange").numberspinner('getValue'));
+        var CompanyPercent=parseFloat($("#CompanyPercent").numberspinner('getValue'));
+        var EngiTypePercent=parseFloat($("#EngiTypePercent").numberspinner('getValue'));
+        var EngiHardPercent=parseFloat($("#EngiHardPercent").numberspinner('getValue'));
+        var ProjEmpPercent=parseFloat($("#ProjEmpPercent").numberspinner('getValue'));
+        var Distributeproduct=EngAmountArrange*(CompanyPercent/100)*EngiHardPercent*(EngiTypePercent/100);
+        var ProjEmpTotal=Distributeproduct*(ProjEmpPercent/100);
+        if(ProjEmpTotal>Distributeproduct)//设总所得产值大于本次分配的值则=
+        {
+            ProjEmpTotal=Distributeproduct;
+        }
+        var ElseProduct=Distributeproduct-ProjEmpTotal;
+        $("#ElseProduct").numberspinner('setValue',ElseProduct.toString());
+        $("#ProjEmpTotal").numberspinner('setValue',ProjEmpTotal.toString());
+
+    }
+
+    $('#PayModelID').combogrid({
+        panelWidth: 900,
+        panelHeight: 385,
+        value: '@Model.PayModelID',
+        idField: 'Id',
+        textField: 'ModelName',
+        url: '@Url.Action("ComboGridJson", "PayModel",new { @area="pay"})?PayModelID=@Model.PayModelID&PhaseID=@ViewBag.PhaseId&ProjectVolt=@ViewBag.Volt',//请求的地址
+        editable: true,
+        pagination: true,           //是否分页
+        rownumbers: true,           //序号
+        collapsible: false,         //是否可折叠的
+        prompt: '请下拉选择选择绩效模板',
+        fit: true,
+        method: 'post',
+        columns: [[
+            { title: '模板名称', field: 'ModelName', width: "20%", align: 'left'},
+            { title: '阶段', field: 'PhaseName', width: "10%", align: 'center'},
+            { title: '公司提奖比例（%）', field: 'CompanyPercent', width: "12%", align: 'center'},
+            { title: '工程类别比例（%）', field: 'EngiTypePercent', width: "12%", align: 'center'},
+            { title: '工程难度系数', field: 'EngiHardPercent', width: "10%", align: 'center'},
+            { title: '设总比例', field: 'ProjManagerPercent', width: "10%", align: 'center'}
+
+        ]],
+        keyHandler: {
+            up: function () {               //【向上键】押下处理
+                var selected = $('#PayModelID').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    var index = $('#PayModelID').combogrid('grid').datagrid('getRowIndex', selected);
+                    if (index > 0) {
+                        $('#PayModelID').combogrid('grid').datagrid('selectRow', index - 1);
+                    }
+                }
+                else {
+                    var rows = $('#PayModelID').combogrid('grid').datagrid('getRows');
+                    $('#PayModelID').combogrid('grid').datagrid('selectRow', rows.length - 1);
+                }
+            },
+            down: function () {             //【向下键】押下处理
+                //取得选中行
+                var selected = $('#PayModelID').combogrid('grid').datagrid('getSelected');
+                if (selected) {
+                    var index = $('#PayModelID').combogrid('grid').datagrid('getRowIndex', selected);
+                    if (index < $('#PayModelID').combogrid('grid').datagrid('getData').rows.length - 1) {
+                        $('#PayModelID').combogrid('grid').datagrid('selectRow', index + 1);
+                    }
+                } else {
+                    $('#PayModelID').combogrid('grid').datagrid('selectRow', 0);
+                }
+            },
+            enter: function () {             //【回车键】押下处理
+                var row = $('#PayModelID').combogrid('grid').datagrid('getSelected');
+                $('#PayModelID').combogrid('hidePanel');
+            },
+            query: function (Words) {     //【动态搜索】处理
+                //设置查询参数
+                var queryPara = $('#PayModelID').combogrid("grid").datagrid('options').queryParams;
+                queryPara.Words = Words;
+                $('#PayModelID').combogrid("grid").datagrid('options').queryParams = queryPara;
+                //重新加载
+                var pager = $('#PayModelID').combogrid('grid').datagrid('getPager');
+                pager.pagination('refresh');
+                pager.pagination('select', 1);
+                $('#PayModelID').combogrid("grid").datagrid("reload");
+                $('#PayModelID').combogrid("setValue", Words);                    //将查询条件存入隐藏域
+                $('#Words').val(Words);
+            }
+        },
+        onSelect: function (val, row) {
+            $("#CompanyPercent").numberspinner('setValue',row.CompanyPercent);
+            $("#EngiTypePercent").numberspinner('setValue',row.EngiTypePercent);
+            $("#EngiHardPercent").numberspinner('setValue',row.EngiHardPercent);
+            $("#ProjEmpPercent").numberspinner('setValue',row.ProjManagerPercent);
+
+            $("#DesPercent").val(row.DesPercent);// 设计人员比例
+            $("#Checkpercent").val(row.Checkpercent);
+            $("#ReviewPercent").val(row.ReviewPercent);
+
+        },
+        onLoadSuccess: function () {
+            if($("#PayModelID").combogrid('getValue')=="0")
+            {
+                $(this).combogrid('setValue',"");
+            }
+        }
+
+    });
+
+    $("#PayBalanceTechInfoGrid").datagrid({
+        iconCls: 'icon-edit',
+        multiSelect: true,
+        rownumbers: true,
+        fitColumns: true,
+        url: '@Url.Action("json", "PayBalanceUserAccount", new { @area= "Pay" })?BalanceEngineeringID='+@Model.Id,//请求的地址
+        toolbar: '#toolBar',
+        columns: [[
+             {
+                 field: 'ck', align: 'center', checkbox: true
+             }, {
+
+                 title: '技术人员姓名', field: 'EmpId', width: "18%", align: 'center',
+                 formatter: function (val, row) {
+                     return row.TechEmpName;
+                 },
+                 editor: {
+                     type: 'combobox',
+                     options:
+                         {
+                             required: true,
+                             prompt: ' 下拉选择人员',
+                             width: '180',
+                             valueField: 'EmpID',
+                             textField: 'EmpName',
+                             groupField: 'EmpDepName',
+                             validType: 'comboboxVali[true]',//是否做完整性验证
+                             url: JQ.tools.getRootPath() + '/Core/usercontrol/employeeJson',
+                             groupFormatter: function (group) {
+                                 return '<b style="color:black">' + group + '</b>';
+                             },
+                             onLoadSuccess: function () {
+                                 if($(this).combobox('getValue')=="0")
+                                 {
+                                     $(this).combobox('setValue','');
+                                 }
+                             },
+                             onChange:function(newVal,oldVal){
+                                 if(!isNaN(newVal)&&newVal!="0"&&newVal!="")
+                                 {
+                                     if(editIndex!=undefined)
+                                     {
+                                         $.post('@Url.Action("GetSpecNameByEmp", "PayBalanceEngineering", new { @area = "Pay" })',{EmpId:newVal},
+                                             function(data){
+                                                 var BalanceReason = $('#PayBalanceTechInfoGrid').datagrid('getEditor', { index: editIndex, field: 'BalanceReason' });
+                                                 $(BalanceReason.target).textbox('setValue',data);
+
+                                             });
+                                        
+                                     }}
+                             }
+                         }
+                 }
+             },
+             {
+
+                 title: '来源', field: 'BalanceReason', width: "18%", align: 'center',
+                 editor: {
+                     type: 'textbox',
+                     options:
+                         {
+                             //required: true
+                         }
+                 }
+             },
+             {
+
+                 title: '比例%', field: 'BalancePercent', width: "18%", align: 'center',
+                 editor: {
+                     type: 'numberspinner',
+                     options:
+                         {
+                             precision: 2,
+                             required: true,
+                             min:0,
+                             onChange:function(newVal,oldVal)
+                             {
+
+                                 if(isNaN(newVal)||newVal=="0.00")
+                                 {
+                                     $(this).numberspinner('setValue','0');
+                                 }
+                                 else
+                                 {
+                                     if(editIndex!=undefined)
+                                     {
+                                         var BalanceAmount = $('#PayBalanceTechInfoGrid').datagrid('getEditor', { index: editIndex, field: 'BalanceAmount' });
+                                         var BalancePercent=parseFloat($(this).numberspinner('getValue'));
+                                         var ElseProduct=parseFloat($("#ElseProduct").numberspinner('getValue'));
+                                         var BalanceAmountS=BalancePercent*ElseProduct/100;
+                                         $(BalanceAmount.target).numberspinner('setValue',BalanceAmountS.toString());
+
+                                         var per=parseFloat($("#percent").text());
+                                         var resultpercent=per-parseFloat(oldVal)+parseFloat(newVal);
+                                         $("#percent").text(resultpercent.toFixed(2).toString());
+                                     }
+                                 }
+                             }
+                         }
+                 }
+             },
+             {
+
+                 title: '技术人员产值', field: 'BalanceAmount', width: "18%", align: 'center',
+                 editor: {
+                     type: 'numberspinner',
+                     options: {
+                         required: true,
+                         precision: 2,
+                         min:0,
+                         onChange:function(newVal,oldVal){
+                             if(isNaN(newVal)||newVal=="0.00")
+                             {
+                                 $(this).numberspinner('setValue','0');
+                             }
+                             else
+                             {
+                                 if(editIndex!=undefined)
+                                 {
+                                     var pro=parseFloat($("#product").text());
+                                     var product=pro-parseFloat(oldVal)+parseFloat(newVal);
+                                     $("#product").text(product.toFixed(2).toString());
+                                 }
+                             }
+                         }
+                     }
+                 }
+             },
+             {
+                 title: '备注', field: 'BalanceNote', width: "18%", align: 'center',
+                 editor: {
+                     type: 'textbox',
+                     options: {
+                         // required: true,
+                     }
+                 }
+             }
+        ]],
+        onDblClickRow: onDblClickRow,
+        onLoadSuccess:function(){
+            getPercent();
+        }
+    });
+
+
+    var editIndex = undefined;
+    // 判断是否结束编辑行
+    function endEditing() {
+        if (editIndex == undefined) { return true }
+        if ($('#PayBalanceTechInfoGrid').datagrid('validateRow', editIndex)) {
+            var Emp = $('#PayBalanceTechInfoGrid').datagrid('getEditor', { index: editIndex, field: 'EmpId' });
+            var EmpName = $(Emp.target).combobox('getText');
+            var EmpId = $(Emp.target).combobox('getValue');
+            $('#PayBalanceTechInfoGrid').datagrid('getRows')[editIndex]['TechEmpName'] = EmpName;
+            $('#PayBalanceTechInfoGrid').datagrid('getRows')[editIndex]['EmpId'] = EmpId;
+            $('#PayBalanceTechInfoGrid').datagrid('endEdit', editIndex);
+            editIndex = undefined;
+            getRows();
+            return true;
+        } else {
+            return false;
+        }
+    }
+    //双击事件
+    function onDblClickRow(index) {
+        if (editIndex != index) {
+            if (endEditing()) {
+                $('#PayBalanceTechInfoGrid').datagrid('selectRow', index)
+                        .datagrid('beginEdit', index);
+                editIndex = index;
+                getRows();
+            } else {
+                $('#PayBalanceTechInfoGrid').datagrid('selectRow', editIndex);
+                JQ.dialog.warning('请将当前信息填写完整，再编辑其他信息');
+            }
+        }
+    }
+    //追加行元素
+    function append() {
+        if (endEditing()) {
+            $('#PayBalanceTechInfoGrid').datagrid('appendRow', { Id: 0, EmpId: 0,SpecID:0,BalancePercent:"0.00",BalanceAmount:"0.00"});
+            editIndex = $('#PayBalanceTechInfoGrid').datagrid('getRows').length - 1;
+            $('#PayBalanceTechInfoGrid').datagrid('selectRow', editIndex)
+                    .datagrid('beginEdit', editIndex);
+        }
+        else {
+            JQ.dialog.warning('请将当前信息填写完整，再添加记录');
+        }
+    }
+    //删除行元素
+    function removexit() {
+        var rows = $("#PayBalanceTechInfoGrid").datagrid('getSelections');
+        if (rows.length <= 0) {
+            JQ.dialog.warning('请选择要删除的行');
+            return;
+        }
+        for (var i = 0; i < rows.length; i++) {
+            var index = $("#PayBalanceTechInfoGrid").datagrid('getRowIndex', rows[i]);
+            $('#PayBalanceTechInfoGrid').datagrid('cancelEdit', index)
+                .datagrid('deleteRow', index);
+        }
+        getPercent();
+        editIndex = undefined;
+        if ($("#PayBalanceTechInfoGrid").datagrid("getRows").length > 0) {
+            getRows();
+        }
+    }
+    function accept() {
+        if (endEditing()) {
+            $('#PayBalanceTechInfoGrid').datagrid('acceptChanges');
+            getRows();
+        }
+        else {
+            JQ.dialog.warning('请将信息填写完整');
+            return false;
+        }
+    }
+
+    function getRows() {
+        var rows = $('#PayBalanceTechInfoGrid').datagrid('getRows');
+        $("#JsonRows").val(JSON.stringify(rows));
+    }
+    function openInsertDialog() //导入数据
+    {
+        if (endEditing()) {
+            JQ.dialog.dialog({
+                title: "选择相关的技术人员信息",
+                width: '1024',
+                height: '100%',
+                JQID: 'ReviewTable',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-plus',
+                url:'@Url.Action("selectTechEmp","PayBalanceEngineering","pay")&projId=@Model.EngineeringID&PhaseId=@ViewBag.PhaseId'
+
+            });
+        }
+        else {
+            JQ.dialog.warning('请将当前信息填写完整,再导入数据');
+        }
+    }
+    var insert=function(row)
+    {
+        var BalancePercent=0.00;
+        var BalanceAmount=0.00;
+        var ElseProduct=parseFloat($("#ElseProduct").numberspinner('getValue'));
+        if(row.FlowNodeTypeID=="19")//设计
+        {
+            BalancePercent=parseFloat($("#DesPercent").val()).toFixed(2);
+        }
+        if(row.FlowNodeTypeID=="20")//校对
+        {
+            BalancePercent=parseFloat($("#Checkpercent").val()).toFixed(2);
+        }
+        if(row.FlowNodeTypeID=="21")//审核
+        {
+            BalancePercent=parseFloat($("#ReviewPercent").val()).toFixed(2);
+        }
+        BalanceAmount=(ElseProduct*BalancePercent/100).toFixed(2);
+        $('#PayBalanceTechInfoGrid').datagrid('appendRow', 
+            { 
+                Id: 0, EmpId: row.FlowNodeEmpID,SpecID:row.SpecId,BalancePercent:BalancePercent,BalanceAmount:BalanceAmount,TechEmpName:row.FlowNodeEmpName,BalanceReason:row.SpecName
+            });
+        getPercent();
+    }
+    function editSelected() {
+        var selectedRow = $("#PayBalanceTechInfoGrid").datagrid('getSelections');
+        if (selectedRow.length <= 0) {
+            JQ.dialog.warning("请选择要编辑的行记录");
+        }
+        else {
+
+            var index = $('#PayBalanceTechInfoGrid').datagrid("getRowIndex", selectedRow[0]);
+            $('#PayBalanceTechInfoGrid').datagrid('beginEdit', index);
+
+        }
+    }
+
+    function getPercent() {
+        var percent=0;
+        var product=0;
+        var rows = $('#PayBalanceTechInfoGrid').datagrid('getRows');
+        if(rows.length>0)
+        {
+            for(var index=0;index<rows.length;index++)
+            {
+                percent+=parseFloat(rows[index].BalancePercent);
+                product+=parseFloat(rows[index].BalanceAmount);
+            }
+        }
+        $("#percent").text(percent.toFixed(2).toString());
+        $("#product").text(product.toFixed(2).toString());
+    }
+
+    //设置变化的产值
+    function SetChangeProduct()
+    {
+        var rows=$("#PayBalanceTechInfoGrid").datagrid('getRows');
+        var ElseProduct=parseFloat($("#ElseProduct").numberspinner("getValue"));
+        if(editIndex==undefined)
+        {
+            if(rows.length>0)
+            {
+                for(var index=0;index<rows.length;index++)
+                {
+                    //$('#PayBalanceTechInfoGrid').datagrid('getRows')[index]['BalanceAmount']="1";
+                    var targetvalue=ElseProduct*parseFloat(rows[index].BalancePercent)/100;
+                    $('#PayBalanceTechInfoGrid').datagrid('updateRow',{
+                        index: index,
+                        row: {
+                            BalanceAmount:targetvalue.toFixed(2)
+                        }
+                    });
+
+                }
+                getPercent();
+            }
+        }
+        else
+        {
+            //编辑行时某条记录，剩余产值发生变化
+            var BalanceAmount = $('#PayBalanceTechInfoGrid').datagrid('getEditor', { index: editIndex, field: 'BalanceAmount' });
+            var BalancePercent = $('#PayBalanceTechInfoGrid').datagrid('getEditor', { index: editIndex, field: 'BalancePercent' });
+            var Percent=parseFloat($(BalancePercent.target).numberspinner('getValue'));
+            var ElseProduct=parseFloat($("#ElseProduct").numberspinner('getValue'));
+            var BalanceAmountS=Percent*ElseProduct/100;
+            $(BalanceAmount.target).numberspinner('setValue',BalanceAmountS.toString());
+        }
+    }
+</script>
+@using (Html.BeginForm("TechInfoSave", "PayBalanceEngineering", FormMethod.Post, new { @area = "pay", @id = "PayBalanceTechInfoForm" }))
+{
+    @Html.HiddenFor(m => m.Id)
+    <input type="hidden" name="JsonRows" id="JsonRows" />
+    <input type="hidden" id="DesPercent" name="DesPercent" value="@ViewData["DesPercent"]" />
+    <input type="hidden" id="Checkpercent" name="Checkpercent"  value="@ViewData["Checkpercent"]"/>
+    <input type="hidden" id="ReviewPercent" name="ReviewPercent" value="@ViewData["ReviewPercent"]" />
+    <table class="table table-bordered">
+        <tr>
+            <td colspan="6">
+                <span style="font-size:14px;">项目结算信息</span>
+            </td>
+        </tr>
+        <tr>
+            <th>
+                项目名称
+            </th>
+            <td colspan="3">
+                <label id="ProjName">@ViewBag.ProjName</label>
+            </td>
+            <th>
+                本次分配产值
+            </th>
+            <td>
+                <input id="EngAmountArrange" name="EngAmountArrange" style="width:200px;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,10]" value="@Model.EngAmountArrange" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                考核模板
+            </th>
+            <td colspan="5">
+                <select id="PayModelID" name="PayModelID" style="width:860px;" class="easyui-combogrid"></select>
+                <input type="hidden" name="Words" id="Words" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                公司提奖比例%
+            </th>
+            <td>
+                <input id="CompanyPercent" name="CompanyPercent" style="width:200px;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,10]" value="@ViewData["CompanyPercent"]" />
+            </td>
+            <th>
+                工程类别比例%
+            </th>
+            <td>
+                <input id="EngiTypePercent" name="EngiTypePercent" style="width:200px;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,10]" value="@ViewData["EngiTypePercent"]" />
+            </td>
+            <th>
+                工程难度系数
+            </th>
+            <td>
+                <input id="EngiHardPercent" name="EngiHardPercent" style="width:200px;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,10]" value="@ViewData["EngiHardPercent"]" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                设总
+            </th>
+            <td>
+                <label id="ProjEmpName">@ViewBag.ProjEmpName</label>
+            </td>
+            <th>
+                设总比例%
+            </th>
+            <td>
+                <input id="ProjEmpPercent" name="ProjEmpPercent" style="width:200px;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,10]" value="@ViewData["ProjEmpPercent"]" />
+            </td>
+            <th>
+                设总所得产值
+            </th>
+            <td>
+                <input id="ProjEmpTotal" name="ProjEmpTotal" style="width:200px;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,10]" value="@ViewData["ProjEmpTotal"]" />
+            </td>
+        </tr>
+        <tr>
+            <th>
+                剩余分配产值
+            </th>
+            <td colspan="5">
+                <input id="ElseProduct" name="ElseProduct" style="width:200px;" class="easyui-numberspinner" data-options="min:0" validtype="length[0,10]" value="@ViewData["ElseProduct"]" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="6">
+                <span style="font-size:14px;">技术人员结算信息</span>
+            </td>
+        </tr>
+    </table>
+    <table class="table" id="PayBalanceTechInfoGrid"></table>
+    <table>
+        <tr>
+            <td style="width:480px;line-height:35px;">
+                <span style="margin-left:100px;font-size:15px;">
+                    合计
+                </span>
+            </td>
+            <td style="width:200px;">
+                <label id="percent" style="color:red;font-size:13px;"></label>
+            </td>
+            <td>
+                <label id="product" style="color:red;font-size:13px;"></label>
+            </td>
+        </tr>
+    </table>
+
+    <div id="toolBar" style="height:auto;text-align:right;">
+        <span style="color:red;font-weight:bold;padding-right:80px;">  *  双击行记录可进行编辑</span>
+        <a href="javascript:void(0)" class="easyui-linkbutton l-btn l-btn-small l-btn-plain" data-options="iconCls:'fa fa-plus',plain:true" onclick="append()">新增</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton l-btn l-btn-small l-btn-plain" data-options="iconCls:'fa fa-filter',plain:true" onclick="openInsertDialog()">导入</a>
+        <a href="javascript:void(0)" class="easyui-linkbutton l-btn l-btn-small l-btn-plain" data-options="iconCls:'fa fa-trash',plain:true" onclick="removexit()">删除</a>
+    </div>
+
+}
+
+
+
+

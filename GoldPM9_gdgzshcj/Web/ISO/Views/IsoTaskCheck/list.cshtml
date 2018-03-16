@@ -1,0 +1,106 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoTaskCheck", new { @area="ISO"})';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export', 'moreSearch'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'ISOCheckList',//数据表格ID
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#ISOCheckPanel',//工具栏的容器ID
+                JQMergeCells: { fields: ['ProjName', 'TaskGroupName', 'PhaseName', "TaskName", "SpecialName", "info"], Only: 'TaskID' },
+                JQExcludeCol: [10],
+                JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+                columns: [[
+                  //{ field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                  { title: '项目名称', field: 'ProjNumber', width: '15%', align: 'center', },
+                  { title: '项目名称', field: 'ProjName', width: '15%', align: 'center', },
+                  { title: '阶段', field: 'PhaseName', width: '8%', align: 'center', },	              
+                  { title: '专业', field: 'SpecialName', width: '6%', align: 'center', },
+                  { title: '任务名称', field: 'TaskName', width: '12%', align: 'center', },
+                  { title: '校审建议', field: 'CheckNote', width: '15%', align: 'center', },
+                  { title: '错误类别', field: 'ErrorTypeName', width: '7%', align: 'center', },
+                  { title: '提出人', field: 'CheckEmpIDName', width: '6%', align: 'center', },
+                  {
+                      title: '提出日期', field: 'CheckDate', width: '8%', align: 'center', formatter: function (value, row, index) {
+                          row.CheckDate = JQ.tools.DateTimeFormatterByT(value, row, index);
+                          return row.CheckDate;
+                      }
+                  },
+                  {
+                      title: '校审单', field: 'info', width: '7%', align: 'center', formatter: function (value, row, index) {
+                          return "<a id='desCheckltn_" + row.Id + "' rootId='" + row.TaskID + "' class=\"easyui-linkbutton\" data-options=\"iconCls:'fa fa-file-word-o'\">查看</a>";
+                      }
+                  }
+
+                ]],
+                onLoadSuccess: function () {
+                    $("a[id^='desCheckltn']").linkbutton({
+                        onClick: function () {
+                            var rootId = $(this).attr("rootId");
+                            ShowDetail(rootId);
+                        }
+                    });
+                }
+            });
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号、名称，任务名称',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'ISOCheckList',
+                            loadingType: 'datagrid',
+                            queryParams: null
+                        });
+                }
+            });
+        });
+
+
+        function ShowDetail(id) {
+            JQ.dialog.dialog({
+                title: "查看校审单",
+                url: '@Url.Action("desTaskCheckDetail", "IsoTaskCheck", new { @area = "ISO" })?taskId=' + id +"&type=0",
+                width: '1024',
+                height: '100%',
+                JQID: 'ISOCheckList',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-th-list',
+            });
+
+
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="ISOCheckList"></table>
+    <div id="ISOCheckPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+        </span>
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'p.ProjNumber,p.ProjName,dt.TaskName', 'Contract': 'like' }" />
+
+        <div class="moreSearchPanel">
+            @BaseData.getBases(
+           new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{ Key:'dtc.PhaseID', Contract:'in',filedType:'Int'}", })
+
+            @BaseData.getBases(
+           new Params() { isMult = true, engName = "Special", queryOptions = "{ Key:'SpecialID', Contract:'in',filedType:'Int'}", })
+
+        </div>
+    </div>
+}
+

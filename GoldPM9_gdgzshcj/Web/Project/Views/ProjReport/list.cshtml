@@ -1,0 +1,195 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "ProjReport", new { @area= "Project" })'
+
+        $(function () {
+            @*$('#ProjectType').combobox({
+                url: '@Url.Action("treejson", "basedata", new { @area = "Core"})?engName=ProjectType&filterLength=11',
+                valueField: 'id',
+                textField: 'text',
+                panelHeight: "auto",
+                editable: false,
+                onLoadSuccess: function () { //数据加载完毕事件
+                    var data = $('#ProjectType').combobox('getData');
+                    if (data.length > 0) {
+                        $("#ProjectType").combobox('select', data[0].id);
+                        loadData();
+                    }
+                }
+            });*@
+
+            $('#ProjectType').hide();
+
+            $('#ProjectPhase').combobox({
+                url: '@Url.Action("treejson", "basedata", new { @area = "Core"})?engName=ProjectPhase',
+                valueField: 'id',
+                textField: 'text',
+                panelHeight: "auto",
+                editable: false
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '项目编号,项目名称',
+                onClickButton: function () {
+                    loadData();
+                }
+            });
+            loadData();
+        });
+
+        function loadData() {
+            var initColumns;
+            var selected = '@((int)DataModel.ProjectType.主网类别)';
+            if (selected == '@((int)DataModel.ProjectType.主网类别)') //主网类
+            {
+                initColumns = [[], []];
+                initColumns[0].push({ title: "年度", field: 'BelongYear', colspan: 1, rowspan: 2, halign: "center", align: "center", width: 60 });
+                initColumns[0].push({ title: "项目名称", field: 'ProjName', colspan: 1, rowspan: 2, halign: "center", align: "left", width: 200 });
+                initColumns[0].push({ title: "业主", field: 'CustName', colspan: 1, rowspan: 2, halign: "center", align: "left", width: 100 });
+                initColumns[0].push({ title: "投产时间", field: 'ProductionTime', colspan: 1, rowspan: 2, halign: "center", align: "center", width: 80, formatter: JQ.tools.DateTimeFormatterByT });
+                initColumns[0].push({ title: "设计阶段", field: 'PhaseNames', colspan: 1, rowspan: 2, halign: "center", align: "left", width: 80 });
+                initColumns[0].push({ title: "项目部设总", field: 'EmpName', colspan: 1, rowspan: 2, halign: "center", align: "center", width: 80 });
+                initColumns[0].push({ title: "选址选线", colspan: 2, rowspan: 1 });
+
+
+                initColumns[0].push({ title: "可研", colspan: 2, rowspan: 1 });
+                initColumns[0].push({ title: "初设", colspan: 2, rowspan: 1 });
+                initColumns[0].push({ title: "施工图", colspan: 2, rowspan: 1 });
+                initColumns[0].push({ title: "工代", colspan: 1, rowspan: 1 });
+                initColumns[0].push({ title: "竣工图", colspan: 2, rowspan: 1 });
+
+                initColumns[0].push({ title: "问题及备注", field: 'EventContent', colspan: 1, rowspan: 2, halign: "center", align: "left", width: 200 });
+
+                initColumns[1].push({ field: 'XBeginTime', title: '计划时间', width: 80, halign: "center", align: "center", formatter: JQ.tools.DateTimeFormatterByT });//选址选线
+                initColumns[1].push({ field: 'XEndTime', title: '完成时间', width: 80, halign: "center", align: "center" });
+
+                initColumns[1].push({ field: 'KBeginTime', title: '计划时间', width: 80, halign: "center", align: "center", formatter: JQ.tools.DateTimeFormatterByT });//可研
+                initColumns[1].push({ field: 'KEndTime', title: '完成时间', width: 80, halign: "center", align: "center" });
+
+                initColumns[1].push({ field: 'CBeginTime', title: '计划时间', width: 80, halign: "center", align: "center", formatter: JQ.tools.DateTimeFormatterByT });//初设
+                initColumns[1].push({ field: 'CEndTime', title: '完成时间', width: 80, halign: "center", align: "center" });
+
+                initColumns[1].push({ field: 'SBeginTime', title: '计划时间', width: 80, halign: "center", align: "center", formatter: JQ.tools.DateTimeFormatterByT });//施工图
+                initColumns[1].push({ field: 'SEndTime', title: '完成时间', width: 80, halign: "center", align: "center" });
+
+                initColumns[1].push({ field: 'WProgress', title: '完成时间', width: 80, halign: "center", align: "center" }); //工代
+
+                initColumns[1].push({ field: 'ZBeginTime', title: '计划时间', width: 80, halign: "center", align: "center", formatter: JQ.tools.DateTimeFormatterByT });//竣工图
+                initColumns[1].push({ field: 'ZEndTime', title: '完成时间', width: 80, halign: "center", align: "center" });
+            }
+            else if (selected == '@((int)DataModel.ProjectType.配电类别)')//配网类
+            {
+                initColumns = [[], []];
+
+                initColumns[0].push({ title: "项目批次", field: 'ProjName', colspan: 1, rowspan: 2, halign: "center", align: "left", width: 200 });
+                initColumns[0].push({ title: "项目数量", field: 'ProjCount', colspan: 1, rowspan: 2, halign: "center", align: "center", width: 80 });
+
+                initColumns[0].push({ title: "可研", colspan: 2, rowspan: 1, halign: "center", align: "center" });
+                initColumns[0].push({ title: "施工图阶段", colspan: 7, rowspan: 1, halign: "center", align: "center" });
+                initColumns[0].push({ title: "工代", colspan: 2, rowspan: 1, halign: "center", align: "center" });
+                initColumns[0].push({ title: "竣工图", colspan: 2, rowspan: 1, halign: "center", align: "center" });
+
+                initColumns[0].push({ title: "问题及备注", field: 'EventContent', colspan: 1, rowspan: 2, width: 200 });
+
+                initColumns[1].push({ field: 'KBeginTime', title: '计划时间', halign: "center", align: "center", width: 80, formatter: JQ.tools.DateTimeFormatterByT });//可研
+                initColumns[1].push({ field: 'KEndTime', title: '完成时间', halign: "center", align: "center", width: 80 });
+
+                initColumns[1].push({ field: 'SNote1', title: '项目前期配合单位', halign: "center", align: "left", width: 200 });//施工图
+                initColumns[1].push({ field: 'SNote2', title: '需勘测项目数', halign: "center", align: "center", width: 80 });
+                initColumns[1].push({ field: 'SNote3', title: '已完成勘测项目数', halign: "center", align: "center", width: 80 });
+                initColumns[1].push({ field: 'SNote4', title: '施工图计划时间', halign: "center", align: "center", width: 120, formatter: JQ.tools.DateTimeFormatterByT });
+                initColumns[1].push({ field: 'SNote5', title: '完成时间', halign: "center", align: "center", width: 80, formatter: JQ.tools.DateTimeFormatterByT });
+                initColumns[1].push({ field: 'SNote6', title: '定点划线计划时间', halign: "center", align: "center", width: 80, formatter: JQ.tools.DateTimeFormatterByT });
+                initColumns[1].push({ field: 'SNote7', title: '定点划线完成时间', halign: "center", align: "center", width: 100 });
+
+                initColumns[1].push({ field: 'WBeginTime', title: '开始时间', halign: "center", align: "center", width: 80 }); //工代
+                initColumns[1].push({ field: 'WProgress', title: '项目数', halign: "center", align: "center", width: 80 });
+
+                initColumns[1].push({ field: 'ZBeginTime', title: '计划时间', halign: "center", align: "center", width: 80, formatter: JQ.tools.DateTimeFormatterByT });//竣工图
+                initColumns[1].push({ field: 'ZEndTime', title: '完成时间', halign: "center", align: "center", width: 80 });
+            }
+            else if (selected == '@((int)DataModel.ProjectType.规划可研类)')  //规划可研类
+            {
+                initColumns = [[], []];
+                initColumns[0].push({ title: "项目名称", field: 'ProjName', colspan: 1, rowspan: 2, halign: "center", width: 200 });
+                initColumns[0].push({ title: "委托方", field: 'CustName', colspan: 1, rowspan: 2, halign: "center", width: 100 });
+
+                initColumns[0].push({ title: "立项", colspan: 2, rowspan: 1 });
+                initColumns[0].push({ title: "研发", colspan: 2, rowspan: 1 });
+                initColumns[0].push({ title: "评审", colspan: 2, rowspan: 1 });
+                initColumns[0].push({ title: "结题.宣贯", colspan: 2, rowspan: 1 });
+
+                initColumns[0].push({ title: "问题及备注", field: 'EventContent', colspan: 1, rowspan: 2, width: 200, halign: "center", align: "left", });
+
+                initColumns[1].push({ field: 'ABeginTime', title: '计划时间', width: 80, halign: "center", align: "center", formatter: JQ.tools.DateTimeFormatterByT });//立项
+                initColumns[1].push({ field: 'AEndTime', title: '完成时间', width: 80, halign: "center", align: "center", });
+
+                initColumns[1].push({ field: 'RBeginTime', title: '计划时间', width: 80, halign: "center", align: "center", formatter: JQ.tools.DateTimeFormatterByT });//研发
+                initColumns[1].push({ field: 'REndTime', title: '完成时间', width: 80, halign: "center", align: "center", });
+
+
+                initColumns[1].push({ field: 'JBeginTime', title: '计划时间', width: 80, halign: "center", align: "center", formatter: JQ.tools.DateTimeFormatterByT }); //评审
+                initColumns[1].push({ field: 'JEndTime', title: '完成时间', width: 80, halign: "center", align: "center", });
+
+                initColumns[1].push({ field: 'CPBeginTime', title: '计划时间', width: 80, halign: "center", align: "center", formatter: JQ.tools.DateTimeFormatterByT });//结题.宣贯
+                initColumns[1].push({ field: 'CPEndTime', title: '完成时间', width: 80, halign: "center", align: "center", });
+
+            }
+            else if (selected == '@((int)DataModel.ProjectType.其他类)')  //其他
+            {
+                initColumns = [[]];
+                initColumns[0].push({ field: 'ProjNumber', title: '项目编号', halign: "center", align: "left", width: 120 });//可研
+                initColumns[0].push({ field: 'ProjName', title: '项目名称', halign: "center", align: "left", width: 180 });
+
+                initColumns[0].push({ field: 'CustName', title: '业主', halign: "center", align: "left", width: 180 });//研发
+                initColumns[0].push({ field: 'PhaseNames', title: '设计阶段', halign: "center", align: "left", width: 180 });
+
+                initColumns[0].push({ field: 'EmpName', title: '项目负责人', halign: "center", align: "center", width: 80 }); //评审
+                initColumns[0].push({ field: 'Rate', title: '完成进度', halign: "center", align: "center", width: 80 });
+
+                initColumns[0].push({ field: 'DateActualFinish', title: '完成时间', halign: "center", align: "center", width: 80, formatter: JQ.tools.DateTimeFormatterByT });//结题.宣贯
+                initColumns[0].push({ field: 'EventContent', title: '问题及备注', halign: "center", align: "left", width: 200 });
+            }
+            else {
+                return false;
+            }
+
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['export'],//需要显示的按钮
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'ProjReportGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '800',//弹出窗体宽
+                JQHeight: '780',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                queryParams: { ProjectType: '@((int)DataModel.ProjectType.主网类别)' },
+                JQIsSearch: true,
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#ProjReportPanel',//工具栏的容器ID
+                columns: initColumns
+            });
+        }
+
+    </script>
+}
+@section Body_Content{
+    <table id="ProjReportGrid"></table>
+
+    <div id="ProjReportPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <select id="ProjectType" name="ProjectType" style="width:100px;height:28px;" data-options="editable: false"></select>
+            阶段 <select id="ProjectPhase" name="ProjectPhase" style="width:100px;height:28px;" data-options="editable: false" JQWhereOptions="{ Key:'ProjectPhase', Contract:'in',filedType:'Int'}"></select>
+        </span>
+        <input id="JQSearch" style="width:250px;" jqwhereoptions="{ Key: 'txtLike', 'Contract': 'like' }" />
+    </div>
+}
+

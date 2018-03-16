@@ -1,0 +1,144 @@
+﻿@{
+    Layout = "~/Areas/Center/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css">
+    .status_block {
+        height: 24px;
+        width: 50px;
+        text-align: center;
+        border: 1px solid #777777;
+        line-height: 24px;
+        margin-left: 5px;
+        color: #444444;
+        border-radius: 2px;
+    }
+</style>
+<div id="divtoolbar" class="headtoolbar">
+    <div style="float:left;width:5px"></div>
+    <div class="headtoolbarbtn" onclick="frameElement.closeDialog()">
+        <span class="fa fa-close"></span>
+        <span>关闭</span>
+    </div>
+    <div>
+        <table style="height:36px;border-collapse:collapse;cursor:default;user-select:none">
+            <tr>
+                <td><div class="status_block" style="background-color:#EBEBEB;">等待</div></td>
+                <td><div class="status_block" style="background-color:#F6FA0F;">轮到</div></td>
+                <td><div class="status_block" style="background-color:#8ED2FF;">完成</div></td>
+                <td><div class="status_block" style="background-color:#FF9548;">退回</div></td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div id="divcontent">
+    <div id="div1" style="display:none;height:100%;width:100%;overflow:hidden" class="yc_viewport">
+    </div>
+    <div id="div2" style="display:none;">
+        <table id="grid"></table>
+    </div>
+</div>
+<link href="@(Url.Content("~/Content/chart/chart.tab.css"))" rel="stylesheet" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.tab.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.dialog.js"))"></script>
+<link rel="stylesheet" href="@(Url.Content("~/Content/chart/chart.css"))" />
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.processbuilder.js"))"></script>
+<script type="text/javascript" src="@(Url.Content("~/Content/chart/chart.shape.js"))"></script>
+<script type="text/javascript">
+    function init() {
+        var yTab = new YChart.Tab({
+            container: "divcontent",
+            offsetHeight: 0,
+            tabs: [
+                {
+                    name: "chart",
+                    title: "进度图",
+                    element: "div1",
+                    closable: false
+                }, {
+                    name: "actionlog",
+                    title: "流转记录",
+                    element: "div2",
+                    closable: false
+                }
+            ],
+            onSelect: function (tab) {
+                if (tab == "actionlog" && document.getElementById("grid").getAttribute("loaded")) {
+                    document.getElementById("grid").removeAttribute("loaded");
+                    $("#grid").datagrid("resize", { height: document.getElementById("div1").clientHeight, width: document.getElementById("div1").clientWidth })
+                }
+            }
+        });
+        initCanvas();
+        $("#grid").attr("loaded", "1").datagrid({
+            method: "post",
+            url: "@(Url.Action("GetActionLog", "Template", new { @area = "Process" }))",
+            queryParams: { processID: "@(Request.QueryString["id"])" },
+            idField: "ID",
+            singleSelect: true,
+            rownumbers: true,
+            border: false,
+            columns: [[
+                { title: "节点名称", field: "ActivityDisplayName", width: 100, align: "center", halign: "center" },
+                { title: "操作", field: "ActionName", width: 70, align: "center", halign: "center" },
+                { title: "操作人", field: "ActorName", width: 70, align: "center", halign: "center" },
+                { title: "代理操作人", field: "AgentActorName", width: 70, align: "center", halign: "center" },
+                {
+                    title: "操作时间", field: "TimeText", width: 130, align: "center", halign: "center",
+                },
+                {
+                    title: "内容", field: "Content", width: 200, align: "left", halign: "center"
+                },
+                {
+                    title: "意见", field: "Note", width: 200, align: "left", halign: "center"
+                }
+            ]],
+            height: document.getElementById("div1").clientHeight,
+            width: document.getElementById("div1").clientWidth,
+            pageSize: 15,
+            pagination: true,
+            pageList: [10, 15, 20, 30, 50]
+        }).datagrid("getPager").pagination({
+            beforePageText: '第',
+            afterPageText: '页    共 {pages} 页',
+            displayMsg: '当前显示 {from} - {to} 条记录   共 {total} 条记录'
+        });;
+    }
+
+    function initCanvas() {
+        var options = {
+            viewport: document.getElementById("div1"),
+            isViewMode: true
+        };
+        @{
+            if (Request.QueryString["id"] == null)
+            {
+                <text>
+        options.remote = {
+            url: "@(Url.Action("GetProcessTemplate", "Template",new { @area="Process" }))",
+            data: { id: "@(Request.QueryString["templateID"])" },
+            method: "POST",
+            dataType: "json"
+        }
+        </text>
+            }
+            else
+            {
+                <text>
+        options.remote = {
+            url: "@(Url.Action("GetProcess", "Template",new { @area="Process" }))",
+            data: { id: "@(Request.QueryString["id"])" },
+            method: "POST",
+            dataType: "json"
+        }
+        </text>
+            }
+        }
+        new YChart.Process(options);
+    }
+
+    window.onDialogLoaded = function () {
+        init();
+    }
+
+</script>

@@ -1,0 +1,63 @@
+﻿
+@using JQ.Web;
+<script type="text/javascript">
+    JQ.datagrid.datagrid({
+        JQPrimaryID: 'Id',//主键的字段
+        JQID: 'OaEquipmentGrid',//数据表格ID
+        JQDialogTitle: '设备选择',//弹出窗体标题
+        JQWidth: '1000',//弹出窗体宽
+        JQHeight: '600',//弹出窗体高
+        JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+        url: '@Url.Action("json", "OaEquipment", new { @area="Oa"})' + '?EquIds=@Request.QueryString["EquIds"]&EquipOrOffice=@Request.QueryString["EquipOrOffice"]',//请求的地址
+        checkOnSelect: true,//是否包含check
+        toolbar: '#OaEquipmentPanel',//工具栏的容器ID
+        columns: [[
+            { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+            { title: '设备编号', field: 'EquipNumber', width: 100, align: 'center', sortable: true },
+		    { title: '设备名称', field: 'EquipName', width: 250, align: 'center', sortable: true },
+            { title: '规格', field: 'EquipModel', width: 100, align: 'center', sortable: true },
+            { title: '库存', field: 'SJKC', width: 100, align: 'center', sortable: true }
+        ]]
+    });
+
+    $("#JQSearch").textbox({
+        buttonText: '筛选',
+        buttonIcon: 'fa fa-search',
+        height: 25,
+        prompt: '设备名称',
+        queryOptions: { Key: 'EquipName', Contract: 'like' },
+        onClickButton: function () {
+            JQ.datagrid.searchGrid(
+                {
+                    dgID: 'OaEquipmentGrid',
+                    loadingType: 'datagrid',
+                    queryParams: null
+                });
+        }
+    });
+
+    function selectReivew() {
+        var rows = $('#OaEquipmentGrid').datagrid('getSelections');
+        if (rows.length < 1) {
+            window.top.JQ.dialog.warning('您必须选择至少一项！！！');
+            return;
+        }
+        for (var rowindex = 0; rowindex < rows.length; rowindex++) {
+            insert(rows[rowindex]);
+        }
+        JQ.dialog.dialogClose();
+    }
+</script>
+
+
+
+<table id="OaEquipmentGrid"></table>
+<div id="OaEquipmentPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+    <span JQPanel="toolbarPanel">
+
+    </span>
+    <a id="btn" href="javascript:void(0);" class="easyui-linkbutton" data-options="iconCls:'fa fa-search'" onclick="selectReivew()">确定</a>
+    <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'EquipName', 'Contract': 'like' }" />
+</div>
+
+

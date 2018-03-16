@@ -1,0 +1,51 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+
+@section head {
+    @*左侧*@
+    <script type="text/javascript">
+
+        $(function () {
+
+            $('#lefttree').treegrid({
+                url: '@Url.Action("employeeByDepJson", "usercontrol", new { @area = "Core", state = "closed" })?permission=@ViewBag.permission  ',
+                idField: 'id',
+                treeField: 'text',
+                border: 0,
+                fit: true,
+                animate: true,
+                singleSelect: true,
+                queryParams: { permission: "@(ViewBag.Permission)", empID: "@(ViewBag.EmpID)", empDepID: "@(ViewBag.EmpDepID)" },
+                columns: [[
+                   { title: '', field: 'text', width: 240, align: 'left' }
+                ]],
+                onLoadSuccess: function (row, data) {
+
+                },
+                onSelect: function (node) {
+                    if (node.isEmp) {
+                        $("#rightframe").attr("src", 'TaskWorkList?ListType=@ViewBag.ListType&EmpId=' + node.empid + '&time=' + (new Date()).getTime());
+                    }
+                }
+            });
+
+            // 首次载入
+            $("#rightframe").attr("src", 'TaskWorkList?ListType=@ViewBag.ListType&EmpId=0&time=' + (new Date()).getTime());
+
+        });
+
+    </script>
+}
+
+@section Body_Content{
+    <div data-options="region:'west'" style="width:250px">
+        <table id="lefttree"></table>
+    </div>
+    <div id="ProjMainTab" data-options="region:'center',border:false">
+        <div style="width:100%; height:100%; overflow:hidden">
+            <iframe id="rightframe" src="about:blank;" style="width:100%;height:100%" frameborder="0"></iframe>
+        </div>
+    </div>
+
+}

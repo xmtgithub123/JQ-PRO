@@ -1,0 +1,122 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <style type="text/css">
+        .datagrid-header {
+            position: absolute;
+            visibility: hidden;
+        }
+    </style>
+    <script type="text/javascript">
+        $(function () {
+            $(function () {
+                var MbId = $("#MbId").val();
+                var myurls = '@Url.Action("treejson", "ArchTemplateFolder", new { @area= "Archive"})';
+                myurls += "?MbId=" + MbId;
+                $('#lefttree').treegrid({
+                    url: myurls,
+                    idField: 'id',
+                    treeField: 'text',
+                    border: 0,
+                    toolbar: '#tbleft',
+                    fit: true,
+                    animate: true,
+                    singleSelect: true,
+                    columns: [[
+                       { title: '', field: 'text', width: 300, align: 'left' }
+                    ]],
+                    onLoadSuccess: function (row, data) {
+                        FileBtnShow(true);
+                    },
+                    onSelect: function (node) {
+                        $("#AttID").val(node.id);
+                    }
+                });
+            });
+        });
+
+        function save(flag) {
+            var node = $("#lefttree").treegrid("getSelected");
+            if (!isNaN(node)) {
+                JQ.dialog.info("请选择");
+                return;
+            }
+            var id = node.id;
+            var Url = '';
+            if (flag == 1) {
+                Url = '@Url.Action("add", "ArchTemplateFolder", new {@area="Archive" })';
+                JQ.dialog.dialog({
+                    title: "模板目录项",
+                    url: Url + '?ParentId=' + id,
+                    width: '600',
+                    height: '400',
+                    iconCls: 'fa fa-plus',
+                    onClose: function () {
+                        $("#lefttree").treegrid('reload');
+                    }
+                });
+            }
+            else if (flag == 2) {
+                var row = $("#lefttree").treegrid("getSelected");
+                if (row._parentId != undefined) {
+                    Url = '@Url.Action("edit", "ArchTemplateFolder", new {@area="Archive" })';
+                    JQ.dialog.dialog({
+                        title: "模板目录项",
+                        url: Url + '?Id=' + id,
+                        width: '600',
+                        height: '400',
+                        iconCls: 'fa fa-plus',
+                        onClose: function () {
+                            $("#lefttree").treegrid('reload');
+                        }
+                    });
+                } else {
+                    JQ.dialog.warning("根节点不能编辑！");
+                }
+            }
+            else {
+                Url = '@Url.Action("del", "ArchTemplateFolder", new { @area = "Archive", })';
+                JQ.tools.ajax({
+                    doBackResult: true,
+                    url: Url,
+                    async: false,
+                    data: 'Id=' + id
+                });
+                $('#lefttree').treegrid('reload');
+                return;
+            }
+        }
+
+
+        function FileBtnShow(b) {
+            if (b) {
+                $("#fileadd").hide();
+                $("#fileedit").hide();
+                $("#filedel").hide();
+            }
+            else {
+                $("#fileadd").show();
+                $("#fileedit").show();
+                $("#filedel").show();
+            }
+        }
+    </script>
+    @RenderPage("~/Areas/Core/Views/Shared/_Init.cshtml")
+}
+
+@section Body_Content{
+    <div id="treePanel" class="easyui-layout" style="overflow: hidden" fit="true">
+        <div data-options="region:'center'" style="background:#eee;">
+            <table id="lefttree"></table>
+        </div>
+        <div id="tbleft" style="padding:5px;height:auto;">
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-plus'" JQPermissionName="add" onclick="save(1)">新增</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-pencil'" JQPermissionName="edit" onclick="save(2)">修改</a>
+            <a class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-trash'" JQPermissionName="del" onclick="save(3)">删除</a>
+        </div>
+    </div>
+    <input type="hidden" value="0" id="AttID" />
+    <input type="hidden" value="@ViewBag.MbId" id="MbId" />
+}

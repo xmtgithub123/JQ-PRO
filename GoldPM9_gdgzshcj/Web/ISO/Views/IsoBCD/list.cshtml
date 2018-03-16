@@ -1,0 +1,118 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoBCD",new { @area="Iso"})',
+               addUrl = '@Url.Action("add","IsoBCD",new {@area="Iso" })',
+               editUrl = '@Url.Action("edit", "IsoBCD",new {@area="Iso" })',
+               delUrl = '@Url.Action("del", "IsoBCD", new { @area = "Iso" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['add', 'edit', 'del', 'export'],//需要显示的按钮
+                JQAddUrl: addUrl, //添加的路径
+                JQEditUrl: editUrl,//编辑的路径
+                JQDelUrl: delUrl, //删除的路径
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'IsoBCDGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                JQSearch: {
+                    id: 'JQSearch',
+                    prompt: '项目编号、项目名称、册编号',
+                    loadingType: 'datagrid',//默认值为datagrid可以不传
+                },
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                JQExcludeCol: [1,9,10,11],//导出execl排除的列
+                fitColumns: false,
+                nowrap: false,
+                toolbar: '#IsoBCDPanel',//工具栏的容器ID
+                columns: [[
+                    { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                    { title: '项目编号', field: 'ProjNumber', width: 100, align: 'center', sortable: true },
+                    { title: '项目名称', field: 'ProjName', width: 300, align: 'center', sortable: true },
+                    { title: '工程类别', field: 'ProjTypeName', width: 100, align: 'center', sortable: true },
+                    { title: '卷册编号', field: 'JCNumber', width: 100, align: 'center', sortable: true },
+                    { title: '报出数量', field: 'BCS', width: 100, align: 'center', sortable: true },
+                    { title: '存档数量', field: 'CDS', width: 100, align: 'center', sortable: true },
+                    { title: '自留数量', field: 'ZL', width: 100, align: 'center', sortable: true },
+                    {
+                        field: "FlowProgress", title: "流程进度", align: "left", halign: "center", width: "8%", formatter: JQ.Flow.showProgress("FlowID", "FlowName", "FlowStatusID", "FlowStatusName", "FlowTurnedEmpIDs", "CreatorEmpId", "@(ViewBag.CurrEmpID)")
+                    },
+                    { field: 'JQFiles', title: '附件', align: 'center', width: 80, JQIsExclude: true, JQRefTable: 'IsoBCD' },
+                    {
+                        field: 'opt', title: '操作', width: "40", align: 'center', JQIsExclude: true,
+                        formatter: function (value, row, index) {
+                            console.log(row);
+                            var title = "查看";
+                            var titleNum=0;
+                            if (row._EditStatus == 1) {
+                                title = "修改";
+                                titleNum=1;
+                            }
+                            else if (row._EditStatus == 2) {
+                                title = "处理";
+                                titleNum=2;
+                            }
+                            return '<a class="easyui-linkbutton" onclick="Look('+titleNum+',' + row.Id + ')">' + title + '</a>';
+                        }
+                    }
+                ]],
+                onBeforeCheck: function (rowIndex, rowData) {
+                    return rowData._AllowCheck;
+                },
+                onClickRow: function (rowIndex, rowData) {
+                    if (!rowData._AllowCheck) {
+                        $(this).datagrid('unselectRow', rowIndex);
+                    }
+                },
+                onLoadSuccess: function (data) {
+                    $("div.datagrid-header-check input[type='checkbox']").attr("style", "display:none");
+                    var rowViews = $("#IsoBCDGrid").parent().find(".datagrid-view2 .datagrid-body tr.datagrid-row");
+                    for (var i = 0; i < data.rows.length; i++) {
+                        if (!data.rows[i]._AllowCheck) {
+                            rowViews.filter("[datagrid-row-index='" + i + "']").find("td[field='ck'] :checkbox").prop("disabled", "disabled");
+                        }
+                    }
+                }
+            });
+        });
+
+        function Look(title, val) {
+            var actionFlag
+            if (title == 0) {
+                actionFlag = "Look";
+            }
+            JQ.dialog.dialog({
+                title: "设计报出单",
+                url: editUrl + "?ActionFlag="+actionFlag+"&Id=" + val,
+                width: '1000',
+                height: '100%',
+                JQLoadingType: 'datagrid',
+                iconCls: 'fa fa-search',
+                onClose: function () {
+                    $("#IsoBCDGrid").datagrid("reload");
+                }
+
+            });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="IsoBCDGrid"></table>
+    <div id="IsoBCDPanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+
+        </span>
+
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ 'Key': 'ProjNumber,ProjName,JCNumber', 'Contract': 'like' }" />
+
+    </div>
+}
+

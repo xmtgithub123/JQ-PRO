@@ -1,0 +1,134 @@
+﻿@{
+    Layout = "~/Areas/Core/Views/Shared/_Layout.cshtml";
+}
+@using JQ.Web;
+
+@section head {
+    <script type="text/javascript">
+        var requestUrl = '@Url.Action("json", "IsoAbstract", new { @area="ISO"})',
+               editUrl = '@Url.Action("edit", "IsoAbstract", new {@area= "ISO" })';
+        $(function () {
+            JQ.datagrid.datagrid({
+                JQButtonTypes: ['moreSearch'],//需要显示的按钮
+                JQIsSearch: true,
+                JQPrimaryID: 'Id',//主键的字段
+                JQID: 'tableGrid',//数据表格ID
+                JQDialogTitle: '信息',//弹出窗体标题
+                JQWidth: '1024',//弹出窗体宽
+                JQHeight: '100%',//弹出窗体高
+                JQLoadingType: 'datagrid',//数据表格类型 [datagrid,treegrid]
+                JQFields: ["Id"],//追加的字段名
+                url: requestUrl,//请求的地址
+                checkOnSelect: true,//是否包含check
+                toolbar: '#tablePanel',//工具栏的容器ID
+                JQExcludeCol: [1, 9],
+                JQIsSearch: true,//是否加载数据之前就获取搜索参数值，可在搜索控件中添加默认值(默认为false)
+                columns: [[
+                  { field: 'ck', align: 'center', checkbox: true, JQIsExclude: true },
+                  { title: '项目编号', field: 'ProjNumber', width: "10%", halign: 'center', align: 'left', sortable: true },
+                  { title: '项目名称', field: 'ProjName', width: "15%", halign: 'center', align: 'left', sortable: true },
+	              { title: '阶段', field: 'PhaseName', width: "10%", halign: 'center', align: 'left', sortable: true },
+                  { title: '专业', field: 'SpecialName', width: "10%", halign: 'center', align: 'left', sortable: true },
+                  { title: '卷册信息', field: 'TaskName', width: "10%", halign: 'center', align: 'left', sortable: true },
+                  { title: '错误类型', field: 'ErrorTypeName', width: "80", halign: 'center', align: 'center', sortable: true },
+                  { title: '错误描述', field: 'CheckNote', width: "15%", halign: 'center', align: 'left', sortable: true },
+                  { title: '设计人', field: 'DesignEmpName', width: 80, halign: 'center', align: 'center', sortable: true },
+                  { title: '提出人', field: 'CheckEmpName', width: 80, halign: 'center', align: 'center', sortable: true }
+                ]],
+                queryParams: {
+                    'ModelIsoCheckID': '-1'
+                }
+            });
+
+            $("#JQSearch").textbox({
+                buttonText: '筛选',
+                buttonIcon: 'fa fa-search',
+                height: 25,
+                prompt: '错误描述',
+                onClickButton: function () {
+                    JQ.datagrid.searchGrid(
+                        {
+                            dgID: 'tableGrid',
+                            loadingType: 'datagrid',
+                            queryParams: {
+                                'ModelIsoCheckID': '-1'
+                            }
+                        });
+                }
+            });
+        });
+
+
+
+        function setExtract() {
+            var selections = $("#tableGrid").datagrid("getSelections");
+            if (selections.length < 1) {
+                window.top.JQ.dialog.warning('您必须选择至少一项进行差错模板导入！！！');
+                return;
+            }
+            var idSet = "";
+            for (var i = 0; i < selections.length; i++) {
+                if (i != 0) {
+                    idSet += ",";
+                }
+                idSet += selections[i].Id;
+            }
+            var confirmed = function () {
+                window.top.$.messager.progress();
+                $.ajax({
+                    url: "@(Url.Action("setExtract", "IsoAbstract", new { @area= "ISO" }))",
+                    type: "POST",
+                    data: { idSet: idSet },
+                    success: function (result) {
+                        if (result.Result == false) {
+                            JQ.dialog.alert("操作失败！");
+                            return;
+                        }
+                        window.refreshGrid();
+                    }, complete: function () {
+                        window.top.$.messager.progress("close");
+                    }
+                });
+            };
+            JQ.dialog.confirm("确定要将选中的消息导入到差错模板吗？", confirmed);
+        }
+
+        window.refreshGrid = function () {
+            JQ.datagrid.searchGrid(
+                       {
+                           dgID: 'tableGrid',
+                           loadingType: 'datagrid',
+                           queryParams: {
+                               'ModelIsoCheckID': '-1'
+                           }
+                       });
+        }
+    </script>
+}
+
+@section Body_Content{
+    <table id="tableGrid"></table>
+    <div id="tablePanel" JQPanel="searchPanel" style="padding:5px;height:auto;">
+        <span JQPanel="toolbarPanel">
+            <a href="javascript:void(0)" class="easyui-linkbutton" data-options="plain:true,iconCls:'fa fa-check-circle'" onclick="setExtract()">导入模板库</a>
+        </span>
+        &nbsp;&nbsp;<span class='datagrid-btn-separator' style='vertical-align: middle; height: 22px;display:inline-block;float:none'></span>&nbsp;&nbsp;&nbsp;
+        <select id="isStartSearch" class="easyui-combobox" JQWhereOptions="[{ Key:'IsExtract', Contract:'=',filedType:'Int'}]">
+            <option value="0" selected="selected">未提取</option>
+            <option value="1">已提取</option>
+        </select>&nbsp;
+        <input id="JQSearch" style="width:250px;" JQWhereOptions="{ Key: 'CheckNote', 'Contract': 'like' }" />
+
+        <div class="moreSearchPanel">
+            @BaseData.getBases(
+           new Params() { isMult = true, engName = "ProjectPhase", queryOptions = "{ Key:'PhaseID', Contract:'in',filedType:'Int'}", })
+
+            @BaseData.getBases(
+           new Params() { isMult = true, engName = "Special", queryOptions = "{ Key:'SpecialID', Contract:'in',filedType:'Int'}", })
+
+            @BaseData.getBaseDataSystem(
+           new Params() { isMult = true, engName = "DesignErrorType", queryOptions = "{ Key:'CheckErrTypeID', Contract:'in',filedType:'Int'}", })
+        </div>
+    </div>
+}
+
